@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Bell, Plus, Clock, BookOpen, Smartphone, MessageCircle, Loader2, Sparkles, MapPin, Trash2, Home, GraduationCap, Briefcase, Building2, Map, Layers, AlarmClock } from 'lucide-react';
+import { Bell, Plus, Clock, BookOpen, Smartphone, MessageCircle, Loader2, Sparkles, MapPin, Trash2, Home, GraduationCap, Briefcase, Building2, Map, Layers, AlarmClock, Grid2x2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { AppHeader } from '@/components/layout/AppHeader';
+import { PageHeader } from '@/components/vademecum/PageHeader';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,7 +38,7 @@ const MeusLembretes = () => {
   const [rows, setRows] = useState<UnifiedReminder[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'reading' | 'location' | 'other'>('all');
+  const [filter, setFilter] = useState<'all' | 'time' | 'reading' | 'location'>('all');
   const [reminderToDelete, setReminderToDelete] = useState<UnifiedReminder | null>(null);
 
   const load = async () => {
@@ -125,18 +125,43 @@ const MeusLembretes = () => {
 
   const filteredRows = rows.filter(r => {
     if (filter === 'all') return true;
-    if (filter === 'other') return false; // Adicionar outras categorias futuramente
-    return r._type === filter;
+    if (filter === 'location') return r._type === 'location';
+    if (filter === 'reading') return r._type === 'reading' && r.raw.livro_id;
+    if (filter === 'time') return r._type === 'reading' && !r.raw.livro_id;
+    return true;
   });
+
+  const getButtonClasses = () => {
+    if (filter === 'location') return "border-emerald-500/50 bg-emerald-500/5 text-emerald-500 hover:bg-emerald-500/10";
+    if (filter === 'reading') return "border-blue-500/50 bg-blue-500/5 text-blue-500 hover:bg-blue-500/10";
+    return "border-primary/50 bg-primary/5 text-primary hover:bg-primary/10";
+  };
+
+  const handleNovoLembrete = () => {
+    if (filter === 'location') {
+      navigate('/lembretes/local');
+    } else {
+      setEditing(null);
+      setSheetOpen(true);
+    }
+  };
 
   return (
     <div className="min-h-dvh bg-background">
-      <AppHeader title="Meus lembretes" />
+      <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-md">
+        <div className="max-w-3xl mx-auto">
+          <PageHeader
+            title="Meus Lembretes"
+            subtitle=""
+            onBack={() => navigate(-1)}
+          />
+        </div>
+      </header>
 
-      <div className="p-4 max-w-2xl mx-auto space-y-3 pb-32">
+      <div className="p-4 max-w-2xl mx-auto space-y-3 pb-32 mt-2">
         <button
-          onClick={() => { setEditing(null); setSheetOpen(true); }}
-          className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/50 bg-primary/5 text-primary font-body font-semibold flex items-center justify-center gap-2 hover:bg-primary/10 transition"
+          onClick={handleNovoLembrete}
+          className={`w-full h-14 rounded-2xl border-2 border-dashed font-body font-semibold flex items-center justify-center gap-2 transition ${getButtonClasses()}`}
         >
           <Plus className="w-5 h-5" />
           Novo lembrete
@@ -159,10 +184,10 @@ const MeusLembretes = () => {
                   if (r._type === 'reading') {
                     setEditing(r.raw); setSheetOpen(true); 
                   } else {
-                    navigate('/pessoal/lembretes-local');
+                    navigate('/lembretes/local');
                   }
                 }}
-                className="w-full p-4 flex gap-3 text-left"
+                className="w-full p-4 flex gap-3 text-left hover:bg-secondary/30 transition-colors"
               >
                 {r.image ? (
                   <img src={r.image} alt="" className="w-14 h-20 rounded-lg object-cover" />
@@ -245,8 +270,9 @@ const MeusLembretes = () => {
       {/* Bottom Menu (App Style - 100% igual ao inicio) */}
       <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
         <div className="pointer-events-auto bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] md:border md:rounded-full md:shadow-2xl md:shadow-black/30 md:pb-0">
-          <div className="grid grid-cols-4 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto md:gap-2 md:px-4 md:py-2">
-            <FilterTab icon={AlarmClock} label="Horário" active={filter === 'all'} onClick={() => setFilter('all')} />
+          <div className="grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto md:gap-2 md:px-4 md:py-2">
+            <FilterTab icon={Grid2x2} label="Todos" active={filter === 'all'} onClick={() => setFilter('all')} />
+            <FilterTab icon={AlarmClock} label="Horário" active={filter === 'time'} onClick={() => setFilter('time')} />
             <FilterTab icon={Map} label="Geolocalização" active={filter === 'location'} onClick={() => setFilter('location')} />
             <FilterTab icon={BookOpen} label="Leitura" active={filter === 'reading'} onClick={() => setFilter('reading')} />
             <FilterTab icon={Layers} label="Áreas" active={false} onClick={() => navigate('/biblioteca')} />
