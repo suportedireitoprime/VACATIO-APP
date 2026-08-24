@@ -5,6 +5,7 @@ import { lazy, Suspense, useState } from 'react';
 import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { DESKTOP_TOOL_GROUPS, DESKTOP_TOOLS_FLAT } from '@/config/desktopTools';
+import TematicaCarrossel from '@/components/ferramentas/TematicaCarrossel';
 
 const DicionarioJuridico = lazy(() => import('@/components/ferramentas/DicionarioJuridico'));
 
@@ -28,104 +29,105 @@ const Ferramentas = () => {
   const itemDicionario = DESKTOP_TOOLS_FLAT.find(t => t.id === 'dicionario');
   const itemBoletins = DESKTOP_TOOLS_FLAT.find(t => t.id === 'boletins');
   const itemOffline = DESKTOP_TOOLS_FLAT.find(t => t.id === 'offline');
-  const itemTematica = DESKTOP_TOOLS_FLAT.find(t => t.id === 'tematica');
-  const usedIds = new Set(['desktop', 'dicionario', 'boletins', 'offline', 'tematica']);
-  const remainingTools = DESKTOP_TOOLS_FLAT.filter(t => !usedIds.has(t.id));
-
-  const renderSmallCard = (tool: any, index: number) => {
-    if (!tool) return null;
-    const Icon = tool.icon;
-    return (
-      <motion.button
-        key={tool.id}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.05 }}
-        onClick={() => handleToolClick(tool.id, tool.route)}
-        className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all text-center aspect-[4/3]"
-      >
-        <span
-          className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm mb-1"
-          style={{ backgroundColor: `${tool.color}1A` }}
-        >
-          <Icon className="h-6 w-6" style={{ color: tool.color }} strokeWidth={1.6} />
-        </span>
-        <span className="font-display text-[13px] font-bold text-foreground leading-tight">
-          {tool.label}
-        </span>
-      </motion.button>
-    );
-  };
-
-  const renderListCard = (tool: any, index: number) => {
-    if (!tool) return null;
-    const Icon = tool.icon;
-    return (
-      <motion.button
-        key={tool.id}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.05 }}
-        onClick={() => handleToolClick(tool.id, tool.route)}
-        className="flex items-center gap-4 p-5 min-h-[80px] rounded-xl bg-card border border-border hover:border-primary/40 transition-all group w-full text-left"
-      >
-        <span
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl shadow-sm"
-          style={{ backgroundColor: `${tool.color}1A` }}
-        >
-          <Icon className="h-6 w-6" style={{ color: tool.color }} strokeWidth={1.6} />
-        </span>
-        <div className="flex-1 min-w-0">
-          <p className="font-display text-[15px] font-bold text-foreground group-hover:text-primary transition-colors">
-            {tool.label}
-          </p>
-          <p className="text-[13px] text-muted-foreground mt-0.5 leading-snug truncate">
-            {tool.desc}
-          </p>
-        </div>
-        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-      </motion.button>
-    );
-  };
+  
+  const primaryTools = [itemDesktop, itemDicionario, itemBoletins, itemOffline].filter(Boolean);
+  const primaryIds = primaryTools.map(t => t?.id);
+  // Tematica will be handled separately by the carousel, so we exclude it from the list
+  const usedIds = new Set([...primaryIds, 'tematica']);
+  const secondaryTools = DESKTOP_TOOLS_FLAT.filter(t => !usedIds.has(t.id));
 
   const toolsList = (
-    <div className="space-y-4 pb-8">
-      {/* Grid Superior */}
-      <div className="grid grid-cols-2 gap-3">
-        {renderSmallCard(itemDesktop, 0)}
-        {renderSmallCard(itemDicionario, 1)}
-        {renderSmallCard(itemBoletins, 2)}
-        {renderSmallCard(itemOffline, 3)}
-      </div>
+    <div className="space-y-8">
+      <section className="space-y-3">
+        <div className="flex items-baseline gap-2 pb-1 border-b border-border/40 px-1">
+          <h2 className="font-display text-lg font-bold text-foreground">Destaques</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {primaryTools.map((tool, i) => {
+            if (!tool) return null;
+            const Icon = tool.icon;
+            return (
+              <motion.button
+                key={tool.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04 }}
+                onClick={() => handleToolClick(tool.id, tool.route)}
+                data-track="ferramenta_abrir"
+                data-ferramenta-id={tool.id}
+                data-ferramenta-nome={tool.label}
+                className="flex flex-col items-start justify-between p-4 rounded-2xl bg-card border border-border/60 shadow-sm hover:border-primary/40 active:scale-[0.99] transition-all group text-left gap-3 relative"
+              >
+                <div className="flex justify-between items-start w-full">
+                  <Icon
+                    className="w-8 h-8"
+                    style={{
+                      color: tool.color,
+                      filter: 'saturate(1.35) brightness(1.15) drop-shadow(0 2px 6px rgba(0,0,0,0.45))',
+                    }}
+                    strokeWidth={1.15}
+                  />
+                  <ChevronRight className="w-5 h-5 text-muted-foreground/40 group-hover:text-primary transition-colors shrink-0" />
+                </div>
+                <div className="flex flex-col items-start w-full mt-auto gap-0.5">
+                  <span className="font-display text-[14px] font-bold leading-tight text-foreground line-clamp-1 w-full">
+                    {tool.label}
+                  </span>
+                  <span className="text-[11px] font-medium text-muted-foreground line-clamp-1 w-full text-left">
+                    {tool.desc}
+                  </span>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      </section>
 
-      {/* Carrossel / Destaque Temática Jurídica */}
-      {itemTematica && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="w-full"
-        >
-          {/* Se houver mais de um item no futuro, basta usar flex overflow-x-auto aqui */}
-          <button
-            onClick={() => handleToolClick(itemTematica.id, itemTematica.route)}
-            className="w-full relative overflow-hidden rounded-2xl aspect-[21/9] bg-gradient-to-br from-[#0891B2] to-[#164E63] text-left p-5 flex flex-col justify-end border border-white/10 shadow-lg active:scale-[0.98] transition-transform"
-          >
-            <div className="absolute inset-0 bg-black/20" />
-            <div className="relative z-10">
-              <itemTematica.icon className="w-8 h-8 text-white/90 mb-2" />
-              <div className="font-display text-lg font-black text-white">{itemTematica.label}</div>
-              <div className="text-sm text-white/70">{itemTematica.desc}</div>
-            </div>
-          </button>
-        </motion.div>
-      )}
+      <section className="mt-2 -mx-2">
+        <TematicaCarrossel />
+      </section>
 
-      {/* Lista Restante */}
-      <div className="space-y-3 pt-2">
-        <h3 className="font-display text-sm font-bold text-muted-foreground px-1 pb-1">OUTRAS FERRAMENTAS</h3>
-        {remainingTools.map((tool, i) => renderListCard(tool, i + 4))}
-      </div>
+      <section className="space-y-3 mt-4">
+        <div className="flex items-baseline gap-2 pb-1 border-b border-border/40 px-1">
+          <h2 className="font-display text-lg font-bold text-foreground">Explorar</h2>
+        </div>
+        <div className="space-y-3">
+          {secondaryTools.map((tool, i) => {
+            const Icon = tool.icon;
+            return (
+              <motion.button
+                key={tool.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: (i + primaryTools.length) * 0.04 }}
+                onClick={() => handleToolClick(tool.id, tool.route)}
+                data-track="ferramenta_abrir"
+                data-ferramenta-id={tool.id}
+                data-ferramenta-nome={tool.label}
+                className="flex items-center gap-3 px-4 h-[76px] rounded-2xl bg-card border border-border/60 shadow-sm hover:border-primary/40 active:scale-[0.99] transition-all group w-full"
+              >
+                <Icon
+                  className="w-8 h-8 shrink-0"
+                  style={{
+                    color: tool.color,
+                    filter: 'saturate(1.35) brightness(1.15) drop-shadow(0 2px 6px rgba(0,0,0,0.45))',
+                  }}
+                  strokeWidth={1.15}
+                />
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="font-display text-[15.5px] font-bold leading-tight truncate text-foreground">
+                    {tool.label}
+                  </p>
+                  <p className="font-body text-muted-foreground text-[12px] leading-tight truncate mt-0.5">
+                    {tool.desc}
+                  </p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+              </motion.button>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 
