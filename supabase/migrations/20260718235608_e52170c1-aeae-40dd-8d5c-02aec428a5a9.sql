@@ -1,0 +1,1 @@
+ALTER TABLE public.concorrentes ADD COLUMN IF NOT EXISTS job_logs jsonb NOT NULL DEFAULT '[]'::jsonb;

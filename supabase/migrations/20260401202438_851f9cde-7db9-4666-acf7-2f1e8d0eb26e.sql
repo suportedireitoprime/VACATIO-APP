@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS artigo_ai_cache_tabela_artigo_modo_uniq ON public.artigo_ai_cache (tabela_nome, artigo_numero, modo);

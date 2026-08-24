@@ -1,0 +1,1 @@
+ALTER TABLE public.apple_csr_storage ADD CONSTRAINT apple_csr_storage_user_id_key UNIQUE (user_id);

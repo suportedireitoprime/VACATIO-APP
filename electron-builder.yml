@@ -1,0 +1,69 @@
+appId: app.lovable.vademecum.desktop
+productName: Vade Mecum Comentado
+copyright: Copyright © 2026 Vade Mecum Comentado
+
+directories:
+  buildResources: electron/build
+  output: electron-release
+
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+  - "!**/node_modules/**/{README.md,readme.md,CHANGELOG.md,*.d.ts,*.map}"
+
+asar: true
+compression: maximum
+electronLanguages:
+  - pt-BR
+  - en
+
+win:
+  # Metadados que aparecem nas Propriedades do .exe e no diálogo do UAC.
+  # Ajudam o SmartScreen a diferenciar de malware (menos falso positivo).
+  publisherName: "Vacatio"
+  legalTrademarks: "Vacatio"
+  requestedExecutionLevel: asInvoker      # não roda como admin
+  verifyUpdateCodeSignature: false        # sem cert EV, não valida assinatura no auto-update
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  artifactName: "VadeMecum-Setup-${version}.${ext}"
+
+nsis:
+  oneClick: false                         # instalador multi-etapa (Next → Next → Install)
+  perMachine: false                       # instala pro usuário (não pede admin)
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Vade Mecum
+  license: electron/build/LICENSE.txt     # EULA em pt-BR — obriga aceite
+  differentialPackage: false              # pacote monolítico (SmartScreen desconfia menos de diffs)
+  include: electron/installer.nsh         # grava HKCU\Software\Vacatio\VadeMecum
+  uninstallDisplayName: "Vade Mecum Comentado"
+  deleteAppDataOnUninstall: false
+
+mac:
+  category: public.app-category.reference
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: electron/entitlements.mac.plist
+  entitlementsInherit: electron/entitlements.mac.plist
+  artifactName: "VadeMecum-${version}-${arch}.${ext}"
+
+dmg:
+  title: "Vade Mecum ${version}"
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  category: Education
+  artifactName: "VadeMecum-${version}.${ext}"

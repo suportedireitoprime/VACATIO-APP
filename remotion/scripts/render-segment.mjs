@@ -1,0 +1,44 @@
+import { bundle } from "@remotion/bundler";
+import { renderMedia, selectComposition, openBrowser } from "@remotion/renderer";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const segmentId = process.argv[2] || "segment-1";
+const outputPath = process.argv[3] || `/tmp/${segmentId}.mp4`;
+
+console.log(`Bundling for ${segmentId}...`);
+const bundled = await bundle({
+  entryPoint: path.resolve(__dirname, "../src/index.ts"),
+  webpackOverride: (config) => config,
+});
+
+console.log("Opening browser...");
+const browser = await openBrowser("chrome", {
+  browserExecutable: process.env.PUPPETEER_EXECUTABLE_PATH ?? "/nix/var/nix/profiles/sandbox/bin/chromium",
+  chromiumOptions: {
+    args: ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"],
+  },
+  chromeMode: "chrome-for-testing",
+});
+
+console.log("Selecting composition...");
+const composition = await selectComposition({
+  serveUrl: bundled,
+  id: segmentId,
+  puppeteerInstance: browser,
+});
+
+console.log(`Rendering ${segmentId} (${composition.durationInFrames} frames)...`);
+await renderMedia({
+  composition,
+  serveUrl: bundled,
+  codec: "h264",
+  outputLocation: outputPath,
+  puppeteerInstance: browser,
+  muted: true,
+  concurrency: 1,
+});
+
+console.log(`Done: ${outputPath}`);
+await browser.close({ silent: false });

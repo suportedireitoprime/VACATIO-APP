@@ -1,0 +1,4 @@
+ALTER TABLE public.apple_csr_storage 
+  ADD COLUMN IF NOT EXISTS p12_base64 TEXT,
+  ADD COLUMN IF NOT EXISTS p12_password TEXT,
+  ADD COLUMN IF NOT EXISTS p12_updated_at TIMESTAMPTZ;

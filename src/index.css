@@ -1,0 +1,1060 @@
+/* Fontes movidas para index.html (preconnect + preload async) para não bloquear render. */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+ * Edge-to-edge (Android 15+ / iOS notch)
+ * Expõe --sai-* como alias de env(safe-area-inset-*). Componentes
+ * fixed (headers, bottom nav, sheets) já usam env(safe-area-inset-*)
+ * diretamente; o alias fica disponível para overrides via style().
+ * A MainActivity nativa liga edge-to-edge com EdgeToEdge.enable(),
+ * evitando as APIs deprecadas Window.setStatusBarColor/*.
+ * ============================================================ */
+:root {
+  --sai-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --sai-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --sai-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --sai-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+}
+
+/* No Android WebView com edge-to-edge, env(safe-area-inset-*) NÃO é propagado
+ * mesmo com viewport-fit=cover. A MainActivity nativa lê os insets em Java e
+ * injeta --sai-top/right/bottom/left no :root via JS. Componentes fixos/sticky
+ * devem ler `var(--sai-*, env(safe-area-inset-*, 0px))` — o body NÃO recebe
+ * padding porque isso desloca o padding-box de headers sticky (dobra o inset
+ * no iOS). */
+html {
+  background-color: hsl(var(--background));
+}
+
+/* ============================================================
+ * Otimização mobile: backdrop-filter é uma das operações mais caras
+ * na GPU de celulares. Em telas <= 768px substituímos por um fundo
+ * opaco, mantendo o visual sem o custo de paint durante navegação.
+ * ============================================================ */
+@media (max-width: 768px) {
+  .backdrop-blur-sm,
+  .backdrop-blur,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl,
+  .backdrop-blur-3xl {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+/* Pausa animações CSS enquanto a página está oculta (troca de rota),
+ * evita janks quando o usuário volta pra home. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+body {
+  background-color: hsl(var(--background));
+  box-sizing: border-box;
+  min-height: 100dvh;
+}
+#root {
+  min-height: 100dvh;
+  /* Reserva a área da barra de navegação (Android edge-to-edge / iOS home indicator)
+   * como padding do container em fluxo. Não afeta elementos position:fixed,
+   * que continuam usando env(safe-area-inset-*) diretamente. */
+  padding-bottom: var(--sai-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+/* Utilitários de safe-area (Android + iOS). */
+.pt-safe { padding-top: var(--sai-top, env(safe-area-inset-top, 0px)); }
+.pb-safe { padding-bottom: var(--sai-bottom, env(safe-area-inset-bottom, 0px)); }
+.pl-safe { padding-left: var(--sai-left, env(safe-area-inset-left, 0px)); }
+.pr-safe { padding-right: var(--sai-right, env(safe-area-inset-right, 0px)); }
+
+/* Tablet: a navegação agora é uma barra inferior flutuante (BottomNav),
+ * portanto o body ocupa a largura total sem reservar espaço lateral. */
+
+
+
+
+@layer base {
+  :root {
+    /* Vacatio v2 — Preto + Amarelo Hazard + Cinza Neutro */
+    --background: 0 0% 4%;              /* #0A0A0A */
+    --foreground: 45 15% 96%;
+
+    --card: 0 0% 8%;                    /* #141414 */
+    --card-foreground: 45 15% 96%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 45 15% 96%;
+
+    --primary: 51 100% 50%;             /* #FFD500 hazard yellow */
+    --primary-foreground: 0 0% 4%;
+    --primary-light: 51 100% 62%;
+
+    --secondary: 0 0% 12%;              /* #1F1F1F */
+    --secondary-foreground: 45 15% 92%;
+
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 62%;
+
+    --accent: 51 100% 50%;
+    --accent-foreground: 0 0% 4%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 16%;                 /* #2A2A2A */
+    --input: 0 0% 16%;
+    --ring: 51 100% 50%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 45 15% 92%;
+    --sidebar-primary: 51 100% 50%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 45 15% 92%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 51 100% 50%;
+
+    /* Legacy aliases still referenced in code — mapped to yellow */
+    --copper: 51 100% 50%;
+    --copper-light: 51 100% 68%;
+    --copper-dark: 48 90% 42%;
+    --signature: 51 100% 50%;
+    --gold-accent: 51 100% 50%;
+
+    /* Cores reais para ícones de ferramentas (não afetadas pelo mono mapping) */
+    --tool-cyan: 180 80% 45%;
+    --tool-sky: 200 90% 60%;
+    --tool-rose: 340 75% 60%;
+    --tool-emerald: 150 70% 45%;
+    --tool-violet: 260 70% 65%;
+    --tool-yellow: 51 100% 50%;
+    --tool-pink: 330 80% 65%;
+    --tool-orange: 25 90% 55%;
+    --tool-amber: 40 90% 55%;
+    --tool-fuchsia: 300 80% 60%;
+    --tool-red: 0 75% 55%;
+
+    /* Cores dos provedores de autenticação (tags admin) */
+    --provider-google: 217 89% 60%;
+    --provider-google-foreground: 0 0% 100%;
+    --provider-email: 25 95% 53%;
+    --provider-email-foreground: 0 0% 4%;
+    --provider-apple: 0 0% 100%;
+    --provider-apple-foreground: 0 0% 4%;
+
+    /* Novos tokens de motion/superfície */
+    --shadow-hazard: 0 12px 40px -12px hsl(51 100% 50% / 0.45);
+    --stripe-tape: repeating-linear-gradient(
+      45deg,
+      hsl(51 100% 50%) 0 14px,
+      hsl(0 0% 4%) 14px 28px
+    );
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Barlow', system-ui, sans-serif;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bebas Neue', 'Barlow Condensed', system-ui, sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.075em;
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: 'Bebas Neue', 'Barlow Condensed', system-ui, sans-serif; letter-spacing: 0.075em; }
+  .font-body    { font-family: 'Barlow', system-ui, sans-serif; }
+  .font-legal   { font-family: 'Barlow', Georgia, serif; }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)), hsl(var(--primary)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Amarelo padrão do app (mesmo do painel amarelo da home) */
+  .bg-hero-yellow {
+    background: linear-gradient(135deg, #EFE039 0%, #F5EA5A 50%, #EFE039 100%);
+    color: #000;
+  }
+  .bg-hero-yellow-soft {
+    background: linear-gradient(135deg, rgba(239,224,57,0.9) 0%, rgba(245,234,90,0.9) 50%, rgba(239,224,57,0.9) 100%);
+    color: #000;
+  }
+  .tab-hero-yellow[data-state="active"] {
+    background: linear-gradient(135deg, #EFE039 0%, #F5EA5A 50%, #EFE039 100%) !important;
+    color: #000 !important;
+  }
+
+
+  .hazard-tape {
+    background: var(--stripe-tape);
+  }
+
+  .shadow-hazard { box-shadow: var(--shadow-hazard); }
+
+  .cv-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 96px;
+  }
+  .cv-auto-lg {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 160px;
+  }
+  .will-change-transform-opacity {
+    will-change: transform, opacity;
+  }
+
+  /* Cores reais para ícones de ferramentas (fora do mono mapping) */
+  .bg-tool-cyan    { background-color: hsl(var(--tool-cyan) / 0.25); }
+  .text-tool-cyan  { color: hsl(var(--tool-cyan)); }
+  .ring-tool-cyan  { box-shadow: inset 0 0 0 1px hsl(var(--tool-cyan) / 0.4); }
+
+  .bg-tool-sky    { background-color: hsl(var(--tool-sky) / 0.25); }
+  .text-tool-sky  { color: hsl(var(--tool-sky)); }
+  .ring-tool-sky  { box-shadow: inset 0 0 0 1px hsl(var(--tool-sky) / 0.4); }
+
+  .bg-tool-rose    { background-color: hsl(var(--tool-rose) / 0.25); }
+  .text-tool-rose  { color: hsl(var(--tool-rose)); }
+  .ring-tool-rose  { box-shadow: inset 0 0 0 1px hsl(var(--tool-rose) / 0.4); }
+
+  .bg-tool-emerald    { background-color: hsl(var(--tool-emerald) / 0.25); }
+  .text-tool-emerald  { color: hsl(var(--tool-emerald)); }
+  .ring-tool-emerald  { box-shadow: inset 0 0 0 1px hsl(var(--tool-emerald) / 0.4); }
+
+  .bg-tool-violet    { background-color: hsl(var(--tool-violet) / 0.25); }
+  .text-tool-violet  { color: hsl(var(--tool-violet)); }
+  .ring-tool-violet  { box-shadow: inset 0 0 0 1px hsl(var(--tool-violet) / 0.4); }
+
+  .bg-tool-yellow    { background-color: hsl(var(--tool-yellow) / 0.25); }
+  .text-tool-yellow  { color: hsl(var(--tool-yellow)); }
+  .ring-tool-yellow  { box-shadow: inset 0 0 0 1px hsl(var(--tool-yellow) / 0.4); }
+
+  .bg-tool-pink    { background-color: hsl(var(--tool-pink) / 0.25); }
+  .text-tool-pink  { color: hsl(var(--tool-pink)); }
+  .ring-tool-pink  { box-shadow: inset 0 0 0 1px hsl(var(--tool-pink) / 0.4); }
+
+  .bg-tool-orange    { background-color: hsl(var(--tool-orange) / 0.25); }
+  .text-tool-orange  { color: hsl(var(--tool-orange)); }
+  .ring-tool-orange  { box-shadow: inset 0 0 0 1px hsl(var(--tool-orange) / 0.4); }
+
+  .bg-tool-amber    { background-color: hsl(var(--tool-amber) / 0.25); }
+  .text-tool-amber  { color: hsl(var(--tool-amber)); }
+  .ring-tool-amber  { box-shadow: inset 0 0 0 1px hsl(var(--tool-amber) / 0.4); }
+
+  .bg-tool-fuchsia    { background-color: hsl(var(--tool-fuchsia) / 0.25); }
+  .text-tool-fuchsia  { color: hsl(var(--tool-fuchsia)); }
+  .ring-tool-fuchsia  { box-shadow: inset 0 0 0 1px hsl(var(--tool-fuchsia) / 0.4); }
+
+  .bg-tool-red    { background-color: hsl(var(--tool-red) / 0.25); }
+  .text-tool-red  { color: hsl(var(--tool-red)); }
+  .ring-tool-red  { box-shadow: inset 0 0 0 1px hsl(var(--tool-red) / 0.4); }
+}
+
+/* ─── Keyframes ─── */
+@keyframes shinePratique {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
+}
+
+@keyframes liveSlide {
+  0% { left: -2rem; }
+  50% { left: calc(100% + 2rem); }
+  100% { left: calc(100% + 2rem); }
+}
+
+@keyframes shimmer-reflect {
+  0% { transform: translateX(-150%) skewX(-15deg); }
+  100% { transform: translateX(250%) skewX(-15deg); }
+}
+
+@keyframes shimmer {
+  0%, 100% { transform: translateX(-150%); }
+  50% { transform: translateX(150%); }
+}
+
+@keyframes shimmerBar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+@keyframes horus-btn-shimmer {
+  0% { background-position: 200% 0; }
+  60% { background-position: -100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+
+@keyframes letter-slide {
+  0%   { opacity: 0; transform: translateY(28px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes underline-draw {
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes pulse-hazard {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(51 100% 50% / 0.6); }
+  50%      { box-shadow: 0 0 0 12px hsl(51 100% 50% / 0); }
+}
+
+@keyframes waveform {
+  0%, 100% { transform: scaleY(0.35); }
+  50%      { transform: scaleY(1); }
+}
+
+/* Reflexo rápido horizontal (deitado) em cascata: um ícone por vez,
+   o brilho desliza da esquerda para a direita passando de um ícone
+   para o outro com delays curtos. */
+@keyframes icon-sweep {
+  0%   { clip-path: polygon(-30% 0%, -10% 0%, -10% 100%, -30% 100%); opacity: 0; }
+  10%  { opacity: 0.85; }
+  90%  { opacity: 0.85; }
+  100% { clip-path: polygon(110% 0%, 130% 0%, 130% 100%, 110% 100%); opacity: 0; }
+}
+.shimmer-icon-sweep {
+  animation: icon-sweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s 1 both;
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+
+/* Reflexo contínuo sobre ícones de matérias na tela Aprender */
+@keyframes aprender-icon-shine {
+  0%   { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+  15%  { opacity: 1; }
+  55%  { opacity: 1; }
+  70%  { transform: translateX(160%) skewX(-18deg); opacity: 0; }
+  100% { transform: translateX(160%) skewX(-18deg); opacity: 0; }
+}
+.aprender-icon-shine { position: relative; overflow: hidden; border-radius: 0.75rem; }
+.aprender-icon-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 35%,
+    hsla(0,0%,100%,0.28) 48%,
+    hsla(0,0%,100%,0.55) 50%,
+    hsla(0,0%,100%,0.28) 52%,
+    transparent 65%
+  );
+  transform: translateX(-140%) skewX(-18deg);
+  animation: aprender-icon-shine 3.6s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* Reflexo horizontal (esquerda -> direita) sobre os ícones do painel amarelo da home */
+@keyframes hero-icon-reflect-h {
+  0%   { transform: translateX(-120%); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+.hero-icon-reflect-h {
+  display: none;
+}
+
+/* Ícones jurídicos flutuando ao redor do painel amarelo */
+@keyframes hero-legal-float-a {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50%      { transform: translate(0, -6px) rotate(4deg); }
+}
+@keyframes hero-legal-float-b {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50%      { transform: translate(4px, 4px) rotate(-5deg); }
+}
+@keyframes hero-legal-float-c {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50%      { transform: translate(-4px, 3px) rotate(3deg); }
+}
+.hero-legal-icon {
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
+}
+.hero-legal-icon.float-a { animation: hero-legal-float-a 6s ease-in-out infinite; }
+.hero-legal-icon.float-b { animation: hero-legal-float-b 7s ease-in-out infinite; }
+.hero-legal-icon.float-c { animation: hero-legal-float-c 8s ease-in-out infinite; }
+
+
+
+
+
+.news-cover-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.news-cover-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(51, 100%, 75%, 0.12) 45%,
+    hsla(51, 100%, 90%, 0.2) 50%,
+    hsla(51, 100%, 75%, 0.12) 55%,
+    transparent 70%
+  );
+  transform: translateX(-150%) skewX(-15deg);
+  animation: shimmer-reflect 1.6s ease-out 1 forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Reflexo único disparado quando o card entra no centro do carrossel */
+.card-center-shine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(0, 0%, 100%, 0.18) 45%,
+    hsla(51, 100%, 90%, 0.42) 50%,
+    hsla(0, 0%, 100%, 0.18) 55%,
+    transparent 70%
+  );
+  transform: translateX(-150%) skewX(-15deg);
+  animation: shimmer-reflect 0.9s ease-out 1 forwards;
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: screen;
+  border-radius: inherit;
+}
+
+/* === Botão dourado com reflexo (upgrade Premium) === */
+.gold-cta {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 40%, #fcd34d 55%, #fbbf24 70%, #d97706 100%);
+  box-shadow:
+    0 8px 24px -8px hsla(38, 92%, 50%, 0.55),
+    inset 0 1px 0 hsla(48, 100%, 88%, 0.6),
+    inset 0 -2px 0 hsla(30, 80%, 32%, 0.35);
+}
+.gold-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(48, 100%, 96%, 0.35) 45%,
+    hsla(48, 100%, 100%, 0.55) 50%,
+    hsla(48, 100%, 96%, 0.35) 55%,
+    transparent 70%
+  );
+  transform: translateX(-150%) skewX(-18deg);
+  animation: shimmer-reflect 1.6s ease-out 1 forwards;
+  pointer-events: none;
+}
+
+/* === Reflexo passando em botões circulares (chama atenção) === */
+.btn-attention-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-attention-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(0, 0%, 100%, 0.35) 45%,
+    hsla(0, 0%, 100%, 0.75) 50%,
+    hsla(0, 0%, 100%, 0.35) 55%,
+    transparent 70%
+  );
+  transform: translateX(-150%) skewX(-18deg);
+  animation: shimmer-reflect 1.4s ease-out 1 forwards;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+
+/* === Reflexo suave na barra de pesquisa do hero === */
+.search-bar-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.search-bar-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(0, 0%, 100%, 0.12) 45%,
+    hsla(0, 0%, 100%, 0.25) 50%,
+    hsla(0, 0%, 100%, 0.12) 55%,
+    transparent 70%
+  );
+  transform: translateX(-150%) skewX(-12deg);
+  animation: shimmer-reflect 1.6s ease-out 1 forwards;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+
+/* === Reflexo suave no ícone do card (varredura diagonal) === */
+.icon-shine {
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    hsla(0, 0%, 100%, 0.35) 48%,
+    hsla(0, 0%, 100%, 0.7) 50%,
+    hsla(0, 0%, 100%, 0.35) 52%,
+    transparent 65%
+  );
+  transform: translateX(-150%) skewX(-15deg);
+  animation: shimmer-reflect 1.4s ease-out 0.25s 1 forwards;
+  mix-blend-mode: screen;
+  filter: blur(0.5px);
+}
+
+/* === Reflexo contínuo em ícones ativos (cascata descendente) === */
+.icon-reflect-loop {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(0, 0%, 100%, 0.45) 45%,
+    hsla(0, 0%, 100%, 0.85) 50%,
+    hsla(0, 0%, 100%, 0.45) 55%,
+    transparent 70%
+  );
+  transform: translateX(-150%) skewX(-18deg);
+  animation: shimmer-reflect 1.4s ease-out 1 forwards;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* === Reflexo horizontal (esquerda → direita) percorrendo cada item da lista, em sequência descendente === */
+@keyframes list-item-reflect {
+  0%   { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+  3%   { opacity: 1; }
+  22%  { opacity: 1; }
+  25%  { transform: translateX(120%) skewX(-18deg); opacity: 0; }
+  100% { transform: translateX(120%) skewX(-18deg); opacity: 0; }
+}
+
+.list-item-reflect {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsla(0, 0%, 100%, 0.28) 40%,
+    hsla(51, 100%, 92%, 0.55) 50%,
+    hsla(0, 0%, 100%, 0.28) 60%,
+    transparent 100%
+  );
+  transform: translateX(-120%) skewX(-18deg);
+  animation: list-item-reflect 3.2s ease-out 1 forwards;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+
+@media (min-width: 1024px) {
+  .desktop-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+  }
+  .desktop-scrollbar::-webkit-scrollbar { height: 4px; }
+  .desktop-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .desktop-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.3);
+    border-radius: 2px;
+  }
+  .desktop-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+  }
+}
+
+.hero-shine {
+  filter: brightness(1.1) saturate(1.08) contrast(1.02);
+  transition: filter 0.6s ease;
+}
+.hero-sheen {
+  background: linear-gradient(115deg, transparent 20%, hsl(0 0% 100% / 0.10) 45%, hsl(51 100% 60% / 0.10) 55%, transparent 80%);
+  background-size: 220% 100%;
+  background-position: -50% 0;
+  animation: heroSheen 3.2s ease-out 1 forwards;
+  mix-blend-mode: screen;
+}
+@keyframes heroSheen {
+  0%   { background-position: -60% 0; opacity: 0.5; }
+  50%  { background-position: 160% 0; opacity: 0.85; }
+  100% { background-position: -60% 0; opacity: 0.5; }
+}
+
+/* ── Hero figures (imagens vazadas do primeiro slide) ────── */
+@keyframes figure-in {
+  0%   { opacity: 0; transform: translateX(60px) scale(0.96); filter: blur(8px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+}
+.animate-figure-in { animation: figure-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes figure-in-left {
+  0%   { opacity: 0; transform: translateX(-60px) scale(0.96); filter: blur(8px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+}
+.animate-figure-in-left { animation: figure-in-left 900ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes caption-in {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-caption-in { animation: caption-in 700ms 200ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Reflexo horizontal que varre os ornamentos SVG do hero em loop */
+@keyframes svgShimmer {
+  0%   { transform: translateX(-40%); opacity: 0; }
+  15%  { opacity: 1; }
+  60%  { opacity: 1; }
+  75%  { transform: translateX(260%); opacity: 0; }
+  100% { transform: translateX(260%); opacity: 0; }
+}
+.svg-shimmer-layer { animation: svgShimmer 3s ease-out 1 forwards; will-change: transform, opacity; }
+
+@layer base {
+  :where(button, a, [role="button"], [role="link"], [tabindex="0"]):focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  nav button[class*="flex-col"] { min-height: 44px; min-width: 44px; }
+}
+
+/* ============================================================
+   LIGHT MODE COMPATIBILITY LAYER
+   Remaps hardcoded dark Tailwind utilities to semantic tokens
+   when .light theme is active. Avoids touching 50+ files.
+   ============================================================ */
+html.light .bg-black,
+html.light .bg-neutral-900, html.light .bg-neutral-950,
+html.light .bg-zinc-900,    html.light .bg-zinc-950,
+html.light .bg-gray-900,    html.light .bg-gray-950,
+html.light .bg-stone-900,   html.light .bg-stone-950,
+html.light .bg-\[\#0A0A0A\],
+html.light .bg-\[\#141414\],
+html.light .bg-\[\#0a0a0a\],
+html.light .bg-\[\#141414\],
+html.light .bg-\[\#111\],
+html.light .bg-\[\#1a1a1a\] {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground));
+}
+
+html.light .bg-black\/40,
+html.light .bg-black\/50,
+html.light .bg-black\/60,
+html.light .bg-black\/70,
+html.light .bg-black\/80,
+html.light .bg-black\/90 {
+  background-color: hsl(var(--card) / 0.92) !important;
+  backdrop-filter: blur(8px);
+}
+
+html.light .bg-black\/20,
+html.light .bg-black\/30 {
+  background-color: hsl(var(--muted) / 0.85) !important;
+}
+
+html.light .text-white { color: hsl(var(--foreground)) !important; }
+html.light .text-white\/50,
+html.light .text-white\/60,
+html.light .text-white\/70,
+html.light .text-white\/80,
+html.light .text-white\/90 { color: hsl(var(--muted-foreground)) !important; }
+
+html.light .text-neutral-100,
+html.light .text-neutral-200,
+html.light .text-neutral-300,
+html.light .text-zinc-100,
+html.light .text-zinc-200,
+html.light .text-zinc-300,
+html.light .text-gray-100,
+html.light .text-gray-200,
+html.light .text-gray-300 { color: hsl(var(--foreground)) !important; }
+
+html.light .text-neutral-400,
+html.light .text-neutral-500,
+html.light .text-zinc-400,
+html.light .text-zinc-500,
+html.light .text-gray-400,
+html.light .text-gray-500 { color: hsl(var(--muted-foreground)) !important; }
+
+html.light .border-white\/5,
+html.light .border-white\/10,
+html.light .border-white\/20,
+html.light .border-neutral-800,
+html.light .border-neutral-900,
+html.light .border-zinc-800,
+html.light .border-zinc-900,
+html.light .border-gray-800,
+html.light .border-gray-900 { border-color: hsl(var(--border)) !important; }
+
+html.light .bg-white\/5,
+html.light .bg-white\/10,
+html.light .bg-white\/20 { background-color: hsl(var(--muted)) !important; }
+
+html.light .bg-neutral-800,
+html.light .bg-neutral-850,
+html.light .bg-zinc-800,
+html.light .bg-gray-800,
+html.light .bg-stone-800 { background-color: hsl(var(--muted)) !important; color: hsl(var(--foreground)); }
+
+html.light .from-black,
+html.light .to-black,
+html.light .via-black,
+html.light .from-neutral-900,
+html.light .to-neutral-900,
+html.light .from-zinc-900,
+html.light .to-zinc-900 {
+  --tw-gradient-from: hsl(var(--background)) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: hsl(var(--background) / 0) var(--tw-gradient-to-position) !important;
+}
+
+html.light .from-black\/80,
+html.light .to-black\/80,
+html.light .from-black\/90,
+html.light .to-black\/90 {
+  --tw-gradient-from: hsl(var(--background) / 0.8) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: hsl(var(--background) / 0.8) var(--tw-gradient-to-position) !important;
+}
+
+/* Divides */
+html.light .divide-white\/10 > :not([hidden]) ~ :not([hidden]) { border-color: hsl(var(--border)) !important; }
+
+/* Ring / focus */
+html.light .ring-white\/10, html.light .ring-white\/20 { --tw-ring-color: hsl(var(--border)) !important; }
+
+/* Placeholder */
+html.light .placeholder-white\/40::placeholder,
+html.light .placeholder-white\/50::placeholder,
+html.light .placeholder-white\/60::placeholder { color: hsl(var(--muted-foreground)) !important; }
+
+/* Shadows on light bg feel harsh in pure black — soften */
+html.light .shadow-2xl,
+html.light .shadow-xl {
+  --tw-shadow-color: hsl(220 15% 15% / 0.12);
+  --tw-shadow: var(--tw-shadow-colored);
+}
+
+/* Extra hex tones used in HomeHeader & tiles */
+html.light .bg-\[\#1c1c1c\],
+html.light .bg-\[\#1C1C1C\],
+html.light .bg-\[\#212121\],
+html.light .bg-\[\#222\],
+html.light .bg-\[\#2a2a2a\],
+html.light .bg-\[\#2A2A2A\] {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground));
+}
+html.light .bg-\[\#212121\]\/95 { background-color: hsl(var(--card) / 0.95) !important; }
+
+/* === Vade Mecum: shimmer no texto ativo do checklist === */
+@keyframes text-shimmer-vm {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.text-shimmer {
+  background: linear-gradient(90deg, hsl(45 90% 75%) 0%, hsl(48 100% 92%) 50%, hsl(45 90% 75%) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shimmer-vm 2.4s linear 1 forwards;
+}
+
+/* === Vade Mecum: reflexo âmbar percorrendo o card === */
+@keyframes card-shine-vm {
+  0%   { transform: translateX(0); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateX(500%); opacity: 0; }
+}
+.animate-card-shine {
+  animation: card-shine-vm 2.6s ease-in-out 0.4s 1;
+}
+
+
+/* === Vade Mecum: cascata de artigos + content-visibility === */
+/* content-visibility: auto pula render de itens off-screen (virtualização nativa do browser). */
+.article-cascade-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 112px;
+  contain: layout paint style;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-cascade-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* === Modo grifo manual: garante seleção nativa em mobile/WebView Capacitor === */
+.highlight-selectable,
+.highlight-selectable * {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+  touch-action: pan-y !important; /* permite scroll vertical + long-press pra selecionar */
+}
+.highlight-selectable ::selection {
+  background: var(--hl-selection, rgba(250, 204, 21, 0.45));
+  color: inherit;
+}
+.highlight-selectable ::-moz-selection {
+  background: var(--hl-selection, rgba(250, 204, 21, 0.45));
+  color: inherit;
+}
+
+/* === Hero (painel amarelo) — Ken Burns contínuo, elegante ================= */
+@keyframes ken-burns-a {
+  0%   { transform: scale(1.02) translate3d(-1.2%, 0.6%, 0); }
+  100% { transform: scale(1.09) translate3d(1.4%, -0.8%, 0); }
+}
+@keyframes ken-burns-b {
+  0%   { transform: scale(1.09) translate3d(1.2%, -0.6%, 0); }
+  100% { transform: scale(1.02) translate3d(-1.4%, 0.8%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*="ken-burns-a"], [style*="ken-burns-b"] { animation: none !important; }
+}
+
+/* Reflexo diagonal para a linha "Planos" no menu lateral. */
+@keyframes planos-shine {
+  0%   { transform: translateX(0) skewX(-12deg); opacity: 0; }
+  15%  { opacity: 1; }
+  60%  { transform: translateX(520%) skewX(-12deg); opacity: 1; }
+  100% { transform: translateX(520%) skewX(-12deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[planos-shine_3\.2s_ease-in-out_infinite\] { animation: none !important; }
+}
+
+
+/* Page transition — CSS animation (substitui framer-motion do PageTransition). */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in {
+  animation: page-in 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-in { animation: none; }
+}
+
+/* Reflexo animado no logo central do hero */
+.logo-shine {
+  isolation: isolate;
+  clip-path: circle(50% at 50% 50%);
+}
+.logo-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 18%,
+    rgba(255, 255, 255, 0.0) 35%,
+    rgba(255, 255, 255, 0.72) 47%,
+    rgba(255, 255, 255, 0.18) 54%,
+    rgba(255, 255, 255, 0.0) 66%,
+    transparent 82%
+  );
+  border-radius: 9999px;
+  clip-path: circle(50% at 50% 50%);
+  transform: translateX(-135%);
+  animation: logo-shine-sweep 1.8s ease-out 1 forwards;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 1;
+}
+@keyframes logo-shine-sweep {
+  0%   { transform: translateX(-135%); }
+  55%  { transform: translateX(135%); }
+  100% { transform: translateX(135%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-shine::after { animation: none; display: none; }
+}
+
+/* Auth desktop: infinite cascading laws list */
+@keyframes auth-laws-scroll {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+.auth-laws-track {
+  animation: auth-laws-scroll 90s linear infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-laws-track { animation: none; }
+}
+
+/* Landing mobile: infinite horizontal law tags marquee (right -> left) */
+@keyframes tags-marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.tags-marquee-track {
+  animation: tags-marquee-scroll 45s linear infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tags-marquee-track { animation: none; }
+}
+
+/* Landing: brasões de cargos - carrossel lento */
+@keyframes badges-marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+.badges-marquee-track {
+  animation: badges-marquee-scroll 60s linear infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .badges-marquee-track { animation: none; }
+}
+
+/* Reflexo suave nos brasões */
+.badge-shine {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.badge-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  animation: badge-shine-sweep 4.5s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+@keyframes badge-shine-sweep {
+  0%, 40%   { transform: translateX(-120%); }
+  60%, 100% { transform: translateX(120%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .badge-shine::after { animation: none; display: none; }
+}
+
+/* ============================================================
+   Leitor nativo / react-pageflip (StPageFlip)
+   Mantém o modo Folhear preso à área útil do leitor no mobile.
+   ============================================================ */
+[data-reader-flip] .stf__parent,
+[data-reader-flip] .stf__wrapper,
+[data-reader-flip] .stf__block {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  box-sizing: border-box;
+}
+
+[data-reader-flip] .stf__parent {
+  overflow: hidden !important;
+}
+
+[data-reader-flip] .stf__wrapper,
+[data-reader-flip] .stf__block {
+  inset: 0 !important;
+}
+
+[data-reader-flip] .stf__item {
+  max-width: 100% !important;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+[data-reader-flip] .stf__item > div,
+[data-reader-flip] .stf__item [data-reader-article],
+[data-reader-flip] .stf__item [data-reader-article] > * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+[data-reader-flip] [data-reader-article] {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Transição entre slides da apresentação narrada */
+@keyframes slide-swap-next {
+  from { opacity: 0; transform: translateX(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes slide-swap-prev {
+  from { opacity: 0; transform: translateX(-28px) scale(0.97); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}

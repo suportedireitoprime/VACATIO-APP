@@ -1,0 +1,20 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["REPLACE_WITH_TEAM_ID.br.com.vacatio.app"],
+        "components": [
+          { "/": "/ir/*", "comment": "Smart link — deep link para conteúdo compartilhado" },
+          { "/": "/lei/*", "comment": "Compat: links diretos de lei/artigo" },
+          { "/": "/legislacao/*", "comment": "Compat: leitor de legislação" },
+          { "/": "/noticias*", "comment": "Compat: notícias" },
+          { "/": "/radar/*", "comment": "Compat: radar 360" },
+          { "/": "/livro/*", "comment": "Compat: livro" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["REPLACE_WITH_TEAM_ID.br.com.vacatio.app"]
+  }
+}

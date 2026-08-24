@@ -1,0 +1,1 @@
+DROP POLICY "Service role full access" ON public.newsletter_subscriptions;

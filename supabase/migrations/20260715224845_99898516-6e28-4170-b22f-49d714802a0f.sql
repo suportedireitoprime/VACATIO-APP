@@ -1,0 +1,1 @@
+UPDATE public.blog_edicao_config SET modelo_texto = 'gemini-2.5-flash' WHERE modelo_texto = 'gemini-2.5-flash-lite' OR modelo_texto IS NULL;

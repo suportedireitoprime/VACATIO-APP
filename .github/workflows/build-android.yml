@@ -1,0 +1,3065 @@
+name: Build Android (.aab + .apk)
+run-name: "Build #${{ github.run_number }} • ${{ github.ref_name }}@${{ github.sha }}"
+
+
+
+on:
+  # ⚠️ Trigger automático em push desativado para economizar minutos do GitHub Actions.
+  # Para rodar a build, vá em Actions → "Build Android (.aab + .apk)" → "Run workflow".
+  workflow_dispatch:
+    inputs:
+      mobile_config_urls:
+        description: 'Signed URLs dos arquivos nativos salvos no Supabase'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    name: Build Android release
+    runs-on: ubuntu-latest
+    # Necessário pro step "Persist version bump" commitar de volta o
+    # .build-version.json atualizado usando o GITHUB_TOKEN.
+    permissions:
+      contents: write
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+
+      - name: Verify Java and Android tools
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          java -version
+          javac -version
+          sdkmanager --list_installed | grep -E 'platforms;android-36|build-tools;36.0.0|platform-tools' || true
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Remove Lovable hot-reload from capacitor.config.ts
+        run: |
+          node -e "
+            const fs = require('fs');
+            const p = 'capacitor.config.ts';
+            let s = fs.readFileSync(p, 'utf8');
+            s = s.replace(/\s*server:\s*{[\s\S]*?},?\n/, '\n');
+            fs.writeFileSync(p, s);
+            console.log('capacitor.config.ts sanitized for release');
+          "
+
+      - name: Build web app
+        env:
+          SKIP_PRECOMPRESS: "1"
+        run: bun run build
+
+      - name: Strip precompressed assets (safety net for native)
+        run: |
+          # Belt-and-suspenders: mesmo com SKIP_PRECOMPRESS=1, qualquer .gz/.br
+          # que sobrar em dist/ vira "Duplicate resources" no mergeReleaseResources
+          # do Android (o Asset Merger tira a extensão e vê foo.js e foo.js.gz
+          # como o mesmo recurso). Apagar aqui garante que a árvore copiada pelo
+          # cap sync só contenha os arquivos originais.
+          if [ -d dist ]; then
+            removed=$(find dist \( -name '*.gz' -o -name '*.br' \) -type f -print -delete | wc -l)
+            echo "Removed $removed precompressed files from dist/"
+          fi
+
+      - name: Export laws bundle (native offline data)
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://iftdrbxvekrhzstayjwp.supabase.co' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          LAWS_BUNDLE_OUT: dist/laws-bundle
+        run: |
+          if [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::warning::VITE_SUPABASE_PUBLISHABLE_KEY não definido — pulando bundle offline"
+          else
+            node scripts/export-laws.mjs
+            ls -lh dist/laws-bundle | head -20
+            du -sh dist/laws-bundle
+          fi
+
+
+      - name: Regenerate Android platform
+        run: |
+          # Sempre recria a pasta nativa para eliminar referências antigas de
+          # plugins removidos que podem ter ficado em settings.gradle/build.gradle
+          # após builds anteriores.
+          rm -rf android
+          bunx cap add android
+          chmod +x android/gradlew
+
+      - name: Bump AGP + Gradle wrapper + force modern Android deps
+        run: |
+          # ----------------------------------------------------------------
+          # Play Console recomendação #3: "Atualize o Plug-in do Android para
+          # Gradle para a versão 9.0 ou mais recente".
+          # AGP 8.13 é a última linha 8.x estável em nov/2025 e casa com
+          # Gradle 8.14 + JDK 21. AGP 9.0 é experimental e ainda quebra
+          # plugins Capacitor 8 comuns — subimos AGP para o maior 8.x
+          # estável (elimina múltiplos warnings de APIs deprecadas mesmo
+          # que o alerta específico "AGP 9.0" só limpe no bump seguinte).
+          # ----------------------------------------------------------------
+          AGP_VERSION='8.13.0'
+          GRADLE_DIST='gradle-8.14-bin.zip'
+
+          sed -i "s|classpath 'com.android.tools.build:gradle:[^']*'|classpath 'com.android.tools.build:gradle:${AGP_VERSION}'|" android/build.gradle
+          echo "AGP forçado para ${AGP_VERSION}:"
+          grep "com.android.tools.build:gradle" android/build.gradle || true
+
+          sed -i "s|distributionUrl=.*|distributionUrl=https\\\\://services.gradle.org/distributions/${GRADLE_DIST}|" android/gradle/wrapper/gradle-wrapper.properties
+          echo "Gradle wrapper:"
+          grep distributionUrl android/gradle/wrapper/gradle-wrapper.properties
+
+          # ----------------------------------------------------------------
+          # Play Console recomendação #2: "O app usa APIs ou parâmetros
+          # descontinuados para exibição de ponta a ponta".
+          # Origens apontadas: Material BottomSheetDialog, ML Kit code
+          # scanner + vision barcode, CameraX ImageCapture, Play Services
+          # internos. Forçamos as versões mais recentes via resolutionStrategy
+          # em allprojects — pega bibliotecas transitivas dos plugins Capacitor.
+          # ----------------------------------------------------------------
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/build.gradle')
+          s = p.read_text()
+          block = """
+          allprojects {
+              configurations.all {
+                  resolutionStrategy {
+                      // Material Components 1.13.x migrou BottomSheetDialog para
+                      // APIs de WindowInsets não deprecadas (Play alert #2).
+                      force 'com.google.android.material:material:1.13.0'
+                      // CameraX 1.5.x removeu chamadas a Window.setStatusBarColor
+                      // no ImageCapture$Defaults.
+                      force 'androidx.camera:camera-core:1.5.0'
+                      force 'androidx.camera:camera-camera2:1.5.0'
+                      force 'androidx.camera:camera-lifecycle:1.5.0'
+                      force 'androidx.camera:camera-view:1.5.0'
+                      // ML Kit barcode + code scanner (pull transitivo do plugin
+                      // @capacitor-mlkit/barcode-scanning). Versões mais novas
+                      // migram para APIs modernas de janela.
+                      force 'com.google.mlkit:barcode-scanning:17.3.0'
+                      force 'com.google.android.gms:play-services-code-scanner:16.1.0'
+                      // Play Services base — origem de zza.onStart deprecado.
+                      force 'com.google.android.gms:play-services-base:18.5.0'
+                      force 'com.google.android.gms:play-services-basement:18.4.0'
+                  }
+              }
+          }
+          """
+          if 'resolutionStrategy' not in s:
+              s = s.rstrip() + '\n' + block + '\n'
+              p.write_text(s)
+              print('✅ resolutionStrategy adicionado ao build.gradle root')
+          else:
+              print('resolutionStrategy já presente — mantendo')
+          PY
+
+
+
+      - name: Add Play Billing + Foreground Location perms & REMOVE USE_EXACT_ALARM
+        # Vacatio não é despertador/agenda, então não podemos declarar
+        # USE_EXACT_ALARM (Play Console policy). O plugin @capacitor/local-notifications
+        # adiciona ela via manifest merger — precisamos removê-la explicitamente
+        # com tools:node="remove". Mantemos apenas SCHEDULE_EXACT_ALARM, que é
+        # concedida pelo usuário nas configs (sem declaração no Play).
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+
+          # Garante xmlns:tools no <manifest>
+          if 'xmlns:tools=' not in s:
+              s = s.replace(
+                  '<manifest ',
+                  '<manifest xmlns:tools="http://schemas.android.com/tools" ',
+                  1,
+              )
+
+          perms_add = [
+              'com.android.vending.BILLING',
+              'android.permission.SCHEDULE_EXACT_ALARM',
+              'android.permission.ACCESS_BACKGROUND_LOCATION',
+          ]
+          added = []
+          for perm in perms_add:
+              if perm not in s:
+                  line = f'    <uses-permission android:name="{perm}" />\n'
+                  s = s.replace('</manifest>', line + '</manifest>', 1)
+                  added.append(perm)
+
+          # Remove USE_EXACT_ALARM se algum step antigo adicionou
+          import re
+          s = re.sub(
+              r'\s*<uses-permission[^/]*android:name="android\.permission\.USE_EXACT_ALARM"[^/]*/>',
+              '',
+              s,
+          )
+          # Bloqueia o merger do manifest do plugin de re-adicionar
+          remove_line = '    <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:node="remove" />\n'
+          if 'USE_EXACT_ALARM" tools:node="remove"' not in s:
+              s = s.replace('</manifest>', remove_line + '</manifest>', 1)
+
+          p.write_text(s)
+          print('Permissions added:', added)
+          print('USE_EXACT_ALARM: removed + blocked from manifest merger')
+          PY
+
+
+      - name: Download native config from Supabase
+        env:
+          MOBILE_CONFIG_URLS: ${{ github.event.inputs.mobile_config_urls }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.request
+          from pathlib import Path
+
+          raw = (os.environ.get('MOBILE_CONFIG_URLS') or '').strip()
+          if not raw or raw.lower() in ('null', 'none', '{}'):
+              print('No Supabase mobile config URLs received; using repository defaults when available.')
+              sys.exit(0)
+
+          try:
+              urls = json.loads(raw)
+          except json.JSONDecodeError as e:
+              print(f'::warning::MOBILE_CONFIG_URLS is not valid JSON ({e}); using repository defaults when available.')
+              sys.exit(0)
+
+          if not isinstance(urls, dict) or not urls:
+              print('MOBILE_CONFIG_URLS parsed but empty; using repository defaults when available.')
+              sys.exit(0)
+          targets = {
+              'google-services.json': Path('android-config/google-services.json'),
+              'icon.png': Path('assets/icon.png'),
+              'icon-foreground.png': Path('assets/icon-foreground.png'),
+              'icon-background.png': Path('assets/icon-background.png'),
+              'splash.png': Path('assets/splash.png'),
+              'splash-dark.png': Path('assets/splash-dark.png'),
+              'notification-icon.png': Path('assets/notification-icon.png'),
+              'app-name.txt': Path('assets/app-name.txt'),
+          }
+
+          for name, target in targets.items():
+              url = urls.get(name)
+              if not url:
+                  continue
+              target.parent.mkdir(parents=True, exist_ok=True)
+              with urllib.request.urlopen(url, timeout=60) as response:
+                  target.write_bytes(response.read())
+              print(f'Downloaded {name} -> {target}')
+          PY
+
+      - name: Seed native image assets from resources/ (fallback)
+        run: |
+          mkdir -p assets
+          # Copy every source PNG from resources/ into assets/ unless a Supabase
+          # download already placed a newer file there. resources/ is the
+          # documented source of truth (see resources/README.md).
+          for f in resources/*.png; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f")
+            if [ ! -f "assets/$name" ]; then
+              cp "$f" "assets/$name"
+              echo "Seeded assets/$name from resources/"
+            fi
+          done
+          ls -la assets/ || true
+
+      - name: Generate Android icons and splash
+        run: |
+          # Splash em fundo ESCURO (#1a0a14 = mesma cor de capacitor.config.ts →
+          # SplashScreen.backgroundColor). Antes estava #EFE039 (amarelo brand),
+          # o que fazia o windowBackground/Android 12 SplashScreen deixar uma
+          # faixa amarela com o logo comprimido visível no topo enquanto a
+          # WebView carregava e, em edge-to-edge, também depois — a WebView
+          # não cobre 100% dos pixels acima da status bar em todos os aparelhos.
+          # Ícone do launcher segue amarelo (é o ícone na home, não afeta a UI).
+          if [ -d assets ] && ls assets/*.png >/dev/null 2>&1; then
+            bunx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#EFE039' --iconBackgroundColorDark '#EFE039' --splashBackgroundColor '#FFD500' --splashBackgroundColorDark '#FFD500'
+          else
+            echo "No native image assets found; skipping capacitor-assets."
+          fi
+
+      - name: Override Android launch theme (kill splash/actionbar strip)
+        run: |
+          # A faixa preta com "Vacatio" não é React: é a splash compat/
+          # ActionBar nativa aparecendo antes/depois da WebView. A própria doc
+          # do @capacitor/splash-screen orienta desativar a compat library
+          # trocando AppTheme.NoActionBarLaunch de Theme.SplashScreen para
+          # AppTheme.NoActionBar. O Android 12+ ainda terá splash do SO, mas
+          # sem a ActionBar preta/label vazando sobre o app.
+          mkdir -p android/app/src/main/res/values android/app/src/main/res/values-v31 android/app/src/main/res/values-night-v31
+
+          # colors.xml — merge idempotente do splash_bg
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/res/values/colors.xml')
+          if not p.exists():
+              p.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n')
+          s = p.read_text()
+          if 'name="splash_bg"' not in s:
+              s = s.replace('</resources>', '    <color name="splash_bg">#FFD500</color>\n</resources>')
+              print('splash_bg color added')
+          else:
+              print('splash_bg color already present')
+          if 'name="app_bg"' not in s:
+              # Fundo escuro do app — usado no windowBackground base pra impedir
+              # que dialogs do sistema (copiar/colar, Credential Manager) puxem
+              # o splash amarelo como fundo flutuante.
+              s = s.replace('</resources>', '    <color name="app_bg">#0a0f1a</color>\n</resources>')
+              print('app_bg color added')
+          else:
+              print('app_bg color already present')
+          p.write_text(s)
+          PY
+
+          # values-v31/styles.xml — NÃO usar Theme.SplashScreen compat aqui.
+          # Ele é o suspeito principal da barra preta com label.
+          cat > android/app/src/main/res/values-v31/styles.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+                  <item name="android:background">@color/splash_bg</item>
+                  <item name="android:windowBackground">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+                  <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenBrandingImage">@null</item>
+                  <item name="windowActionBar">false</item>
+                  <item name="windowNoTitle">true</item>
+                  <item name="android:windowNoTitle">true</item>
+                  <item name="android:windowActionBar">false</item>
+              </style>
+          </resources>
+          XML
+
+          cat > android/app/src/main/res/values-night-v31/styles.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+                  <item name="android:background">@color/splash_bg</item>
+                  <item name="android:windowBackground">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+                  <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenBrandingImage">@null</item>
+                  <item name="windowActionBar">false</item>
+                  <item name="windowNoTitle">true</item>
+                  <item name="android:windowNoTitle">true</item>
+                  <item name="android:windowActionBar">false</item>
+              </style>
+          </resources>
+          XML
+
+          # values/styles.xml — garante windowBackground escuro no tema base
+          # (Android < 12 e transições depois do splash).
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/res/values/styles.xml')
+          if not p.exists():
+              print('styles.xml não existe — pulando patch base')
+          else:
+              s = p.read_text()
+              def replace_or_add_style(text, style_name, parent, items):
+                  pat = re.compile(
+                      r'\s*<style\s+name="' + re.escape(style_name) + r'"[^>]*>.*?</style>\s*',
+                      re.S,
+                  )
+                  block = '    <style name="{}" parent="{}">\n{}    </style>\n'.format(
+                      style_name,
+                      parent,
+                      ''.join('        <item name="{}">{}</item>\n'.format(k, v) for k, v in items),
+                  )
+                  if pat.search(text):
+                      return pat.sub('\n' + block, text, count=1)
+                  return text.replace('</resources>', block + '</resources>', 1)
+
+              s2 = replace_or_add_style(s, 'AppTheme.NoActionBar', 'Theme.AppCompat.DayNight.NoActionBar', [
+                  ('windowActionBar', 'false'),
+                  ('windowNoTitle', 'true'),
+                  ('android:windowActionBar', 'false'),
+                  ('android:windowNoTitle', 'true'),
+                  ('android:windowContentOverlay', '@null'),
+                  ('android:windowBackground', '@color/app_bg'),
+              ])
+              s2 = replace_or_add_style(s2, 'AppTheme.NoActionBarLaunch', 'AppTheme.NoActionBar', [
+                  ('android:background', '@color/splash_bg'),
+                  ('android:windowBackground', '@color/splash_bg'),
+                  ('windowActionBar', 'false'),
+                  ('windowNoTitle', 'true'),
+                  ('android:windowActionBar', 'false'),
+                  ('android:windowNoTitle', 'true'),
+              ])
+              if s2 != s:
+                  p.write_text(s2)
+                  print('base styles.xml reescrito: launch parent=AppTheme.NoActionBar')
+              else:
+                  print('base styles.xml sem alterações necessárias')
+          PY
+
+          echo "✅ Android launch theme forçado sem Theme.SplashScreen compat"
+
+      - name: Force NoActionBar + clear MainActivity label (kill "Vacatio" strip)
+        run: |
+          # Faixa preta com "Vacatio" no topo do app = ActionBar/Toolbar do
+          # sistema renderizando `android:label` da MainActivity. Se o tema
+          # efetivo cair pra qualquer variante com ActionBar (ex.: build pulou
+          # o postSplashScreenTheme), o Android desenha essa faixa. Aqui a
+          # gente força NoActionBar no tema base E zera o label da activity.
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          # --- 1. Reescreve AppTheme.NoActionBar em values/styles.xml ---
+          p = Path('android/app/src/main/res/values/styles.xml')
+          if p.exists():
+              s = p.read_text()
+              # Bloco canônico — substitui totalmente o AppTheme.NoActionBar existente
+              canonical = (
+                  '    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">\n'
+                  '        <item name="windowActionBar">false</item>\n'
+                  '        <item name="windowNoTitle">true</item>\n'
+                  '        <item name="android:windowActionBar">false</item>\n'
+                  '        <item name="android:windowNoTitle">true</item>\n'
+                  '        <item name="android:windowContentOverlay">@null</item>\n'
+                  '        <item name="android:windowBackground">@color/app_bg</item>\n'
+                  '    </style>\n'
+              )
+              launch = (
+                  '    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">\n'
+                  '        <item name="android:background">@color/splash_bg</item>\n'
+                  '        <item name="android:windowBackground">@color/splash_bg</item>\n'
+                  '        <item name="windowActionBar">false</item>\n'
+                  '        <item name="windowNoTitle">true</item>\n'
+                  '        <item name="android:windowActionBar">false</item>\n'
+                  '        <item name="android:windowNoTitle">true</item>\n'
+                  '    </style>\n'
+              )
+              pat = re.compile(r'<style\s+name="AppTheme\.NoActionBar"[^>]*>.*?</style>\s*', re.S)
+              if pat.search(s):
+                  s = pat.sub(canonical, s)
+              else:
+                  s = s.replace('</resources>', canonical + '</resources>')
+              launch_pat = re.compile(r'<style\s+name="AppTheme\.NoActionBarLaunch"[^>]*>.*?</style>\s*', re.S)
+              if launch_pat.search(s):
+                  s = launch_pat.sub(launch, s)
+              else:
+                  s = s.replace('</resources>', launch + '</resources>')
+              p.write_text(s)
+              print('✅ AppTheme.NoActionBar/Launch reescritos (sem ActionBar e sem compat splash)')
+          else:
+              print('::warning::values/styles.xml não encontrado')
+
+          # --- 2. Zera android:label da MainActivity no AndroidManifest.xml ---
+          m = Path('android/app/src/main/AndroidManifest.xml')
+          if m.exists():
+              t = m.read_text()
+              orig = t
+              # Normaliza o bloco inteiro da MainActivity: label vazio + tema launch
+              # sem duplicar atributos, independentemente da ordem em que vierem.
+              def patch_activity(match):
+                  tag = match.group(0)
+                  tag = re.sub(r'\s+android:label="[^"]*"', '', tag)
+                  tag = re.sub(r'\s+android:theme="[^"]*"', '', tag)
+                  return tag.replace(
+                      'android:name=".MainActivity"',
+                      'android:name=".MainActivity"\n            android:label="@string/app_name"\n            android:theme="@style/AppTheme.NoActionBarLaunch"',
+                      1,
+                  )
+              t = re.sub(r'<activity\b[^>]*android:name="\.MainActivity"[^>]*>', patch_activity, t, count=1, flags=re.S)
+              if t != orig:
+                  m.write_text(t)
+                  print('✅ MainActivity label zerado e theme forçado para NoActionBarLaunch')
+              else:
+                  print('MainActivity label já estava limpo')
+          else:
+              print('::warning::AndroidManifest.xml não encontrado')
+          PY
+
+      - name: Set Android app_name from admin (app-name.txt)
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          name = 'Vacatio'
+          src = Path('assets/app-name.txt')
+          if src.exists():
+              raw = src.read_text(encoding='utf-8').strip()
+              if raw:
+                  name = raw[:30]
+          # XML-escape
+          esc = (name.replace('&', '&amp;').replace('<', '&lt;')
+                     .replace('>', '&gt;').replace('"', '&quot;').replace("'", '&apos;'))
+          for rel in ('android/app/src/main/res/values/strings.xml',):
+              p = Path(rel)
+              if not p.exists():
+                  print(f'::warning::{rel} missing'); continue
+              s = p.read_text(encoding='utf-8')
+              # Substitui app_name e title_activity_main (Capacitor gera ambos)
+              def sub_string(txt, key, value):
+                  pat = re.compile(rf'(<string\s+name="{key}"[^>]*>)([^<]*)(</string>)')
+                  if pat.search(txt):
+                      return pat.sub(lambda m: m.group(1) + value + m.group(3), txt)
+                  return txt.replace('</resources>', f'    <string name="{key}">{value}</string>\n</resources>')
+              s = sub_string(s, 'app_name', esc)
+              s = sub_string(s, 'title_activity_main', esc)
+              p.write_text(s, encoding='utf-8')
+              print(f'✅ app_name/title_activity_main = "{name}" gravados em {rel}')
+          PY
+
+
+      - name: Diagnostic dump — styles.xml + AndroidManifest (post-patch)
+        if: always()
+        run: |
+          echo "===== values/styles.xml ====="
+          cat android/app/src/main/res/values/styles.xml 2>/dev/null || echo "(missing)"
+          echo ""
+          echo "===== values-v31/styles.xml ====="
+          cat android/app/src/main/res/values-v31/styles.xml 2>/dev/null || echo "(missing)"
+          echo ""
+          echo "===== values/colors.xml ====="
+          cat android/app/src/main/res/values/colors.xml 2>/dev/null || echo "(missing)"
+          echo ""
+          echo "===== AndroidManifest.xml (MainActivity + application) ====="
+          grep -nE 'application|MainActivity|android:label|android:theme' android/app/src/main/AndroidManifest.xml || true
+
+
+
+
+      - name: Copy google-services.json
+        run: |
+          mkdir -p android/app
+          if [ -f android-config/google-services.json ]; then
+            cp android-config/google-services.json android/app/google-services.json
+            echo "✅ google-services.json copied to android/app"
+          else
+            echo "::warning::android-config/google-services.json not found — skipping copy (push notifications won't work)"
+          fi
+
+      - name: Validate Google OAuth clients
+        env:
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, re, sys
+          from pathlib import Path
+
+          package_name = 'br.com.vacatio.app'
+          config_path = Path('android-config/google-services.json')
+          cap_path = Path('capacitor.config.ts')
+          if not config_path.exists():
+              print('::warning::android-config/google-services.json não encontrado. Native Google Sign-In and FCM will be skipped for this build.')
+              sys.exit(0)
+
+          data = json.loads(config_path.read_text())
+          oauth_clients = []
+          for client in data.get('client', []):
+              oauth_clients.extend(client.get('oauth_client', []))
+
+          web_ids = [c.get('client_id') for c in oauth_clients if c.get('client_type') == 3 and c.get('client_id')]
+          android_clients = [
+              c for c in oauth_clients
+              if c.get('client_type') == 1 and c.get('android_info', {}).get('package_name') == package_name
+          ]
+
+          if not web_ids:
+              print('::error::google-services.json não contém OAuth Client ID Web (client_type 3). Crie um cliente Web no Google Cloud/Firebase.')
+              sys.exit(1)
+          if not android_clients:
+              print(f'::error::google-services.json não contém OAuth Client ID Android para package {package_name}. Crie um cliente Android com package e SHA-1 corretos.')
+              sys.exit(1)
+
+          fallback_match = re.search(r"GOOGLE_WEB_CLIENT_ID\s*=\s*process\.env\.GOOGLE_WEB_CLIENT_ID\s*\|\|\s*'([^']+)'", cap_path.read_text())
+          fallback_web_id = fallback_match.group(1) if fallback_match else ''
+          secret_web_id = os.environ.get('GOOGLE_WEB_CLIENT_ID', '').strip()
+
+          if secret_web_id and secret_web_id not in web_ids:
+              print('::warning::GOOGLE_WEB_CLIENT_ID do GitHub/Supabase está diferente do OAuth Web do google-services.json; usando o Web Client ID do google-services.json nesta build.')
+              print('GOOGLE_WEB_CLIENT_ID efetivo: ***')
+          elif fallback_web_id and fallback_web_id not in web_ids:
+              print('::warning::Fallback do capacitor.config.ts está diferente do OAuth Web do google-services.json; usando o Web Client ID do google-services.json nesta build.')
+
+          effective_web_id = secret_web_id if secret_web_id in web_ids else fallback_web_id if fallback_web_id in web_ids else web_ids[0]
+
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f'GOOGLE_WEB_CLIENT_ID_EFFECTIVE={effective_web_id}\n')
+
+          print(f'✅ OAuth Web Client ID validado: {effective_web_id}')
+          print(f'✅ OAuth Android Client IDs para {package_name}:')
+          for c in android_clients:
+              info = c.get('android_info', {})
+              print(f"- {c.get('client_id')} | SHA-1 esperado: {info.get('certificate_hash')}")
+          PY
+
+      - name: Inject GOOGLE_WEB_CLIENT_ID into capacitor.config.ts
+        env:
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+        run: |
+          if [ -z "${GOOGLE_WEB_CLIENT_ID_EFFECTIVE:-}" ]; then
+            echo "::warning::GOOGLE_WEB_CLIENT_ID_EFFECTIVE is empty — falling back to GOOGLE_WEB_CLIENT_ID secret."
+          fi
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          cid = os.environ.get('GOOGLE_WEB_CLIENT_ID_EFFECTIVE') or os.environ.get('GOOGLE_WEB_CLIENT_ID', '')
+          p = Path('capacitor.config.ts')
+          s = p.read_text()
+          if cid:
+              # Substitui o fallback local pelo Client ID Web configurado no GitHub.
+              # Esse mesmo ID precisa alimentar clientId/androidClientId/serverClientId
+              # para o idToken nativo vir com o audience aceito pelo Supabase.
+              s = re.sub(
+                  r"const GOOGLE_WEB_CLIENT_ID = process\.env\.GOOGLE_WEB_CLIENT_ID \|\| '[^']*';",
+                  f"const GOOGLE_WEB_CLIENT_ID = '{cid}';",
+                  s,
+              )
+          else:
+              print('Keeping capacitor.config.ts Google Web Client ID fallback')
+          p.write_text(s)
+          print(f'serverClientId injected (len={len(cid)})')
+          PY
+
+      - name: Remove stale Android web assets
+        run: |
+          echo "Removing android/app/src/main/assets/public before Capacitor sync to avoid stale generated bundles"
+          rm -rf android/app/src/main/assets/public || true
+
+      - name: Sync Capacitor
+        run: bunx cap sync android
+
+      - name: Purge precompressed assets from Android bundle (hard safety)
+        run: |
+          # Última barreira contra "Duplicate resources" no mergeReleaseResources:
+          # se qualquer .gz/.br sobrar em android/app/src/main/assets, o Asset
+          # Merger vai colidir com o arquivo original. Rodar após cap sync
+          # garante limpeza mesmo se algo reintroduzir os arquivos.
+          if [ -d android/app/src/main/assets ]; then
+            removed=$(find android/app/src/main/assets \( -name '*.gz' -o -name '*.br' \) -type f -print -delete | wc -l)
+            echo "Removed $removed precompressed files from android assets"
+          fi
+
+      - name: Validate removed native plugins
+        run: |
+          set -euo pipefail
+          pattern='capacitor-background-runner|BackgroundRunner|background-runner'
+
+          # Checa apenas fontes/configurações nativas. Nunca varrer
+          # android/app/src/main/assets/public, pois ali ficam bundles web gerados
+          # que podem conter strings antigas em chunks versionados.
+          native_files=(
+            android/settings.gradle
+            android/build.gradle
+            android/app/build.gradle
+            android/app/src/main/AndroidManifest.xml
+            package.json
+            capacitor.config.ts
+          )
+
+          mapfile -t native_source_files < <(
+            find android/app/src/main/java android/app/src/main/kotlin \
+              -type f 2>/dev/null || true
+          )
+
+          if grep -nE "$pattern" "${native_files[@]}" "${native_source_files[@]}" 2>/dev/null; then
+            echo "❌ Referência antiga de plugin nativo removido encontrada. Rode uma build limpa com o Android regenerado."
+            exit 1
+          fi
+          echo "✅ Nenhuma referência antiga de plugin nativo removido encontrada."
+
+      - name: Patch MainActivity for edge-to-edge (Android 15+)
+        run: |
+          # MainActivity robusta:
+          #  - EdgeToEdge.enable(this) + WindowCompat.setDecorFitsSystemWindows(false)
+          #  - Listener anexado DIRETO na WebView do Capacitor (não em android.R.id.content),
+          #    porque em edge-to-edge a WebView recebe/consome os insets primeiro.
+          #  - ViewCompat.requestApplyInsets(webView) força o dispatch inicial (em muitos
+          #    aparelhos o primeiro inset só chega depois de rotate/foco).
+          #  - Guarda os insets e reinjeta o CSS var em onPageFinished pra sobreviver
+          #    a recarregamentos de página (deep links, back navigation).
+          #  - displayCutoutMode = ALWAYS (substitui SHORT_EDGES deprecado no Android 15).
+          PKG_DIR="android/app/src/main/java/br/com/vacatio/app"
+          mkdir -p "$PKG_DIR"
+          cat > "$PKG_DIR/MainActivity.java" <<'JAVA'
+          package br.com.vacatio.app;
+
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.os.Handler;
+          import android.os.Looper;
+          import android.view.View;
+          import android.view.WindowManager;
+          import android.webkit.WebView;
+          import androidx.activity.EdgeToEdge;
+          import androidx.appcompat.app.ActionBar;
+          import androidx.core.graphics.Insets;
+          import androidx.core.view.ViewCompat;
+          import androidx.core.view.WindowCompat;
+          import androidx.core.view.WindowInsetsCompat;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+
+              // Últimos insets conhecidos, em px CSS. Reinjetados a cada onPageFinished.
+              private int saiTop = 0;
+              private int saiRight = 0;
+              private int saiBottom = 0;
+              private int saiLeft = 0;
+
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  // Tem que vir ANTES do super.onCreate(): se a Activity nasce com
+                  // AppTheme.NoActionBarLaunch antigo/compat, o Android pode desenhar
+                  // uma ActionBar preta com o label "Vacatio" antes da WebView.
+                  setTheme(R.style.AppTheme_NoActionBar);
+                  getApplication().setTheme(R.style.AppTheme_NoActionBar);
+
+                  // Antes do super.onCreate por causa do BridgeActivity/ComponentActivity.
+                  EdgeToEdge.enable(this);
+                  super.onCreate(savedInstanceState);
+
+                  // Captura de tela (screenshot / gravação) liberada para todos os
+                  // usuários — FLAG_SECURE removido intencionalmente.
+
+
+                  try {
+                      ActionBar actionBar = getSupportActionBar();
+                      if (actionBar != null) actionBar.hide();
+                  } catch (Throwable ignored) {}
+
+                  // Reforço explícito: garantir que o decor não come os insets.
+                  WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+                  // Cutout ALWAYS (Android 11+); substitui SHORT_EDGES deprecado no 15.
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                      getWindow().getAttributes().layoutInDisplayCutoutMode =
+                          WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+                  }
+
+                  final WebView webView;
+                  try {
+                      webView = (WebView) getBridge().getWebView();
+                  } catch (Throwable t) {
+                      return;
+                  }
+                  if (webView == null) return;
+
+                  final float density = getResources().getDisplayMetrics().density;
+
+                  // Listener direto na WebView — é ela que efetivamente recebe os insets
+                  // em edge-to-edge no Capacitor.
+                  ViewCompat.setOnApplyWindowInsetsListener(webView, (v, insets) -> {
+                      Insets bars = insets.getInsets(
+                          WindowInsetsCompat.Type.systemBars()
+                              | WindowInsetsCompat.Type.displayCutout()
+                      );
+                      saiTop = (int) (bars.top / density);
+                      saiRight = (int) (bars.right / density);
+                      saiBottom = (int) (bars.bottom / density);
+                      saiLeft = (int) (bars.left / density);
+                      injectSafeAreaCss(webView);
+                      // Não consumir — deixa filhos verem os insets se precisarem.
+                      return insets;
+                  });
+
+                  // Fallback: se por algum motivo o listener não disparar na WebView,
+                  // tentar também no content view.
+                  final View content = findViewById(android.R.id.content);
+                  if (content != null) {
+                      ViewCompat.setOnApplyWindowInsetsListener(content, (v, insets) -> {
+                          Insets bars = insets.getInsets(
+                              WindowInsetsCompat.Type.systemBars()
+                                  | WindowInsetsCompat.Type.displayCutout()
+                          );
+                          if (saiTop == 0 && bars.top > 0) {
+                              saiTop = (int) (bars.top / density);
+                              saiRight = (int) (bars.right / density);
+                              saiBottom = (int) (bars.bottom / density);
+                              saiLeft = (int) (bars.left / density);
+                              injectSafeAreaCss(webView);
+                          }
+                          return insets;
+                      });
+                  }
+
+                  // Força o primeiro dispatch de insets — sem isso, muitos aparelhos
+                  // só entregam o inset após rotate/foco.
+                  ViewCompat.requestApplyInsets(webView);
+
+                  // Belt-and-suspenders: NÃO substituímos o WebViewClient do Capacitor
+                  // (isso quebra a bridge). Em vez disso, reinjetamos o CSS var em
+                  // intervalos crescentes após o boot — como o JS é idempotente
+                  // (só seta CSS vars), isso é seguro e cobre o caso de SPA reload
+                  // ou insets que chegam depois do primeiro paint.
+                  final Handler h = new Handler(Looper.getMainLooper());
+                  int[] delaysMs = new int[] { 150, 500, 1200, 2500, 5000 };
+                  for (int d : delaysMs) {
+                      h.postDelayed(() -> injectSafeAreaCss(webView), d);
+                  }
+              }
+
+              private void injectSafeAreaCss(WebView wv) {
+                  if (wv == null) return;
+                  try {
+                      String js = String.format(
+                          "(function(){var d=document.documentElement;" +
+                          "if(!d)return;" +
+                          "var v=[%d,%d,%d,%d];" +
+                          "['--sai-top','--sai-right','--sai-bottom','--sai-left']" +
+                          ".forEach(function(k,i){d.style.setProperty(k,v[i]+'px');});" +
+                          "})();",
+                          saiTop, saiRight, saiBottom, saiLeft);
+                      wv.evaluateJavascript(js, null);
+                  } catch (Throwable ignored) {}
+              }
+
+          }
+          JAVA
+          echo "✅ MainActivity com edge-to-edge robusta escrita"
+
+      - name: Add tools namespace + override ML Kit orientation + resizeable app
+        run: |
+          # Recomendação Play #3: remover screenOrientation=portrait forçado pela
+          # activity interna do ML Kit code-scanner + declarar resizeableActivity
+          # para dispositivos de tela grande (Android 16 ignora restrições).
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+
+          # 1) namespace xmlns:tools
+          if 'xmlns:tools=' not in s:
+              s = s.replace(
+                  '<manifest ',
+                  '<manifest xmlns:tools="http://schemas.android.com/tools" ',
+                  1,
+              )
+              print('xmlns:tools adicionado')
+
+          # 2) resizeableActivity="true" na <application>
+          if 'android:resizeableActivity' not in s:
+              s = re.sub(
+                  r'<application\b',
+                  '<application android:resizeableActivity="true"',
+                  s,
+                  count=1,
+              )
+              print('resizeableActivity=true adicionado à <application>')
+
+          # 3) <supports-screens> — declara oficialmente suporte a tablets
+          # para o "Tablet-optimized" badge da Play Store.
+          if '<supports-screens' not in s:
+              supports = (
+                  '    <supports-screens\n'
+                  '        android:resizeable="true"\n'
+                  '        android:smallScreens="true"\n'
+                  '        android:normalScreens="true"\n'
+                  '        android:largeScreens="true"\n'
+                  '        android:xlargeScreens="true"\n'
+                  '        android:anyDensity="true"\n'
+                  '        android:requiresSmallestWidthDp="320" />\n'
+                  '    <application'
+              )
+              s = s.replace('    <application', supports, 1)
+              print('<supports-screens> adicionado (tablet-optimized ready)')
+
+          # 4) override da activity do ML Kit code-scanner
+          if 'GmsBarcodeScanningDelegateActivity' not in s:
+              override = (
+                  '        <activity\n'
+                  '            android:name="com.google.mlkit.vision.codescanner.internal.GmsBarcodeScanningDelegateActivity"\n'
+                  '            android:screenOrientation="unspecified"\n'
+                  '            android:resizeableActivity="true"\n'
+                  '            tools:replace="android:screenOrientation" />\n'
+                  '    </application>'
+              )
+              s = s.replace('</application>', override, 1)
+              print('override ML Kit orientation aplicado')
+
+          # 5) configChanges + resizeableActivity + supportsPictureInPicture
+          #    na MainActivity — evita recreate em rotação/multi-window/foldable.
+          if 'android:name=".MainActivity"' in s and 'android:configChanges' not in s:
+              s = re.sub(
+                  r'(<activity\s+android:name="\.MainActivity")',
+                  r'\1\n            android:resizeableActivity="true"'
+                  r'\n            android:supportsPictureInPicture="false"'
+                  r'\n            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|keyboard|uiMode|density|navigation|touchscreen|fontScale|locale|layoutDirection"',
+                  s,
+                  count=1,
+              )
+              print('configChanges/resizeable aplicados à MainActivity')
+
+          p.write_text(s)
+          PY
+
+
+
+      - name: Add <queries> for external apps (Android 11+ package visibility)
+        run: |
+          # Android 11+ (API 30) exige declarar quais pacotes o app pode inspecionar
+          # via PackageManager.queryIntentActivities. Sem isso, @capacitor/app-launcher
+          # (usado nos deep links de mapas) retorna sempre "não instalado" para
+          # Uber/Waze/99/Google Maps, e o app cai no fallback web.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          if '<queries>' in s:
+              print('queries block already present — skipping')
+          else:
+              queries = '''    <queries>
+                  <!-- Navegação / mapas -->
+                  <package android:name="com.google.android.apps.maps" />
+                  <package android:name="com.waze" />
+                  <package android:name="com.ubercab" />
+                  <package android:name="com.taxis99" />
+                  <!-- Browsers para openExternal / InAppBrowser fallback -->
+                  <intent>
+                      <action android:name="android.intent.action.VIEW" />
+                      <category android:name="android.intent.category.BROWSABLE" />
+                      <data android:scheme="https" />
+                  </intent>
+                  <!-- Compartilhamento por texto -->
+                  <intent>
+                      <action android:name="android.intent.action.SEND" />
+                      <data android:mimeType="text/plain" />
+                  </intent>
+                  <!-- Ligar / tel: -->
+                  <intent>
+                      <action android:name="android.intent.action.DIAL" />
+                      <data android:scheme="tel" />
+                  </intent>
+                  <!-- E-mail -->
+                  <intent>
+                      <action android:name="android.intent.action.SENDTO" />
+                      <data android:scheme="mailto" />
+                  </intent>
+              </queries>
+          '''
+              s = s.replace('<application', queries + '<application', 1)
+              p.write_text(s)
+              print('✅ <queries> block added to AndroidManifest')
+          PY
+
+
+      - name: Add OAuth deep link intent-filter to AndroidManifest
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          if 'br.com.vacatio.app' in s:
+              print('deep link already present')
+          else:
+              intent = '''                <intent-filter>
+                    <action android:name="android.intent.action.VIEW" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+                    <data android:scheme="br.com.vacatio.app" android:host="auth-callback" />
+                </intent-filter>
+            </activity>'''
+              s = s.replace('</activity>', intent, 1)
+              p.write_text(s)
+              print('deep link intent-filter added')
+          PY
+
+      - name: Add verified https App Link intent-filter (vacatio.com.br)
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          if 'android:host="vacatio.com.br"' not in s:
+              applink = '''                <intent-filter android:autoVerify="true">
+                    <action android:name="android.intent.action.VIEW" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+                    <data android:scheme="https" />
+                    <data android:scheme="http" />
+                    <data android:host="vacatio.com.br" />
+                    <data android:host="www.vacatio.com.br" />
+                    <data android:pathPrefix="/ir/" />
+                    <data android:pathPrefix="/lei/" />
+                    <data android:pathPrefix="/legislacao/" />
+                    <data android:pathPrefix="/noticias" />
+                    <data android:pathPrefix="/radar/" />
+                    <data android:pathPrefix="/livro/" />
+                </intent-filter>
+            </activity>'''
+              s = s.replace('</activity>', applink, 1)
+              p.write_text(s)
+              print('✅ https App Link intent-filter added (vacatio.com.br, autoVerify=true)')
+          else:
+              print('https App Link intent-filter already present')
+          PY
+
+      - name: Add vacatio:// deep link scheme + App Shortcuts to AndroidManifest
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+
+          # 1) intent-filter aberto para vacatio://<qualquer host> (usado pelos shortcuts)
+          if 'android:scheme="vacatio"' not in s:
+              scheme = '''                <intent-filter android:autoVerify="false">
+                    <action android:name="android.intent.action.VIEW" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+                    <data android:scheme="vacatio" />
+                </intent-filter>
+            </activity>'''
+              s = s.replace('</activity>', scheme, 1)
+              print('vacatio:// scheme intent-filter added')
+
+          # 2) meta-data referenciando res/xml/shortcuts.xml
+          if 'android.app.shortcuts' not in s:
+              meta = '''                <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+            </activity>'''
+              s = s.replace('</activity>', meta, 1)
+              print('shortcuts meta-data added')
+
+          p.write_text(s)
+          PY
+
+      - name: Add audio SEND share intent-filter (WhatsApp share target)
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          if 'vacatio-share-audio' not in s:
+              share = '''                <intent-filter android:label="vacatio-share-audio">
+                    <action android:name="android.intent.action.SEND" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <data android:mimeType="audio/*" />
+                </intent-filter>
+                <intent-filter>
+                    <action android:name="android.intent.action.SEND_MULTIPLE" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <data android:mimeType="audio/*" />
+                </intent-filter>
+            </activity>'''
+              s = s.replace('</activity>', share, 1)
+              p.write_text(s)
+              print('audio SEND intent-filter added')
+          else:
+              print('audio SEND intent-filter already present')
+          PY
+
+      - name: Write App Shortcuts resource
+        run: |
+          mkdir -p android/app/src/main/res/xml android/app/src/main/res/values
+          cat > android/app/src/main/res/xml/shortcuts.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+              <shortcut
+                  android:shortcutId="buscar"
+                  android:enabled="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:shortcutShortLabel="@string/shortcut_buscar_short"
+                  android:shortcutLongLabel="@string/shortcut_buscar_long">
+                  <intent
+                      android:action="android.intent.action.VIEW"
+                      android:targetPackage="br.com.vacatio.app"
+                      android:data="vacatio://buscar" />
+                  <categories android:name="android.shortcut.conversation" />
+              </shortcut>
+              <shortcut
+                  android:shortcutId="radar"
+                  android:enabled="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:shortcutShortLabel="@string/shortcut_radar_short"
+                  android:shortcutLongLabel="@string/shortcut_radar_long">
+                  <intent
+                      android:action="android.intent.action.VIEW"
+                      android:targetPackage="br.com.vacatio.app"
+                      android:data="vacatio://radar-360" />
+              </shortcut>
+              <shortcut
+                  android:shortcutId="evelyn"
+                  android:enabled="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:shortcutShortLabel="@string/shortcut_evelyn_short"
+                  android:shortcutLongLabel="@string/shortcut_evelyn_long">
+                  <intent
+                      android:action="android.intent.action.VIEW"
+                      android:targetPackage="br.com.vacatio.app"
+                      android:data="vacatio://evelyn" />
+              </shortcut>
+              <shortcut
+                  android:shortcutId="novidades"
+                  android:enabled="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:shortcutShortLabel="@string/shortcut_novidades_short"
+                  android:shortcutLongLabel="@string/shortcut_novidades_long">
+                  <intent
+                      android:action="android.intent.action.VIEW"
+                      android:targetPackage="br.com.vacatio.app"
+                      android:data="vacatio://novidades" />
+              </shortcut>
+              <shortcut
+                  android:shortcutId="audio"
+                  android:enabled="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:shortcutShortLabel="@string/shortcut_audio_short"
+                  android:shortcutLongLabel="@string/shortcut_audio_long">
+                  <intent
+                      android:action="android.intent.action.VIEW"
+                      android:targetPackage="br.com.vacatio.app"
+                      android:data="vacatio://audio" />
+              </shortcut>
+              <shortcut
+                  android:shortcutId="lembretes"
+                  android:enabled="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:shortcutShortLabel="@string/shortcut_lembretes_short"
+                  android:shortcutLongLabel="@string/shortcut_lembretes_long">
+                  <intent
+                      android:action="android.intent.action.VIEW"
+                      android:targetPackage="br.com.vacatio.app"
+                      android:data="vacatio://lembretes" />
+              </shortcut>
+          </shortcuts>
+          XML
+
+          # Merge das strings dos shortcuts em values/strings.xml (sem duplicar)
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/res/values/strings.xml')
+          entries = {
+              'shortcut_buscar_short': 'Buscar',
+              'shortcut_buscar_long': 'Buscar leis e artigos',
+              'shortcut_radar_short': 'Radar 360',
+              'shortcut_radar_long': 'Radar Legislativo 360',
+              'shortcut_evelyn_short': 'Evelyn IA',
+              'shortcut_evelyn_long': 'Perguntar à Evelyn',
+              'shortcut_novidades_short': 'Novidades',
+              'shortcut_novidades_long': 'Últimas atualizações',
+              'shortcut_audio_short': 'Áudio',
+              'shortcut_audio_long': 'Gravar anotação de áudio',
+              'shortcut_lembretes_short': 'Lembretes',
+              'shortcut_lembretes_long': 'Meus lembretes',
+          }
+          if not p.exists():
+              p.parent.mkdir(parents=True, exist_ok=True)
+              p.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n')
+          s = p.read_text()
+          for name, value in entries.items():
+              if f'name="{name}"' in s:
+                  continue
+              s = s.replace('</resources>', f'    <string name="{name}">{value}</string>\n</resources>')
+          p.write_text(s)
+          print('shortcut strings merged')
+          PY
+
+      - name: Add Share Target and verified App Links to AndroidManifest
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+
+          # 1) Share Target — recebe ACTION_SEND com texto de outros apps
+          if 'action.SEND' not in s:
+              share = '''                <intent-filter>
+                    <action android:name="android.intent.action.SEND" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <data android:mimeType="text/plain" />
+                </intent-filter>
+            </activity>'''
+              s = s.replace('</activity>', share, 1)
+              print('SEND intent-filter added')
+
+          # 2) App Links verificados para https://vacatio.com.br/*
+          if 'vacatio.com.br' not in s:
+              applinks = '''                <intent-filter android:autoVerify="true">
+                    <action android:name="android.intent.action.VIEW" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+                    <data android:scheme="https" android:host="vacatio.com.br" />
+                    <data android:scheme="https" android:host="www.vacatio.com.br" />
+                </intent-filter>
+            </activity>'''
+              s = s.replace('</activity>', applinks, 1)
+              print('App Links intent-filter added')
+
+          p.write_text(s)
+          PY
+
+
+      - name: Add Home Screen Widget + Quick Settings Tile
+        run: |
+          set -euo pipefail
+          PKG_DIR=android/app/src/main/java/br/com/vacatio/app
+          mkdir -p "$PKG_DIR"
+          mkdir -p android/app/src/main/res/xml
+          mkdir -p android/app/src/main/res/layout
+          mkdir -p android/app/src/main/res/drawable
+
+          # 1) Widget provider (Java) — abre o app na busca via deep link vacatio://buscar
+          cat > "$PKG_DIR/VacatioWidgetProvider.java" <<'JAVA'
+          package br.com.vacatio.app;
+
+          import android.app.PendingIntent;
+          import android.appwidget.AppWidgetManager;
+          import android.appwidget.AppWidgetProvider;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.widget.RemoteViews;
+
+          public class VacatioWidgetProvider extends AppWidgetProvider {
+              @Override
+              public void onUpdate(Context ctx, AppWidgetManager mgr, int[] ids) {
+                  for (int id : ids) {
+                      RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_vacatio);
+                      Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse("vacatio://buscar"));
+                      open.setPackage(ctx.getPackageName());
+                      int flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+                      PendingIntent pi = PendingIntent.getActivity(ctx, 0, open, flags);
+                      v.setOnClickPendingIntent(R.id.widget_root, pi);
+                      mgr.updateAppWidget(id, v);
+                  }
+              }
+          }
+          JAVA
+
+          # 2) Layout do widget
+          cat > android/app/src/main/res/layout/widget_vacatio.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/widget_root"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:padding="12dp"
+              android:background="@drawable/widget_bg"
+              android:gravity="center_vertical">
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="Vacatio"
+                  android:textColor="#F5EEDC"
+                  android:textStyle="bold"
+                  android:textSize="16sp" />
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="Buscar na legislação"
+                  android:textColor="#C9A84C"
+                  android:textSize="13sp"
+                  android:layout_marginTop="4dp" />
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="Toque para abrir"
+                  android:textColor="#B0A090"
+                  android:textSize="11sp"
+                  android:layout_marginTop="6dp" />
+          </LinearLayout>
+          XML
+
+          # 3) Drawable de fundo do widget
+          cat > android/app/src/main/res/drawable/widget_bg.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <solid android:color="#1A0A14" />
+              <corners android:radius="20dp" />
+              <stroke android:width="1dp" android:color="#C9A84C" />
+          </shape>
+          XML
+
+          # 4) AppWidgetProviderInfo
+          cat > android/app/src/main/res/xml/widget_vacatio_info.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+              android:minWidth="180dp"
+              android:minHeight="80dp"
+              android:targetCellWidth="2"
+              android:targetCellHeight="1"
+              android:updatePeriodMillis="86400000"
+              android:initialLayout="@layout/widget_vacatio"
+              android:previewLayout="@layout/widget_vacatio"
+              android:resizeMode="horizontal|vertical"
+              android:widgetCategory="home_screen"
+              android:description="@string/widget_vacatio_desc" />
+          XML
+
+          # 5) Quick Settings Tile Service — abre a busca
+          cat > "$PKG_DIR/VacatioTileService.java" <<'JAVA'
+          package br.com.vacatio.app;
+
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.service.quicksettings.TileService;
+
+          public class VacatioTileService extends TileService {
+              @Override
+              public void onClick() {
+                  super.onClick();
+                  Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("vacatio://buscar"));
+                  i.setPackage(getPackageName());
+                  i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                  startActivityAndCollapse(i);
+              }
+          }
+          JAVA
+
+          # 6) Strings do widget/tile (merge idempotente)
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/res/values/strings.xml')
+          s = p.read_text() if p.exists() else '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n'
+          adds = {
+              'widget_vacatio_label': 'Vacatio — Buscar',
+              'widget_vacatio_desc':  'Atalho rápido para buscar na legislação',
+              'tile_vacatio_label':   'Buscar na Vacatio',
+          }
+          for k, v in adds.items():
+              if f'name="{k}"' not in s:
+                  s = s.replace('</resources>', f'    <string name="{k}">{v}</string>\n</resources>')
+          p.write_text(s)
+          print('widget strings merged')
+          PY
+
+          # 7) Registra receiver do widget e o TileService no AndroidManifest
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+
+          if 'VacatioWidgetProvider' not in s:
+              block = '''        <receiver
+                  android:name=".VacatioWidgetProvider"
+                  android:exported="true"
+                  android:label="@string/widget_vacatio_label">
+                  <intent-filter>
+                      <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                  </intent-filter>
+                  <meta-data
+                      android:name="android.appwidget.provider"
+                      android:resource="@xml/widget_vacatio_info" />
+              </receiver>
+          </application>'''
+              s = s.replace('</application>', block, 1)
+              print('widget receiver added')
+
+          if 'VacatioTileService' not in s:
+              block = '''        <service
+                  android:name=".VacatioTileService"
+                  android:exported="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:label="@string/tile_vacatio_label"
+                  android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+                  <intent-filter>
+                      <action android:name="android.service.quicksettings.action.QS_TILE" />
+                  </intent-filter>
+              </service>
+          </application>'''
+              s = s.replace('</application>', block, 1)
+              print('tile service added')
+
+          p.write_text(s)
+          PY
+
+
+
+
+
+
+
+
+
+      - name: Patch Android Gradle for FCM, Java 21 and signing
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+
+          # Force Gradle itself to run with the same JDK 21 configured by setup-java.
+          if [ -z "${JAVA_HOME:-}" ]; then
+            echo "❌ JAVA_HOME is not set"
+            exit 1
+          fi
+          touch android/gradle.properties
+          { grep -v \
+              -e '^org.gradle.java.home=' \
+              -e '^android.enableR8.fullMode=' \
+              -e '^android.enableResourceOptimizations=' \
+              -e '^android.nonTransitiveRClass=' \
+              -e '^android.enableAppCompileTimeRClass=' \
+              android/gradle.properties || true; } > /tmp/gradle.properties.tmp
+          mv /tmp/gradle.properties.tmp android/gradle.properties
+          printf '\norg.gradle.java.home=%s\n' "$JAVA_HOME" >> android/gradle.properties
+          # R8 full mode + otimização/redução agressiva de recursos.
+          # Recomendação Play #4: "A redução otimizada de recursos não está ativada".
+          printf 'android.enableR8.fullMode=true\n' >> android/gradle.properties
+          printf 'android.enableResourceOptimizations=true\n' >> android/gradle.properties
+          printf 'android.nonTransitiveRClass=true\n' >> android/gradle.properties
+          printf 'android.enableAppCompileTimeRClass=true\n' >> android/gradle.properties
+
+
+
+          # Root Gradle: keep google-services classpath available for FCM.
+          if ! grep -q "com.google.gms:google-services" android/build.gradle; then
+            sed -i "/classpath 'com.android.tools.build:gradle/a\        classpath 'com.google.gms:google-services:4.4.2'" android/build.gradle
+          fi
+          # Root Gradle: Firebase Crashlytics gradle plugin (needed for NDK symbol upload).
+          if ! grep -q "firebase-crashlytics-gradle" android/build.gradle; then
+            sed -i "/classpath 'com.google.gms:google-services/a\        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.2'" android/build.gradle
+          fi
+
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          p = Path('android/app/build.gradle')
+          s = p.read_text()
+
+          # ---------------------------------------------------------------
+          # 1) Apply google-services + crashlytics plugins DETERMINISTICALLY
+          #    at the TOP of app/build.gradle, BEFORE any android { } block
+          #    is evaluated. Otherwise the `firebaseCrashlytics { ... }`
+          #    extension referenced inside buildTypes.release does not exist
+          #    and Gradle throws GradleScriptException at configuration time.
+          # ---------------------------------------------------------------
+          # Strip ANY existing apply-plugin lines for google-services / crashlytics
+          # regardless of their location (Capacitor appends google-services at the
+          # BOTTOM of the file — if we leave it there, the `firebaseCrashlytics {}`
+          # DSL inside buildTypes.release fires before the plugin is applied and
+          # Gradle throws "Could not find method firebaseCrashlytics()").
+          s = re.sub(r"(?m)^\s*apply plugin:\s*'com\.google\.gms\.google-services'\s*\n?", "", s)
+          s = re.sub(r"(?m)^\s*apply plugin:\s*'com\.google\.firebase\.crashlytics'\s*\n?", "", s)
+          # Also strip if they are inside a plugins { } block (modern DSL)
+          s = re.sub(r"(?m)^\s*id\s+'com\.google\.gms\.google-services'.*\n?", "", s)
+          s = re.sub(r"(?m)^\s*id\s+'com\.google\.firebase\.crashlytics'.*\n?", "", s)
+
+          plugins_block_apply = (
+              "apply plugin: 'com.google.gms.google-services'\n"
+              "apply plugin: 'com.google.firebase.crashlytics'\n"
+          )
+
+          # Case A: modern plugins { } DSL is used by Capacitor. Inject ids INSIDE it.
+          # (apply plugin can't be placed above a plugins {} block — Gradle rejects it.)
+          plugins_dsl_re = re.compile(r"(plugins\s*\{)([^}]*)(\})", re.DOTALL)
+          m_dsl = plugins_dsl_re.search(s)
+          if m_dsl:
+              inject = "\n    id 'com.google.gms.google-services'\n    id 'com.google.firebase.crashlytics'\n"
+              s = s[:m_dsl.start(3)] + inject + s[m_dsl.start(3):]
+              print("✅ Injected google-services + crashlytics IDs inside plugins { } DSL")
+          else:
+              # Case B: legacy apply plugin syntax. Anchor on com.android.application.
+              anchor_re = re.compile(r"apply plugin:\s*'com\.android\.application'\s*\n")
+              m = anchor_re.search(s)
+              if m:
+                  s = s[:m.end()] + plugins_block_apply + s[m.end():]
+                  print("✅ Injected google-services + crashlytics plugins right after com.android.application")
+              else:
+                  s = plugins_block_apply + s
+                  print("✅ Prepended google-services + crashlytics plugins at file top (no anchor found)")
+
+
+
+          if 'compileOptions' not in s:
+              s = re.sub(
+                  r'(android\s*\{)',
+                  r'''\1
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_21
+                  targetCompatibility JavaVersion.VERSION_21
+              }
+          ''',
+                  s,
+                  count=1,
+              )
+          else:
+              s = re.sub(r'sourceCompatibility\s+JavaVersion\.VERSION_\d+', 'sourceCompatibility JavaVersion.VERSION_21', s)
+              s = re.sub(r'targetCompatibility\s+JavaVersion\.VERSION_\d+', 'targetCompatibility JavaVersion.VERSION_21', s)
+
+          if 'signingConfigs' not in s:
+              s = re.sub(
+                  r'(android\s*\{)',
+                  r'''\1
+              signingConfigs {
+                  release {
+                      storeFile file('upload-keystore.jks')
+                      storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                      keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                      keyPassword System.getenv('ANDROID_KEY_PASSWORD') ?: System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                  }
+              }
+          ''',
+                  s,
+                  count=1,
+              )
+
+          def find_block(text, keyword, start=0):
+              idx = text.find(keyword, start)
+              if idx == -1:
+                  return None
+              brace = text.find('{', idx)
+              if brace == -1:
+                  return None
+              depth = 0
+              for i in range(brace, len(text)):
+                  if text[i] == '{':
+                      depth += 1
+                  elif text[i] == '}':
+                      depth -= 1
+                      if depth == 0:
+                          return idx, brace, i
+              return None
+
+          release_block = '''release {
+                  minifyEnabled true
+                  shrinkResources true
+                  proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                  signingConfig signingConfigs.release
+                  ndk {
+                      debugSymbolLevel 'FULL'
+                  }
+                  firebaseCrashlytics {
+                      nativeSymbolUploadEnabled true
+                      unstrippedNativeLibsDir 'build/intermediates/merged_native_libs/release/out/lib'
+                  }
+              }'''
+
+          build_types = find_block(s, 'buildTypes')
+          if build_types:
+              bt_start, bt_brace, bt_end = build_types
+              release = find_block(s, 'release', bt_brace)
+              if release and release[0] < bt_end:
+                  s = s[:release[0]] + release_block + s[release[2] + 1:]
+              else:
+                  s = s[:bt_brace + 1] + '\n              ' + release_block + s[bt_brace + 1:]
+          else:
+              android_block = find_block(s, 'android')
+              if android_block:
+                  s = s[:android_block[2]] + '''
+              buildTypes {
+                  ''' + release_block + '''
+              }
+          ''' + s[android_block[2]:]
+
+
+
+
+          # (google-services + crashlytics plugins já foram aplicados no topo
+          # do arquivo pelo bloco no início deste patch — não repetir aqui.)
+
+          # Ensure Firebase BOM + firebase-common-ktx are present so R8 does not
+          # fail with "Missing class com.google.firebase.ktx.Firebase" pulled
+          # transitively by firebase-installations-ktx (google-services plugin).
+          if 'firebase-bom' not in s:
+              deps_match = re.search(r'(dependencies\s*\{)', s)
+              if deps_match:
+                  inject = (
+                      "\n    implementation platform('com.google.firebase:firebase-bom:33.5.1')"
+                      "\n    implementation 'com.google.firebase:firebase-common-ktx'"
+                      "\n    implementation 'com.google.firebase:firebase-messaging-ktx'"
+                      "\n    implementation 'com.google.firebase:firebase-installations-ktx'"
+                      "\n    implementation 'com.google.firebase:firebase-crashlytics-ktx'"
+                      "\n    implementation 'com.google.firebase:firebase-crashlytics-ndk'"
+                  )
+                  s = s[:deps_match.end()] + inject + s[deps_match.end():]
+              else:
+                  s += (
+                      "\ndependencies {"
+                      "\n    implementation platform('com.google.firebase:firebase-bom:33.5.1')"
+                      "\n    implementation 'com.google.firebase:firebase-common-ktx'"
+                      "\n    implementation 'com.google.firebase:firebase-messaging-ktx'"
+                      "\n    implementation 'com.google.firebase:firebase-installations-ktx'"
+                      "\n    implementation 'com.google.firebase:firebase-crashlytics-ktx'"
+                      "\n    implementation 'com.google.firebase:firebase-crashlytics-ndk'"
+                      "\n}\n"
+                  )
+          elif 'firebase-crashlytics' not in s:
+              # BOM já existe (build anterior), só adiciona Crashlytics.
+              deps_match = re.search(r'(dependencies\s*\{)', s)
+              if deps_match:
+                  inject = (
+                      "\n    implementation 'com.google.firebase:firebase-crashlytics-ktx'"
+                      "\n    implementation 'com.google.firebase:firebase-crashlytics-ndk'"
+                  )
+                  s = s[:deps_match.end()] + inject + s[deps_match.end():]
+
+          # Baseline Profiles — ProfileInstaller lê baseline-prof.txt de assets/dexopt
+          # e aplica AOT compilation nas classes/métodos listados no primeiro boot,
+          # tornando o cold start 15-30% mais rápido em Android 9+.
+          if 'androidx.profileinstaller' not in s:
+              deps_match = re.search(r'(dependencies\s*\{)', s)
+              if deps_match:
+                  s = s[:deps_match.end()] + "\n    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'" + s[deps_match.end():]
+
+          p.write_text(s)
+          PY
+
+          # ProGuard/R8 rules — R8 full mode aggressive optimization + safe reflection keeps.
+          cat > android/app/proguard-rules.pro <<'PRO'
+          # Capacitor core + plugin discovery (reflection)
+          -keep,allowobfuscation,allowshrinking class com.getcapacitor.** { *; }
+          -keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+          -keepclassmembers @com.getcapacitor.annotation.CapacitorPlugin class * {
+              @com.getcapacitor.PluginMethod <methods>;
+          }
+          -keep class * extends com.getcapacitor.Plugin { *; }
+
+          # Firebase Messaging + GMS (Google Sign-In) — invoked via reflection.
+          # allowobfuscation/allowshrinking permite R8 renomear/remover classes
+          # não usadas, elevando as taxas de otimização/ofuscação/redução
+          # (recomendação Play #4).
+          -keep class * extends com.google.firebase.messaging.FirebaseMessagingService { *; }
+          -keep,allowobfuscation,allowshrinking class com.google.firebase.iid.** { *; }
+          -keep,allowobfuscation,allowshrinking class com.google.android.gms.** { *; }
+          -keep,allowobfuscation,allowshrinking class com.google.firebase.** { *; }
+
+          # Firebase Kotlin extensions (ktx) — required for Firebase Installations
+          -keep,allowobfuscation,allowshrinking class com.google.firebase.ktx.** { *; }
+          -keep,allowobfuscation,allowshrinking class com.google.firebase.installations.ktx.** { *; }
+          -keep,allowobfuscation,allowshrinking class com.google.firebase.messaging.ktx.** { *; }
+          -keep,allowobfuscation,allowshrinking class com.google.firebase.common.ktx.** { *; }
+
+
+          # WebView JS bridge
+          -keepclassmembers class * { @android.webkit.JavascriptInterface <methods>; }
+
+          # Symbolication attributes for Play Console / Crashlytics
+          -keepattributes SourceFile,LineNumberTable,*Annotation*,Signature,InnerClasses,EnclosingMethod
+          -renamesourcefileattribute SourceFile
+
+          # Aggressive optimizations
+          -allowaccessmodification
+          -repackageclasses ''
+
+          # Silence warnings from optional transitive deps
+          -dontwarn org.slf4j.**
+          -dontwarn javax.annotation.**
+          -dontwarn org.conscrypt.**
+          -dontwarn org.bouncycastle.**
+          -dontwarn org.openjsse.**
+          # Firebase KTX may reference classes not present in stripped builds.
+          -dontwarn com.google.firebase.ktx.**
+          -dontwarn com.google.firebase.**
+          -dontwarn com.google.android.gms.**
+          PRO
+
+          # ============ Baseline Profile ============
+          # AGP 8.x empacota automaticamente qualquer baseline-prof.txt em
+          # src/main/baseline-prof.txt como assets/dexopt/baseline.prof.
+          # No primeiro boot, ProfileInstaller compila AOT as classes listadas
+          # → cold start 15-30% mais rápido, scroll de listas mais estável.
+          # Perfil focado em: boot Capacitor, WebView, Firebase, Splash, R8 runtime.
+          mkdir -p android/app/src/main
+          cat > android/app/src/main/baseline-prof.txt <<'PROF'
+          HSPLcom/getcapacitor/BridgeActivity;-><init>()V
+          HSPLcom/getcapacitor/BridgeActivity;->onCreate(Landroid/os/Bundle;)V
+          HSPLcom/getcapacitor/BridgeActivity;->onStart()V
+          HSPLcom/getcapacitor/BridgeActivity;->onResume()V
+          HSPLcom/getcapacitor/Bridge;-><init>(Lcom/getcapacitor/BridgeActivity;Landroid/webkit/WebView;Ljava/util/List;Lcom/getcapacitor/CapConfig;)V
+          HSPLcom/getcapacitor/Bridge;->loadWebView()V
+          HSPLcom/getcapacitor/Bridge;->initWebView()V
+          HSPLcom/getcapacitor/WebViewLocalServer;->shouldInterceptRequest(Landroid/webkit/WebView;Landroid/webkit/WebResourceRequest;)Landroid/webkit/WebResourceResponse;
+          HSPLcom/getcapacitor/Plugin;-><init>()V
+          HSPLcom/getcapacitor/PluginHandle;-><init>(Lcom/getcapacitor/Bridge;Lcom/getcapacitor/PluginManager$PluginEntry;)V
+          HSPLcom/getcapacitor/MessageHandler;-><init>(Lcom/getcapacitor/Bridge;Landroid/webkit/WebView;Lcom/getcapacitor/CapacitorWebView;)V
+          HSPLcom/getcapacitor/MessageHandler;->postMessage(Ljava/lang/String;)V
+          HSPLandroid/webkit/WebView;-><init>(Landroid/content/Context;)V
+          HSPLandroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V
+          HSPLandroid/webkit/WebSettings;->setJavaScriptEnabled(Z)V
+          HSPLandroidx/core/splashscreen/SplashScreen;->installSplashScreen(Landroid/app/Activity;)Landroidx/core/splashscreen/SplashScreen;
+          HSPLcom/google/firebase/FirebaseApp;->initializeApp(Landroid/content/Context;)Lcom/google/firebase/FirebaseApp;
+          HSPLcom/google/firebase/FirebaseApp;->getInstance()Lcom/google/firebase/FirebaseApp;
+          HSPLcom/google/firebase/crashlytics/FirebaseCrashlytics;->getInstance()Lcom/google/firebase/crashlytics/FirebaseCrashlytics;
+          HSPLcom/google/firebase/messaging/FirebaseMessaging;->getInstance()Lcom/google/firebase/messaging/FirebaseMessaging;
+          HSPLcom/google/firebase/installations/FirebaseInstallations;->getInstance()Lcom/google/firebase/installations/FirebaseInstallations;
+          HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;)V
+          HSPLandroidx/startup/AppInitializer;->getInstance(Landroid/content/Context;)Landroidx/startup/AppInitializer;
+          HSPLandroidx/lifecycle/ProcessLifecycleOwner;->get()Landroidx/lifecycle/LifecycleOwner;
+          HSPLandroidx/lifecycle/LifecycleRegistry;-><init>(Landroidx/lifecycle/LifecycleOwner;)V
+          HSPLandroidx/lifecycle/LifecycleRegistry;->handleLifecycleEvent(Landroidx/lifecycle/Lifecycle$Event;)V
+          HSPLbr/com/vacatio/app/MainActivity;-><init>()V
+          HSPLbr/com/vacatio/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+          PROF
+          echo "===== baseline-prof.txt ====="
+          wc -l android/app/src/main/baseline-prof.txt
+
+
+
+
+
+          echo "===== Java/Gradle versions ====="
+          java -version
+          (cd android && ./gradlew --version --no-daemon)
+          echo "===== android/gradle.properties ====="
+          grep -E 'org.gradle.java.home|android.useAndroidX|android.enableJetifier' android/gradle.properties || true
+          echo "===== android/build.gradle (numbered) ====="
+          cat -n android/build.gradle
+          echo "===== android/app/build.gradle (numbered) ====="
+          cat -n android/app/build.gradle
+          echo "===== android/variables.gradle (numbered) ====="
+          cat -n android/variables.gradle || echo "(variables.gradle not found)"
+
+      - name: Add Facebook SDK for install/ad tracking (Meta Ads)
+        # SDK nativo do Facebook — necessário pro Meta Ads atribuir instalações
+        # via Google Play Install Referrer. App ID 1590734976033061, Client
+        # Token d0f7c8833c75e815d78c81ac5f4b6fb3 (Key Hash de release já
+        # validado no Meta for Developers).
+        run: |
+          set -euo pipefail
+
+          # 1) strings.xml — facebook_app_id + facebook_client_token
+          mkdir -p android/app/src/main/res/values
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/res/values/strings.xml')
+          if not p.exists():
+              p.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n')
+          s = p.read_text()
+          entries = {
+              'facebook_app_id': '1590734976033061',
+              'fb_login_protocol_scheme': 'fb1590734976033061',
+              'facebook_client_token': 'd0f7c8833c75e815d78c81ac5f4b6fb3',
+          }
+          for name, val in entries.items():
+              pat = re.compile(r'<string\s+name="' + re.escape(name) + r'"[^>]*>[^<]*</string>')
+              line = f'    <string name="{name}">{val}</string>'
+              if pat.search(s):
+                  s = pat.sub(line.strip(), s)
+              else:
+                  s = s.replace('</resources>', line + '\n</resources>', 1)
+          p.write_text(s)
+          print('✅ facebook_app_id + client_token gravados em strings.xml')
+          PY
+
+          # 2) AndroidManifest — meta-data dentro de <application> + INTERNET perm
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+
+          if 'android.permission.INTERNET' not in s:
+              s = s.replace('</manifest>',
+                  '    <uses-permission android:name="android.permission.INTERNET" />\n</manifest>', 1)
+
+          meta = (
+              '        <meta-data android:name="com.facebook.sdk.ApplicationId" '
+              'android:value="@string/facebook_app_id" />\n'
+              '        <meta-data android:name="com.facebook.sdk.ClientToken" '
+              'android:value="@string/facebook_client_token" />\n'
+              '        <meta-data android:name="com.facebook.sdk.AutoInitEnabled" '
+              'android:value="true" />\n'
+              '        <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" '
+              'android:value="true" />\n'
+              '        <meta-data android:name="com.facebook.sdk.AdvertiserIDCollectionEnabled" '
+              'android:value="true" />\n'
+          )
+          if 'com.facebook.sdk.ApplicationId' not in s:
+              # Injeta antes do </application>
+              s = re.sub(r'(\s*)</application>', '\n' + meta + r'\1</application>', s, count=1)
+              print('✅ Facebook meta-data injetado no AndroidManifest')
+          else:
+              print('Facebook meta-data já presente — mantendo')
+
+          Path(p).write_text(s)
+          PY
+
+          # 3) app/build.gradle — dependência do Facebook SDK
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/build.gradle')
+          s = p.read_text()
+          if 'com.facebook.android:facebook-android-sdk' not in s:
+              inject = "\n    implementation 'com.facebook.android:facebook-android-sdk:17.0.2'"
+              m = re.search(r'(dependencies\s*\{)', s)
+              if m:
+                  s = s[:m.end()] + inject + s[m.end():]
+              else:
+                  s += "\ndependencies {" + inject + "\n}\n"
+              p.write_text(s)
+              print('✅ facebook-android-sdk 17.0.2 adicionado às dependencies')
+          else:
+              print('facebook-android-sdk já presente')
+          PY
+
+          echo "===== strings.xml ====="
+          cat android/app/src/main/res/values/strings.xml
+          echo "===== AndroidManifest (application block) ====="
+          grep -n 'facebook' android/app/src/main/AndroidManifest.xml || true
+
+      - name: Decode keystore
+
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ANDROID_KEYSTORE_BASE64:-}" ]; then
+            echo "❌ Missing secret ANDROID_KEYSTORE_BASE64"
+            exit 1
+          fi
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n ' | base64 --decode > android/app/upload-keystore.jks
+          if [ ! -s android/app/upload-keystore.jks ]; then
+            echo "❌ ANDROID_KEYSTORE_BASE64 decoded to an empty file"
+            exit 1
+          fi
+          ls -la android/app/upload-keystore.jks
+
+      - name: Validate keystore
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for secret_name in ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS; do
+            if [ -z "${!secret_name:-}" ]; then
+              echo "::error::Missing secret ${secret_name}"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+          set +e
+          store_output=$(keytool -list -keystore android/app/upload-keystore.jks -storepass "$ANDROID_KEYSTORE_PASSWORD" 2>&1)
+          store_status=$?
+          set -e
+          if [ "$store_status" -ne 0 ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 existe, mas ANDROID_KEYSTORE_PASSWORD não abre esse .jks/.p12. Atualize esse secret com a senha do arquivo keystore."
+            printf '%s\n' "$store_output" | tail -n 20
+            exit 1
+          fi
+          echo "✅ Keystore abre com ANDROID_KEYSTORE_PASSWORD"
+
+          set +e
+          alias_output=$(keytool -list -keystore android/app/upload-keystore.jks -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" 2>&1)
+          alias_status=$?
+          set -e
+          if [ "$alias_status" -ne 0 ]; then
+            echo "::error::ANDROID_KEY_ALIAS não existe nesse keystore. Confira se o alias cadastrado no GitHub é o mesmo usado ao gerar a chave."
+            echo "Aliases encontrados no keystore:"
+            printf '%s\n' "$store_output" | grep -E '^[^,]+, ' | sed 's/,.*//' | sed 's/^/- /' || true
+            printf '%s\n' "$alias_output" | tail -n 20
+            exit 1
+          fi
+          echo "✅ Alias do keystore encontrado"
+
+          EFFECTIVE_KEY_PASSWORD="${ANDROID_KEY_PASSWORD:-$ANDROID_KEYSTORE_PASSWORD}"
+          if [ -n "${ANDROID_KEY_PASSWORD:-}" ]; then
+            echo "ℹ️ Validando chave privada com ANDROID_KEY_PASSWORD"
+          else
+            echo "ℹ️ ANDROID_KEY_PASSWORD não configurado; usando ANDROID_KEYSTORE_PASSWORD como senha da chave"
+          fi
+
+          # Valida a KEY PASSWORD tentando importar a entrada assinante para
+          # outro keystore temporário. Isso força o keytool a abrir a chave
+          # privada com -srckeypass, sem expor nenhuma senha no log.
+          # Compatível com JKS e PKCS12 (.p12) — o comando -keypasswd não funciona em PKCS12.
+          set +e
+          rm -f /tmp/test-export.jks
+          keypass_output=$(keytool -importkeystore \
+            -srckeystore android/app/upload-keystore.jks \
+            -srcstorepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -srcalias "$ANDROID_KEY_ALIAS" \
+            -srckeypass "$EFFECTIVE_KEY_PASSWORD" \
+            -destkeystore /tmp/test-export.jks \
+            -deststoretype JKS \
+            -deststorepass "testtest" \
+            -destkeypass "testtest" -noprompt 2>&1)
+          keypass_status=$?
+          set -e
+          rm -f /tmp/test-export.jks
+          if [ "$keypass_status" -ne 0 ]; then
+            echo "::error::O keystore abriu e o alias existe, mas a chave privada não abriu com a senha efetiva. Corrija ANDROID_KEY_PASSWORD (ou remova o secret para usar ANDROID_KEYSTORE_PASSWORD como fallback)."
+            printf '%s\n' "$keypass_output" | tail -n 10
+            exit 1
+          fi
+          echo "✅ Senha efetiva da chave privada validada"
+
+          release_sha1=$(keytool -list -v \
+            -keystore android/app/upload-keystore.jks \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" 2>/dev/null \
+            | awk -F': ' '/SHA1:/ {print tolower($2); exit}' \
+            | tr -d ':' \
+            | tr '[:upper:]' '[:lower:]')
+
+          if [ -z "$release_sha1" ]; then
+            echo "::error::Não consegui extrair o SHA-1 do keystore de release."
+            exit 1
+          fi
+
+          # Formata com dois-pontos maiúsculos para comparação visual com Google Cloud
+          release_sha1_formatted=$(echo "$release_sha1" | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g;s/:$//')
+          echo ""
+          echo "════════════════════════════════════════════════════════════════"
+          echo "🔑 SHA-1 DO KEYSTORE DE RELEASE (o que assina este APK/AAB):"
+          echo ""
+          echo "   $release_sha1_formatted"
+          echo ""
+          echo "   Compare com o SHA-1 cadastrado no Google Cloud Console:"
+          echo "   → OAuth Android 'Vacatio Android' deve ter EXATAMENTE este valor."
+          echo "   → Esperado (o que você já tem no Google Cloud):"
+          echo "     59:96:8B:B9:5A:98:68:C9:8C:CC:83:88:DE:0D:56:8D:F5:76:B4:B6"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+
+          expected_google_cloud="59968bb95a9868c98ccc8388de0d568df576b4b6"
+          if [ "$release_sha1" = "$expected_google_cloud" ]; then
+            echo "✅ SHA-1 do keystore BATE com o cadastrado no Google Cloud."
+          else
+            echo "::warning::⚠️ SHA-1 do keystore de release NÃO bate com o cadastrado no Google Cloud OAuth Android."
+            echo "::warning::Atual (keystore): $release_sha1_formatted"
+            echo "::warning::Cadastrado (Google Cloud): 59:96:8B:B9:5A:98:68:C9:8C:CC:83:88:DE:0D:56:8D:F5:76:B4:B6"
+            echo "::warning::AÇÃO: Vá em Google Cloud → APIs & Services → Credentials → 'Vacatio Android' e substitua o SHA-1 pelo valor atual acima. O login Google vai falhar até corrigir."
+          fi
+
+          # ────────────────────────────────────────────────────────────────
+          # 🔑 Facebook Key Hash (Meta Developers → Configurações do app Android)
+          # Fórmula oficial: base64( sha1( bytes DER do certificado de release ) )
+          # Rode uma vez, copie o valor abaixo pro painel do Facebook, e depois
+          # este passo pode ser removido do workflow.
+          # ────────────────────────────────────────────────────────────────
+          fb_key_hash=$(keytool -exportcert \
+            -alias "$ANDROID_KEY_ALIAS" \
+            -keystore android/app/upload-keystore.jks \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" 2>/dev/null \
+            | openssl sha1 -binary \
+            | openssl base64)
+
+          echo ""
+          echo "════════════════════════════════════════════════════════════════"
+          echo "📘 FACEBOOK KEY HASH (cole no Meta Developers → Android):"
+          echo ""
+          echo "   $fb_key_hash"
+          echo ""
+          echo "   Onde colar: developers.facebook.com → seu app → Configurações"
+          echo "   → Básico → plataforma Android → campo 'Hashes de chaves'."
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+
+
+
+
+          expected_sha1=$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('android-config/google-services.json').read_text())
+          hashes = []
+          for client in data.get('client', []):
+              for oauth in client.get('oauth_client', []):
+                  info = oauth.get('android_info', {})
+                  if oauth.get('client_type') == 1 and info.get('package_name') == 'br.com.vacatio.app':
+                      h = info.get('certificate_hash')
+                      if h:
+                          hashes.append(h.lower().replace(':', ''))
+          print('\n'.join(hashes))
+          PY
+          )
+
+          if ! printf '%s\n' "$expected_sha1" | grep -qx "$release_sha1"; then
+            echo "::warning::O SHA-1 da chave que assinou este APK/AAB não está no google-services.json. O build vai continuar, mas o login Google nativo vai falhar com 12501/10 até corrigir o OAuth Android."
+            echo "SHA-1 da chave de release atual: $release_sha1"
+            echo "SHA-1 cadastrados no google-services.json para br.com.vacatio.app:"
+            printf '%s\n' "$expected_sha1" | sed 's/^/- /'
+            echo "Adicione esse SHA-1 ao OAuth Android no Google Cloud/Firebase, baixe novo google-services.json e rode o build novamente."
+            {
+              echo "### ⚠️ Google Sign-In Android — SHA-1 diferente"
+              echo ""
+              echo "O APK/AAB será gerado, mas o login Google nativo vai falhar até o OAuth Android aceitar a chave de assinatura atual."
+              echo ""
+              echo "- SHA-1 da chave que assinou este build: \`$release_sha1_formatted\`"
+              echo "- SHA-1 no google-services.json:"
+              printf '%s\n' "$expected_sha1" | sed 's/^/  - `/' | sed 's/$/`/'
+              echo ""
+              echo "Corrija em Google Cloud/Firebase → OAuth client Android do pacote \`br.com.vacatio.app\`, depois baixe/suba o novo \`google-services.json\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "✅ SHA-1 de release presente no OAuth Android do google-services.json: $release_sha1"
+          fi
+
+
+      - name: Ensure Android compatibility settings
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          p = Path('android/app/build.gradle')
+          s = p.read_text()
+
+          # 1) minSdkVersion → SEMPRE literal 30. Cobre 3 formas que o Capacitor pode gerar:
+          #    a) `minSdkVersion 22`
+          #    b) `minSdkVersion rootProject.ext.minSdkVersion`
+          #    c) `minSdk 22` / `minSdk = 22` (AGP 8 DSL)
+          # Se qualquer forma existir, força para `minSdkVersion 30`. Sem isso, um
+          # `rootProject.ext.minSdkVersion` deixado no arquivo vira null e explode
+          # com "A problem occurred evaluating project ':app'  Value is null".
+          before = s
+          s = re.sub(r'\bminSdkVersion\s+[A-Za-z0-9_.]+', 'minSdkVersion 30', s)
+          s = re.sub(r'\bminSdk\b\s*=?\s*[A-Za-z0-9_.]+', 'minSdkVersion 30', s)
+          if s == before:
+              # Não encontrou — injeta dentro de defaultConfig { }
+              s = re.sub(r'(defaultConfig\s*\{)', r'\1\n        minSdkVersion 30', s, count=1)
+          assert 'rootProject.ext.minSdkVersion' not in s, 'minSdkVersion patch falhou (referência a rootProject.ext.* ainda presente)'
+
+          # 1b) targetSdkVersion — força para 36 (Android 16). Play Store exige API 34+ em 2025.
+          s = re.sub(r'\btargetSdkVersion\s+rootProject\.ext\.[A-Za-z0-9_.]+', 'targetSdkVersion 36', s)
+          s = re.sub(r'\btargetSdk\b\s*=?\s*rootProject\.ext\.[A-Za-z0-9_.]+', 'targetSdkVersion 36', s)
+          s = re.sub(r'\btargetSdkVersion\s+\d+', 'targetSdkVersion 36', s)
+
+          # 1c) compileSdkVersion — força para 36 (alguns AARs do Capacitor exigem 36).
+          s = re.sub(r'\bcompileSdkVersion\s+rootProject\.ext\.[A-Za-z0-9_.]+', 'compileSdkVersion 36', s)
+          s = re.sub(r'\bcompileSdk\b\s*=?\s*rootProject\.ext\.[A-Za-z0-9_.]+', 'compileSdkVersion 36', s)
+          s = re.sub(r'\bcompileSdkVersion\s+\d+', 'compileSdkVersion 36', s)
+
+          # 2) abiFilters com todas as 4 ABIs.
+          if 'abiFilters' not in s:
+              s = re.sub(
+                  r'(defaultConfig\s*\{)',
+                  r'''\1
+              ndk {
+                  abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+              }''',
+                  s,
+                  count=1,
+              )
+          else:
+              s = re.sub(
+                  r'abiFilters[^\n]*',
+                  'abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"',
+                  s,
+                  count=1,
+              )
+
+          # 3) bundle splits — mantém todas densidades/idiomas.
+          if re.search(r'\bbundle\s*\{', s) is None:
+              s = re.sub(
+                  r'(android\s*\{)',
+                  r'''\1
+              bundle {
+                  language { enableSplit = false }
+                  density  { enableSplit = false }
+                  abi      { enableSplit = true }
+              }''',
+                  s,
+                  count=1,
+              )
+
+          p.write_text(s)
+          print('✅ minSdk=30, targetSdk=36, compileSdk=36, abiFilters=all4, bundle splits ajustados')
+
+          # 4) variables.gradle — força valores mínimos consistentes.
+          v = Path('android/variables.gradle')
+          if v.exists():
+              vs = v.read_text()
+              new_vs = vs
+              new_vs = re.sub(r'minSdkVersion\s*=\s*\d+', 'minSdkVersion = 30', new_vs)
+              new_vs = re.sub(r'targetSdkVersion\s*=\s*\d+', 'targetSdkVersion = 36', new_vs)
+              new_vs = re.sub(r'compileSdkVersion\s*=\s*\d+', 'compileSdkVersion = 36', new_vs)
+              if new_vs != vs:
+                  v.write_text(new_vs)
+                  print('✅ variables.gradle alinhado (min=30, target=36, compile=36)')
+              else:
+                  print('ℹ️  variables.gradle sem literais para patchar')
+          PY
+
+
+      - name: Validate Android minSdk
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          checks = [
+              Path('android/app/build.gradle'),
+              Path('android/variables.gradle'),
+              Path('android/app/src/main/AndroidManifest.xml'),
+          ]
+          failed = False
+          for path in checks:
+              if not path.exists():
+                  continue
+              text = path.read_text()
+              # Bloqueia qualquer minSdkVersion menor que 30 (Android 10).
+              gradle_matches = re.findall(r'\bminSdkVersion\s*(?:=\s*)?(\d+)\b', text)
+              manifest_matches = re.findall(r'android:minSdkVersion="(\d+)"', text)
+              for v in gradle_matches + manifest_matches:
+                  if int(v) < 29:
+                      print(f'❌ minSdkVersion {v} encontrado em {path} (mínimo exigido: 30 / Android 11)')
+                      failed = True
+              values = gradle_matches + manifest_matches
+              if values:
+                  print(f'→ {path}: minSdkVersion {", ".join(values)}')
+
+          if failed:
+              raise SystemExit('minSdkVersion < 30 detectado; o app exige Android 11 (API 30) ou superior.')
+          print('✅ minSdk validado: todos os valores >= 30 (Android 11)')
+
+          PY
+
+
+
+      - name: Auto-bump versionCode/versionName
+        run: |
+          python3 - <<'PY'
+          import json, os, re, time
+          from pathlib import Path
+
+          # ------------------------------------------------------------------
+          # Contador persistente em .build-version.json (commitado no repo).
+          # Antes usávamos github.run_number, que zera ao remixar o projeto
+          # pra outro repositório e quebrava a continuidade da numeração
+          # publicada na Play Store. Agora o número vive no código: cada
+          # build lê o último valor, incrementa, aplica no build.gradle e o
+          # próximo step commita o arquivo de volta. Assim, remix → clone →
+          # build continua de onde parou, sem colisão de versionCode.
+          # ------------------------------------------------------------------
+          state_path = Path('.build-version.json')
+          if state_path.exists():
+              state = json.loads(state_path.read_text())
+          else:
+              state = {'buildNumber': 2, 'versionCode': 0, 'versionName': '1.0.64'}
+
+          build_number = int(state.get('buildNumber', 2)) + 1
+
+          # versionCode: sempre cresce. max(timestamp UTC, ultimo+1) cobre
+          # o caso normal (timestamp maior) e o caso de relógio adiantado
+          # num commit antigo (ultimo+1 maior).
+          FLOOR = 1064
+          ts_code = int(time.strftime('%y%j%H%M', time.gmtime()))
+          last_code = int(state.get('versionCode', 0) or 0)
+          version_code = max(ts_code, last_code + 1, FLOOR)
+          assert version_code < 2_100_000_000, f'versionCode {version_code} excede o limite do Android'
+
+          # versionName derivado do buildNumber persistente. Mesma regra do
+          # esquema antigo (que usava run_number) — só a fonte mudou.
+          #   build #3   → 1.0.65        build #38  → 1.1.0
+          #   build #37  → 1.0.99        build #138 → 1.2.0
+          BASE_BUILD = 3
+          BASE_PATCH = 65
+          k = max(build_number - BASE_BUILD, 0)
+          if k <= (99 - BASE_PATCH):
+              version_name = f"1.0.{BASE_PATCH + k}"
+          else:
+              m = k - (99 - BASE_PATCH) - 1
+              cycle = m // 100
+              pos = m % 100
+              minor = 1 + cycle
+              version_name = f"1.{minor}.0" if pos == 0 else f"1.{minor}.0.{pos}"
+
+
+          p = Path('android/app/build.gradle')
+          s = p.read_text()
+
+          new_s = re.sub(r'\bversionCode\s*=?\s*[A-Za-z0-9_.]+', f'versionCode {version_code}', s, count=1)
+          if new_s == s:
+              new_s = re.sub(r'(defaultConfig\s*\{)', rf'\1\n        versionCode {version_code}', new_s, count=1)
+          s = new_s
+
+          new_s = re.sub(r'\bversionName\s*=?\s*(?:"[^"]*"|rootProject\.ext\.[A-Za-z0-9_.]+|[A-Za-z0-9_.]+)', f'versionName "{version_name}"', s, count=1)
+          if new_s == s:
+              new_s = re.sub(r'(defaultConfig\s*\{)', rf'\1\n        versionName "{version_name}"', new_s, count=1)
+          s = new_s
+
+          assert 'rootProject.ext.versionCode' not in s
+          assert 'rootProject.ext.versionName' not in s
+          assert re.search(rf'versionCode\s+{version_code}\b', s)
+          assert re.search(rf'versionName\s+"{re.escape(version_name)}"', s)
+
+          p.write_text(s)
+          print(f'✅ build #{build_number}  versionCode={version_code}  versionName={version_name}')
+
+          # Atualiza o arquivo persistente. É commitado no step "Persist
+          # version bump" SÓ se a build passar até o fim (evita queimar
+          # número em falha).
+          state.update({
+              'buildNumber': build_number,
+              'versionCode': version_code,
+              'versionName': version_name,
+              '_comment': state.get('_comment') or 'Atualizado automaticamente pelo workflow Build Android.',
+          })
+          state_path.write_text(json.dumps(state, indent=2, ensure_ascii=False) + '\n')
+
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f'APP_VERSION_NAME={version_name}\n')
+              env.write(f'APP_VERSION_CODE={version_code}\n')
+              env.write(f'APP_BUILD_NUMBER={build_number}\n')
+              env.write(f'ARTIFACT_BASENAME=app-vacatio-{version_name}\n')
+          PY
+
+
+
+      - name: Rotular run com versão + commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          COMMIT_MSG=$(git log -1 --pretty=%s | tr -d '\r' | cut -c1-80)
+          COMMIT_AUTHOR=$(git log -1 --pretty='%an')
+          TITLE="v${APP_VERSION_NAME} (build ${APP_VERSION_CODE}) • ${SHORT_SHA} • ${COMMIT_MSG}"
+          echo "🏷️  $TITLE"
+          {
+            echo "## 📦 Build Vacatio"
+            echo ""
+            echo "| Campo | Valor |"
+            echo "| --- | --- |"
+            echo "| **versionName** | \`${APP_VERSION_NAME}\` |"
+            echo "| **versionCode** | \`${APP_VERSION_CODE}\` |"
+            echo "| **buildNumber** | \`${APP_BUILD_NUMBER}\` |"
+            echo "| **commit** | \`${SHORT_SHA}\` — ${COMMIT_MSG} |"
+            echo "| **autor** | ${COMMIT_AUTHOR} |"
+            echo "| **branch** | \`${GITHUB_REF_NAME}\` |"
+            echo "| **artefato** | \`${ARTIFACT_BASENAME}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Renomeia o run para "v1.0.X (build N) • sha • commit msg"
+          # O campo correto na API do GitHub é `display_title`, não `name`.
+          gh api -X PATCH "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            -f display_title="$TITLE" \
+            && echo "✅ Run renomeado para: $TITLE" \
+            || echo "⚠️  Não consegui renomear o run (title completo no summary abaixo)."
+
+
+      - name: Validate final build.gradle has no null-prone references
+        run: |
+          set -euo pipefail
+          # Bloqueia QUALQUER rootProject.ext.* remanescente nos campos que causam
+          # "Value is null" no defaultConfig. Se algum sobrou, a build falha AQUI,
+          # antes do Gradle rodar, com mensagem clara.
+          if grep -nE 'rootProject\.ext\.(minSdkVersion|targetSdkVersion|compileSdkVersion|versionCode|versionName)' android/app/build.gradle; then
+            echo "❌ android/app/build.gradle contém referências a rootProject.ext.* em campos críticos."
+            echo "   Isso causa 'A problem occurred evaluating project :app  Value is null'."
+            exit 1
+          fi
+          echo "✅ build.gradle sem referências null-prone em campos críticos."
+          echo "===== android/app/build.gradle (defaultConfig) ====="
+          awk '/defaultConfig\s*\{/,/^\s*\}/' android/app/build.gradle | head -60
+
+
+      - name: Network security config (permitir HTTPS + hosts conhecidos)
+        run: |
+          mkdir -p android/app/src/main/res/xml
+          cat > android/app/src/main/res/xml/network_security_config.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <network-security-config>
+            <base-config cleartextTrafficPermitted="false">
+              <trust-anchors>
+                <certificates src="system" />
+              </trust-anchors>
+            </base-config>
+            <domain-config cleartextTrafficPermitted="true">
+              <domain includeSubdomains="true">localhost</domain>
+              <domain includeSubdomains="true">10.0.2.2</domain>
+            </domain-config>
+          </network-security-config>
+          XML
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          if 'networkSecurityConfig' not in s:
+              s = s.replace(
+                  '<application',
+                  '<application\n        android:networkSecurityConfig="@xml/network_security_config"',
+                  1,
+              )
+              p.write_text(s)
+              print('networkSecurityConfig referenciado no AndroidManifest')
+          else:
+              print('networkSecurityConfig já presente')
+          PY
+
+      - name: Backup & Data Extraction Rules (Android 12+ privacy hardening)
+        run: |
+          mkdir -p android/app/src/main/res/xml
+          # data_extraction_rules.xml — Android 12+ (targetSdk 31+):
+          # controla o que sai via Cloud Backup e Device-to-Device transfer.
+          # Bloqueia tudo que carrega tokens Supabase, secure-storage biométrico
+          # e caches de OCR. Google Play Data Safety exige declaração explícita.
+          cat > android/app/src/main/res/xml/data_extraction_rules.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <data-extraction-rules>
+            <cloud-backup>
+              <exclude domain="sharedpref" path="CapacitorStorage.xml" />
+              <exclude domain="sharedpref" path="capacitor-secure-storage.xml" />
+              <exclude domain="sharedpref" path="io.supabase.gotrue.xml" />
+              <exclude domain="sharedpref" path="FirebaseAppHeartBeat.xml" />
+              <exclude domain="database" path="capacitor.db" />
+              <exclude domain="file" path="Cookies" />
+              <exclude domain="file" path="Cookies-journal" />
+              <exclude domain="file" path="cache" />
+            </cloud-backup>
+            <device-transfer>
+              <exclude domain="sharedpref" path="CapacitorStorage.xml" />
+              <exclude domain="sharedpref" path="capacitor-secure-storage.xml" />
+              <exclude domain="sharedpref" path="io.supabase.gotrue.xml" />
+              <exclude domain="database" path="capacitor.db" />
+              <exclude domain="file" path="Cookies" />
+              <exclude domain="file" path="Cookies-journal" />
+              <exclude domain="file" path="cache" />
+            </device-transfer>
+          </data-extraction-rules>
+          XML
+          # backup_rules.xml — Android 11 (targetSdk 30) fallback usado quando
+          # o dispositivo ainda não interpreta data_extraction_rules.
+          cat > android/app/src/main/res/xml/backup_rules.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <full-backup-content>
+            <exclude domain="sharedpref" path="CapacitorStorage.xml" />
+            <exclude domain="sharedpref" path="capacitor-secure-storage.xml" />
+            <exclude domain="sharedpref" path="io.supabase.gotrue.xml" />
+            <exclude domain="sharedpref" path="FirebaseAppHeartBeat.xml" />
+            <exclude domain="database" path="capacitor.db" />
+            <exclude domain="file" path="Cookies" />
+            <exclude domain="file" path="Cookies-journal" />
+            <exclude domain="file" path="cache" />
+          </full-backup-content>
+          XML
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          # Adiciona/atualiza android:allowBackup="true" + regras explícitas.
+          # Mantemos backup=true (users querem migrar de aparelho), mas
+          # excluímos tudo que é sensível via data_extraction_rules.xml.
+          def upsert(attr, value):
+              global s
+              pattern = rf'android:{attr}="[^"]*"'
+              new = f'android:{attr}="{value}"'
+              if re.search(pattern, s):
+                  s = re.sub(pattern, new, s, count=1)
+              else:
+                  s = s.replace('<application', f'<application\n        {new}', 1)
+          upsert('allowBackup', 'true')
+          upsert('fullBackupContent', '@xml/backup_rules')
+          upsert('dataExtractionRules', '@xml/data_extraction_rules')
+          # tools:replace pra sobrescrever manifest merger de plugins.
+          if 'xmlns:tools' not in s:
+              s = s.replace('<manifest ', '<manifest xmlns:tools="http://schemas.android.com/tools" ', 1)
+          # Adiciona/atualiza tools:replace SOMENTE na tag <application>.
+          # Não olhar globalmente: `<activity>` do ML Kit também usa tools:replace
+          # (para screenOrientation) e não pode ser sobrescrito aqui.
+          m = re.search(r'<application\b[^>]*?tools:replace="([^"]*)"', s)
+          desired = {'android:allowBackup', 'android:fullBackupContent', 'android:dataExtractionRules'}
+          if m:
+              current = {x.strip() for x in m.group(1).split(',') if x.strip()}
+              merged = ','.join(sorted(current | desired))
+              s = s[:m.start(1)] + merged + s[m.end(1):]
+          else:
+              s = s.replace(
+                  'android:dataExtractionRules="@xml/data_extraction_rules"',
+                  'android:dataExtractionRules="@xml/data_extraction_rules"\n        tools:replace="android:allowBackup,android:dataExtractionRules,android:fullBackupContent"',
+                  1,
+              )
+          p.write_text(s)
+          print('✅ AndroidManifest: allowBackup=true + backup_rules + data_extraction_rules aplicados')
+          PY
+
+      - name: Predictive Back + LocaleConfig (Android 13/14/15 polish)
+        run: |
+          mkdir -p android/app/src/main/res/xml
+          # locales_config.xml — Android 13+ (Per-App Language Preferences).
+          # Google exige a declaração mesmo com um único idioma; sem isso, a Play
+          # Console emite warning "Missing localeConfig".
+          cat > android/app/src/main/res/xml/locales_config.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+            <locale android:name="pt-BR" />
+          </locale-config>
+          XML
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          def upsert(attr, value):
+              global s
+              pattern = rf'android:{attr}="[^"]*"'
+              new = f'android:{attr}="{value}"'
+              if re.search(pattern, s):
+                  s = re.sub(pattern, new, s, count=1)
+              else:
+                  s = s.replace('<application', f'<application\n        {new}', 1)
+          # Predictive Back Gesture (Android 14+ opt-in / 15+ default).
+          # Sem isso, a animação nativa de "voltar" fica travada.
+          upsert('enableOnBackInvokedCallback', 'true')
+          # Per-App Language (Android 13+).
+          upsert('localeConfig', '@xml/locales_config')
+          # Amplia tools:replace SOMENTE na tag <application> (não no <activity> do ML Kit).
+          m = re.search(r'(<application\b[^>]*?tools:replace=")([^"]*)(")', s)
+          extra = {'android:allowBackup', 'android:fullBackupContent', 'android:dataExtractionRules',
+                   'android:enableOnBackInvokedCallback', 'android:localeConfig'}
+          if m:
+              current = {x.strip() for x in m.group(2).split(',') if x.strip()}
+              merged = ','.join(sorted(current | extra))
+              s = s[:m.start(2)] + merged + s[m.end(2):]
+          else:
+              # Sem tools:replace na <application> — insere um novo.
+              s = re.sub(
+                  r'(<application\b)',
+                  r'\1 tools:replace="' + ','.join(sorted(extra)) + '"',
+                  s,
+                  count=1,
+              )
+          p.write_text(s)
+          print('✅ enableOnBackInvokedCallback=true + localeConfig aplicados')
+          PY
+
+      - name: Monochrome adaptive icon (Android 13+ themed icons)
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, shutil
+          # capacitor-assets gerou ic_launcher_foreground/background em mipmap-*.
+          # Falta o monochrome pra Android tematizar o ícone conforme o wallpaper.
+          # Estratégia: reaproveitar icon-monochrome.png (silhueta preta em canvas
+          # transparente) copiando para drawable/ic_launcher_monochrome.png em
+          # todas as densidades (mdpi..xxxhdpi) e referenciar nos ic_launcher.xml.
+          src = Path('assets/icon-monochrome.png')
+          if not src.exists():
+              src = Path('resources/icon-monochrome.png')
+          if not src.exists():
+              print('::warning::icon-monochrome.png ausente — pulando monochrome layer')
+              raise SystemExit(0)
+          # Copia como drawable único (Android escala automaticamente).
+          drawable_dir = Path('android/app/src/main/res/drawable')
+          drawable_dir.mkdir(parents=True, exist_ok=True)
+          dst = drawable_dir / 'ic_launcher_monochrome.png'
+          shutil.copy(src, dst)
+          print(f'✅ monochrome copiado -> {dst}')
+          # Patch dos XMLs adaptativos.
+          for xml in Path('android/app/src/main/res').rglob('ic_launcher*.xml'):
+              t = xml.read_text()
+              if '<monochrome' in t:
+                  continue
+              # Insere <monochrome> logo após <foreground>...</foreground> ou tag self-closing.
+              new = re.sub(
+                  r'(</adaptive-icon>)',
+                  '    <monochrome android:drawable="@drawable/ic_launcher_monochrome" />\n\\1',
+                  t,
+                  count=1,
+              )
+              if new != t:
+                  xml.write_text(new)
+                  print(f'✅ <monochrome> injetado em {xml}')
+          PY
+
+      - name: FCM default notification icon + color (yellow #FFD500)
+        run: |
+          # Instala o ícone monocromático da status bar (V branco em canvas
+          # transparente) como res/drawable/notification_icon.png e registra
+          # ele + a cor de accent amarela (#FFD500) como padrão do FCM via
+          # meta-data no AndroidManifest. Assim, quando o payload FCM manda
+          # `notification.icon = "notification_icon"` e `notification.color`,
+          # o Android usa esses recursos e tinge o ícone pequeno de amarelo.
+          # Ref: https://firebase.google.com/docs/cloud-messaging/android/client
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, shutil
+
+          src = Path('assets/notification-icon.png')
+          if not src.exists():
+              src = Path('resources/notification-icon.png')
+          if not src.exists():
+              print('::warning::notification-icon.png ausente — pulando')
+              raise SystemExit(0)
+
+          drawable_dir = Path('android/app/src/main/res/drawable')
+          drawable_dir.mkdir(parents=True, exist_ok=True)
+          dst = drawable_dir / 'notification_icon.png'
+          shutil.copy(src, dst)
+          print(f'✅ notification_icon copiado -> {dst}')
+
+          # colors.xml — adiciona notification_color=#FFD500 (idempotente)
+          colors = Path('android/app/src/main/res/values/colors.xml')
+          if not colors.exists():
+              colors.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n')
+          c = colors.read_text()
+          if 'name="notification_color"' not in c:
+              c = c.replace('</resources>', '    <color name="notification_color">#FFD500</color>\n</resources>')
+              colors.write_text(c)
+              print('✅ notification_color=#FFD500 adicionado a colors.xml')
+          else:
+              print('notification_color já presente')
+
+          # AndroidManifest — meta-data dentro de <application> (idempotente)
+          manifest = Path('android/app/src/main/AndroidManifest.xml')
+          m = manifest.read_text()
+          meta_icon = '        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/notification_icon" />\n'
+          meta_color = '        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/notification_color" />\n'
+          changed = False
+          if 'default_notification_icon' not in m:
+              m = m.replace('</application>', meta_icon + '</application>', 1)
+              changed = True
+          if 'default_notification_color' not in m:
+              m = m.replace('</application>', meta_color + '</application>', 1)
+              changed = True
+          if changed:
+              manifest.write_text(m)
+              print('✅ meta-data FCM (icon+color) injetado no AndroidManifest')
+          else:
+              print('meta-data FCM já presente')
+          PY
+
+      - name: Baseline Profile + ProfileInstaller (Android cold start speedup)
+        run: |
+          # Baseline Profiles pré-compilam (AOT) as classes/métodos listados
+          # aqui na instalação do app, cortando 20-40% do tempo de cold start
+          # e reduzindo jank nas primeiras interações. Ref:
+          # https://developer.android.com/topic/performance/baselineprofiles/overview
+          # Estratégia: escrever uma baseline manual em src/main/baseline-prof.txt
+          # com os pontos quentes do bootstrap (Capacitor bridge, WebView, plugins
+          # nativos usados no boot). AGP 8.13 já a empacota automaticamente
+          # em bundleRelease quando o arquivo existe.
+          set -euo pipefail
+
+          mkdir -p android/app/src/main
+          cat > android/app/src/main/baseline-prof.txt <<'PROFILE'
+          # ---- Capacitor bridge / WebView bootstrap ----
+          HSPLcom/getcapacitor/BridgeActivity;->onCreate(Landroid/os/Bundle;)V
+          HSPLcom/getcapacitor/BridgeActivity;->onStart()V
+          HSPLcom/getcapacitor/BridgeActivity;->onResume()V
+          HSPLcom/getcapacitor/Bridge;->loadWebView()V
+          HSPLcom/getcapacitor/Bridge;->initWebView()V
+          HSPLcom/getcapacitor/PluginManager;->loadPluginsFromManifest()V
+          HSPLbr/com/vacatio/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+          # ---- AndroidX / activity bootstrap ----
+          HSPLandroidx/activity/ComponentActivity;->onCreate(Landroid/os/Bundle;)V
+          HSPLandroidx/core/view/WindowInsetsCompat;->getInsets(I)Landroidx/core/graphics/Insets;
+          HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;)V
+          # ---- WebView + WebViewClient ----
+          HSPLandroid/webkit/WebView;-><init>(Landroid/content/Context;)V
+          HSPLandroid/webkit/WebViewClient;->onPageFinished(Landroid/webkit/WebView;Ljava/lang/String;)V
+          HSPLandroid/webkit/WebSettings;->setJavaScriptEnabled(Z)V
+          PROFILE
+
+          # Sanitização estrita: o AGP falha em `expandReleaseArtProfileWildcards`
+          # se qualquer regra de classe tiver flags [HSP] OU se houver wildcards
+          # em regras de classe (Lcom/foo/**;) que expandem para linhas inválidas
+          # quando mescladas com perfis de AARs de terceiros. Regras aceitas:
+          #   - Regra de método: [HSP]*L<class>;-><method>(<sig>)<ret>
+          #   - Regra de classe exata: L<class>;  (sem flags, sem '*')
+          # Qualquer outra coisa é descartada.
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/baseline-prof.txt')
+          method_re = re.compile(r'^[HSP]*L[^;]+;->.+$')
+          class_re = re.compile(r'^L[^;*]+;$')
+          out = []
+          dropped = 0
+          for raw in p.read_text().splitlines():
+              line = raw.strip()
+              if not line or line.startswith('#'):
+                  continue
+              if '->' in line:
+                  if method_re.match(line) and '*' not in line.split('->')[0]:
+                      out.append(line)
+                  else:
+                      dropped += 1
+                  continue
+              # regra de classe: remove flags iniciais
+              i = 0
+              while i < len(line) and line[i] in 'HSP':
+                  i += 1
+              if i > 0 and i < len(line) and line[i] == 'L':
+                  line = line[i:]
+              if class_re.match(line):
+                  out.append(line)
+              else:
+                  dropped += 1
+          p.write_text('\n'.join(out) + '\n')
+          print(f'✅ baseline-prof.txt sanitizado ({len(out)} regras, {dropped} descartadas)')
+          PY
+          echo "✅ baseline-prof.txt gravado ($(wc -l < android/app/src/main/baseline-prof.txt) linhas)"
+
+          # ProfileInstaller runtime: aplica o perfil já pré-instalado nas
+          # primeiras execuções (backport para dispositivos <Android 9).
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/build.gradle')
+          s = p.read_text()
+          dep = "    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'"
+          if 'androidx.profileinstaller:profileinstaller' in s:
+              print('profileinstaller já presente')
+          else:
+              new, n = re.subn(
+                  r'(dependencies\s*\{\s*\n)',
+                  r'\1' + dep + '\n',
+                  s,
+                  count=1,
+              )
+              if n == 0:
+                  new = s.rstrip() + '\n\ndependencies {\n' + dep + '\n}\n'
+              p.write_text(new)
+              print('✅ profileinstaller:1.4.1 adicionado a app/build.gradle')
+          PY
+
+      - name: Enable resource shrinking + AAB splits (delivery size optimization)
+        run: |
+          # Play Feature Delivery / Asset Packs não se aplicam bem ao
+          # laws-bundle: ele é servido pela WebView do Capacitor a partir de
+          # android/app/src/main/assets/public/ (via `cap sync`). Asset Packs
+          # ficam num AssetPackManager separado, o que exigiria reescrever o
+          # carregador do WebView. Alternativa equivalente em ganho de
+          # tamanho de download:
+          #   • shrinkResources true  → R8 remove drawables/strings não usadas
+          #   • bundle language/density/abi splits → Play entrega só a variante
+          #     do dispositivo do usuário (~30% menor por instalação).
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/build.gradle')
+          s = p.read_text()
+
+          if 'shrinkResources true' not in s:
+              s2, n = re.subn(
+                  r'(release\s*\{[^}]*?minifyEnabled\s+true)',
+                  r"\1\n            shrinkResources true",
+                  s,
+                  count=1,
+                  flags=re.DOTALL,
+              )
+              if n:
+                  s = s2
+                  print('✅ shrinkResources true adicionado ao buildType release')
+              else:
+                  print('::warning::release{} com minifyEnabled não encontrado — shrinkResources pulado')
+          else:
+              print('shrinkResources já presente')
+
+          if 'enableSplit' not in s:
+              bundle_block = (
+                  "\n    bundle {\n"
+                  "        language { enableSplit = true }\n"
+                  "        density  { enableSplit = true }\n"
+                  "        abi      { enableSplit = true }\n"
+                  "    }\n"
+              )
+              idx = s.find('android {')
+              if idx >= 0:
+                  depth = 0
+                  end = idx
+                  for i, ch in enumerate(s[idx:], start=idx):
+                      if ch == '{':
+                          depth += 1
+                      elif ch == '}':
+                          depth -= 1
+                          if depth == 0:
+                              end = i
+                              break
+                  s = s[:end] + bundle_block + s[end:]
+                  print('✅ bundle {} splits adicionado dentro de android {}')
+              else:
+                  print('::warning::bloco android {} não encontrado — bundle splits pulado')
+          else:
+              print('bundle splits já presente')
+
+          p.write_text(s)
+          PY
+
+      - name: In-App Updates (Google Play Core app-update)
+        run: |
+          # Play In-App Updates: mostra prompt nativo quando há uma versão
+          # nova no Play Store, sem forçar o usuário a abrir a loja.
+          # Ref: https://developer.android.com/guide/playcore/in-app-updates
+          # Usamos FLEXIBLE (download em background + snackbar pra reiniciar),
+          # não IMMEDIATE — não bloqueia o app enquanto baixa.
+          set -euo pipefail
+
+          # 1) Dependência
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/build.gradle')
+          s = p.read_text()
+          dep = "    implementation 'com.google.android.play:app-update:2.1.0'"
+          if 'com.google.android.play:app-update' in s:
+              print('app-update já presente')
+          else:
+              s, n = re.subn(r'(dependencies\s*\{\s*\n)', r'\1' + dep + '\n', s, count=1)
+              if n == 0:
+                  s = s.rstrip() + '\n\ndependencies {\n' + dep + '\n}\n'
+              p.write_text(s)
+              print('✅ app-update:2.1.0 adicionado')
+          PY
+
+          # 2) Helper Java isolado
+          PKG_DIR="android/app/src/main/java/br/com/vacatio/app"
+          mkdir -p "$PKG_DIR"
+          cat > "$PKG_DIR/InAppUpdateHelper.java" <<'JAVA'
+          package br.com.vacatio.app;
+
+          import android.app.Activity;
+          import android.util.Log;
+          import com.google.android.play.core.appupdate.AppUpdateInfo;
+          import com.google.android.play.core.appupdate.AppUpdateManager;
+          import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+          import com.google.android.play.core.appupdate.AppUpdateOptions;
+          import com.google.android.play.core.install.InstallStateUpdatedListener;
+          import com.google.android.play.core.install.model.AppUpdateType;
+          import com.google.android.play.core.install.model.InstallStatus;
+          import com.google.android.play.core.install.model.UpdateAvailability;
+
+          /**
+           * FLEXIBLE In-App Update: baixa em background e, ao terminar, chama
+           * completeUpdate(). O prompt nativo do Play cuida de reiniciar o app.
+           * Falhas são silenciosas (Play Services ausente, sem update, etc.).
+           */
+          public class InAppUpdateHelper {
+              private static final String TAG = "InAppUpdate";
+              private static final int REQ_CODE = 4711;
+
+              public static void check(final Activity activity) {
+                  try {
+                      final AppUpdateManager manager =
+                          AppUpdateManagerFactory.create(activity.getApplicationContext());
+
+                      InstallStateUpdatedListener listener = state -> {
+                          if (state.installStatus() == InstallStatus.DOWNLOADED) {
+                              manager.completeUpdate();
+                          }
+                      };
+                      manager.registerListener(listener);
+
+                      manager.getAppUpdateInfo().addOnSuccessListener((AppUpdateInfo info) -> {
+                          try {
+                              if (info.updateAvailability()
+                                      == UpdateAvailability.UPDATE_AVAILABLE
+                                  && info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+                                  manager.startUpdateFlowForResult(
+                                      info,
+                                      activity,
+                                      AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
+                                      REQ_CODE);
+                              }
+                          } catch (Throwable t) {
+                              Log.w(TAG, "startUpdateFlow failed", t);
+                          }
+                      });
+                  } catch (Throwable t) {
+                      Log.w(TAG, "In-app update check failed (safe to ignore)", t);
+                  }
+              }
+          }
+          JAVA
+          echo "✅ InAppUpdateHelper.java escrito"
+
+          # 3) Chamada no onCreate da MainActivity (append via python patch)
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/java/br/com/vacatio/app/MainActivity.java')
+          s = p.read_text()
+          if 'InAppUpdateHelper.check' in s:
+              print('MainActivity já chama InAppUpdateHelper')
+          else:
+              # Inserir depois do super.onCreate(savedInstanceState);
+              needle = 'super.onCreate(savedInstanceState);'
+              add = '\n                  // Fase 4: checa se há update no Play Store (FLEXIBLE)\n                  try { InAppUpdateHelper.check(this); } catch (Throwable ignored) {}\n'
+              if needle in s:
+                  s = s.replace(needle, needle + add, 1)
+                  p.write_text(s)
+                  print('✅ InAppUpdateHelper.check(this) injetado no onCreate')
+              else:
+                  print('::warning::super.onCreate não encontrado — pulando injeção')
+          PY
+
+      - name: Accessibility polish (Android manifest a11y attrs)
+        run: |
+          # A11y checklist do developer.android.com aplicado ao manifest:
+          #  - supportsRtl=true (habilita layout mirroring para leitores RTL)
+          #  - android:label na application/activity (TalkBack anuncia o app)
+          #  - accessibilityDataSensitive não-crítico aqui (é pra views nativas)
+          # A WebView do Capacitor já expõe roles ARIA da UI React ao TalkBack
+          # automaticamente quando accessibilityEnabled=true no sistema.
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          changed = False
+          if 'android:supportsRtl=' not in s:
+              s = re.sub(r'<application\b', '<application android:supportsRtl="true"', s, count=1)
+              changed = True
+              print('✅ supportsRtl=true adicionado')
+          if changed:
+              p.write_text(s)
+          else:
+              print('a11y attrs já presentes')
+          PY
+
+
+      - name: Final guard — remove native title bar before build
+        run: |
+          # Última barreira antes do Gradle: alguns steps acima mexem no
+          # Manifest depois do diagnóstico inicial. Normaliza de novo e falha
+          # a build se a compat splash/ActionBar voltar.
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          styles = {
+              Path('android/app/src/main/res/values/styles.xml'): '''<?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+                  <item name="windowActionBar">false</item>
+                  <item name="windowNoTitle">true</item>
+                  <item name="android:windowActionBar">false</item>
+                  <item name="android:windowNoTitle">true</item>
+                  <item name="android:windowContentOverlay">@null</item>
+                  <item name="android:windowBackground">@color/app_bg</item>
+              </style>
+              <style name="AppTheme.NoActionBar" parent="AppTheme">
+                  <item name="windowActionBar">false</item>
+                  <item name="windowNoTitle">true</item>
+                  <item name="android:windowActionBar">false</item>
+                  <item name="android:windowNoTitle">true</item>
+                  <item name="android:windowContentOverlay">@null</item>
+                  <item name="android:windowBackground">@color/app_bg</item>
+              </style>
+              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+                  <item name="android:background">@color/splash_bg</item>
+                  <item name="android:windowBackground">@color/splash_bg</item>
+                  <item name="windowActionBar">false</item>
+                  <item name="windowNoTitle">true</item>
+                  <item name="android:windowActionBar">false</item>
+                  <item name="android:windowNoTitle">true</item>
+              </style>
+          </resources>
+          ''',
+              Path('android/app/src/main/res/values-v31/styles.xml'): '''<?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+                  <item name="android:background">@color/splash_bg</item>
+                  <item name="android:windowBackground">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+                  <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenBrandingImage">@null</item>
+                  <item name="windowActionBar">false</item>
+                  <item name="windowNoTitle">true</item>
+                  <item name="android:windowNoTitle">true</item>
+                  <item name="android:windowActionBar">false</item>
+              </style>
+          </resources>
+          ''',
+              Path('android/app/src/main/res/values-night-v31/styles.xml'): '''<?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+                  <item name="android:background">@color/splash_bg</item>
+                  <item name="android:windowBackground">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+                  <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_bg</item>
+                  <item name="android:windowSplashScreenBrandingImage">@null</item>
+                  <item name="windowActionBar">false</item>
+                  <item name="windowNoTitle">true</item>
+                  <item name="android:windowNoTitle">true</item>
+                  <item name="android:windowActionBar">false</item>
+              </style>
+          </resources>
+          ''',
+          }
+          for path, content in styles.items():
+              path.parent.mkdir(parents=True, exist_ok=True)
+              path.write_text(content)
+
+          manifest = Path('android/app/src/main/AndroidManifest.xml')
+          s = manifest.read_text()
+          def patch_activity(match):
+              tag = match.group(0)
+              tag = re.sub(r'\s+android:label="[^"]*"', '', tag)
+              tag = re.sub(r'\s+android:theme="[^"]*"', '', tag)
+              return tag.replace(
+                  'android:name=".MainActivity"',
+                  'android:name=".MainActivity"\n            android:label="@string/app_name"\n            android:theme="@style/AppTheme.NoActionBarLaunch"',
+                  1,
+              )
+          s2 = re.sub(r'<activity\b[^>]*android:name="\.MainActivity"[^>]*>', patch_activity, s, count=1, flags=re.S)
+          manifest.write_text(s2)
+          PY
+
+          echo "===== FINAL styles.xml ====="
+          cat android/app/src/main/res/values/styles.xml
+          echo "===== FINAL values-v31/styles.xml ====="
+          cat android/app/src/main/res/values-v31/styles.xml
+          echo "===== FINAL MainActivity manifest ====="
+          grep -nA18 -B2 'android:name=".MainActivity"' android/app/src/main/AndroidManifest.xml || true
+          if grep -R "Theme.SplashScreen" android/app/src/main/res/values android/app/src/main/res/values-v31 android/app/src/main/res/values-night-v31; then
+            echo "::error::Theme.SplashScreen compat voltou; isso pode recriar a faixa preta."
+            exit 1
+          fi
+          if ! grep -nA12 -B2 'android:name=".MainActivity"' android/app/src/main/AndroidManifest.xml | grep -q 'android:label="@string/app_name"'; then
+            echo "::error::MainActivity precisa ter android:label=\"@string/app_name\" para o launcher exibir o nome."
+            exit 1
+          fi
+          echo "✅ Guard final OK: sem Theme.SplashScreen compat e MainActivity com label @string/app_name"
+
+
+
+
+      - name: Build .aab (bundleRelease)
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: ./gradlew bundleRelease --no-daemon --stacktrace
+
+      - name: Build .apk (assembleRelease)
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Rename outputs with version (app-vacatio-<versionName>)
+        run: |
+          set -euo pipefail
+          BASE="${ARTIFACT_BASENAME:-app-vacatio-release}"
+          AAB_SRC="android/app/build/outputs/bundle/release/app-release.aab"
+          APK_SRC="android/app/build/outputs/apk/release/app-release.apk"
+          AAB_DST="android/app/build/outputs/bundle/release/${BASE}.aab"
+          APK_DST="android/app/build/outputs/apk/release/${BASE}.apk"
+          cp "$AAB_SRC" "$AAB_DST"
+          cp "$APK_SRC" "$APK_DST"
+          echo "AAB_PATH=$AAB_DST" >> "$GITHUB_ENV"
+          echo "APK_PATH=$APK_DST" >> "$GITHUB_ENV"
+          echo "✅ Renomeado para: ${BASE}.aab / ${BASE}.apk"
+
+      - name: Create download-safe TXT copies
+        run: |
+          set -euo pipefail
+          BASE="${ARTIFACT_BASENAME:-app-vacatio-release}"
+          mkdir -p android-download-safe
+          base64 -w 0 "$AAB_PATH" > "android-download-safe/${BASE}.aab.base64.txt"
+          base64 -w 0 "$APK_PATH" > "android-download-safe/${BASE}.apk.base64.txt"
+          cat > android-download-safe/COMO-RESTAURAR-ANDROID.txt <<TXT
+          Estes arquivos TXT contêm o AAB e o APK codificados em Base64 para evitar bloqueio falso positivo do navegador/antivírus durante o download.
+
+          Para restaurar no Windows PowerShell:
+
+          certutil -decode ${BASE}.aab.base64.txt ${BASE}.aab
+          certutil -decode ${BASE}.apk.base64.txt ${BASE}.apk
+
+          Depois disso:
+          - ${BASE}.aab: envie para a Google Play Console
+          - ${BASE}.apk: use apenas para teste/instalação manual
+          TXT
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_BASENAME }}-aab
+          path: ${{ env.AAB_PATH }}
+          if-no-files-found: error
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_BASENAME }}-apk
+          path: ${{ env.APK_PATH }}
+          if-no-files-found: error
+
+      - name: Upload download-safe TXT artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_BASENAME }}-android-base64-txt
+          path: android-download-safe/*.txt
+          if-no-files-found: error
+
+      - name: Upload mapping.txt (R8 deobfuscation)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_BASENAME }}-mapping
+          path: android/app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: warn
+
+
+      - name: Locate native debug symbols
+        id: locate_symbols
+        if: always()
+        run: |
+          set -e
+          mkdir -p android/app/build/outputs/native-debug-symbols-collected
+          # AGP pode gerar em caminhos diferentes conforme a variante e a versão.
+          # Coletamos qualquer .zip de símbolos nativos encontrado no build.
+          found=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            echo "→ encontrado: $f"
+            cp "$f" android/app/build/outputs/native-debug-symbols-collected/
+            found=1
+          done < <(find android/app/build -type f \( -name 'native-debug-symbols*.zip' -o -name 'symbols.zip' \) 2>/dev/null)
+          if [ "$found" = "0" ]; then
+            echo "::warning::Nenhum arquivo de símbolos nativos foi gerado por este build. Isso é normal se o app não tem código nativo próprio (só libs pré-compiladas do Capacitor já vêm com símbolos strip pelo fornecedor). O aviso do Play Console pode ser ignorado."
+          fi
+
+      - name: Upload native debug symbols
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vacatio-release-native-symbols
+          path: android/app/build/outputs/native-debug-symbols-collected/*.zip
+          if-no-files-found: ignore
+
+
+      - name: Persist version bump (commit .build-version.json)
+        if: success()
+        # Só commita se a build passou até aqui. Assim, se a build falhar,
+        # o buildNumber não avança e a próxima tentativa reusa o mesmo.
+        run: |
+          set -e
+          if git diff --quiet .build-version.json; then
+            echo "Nada mudou em .build-version.json — nada a commitar."
+            exit 0
+          fi
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .build-version.json
+          git commit -m "chore(release): bump para v${APP_VERSION_NAME} (build #${APP_BUILD_NUMBER}, versionCode ${APP_VERSION_CODE}) [skip ci]"
+          # Rebase-safe: se outra build rodou em paralelo, puxa antes de empurrar.
+          for i in 1 2 3; do
+            if git push origin HEAD:${GITHUB_REF#refs/heads/}; then
+              echo "✅ .build-version.json commitado."
+              exit 0
+            fi
+            echo "Push falhou (tentativa $i) — rebase e retry."
+            git pull --rebase origin ${GITHUB_REF#refs/heads/} || true
+          done
+          echo "::warning::Não foi possível commitar o bump de versão. Próxima build pode reusar buildNumber (versionCode ainda cresce via timestamp)."

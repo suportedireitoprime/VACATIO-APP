@@ -1,0 +1,10 @@
+CREATE INDEX IF NOT EXISTS idx_cf88_ordem ON public."CF88_CONSTITUICAO_FEDERAL" (ordem_numero ASC);
+CREATE INDEX IF NOT EXISTS idx_cp_ordem ON public."CP_CODIGO_PENAL" (ordem_numero ASC);
+CREATE INDEX IF NOT EXISTS idx_cc_ordem ON public."CC_CODIGO_CIVIL" (ordem_numero ASC);
+CREATE INDEX IF NOT EXISTS idx_cpc_ordem ON public."CPC_CODIGO_PROCESSO_CIVIL" (ordem_numero ASC);
+CREATE INDEX IF NOT EXISTS idx_cpp_ordem ON public."CPP_CODIGO_PROCESSO_PENAL" (ordem_numero ASC);
+CREATE INDEX IF NOT EXISTS idx_clt_ordem ON public."CLT_CONSOLIDACAO_LEIS_TRABALHO" (ordem_numero ASC);
+CREATE INDEX IF NOT EXISTS idx_cdc_ordem ON public."CDC_CODIGO_DEFESA_CONSUMIDOR" (ordem_numero ASC);
+CREATE INDEX IF NOT EXISTS idx_ctn_ordem ON public."CTN_CODIGO_TRIBUTARIO_NACIONAL" (ordem_numero ASC);
+CREATE INDEX IF NOT EXISTS idx_eca_ordem ON public."ECA_ESTATUTO_CRIANCA_ADOLESCENTE" (ordem_numero ASC);
+CREATE INDEX IF NOT EXISTS idx_ctb_ordem ON public."CTB_CODIGO_TRANSITO_BRASILEIRO" (ordem_numero ASC);

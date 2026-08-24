@@ -1,0 +1,54 @@
+{
+  "version": 2,
+  "reference": "src/assets/blog/o-contrato-social.webp",
+  "aspect": "1:1",
+  "dimensions": { "width": 1024, "height": 1024 },
+  "background": "#000000 puro (solid black), sem gradientes, sem cenário",
+  "base_palette": {
+    "background": "#000000",
+    "skin": "#EFE0C4",
+    "beige_light": "#F5E9CE",
+    "neutral_warm": "#C9A26A",
+    "brown_dark": "#6B3F1D",
+    "outline": "#1A1004"
+  },
+  "style": "ilustração cartoon vetorial estilo sticker, contornos pretos grossos, sombreamento chapado em 2-3 tons, sem gradientes suaves, sem texturas fotográficas, sem aquarela, sem hiper-realismo",
+  "composition": "figura única centralizada, meio-corpo/busto, olhando levemente para frente, um único adereço simbólico ao lado — o adereço DEVE ser diferente em cada capa (coluna jônica, livro aberto, balança, pena e tinteiro, martelo do juiz, pergaminho, bandeira, escudo, algemas, urna, cofre, engrenagem, mapa, chave, tocha, coroa de louros, etc.)",
+  "lighting": "frontal chapada, sem sombras dramáticas, sem contraluz",
+  "text_in_image": "nenhum texto, exceto quando o adereço (livro/pergaminho/placa) exibir 1 título curto em letras maiúsculas com serifa",
+  "uniqueness_rules": [
+    "NUNCA repetir a mesma composição, o mesmo sujeito ou o mesmo adereço em capas diferentes",
+    "Cada tema tem sujeito, adereço e acento de cor próprios — variar rosto, idade, gênero, vestuário e postura",
+    "Se o tema anterior usou coluna + livro, o próximo NÃO pode usar coluna nem livro como adereço principal",
+    "Bege/dourado permanece só como neutro de pele e destaque — o acento de cor do tema deve dominar contornos internos, roupa e/ou o adereço"
+  ],
+  "theme_accents": {
+    "Iniciantes":               { "accent_hex": "#F5C76A", "accent_name": "âmbar quente",   "hint": "estudante jovem, expressão curiosa, livro didático" },
+    "Filosofia":                { "accent_hex": "#A78BFA", "accent_name": "violeta",         "hint": "pensador clássico, pergaminho ou tocha" },
+    "Clássicos":                { "accent_hex": "#FCA5A5", "accent_name": "vermelho terroso","hint": "figura togada, coroa de louros" },
+    "STF":                      { "accent_hex": "#60A5FA", "accent_name": "azul institucional","hint": "ministro togado, martelo, colunata austera" },
+    "Curiosidades":             { "accent_hex": "#5EEAD4", "accent_name": "verde-água",      "hint": "figura intrigada, lupa, ponto de interrogação" },
+    "Leis":                     { "accent_hex": "#A3B18A", "accent_name": "verde-oliva",     "hint": "legislador, código de leis fechado" },
+    "Direito Constitucional":   { "accent_hex": "#93C5FD", "accent_name": "azul-royal",      "hint": "figura séria segurando a Constituição, bandeira ao fundo estilizada" },
+    "Direito Penal":            { "accent_hex": "#EF4444", "accent_name": "vermelho sangue", "hint": "traços vermelhos dominantes, promotor/juiz severo, algemas ou martelo com detalhe vermelho, gravata/manto em tom vermelho" },
+    "Direito Civil":            { "accent_hex": "#93C5FD", "accent_name": "azul frio",       "hint": "advogado civilista, contrato assinado, anel/aliança" },
+    "Direito Administrativo":   { "accent_hex": "#D4D4D8", "accent_name": "cinza-aço",       "hint": "servidor público, carimbo, prédio público estilizado" },
+    "Direito do Trabalho":      { "accent_hex": "#FBBF24", "accent_name": "amarelo trabalho","hint": "operário em traje formal, engrenagem, capacete" },
+    "Direito Processual":       { "accent_hex": "#C4B5FD", "accent_name": "violeta suave",   "hint": "escrivão, pilha de autos, carimbo processual" },
+    "Direito Tributário":       { "accent_hex": "#6EE7B7", "accent_name": "verde-cofre",     "hint": "contador de terno, cofre, moeda gigante" },
+    "Carreiras Jurídicas":      { "accent_hex": "#FCD34D", "accent_name": "ouro",            "hint": "concurseiro focado, medalha ou emblema" },
+    "Atualidades Jurídicas":    { "accent_hex": "#7DD3FC", "accent_name": "azul jornal",     "hint": "jornalista jurídica, jornal enrolado ou microfone" }
+  },
+  "negative": [
+    "sem fundo colorido",
+    "sem cenário complexo",
+    "sem múltiplas figuras",
+    "sem estilo aquarela",
+    "sem hiper-realismo",
+    "sem gradientes suaves",
+    "sem sombras dramáticas",
+    "NÃO repetir composição, sujeito ou adereço de capas anteriores",
+    "NÃO deixar o tema visualmente idêntico a outro tema — o acento de cor deve ser inconfundível"
+  ],
+  "prompt_template": "Cartoon vector illustration on pure solid black background (#000000). Single centered figure: {SUJEITO}, half-body portrait, looking calmly forward, holding/next to {ADORNO}. Style: thick black outlines, flat 2-3 tone shading (no gradients, no photorealism). Base palette: beige skin #EFE0C4, warm neutral #C9A26A, dark brown outlines #6B3F1D, highlight #F5E9CE. THEME ACCENT COLOR: {ACCENT_HEX} ({ACCENT_NAME}) — this color MUST dominate the figure's clothing, the adornment's main body and the internal line accents, so the cover reads instantly as the theme's color. Frontal flat lighting, no dramatic shadows. No background scenery, single figure only, no extra text. The composition, subject and adornment MUST be different from any previously generated cover in this project."
+}

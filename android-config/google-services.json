@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "833040915353",
+    "project_id": "vactio-vade-mecum",
+    "storage_bucket": "vactio-vade-mecum.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:833040915353:android:ca7b65b12dbfa5e9099108",
+        "android_client_info": {
+          "package_name": "br.com.vacatio.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "833040915353-gkvhq1b2f4d1aou1mkd1nshhlubgvrdk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.vacatio.app",
+            "certificate_hash": "93453d4ef11927bb061945d8260dd67ea849815c"
+          }
+        },
+        {
+          "client_id": "833040915353-t4op5194chqh14kbig98h0pe8c0j8irq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBo3wL6RZc-_0AlsshHU8AUYYD-vpFmuKA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "833040915353-t4op5194chqh14kbig98h0pe8c0j8irq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

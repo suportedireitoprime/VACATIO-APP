@@ -1,0 +1,1 @@
+DELETE FROM public.radar_pl_headlines WHERE headline ILIKE 'Desculpe,%' OR headline ILIKE '%não consegui gerar uma resposta%';

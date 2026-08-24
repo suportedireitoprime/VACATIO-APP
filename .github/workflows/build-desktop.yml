@@ -1,0 +1,139 @@
+name: Build Desktop (Windows / macOS / Linux)
+
+on:
+  # Manual pelo painel Actions
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: "Plataformas a gerar (comma: windows,macos,linux ou 'all')"
+        required: false
+        default: "all"
+  # Automático a cada tag v* (ex.: v1.0.0)
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+            artifact_glob: "electron-release/*.exe"
+          - os: macos-latest
+            platform: macos
+            artifact_glob: "electron-release/*.dmg"
+          - os: ubuntu-latest
+            platform: linux
+            artifact_glob: |
+              electron-release/*.AppImage
+              electron-release/*.deb
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Filter platforms (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          sel="${{ github.event.inputs.platforms }}"
+          if [ "$sel" != "all" ] && [ -n "$sel" ]; then
+            case ",$sel," in
+              *,${{ matrix.platform }},*) echo "Building ${{ matrix.platform }}";;
+              *) echo "Skipping ${{ matrix.platform }}"; echo "SKIP_JOB=1" >> $GITHUB_ENV;;
+            esac
+          fi
+
+      - name: Setup Bun
+        if: env.SKIP_JOB != '1'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node (electron-builder)
+        if: env.SKIP_JOB != '1'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        if: env.SKIP_JOB != '1'
+        run: bun install --frozen-lockfile
+
+      - name: Export offline bundle (native content)
+        if: env.SKIP_JOB != '1'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        shell: bash
+        run: node scripts/export-offline-bundle.mjs
+
+      - name: Build web (Vite, base relativo)
+        if: env.SKIP_JOB != '1'
+        env:
+          ELECTRON_BUILD: "1"
+        shell: bash
+        run: bun run build
+
+      - name: Package with electron-builder
+        if: env.SKIP_JOB != '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Sem cert configurado o electron-builder tenta assinar e quebra.
+          # Esta flag desliga a auto-descoberta; se você um dia adicionar
+          # CSC_LINK + CSC_KEY_PASSWORD como secrets, a assinatura volta.
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        shell: bash
+        run: |
+          case "${{ matrix.platform }}" in
+            windows) npx --yes electron-builder --win --publish never ;;
+            macos)   npx --yes electron-builder --mac --publish never ;;
+            linux)   npx --yes electron-builder --linux --publish never ;;
+          esac
+
+      - name: List generated artifacts
+        if: env.SKIP_JOB != '1'
+        shell: bash
+        run: ls -lah electron-release/ || true
+
+      - name: Upload artifact (workflow run)
+        if: env.SKIP_JOB != '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vademecum-${{ matrix.platform }}
+          path: |
+            electron-release/*.exe
+            electron-release/*.dmg
+            electron-release/*.AppImage
+            electron-release/*.deb
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Attach to GitHub Release (only on tag push)
+        if: env.SKIP_JOB != '1' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            electron-release/*.exe
+            electron-release/*.dmg
+            electron-release/*.AppImage
+            electron-release/*.deb
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

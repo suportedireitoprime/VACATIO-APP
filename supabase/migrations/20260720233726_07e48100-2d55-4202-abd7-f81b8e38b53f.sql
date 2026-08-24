@@ -1,0 +1,2 @@
+ALTER TABLE public.tematica_juridica_obras ADD COLUMN IF NOT EXISTS habilidades text[] NOT NULL DEFAULT '{}'::text[];
+CREATE INDEX IF NOT EXISTS idx_tematica_obras_habilidades ON public.tematica_juridica_obras USING GIN (habilidades);

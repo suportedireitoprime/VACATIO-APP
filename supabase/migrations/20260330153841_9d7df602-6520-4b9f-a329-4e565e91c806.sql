@@ -1,0 +1,1 @@
+ALTER TABLE resenha_diaria ADD COLUMN IF NOT EXISTS explicacao text;

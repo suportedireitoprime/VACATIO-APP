@@ -1,0 +1,1 @@
+ALTER TABLE simulados ADD COLUMN IF NOT EXISTS gabarito_pdf_url TEXT;

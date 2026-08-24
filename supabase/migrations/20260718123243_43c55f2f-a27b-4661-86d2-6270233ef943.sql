@@ -1,0 +1,2 @@
+ALTER TABLE public.horus_whatsapp_users
+  DROP CONSTRAINT IF EXISTS horus_whatsapp_users_onboarding_state_chk;

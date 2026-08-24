@@ -1,0 +1,48 @@
+CONTRATO DE LICENÇA DE USO — VADE MECUM COMENTADO
+==================================================
+
+Vacatio — todos os direitos reservados.
+
+1. OBJETO
+Este software ("Aplicativo") é um Vade Mecum Jurídico com legislação
+brasileira consolidada, resumos e ferramentas de estudo assistidas por
+Inteligência Artificial, distribuído gratuitamente pela Vacatio para uso
+pessoal e profissional.
+
+2. LICENÇA CONCEDIDA
+A Vacatio concede ao usuário licença de uso, não exclusiva, não transferível
+e revogável, para instalar e utilizar o Aplicativo em computadores pessoais,
+observadas as restrições deste contrato.
+
+3. RESTRIÇÕES
+É vedado ao usuário:
+  (a) redistribuir, revender, sublicenciar ou disponibilizar o Aplicativo
+      a terceiros;
+  (b) realizar engenharia reversa, descompilar ou modificar o código;
+  (c) remover avisos de titularidade, marca ou copyright.
+
+4. CONTEÚDO JURÍDICO
+Os textos legais reproduzidos são de domínio público. Comentários, resumos
+e explicações geradas por IA têm caráter meramente informativo e educacional,
+NÃO substituindo consulta a profissional qualificado. A Vacatio não se
+responsabiliza por decisões tomadas com base em conteúdo do Aplicativo.
+
+5. PRIVACIDADE
+O Aplicativo funciona majoritariamente offline. Recursos que exigem
+conexão (assistente IA, boletins em vídeo, sincronização de conta) seguem
+a Política de Privacidade publicada em vade-mecum-comentado.lovable.app.
+
+6. ATUALIZAÇÕES
+Novas versões podem ser disponibilizadas periodicamente. A Vacatio se
+reserva o direito de descontinuar funcionalidades a qualquer tempo.
+
+7. GARANTIAS
+O Aplicativo é fornecido "no estado em que se encontra", sem garantias de
+qualquer natureza. O uso é por conta e risco do usuário.
+
+8. FORO
+Fica eleito o foro da Comarca do domicílio do desenvolvedor para dirimir
+quaisquer controvérsias oriundas deste contrato.
+
+Ao clicar em "Aceito", o usuário declara ter lido, compreendido e concordado
+integralmente com os termos acima.

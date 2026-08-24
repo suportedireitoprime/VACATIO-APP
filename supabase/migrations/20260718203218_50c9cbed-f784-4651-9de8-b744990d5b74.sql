@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS ux_radar_impactos_ato_lei ON public.radar_impactos_leis (ato_id, lei_id);

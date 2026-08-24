@@ -1,0 +1,3 @@
+INSERT INTO push_automations (key, nome, descricao, enabled, audience, default_url, emoji, usa_capa)
+VALUES ('boletim_noticias_diario', 'Boletim de Notícias diário', 'Notifica quando o Boletim de Notícias do dia fica pronto', true, '{"all": true}'::jsonb, '/boletins-noticias', '📰', true)
+ON CONFLICT (key) DO UPDATE SET enabled = EXCLUDED.enabled, default_url = EXCLUDED.default_url, nome = EXCLUDED.nome, descricao = EXCLUDED.descricao;

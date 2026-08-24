@@ -1,0 +1,33 @@
+# Long-term caching for hashed build assets (Vite emits content-hashed
+# filenames under /assets/), plus static media. HTML stays no-cache so a
+# new deploy is picked up immediately.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+*.js
+  Cache-Control: public, max-age=31536000, immutable
+*.css
+  Cache-Control: public, max-age=31536000, immutable
+*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+*.webp
+  Cache-Control: public, max-age=2592000
+*.png
+  Cache-Control: public, max-age=2592000
+*.jpg
+  Cache-Control: public, max-age=2592000
+*.svg
+  Cache-Control: public, max-age=2592000
+*.mp3
+  Cache-Control: public, max-age=2592000
+*.mp4
+  Cache-Control: public, max-age=2592000
+
+/*.html
+  Cache-Control: no-cache
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/firebase-messaging-sw.js
+  Cache-Control: no-cache

@@ -1,0 +1,5 @@
+UPDATE noticias_camara SET imagem_url = 'https://www.camara.leg.br/midias/image/2026/03/img20250909200054825-768x473.jpg' WHERE id = '13085362-3e9f-4e18-ac28-c7e3198dd204';
+UPDATE noticias_camara SET imagem_url = 'https://www.camara.leg.br/midias/image/2026/03/img20250930135722540-768x473.jpg' WHERE id = '626c7e6c-74de-453c-adb1-1e750edfb74a';
+UPDATE noticias_camara SET imagem_url = 'https://www.camara.leg.br/midias/image/2026/03/img20260304130256615-768x473.jpg' WHERE id = '214a268f-ee09-44ff-ac77-d97784af23a3';
+UPDATE noticias_camara SET imagem_url = 'https://www.camara.leg.br/midias/image/2026/03/img20260317151003030-768x473.jpg' WHERE id = 'bac35a96-6452-4478-82d5-315bf58938dc';
+UPDATE noticias_camara SET imagem_url = 'https://www.camara.leg.br/midias/image/2026/03/img20260317233306327-768x473.jpg' WHERE id = 'e1c8d893-0590-458d-88bf-d063e46b4593';

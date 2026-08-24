@@ -1,0 +1,13 @@
+{
+  "note": "Digital Asset Links para Android App Links verificados. Substituir o sha256_cert_fingerprints pelo SHA-256 real da chave de assinatura de RELEASE (upload key registrada no Play Console → App integrity → App signing).",
+  "relations": [
+    "delegate_permission/common.handle_all_urls"
+  ],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "br.com.vacatio.app",
+    "sha256_cert_fingerprints": [
+      "REPLACE_WITH_RELEASE_SHA256_FINGERPRINT"
+    ]
+  }
+}

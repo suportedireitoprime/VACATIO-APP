@@ -1,0 +1,21 @@
+INSERT INTO public.aprender_areas (slug, nome, descricao, cor, ordem) VALUES
+  ('direito-constitucional', 'Direito Constitucional', 'Constituição, direitos fundamentais e organização do Estado.', '#2E7D5B', 1),
+  ('direito-civil', 'Direito Civil', 'Pessoas, bens, obrigações, contratos, família e sucessões.', '#B25A2E', 2),
+  ('direito-processual-civil', 'Direito Processual Civil', 'Rito, procedimentos e atos do processo civil.', '#2E6BA8', 3),
+  ('direito-penal', 'Direito Penal', 'Crimes, penas e teoria geral do delito.', '#B21F2E', 4),
+  ('direito-processual-penal', 'Direito Processual Penal', 'Investigação, ação penal e rito processual criminal.', '#8B1C2A', 5),
+  ('direito-do-trabalho', 'Direito do Trabalho', 'Relações de emprego, CLT e direitos do trabalhador.', '#2C4F7C', 6),
+  ('direito-processual-do-trabalho', 'Direito Processual do Trabalho', 'Rito e procedimentos da Justiça do Trabalho.', '#28536B', 7),
+  ('direito-tributario', 'Direito Tributário', 'Tributos, obrigações fiscais e sistema tributário.', '#1F7A5A', 8),
+  ('direito-empresarial', 'Direito Empresarial', 'Empresas, sociedades, títulos e falências.', '#1E2F5E', 9),
+  ('direito-ambiental', 'Direito Ambiental', 'Proteção do meio ambiente e responsabilidade ambiental.', '#2E7D32', 10),
+  ('direito-previdenciario', 'Direito Previdenciário', 'Benefícios, custeio e regime geral da previdência.', '#C6531A', 11),
+  ('direitos-humanos', 'Direitos Humanos', 'Dignidade, tratados e proteção internacional.', '#7A4CA8', 12),
+  ('direito-internacional-publico', 'Direito Internacional Público', 'Estados, organismos internacionais e tratados.', '#1F3A6B', 13),
+  ('direito-internacional-privado', 'Direito Internacional Privado', 'Conflitos de lei no espaço e relações privadas globais.', '#1F6A6E', 14),
+  ('direito-urbanistico', 'Direito Urbanístico', 'Cidades, plano diretor e política urbana.', '#B0553A', 15),
+  ('direito-financeiro', 'Direito Financeiro', 'Orçamento público, receita e despesa.', '#B08328', 16),
+  ('direito-concorrencial', 'Direito Concorrencial', 'Defesa da concorrência e mercado.', '#5B2E8F', 17),
+  ('direito-desportivo', 'Direito Desportivo', 'Regras, entidades e justiça desportiva.', '#D6631A', 18),
+  ('lei-penal-especial', 'Lei Penal Especial', 'Leis penais extravagantes e crimes especiais.', '#7A1D28', 19)
+ON CONFLICT (slug) DO NOTHING;

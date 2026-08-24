@@ -1,0 +1,764 @@
+name: Build iOS (.ipa → TestFlight)
+run-name: "iOS Build #${{ github.run_number }} • ${{ github.ref_name }}@${{ github.sha }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      submit_testflight:
+        description: 'Enviar build para TestFlight após archive?'
+        required: false
+        default: 'true'
+
+jobs:
+  build:
+    name: Build iOS release
+    runs-on: macos-26
+    timeout-minutes: 60
+    permissions:
+      contents: read
+
+    env:
+      # Identificadores Apple não são segredo. Mantemos fallback aqui para evitar
+      # falso erro quando o GitHub não injeta esses 4 valores como secrets.
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID || 'DKVT35Y3W5' }}
+      APPLE_BUNDLE_ID: ${{ secrets.APPLE_BUNDLE_ID || 'br.com.vacatio.app' }}
+      APPLE_API_KEY_ID: ${{ secrets.APPLE_APP_STORE_CONNECT_KEY_ID || 'XR87K5FX25' }}
+      APPLE_API_ISSUER_ID: ${{ secrets.APPLE_APP_STORE_CONNECT_ISSUER_ID || '1604c7ca-cdb0-49ec-aea1-058e12abdafe' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Validate iOS secrets
+        env:
+          APPLE_DISTRIBUTION_CERT_P12_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERT_P12_BASE64 }}
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_APP_STORE_CONNECT_KEY_P8_BASE64: ${{ secrets.APPLE_APP_STORE_CONNECT_KEY_P8_BASE64 }}
+          APPLE_DISTRIBUTION_CERT_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "Signing identifiers: team=${APPLE_TEAM_ID}, bundle=${APPLE_BUNDLE_ID}, key=${APPLE_API_KEY_ID}"
+          missing=0
+          for name in \
+            APPLE_DISTRIBUTION_CERT_P12_BASE64 \
+            APPLE_PROVISIONING_PROFILE_BASE64 \
+            APPLE_APP_STORE_CONNECT_KEY_P8_BASE64 \
+            APPLE_DISTRIBUTION_CERT_PASSWORD \
+            KEYCHAIN_PASSWORD
+          do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing or empty GitHub secret ${name}. Re-sync Apple secrets from /admin-secrets in the same repository where this workflow is running."
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Select Xcode 26+
+        run: |
+          set -euo pipefail
+          XCODE_PATH="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1 || true)"
+          if [ -z "$XCODE_PATH" ]; then
+            echo "::error::Xcode 26+ is required by App Store Connect (iOS 26 SDK)."
+            ls -1 /Applications | grep '^Xcode' || true
+            exit 1
+          fi
+          sudo xcode-select -s "$XCODE_PATH"
+          xcodebuild -version
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Remove Lovable hot-reload from capacitor.config.ts
+        run: |
+          node -e "
+            const fs = require('fs');
+            const p = 'capacitor.config.ts';
+            let s = fs.readFileSync(p, 'utf8');
+            s = s.replace(/\s*server:\s*{[\s\S]*?},?\n/, '\n');
+            fs.writeFileSync(p, s);
+            console.log('capacitor.config.ts sanitized for release');
+          "
+
+      - name: Build web app
+        env:
+          SKIP_PRECOMPRESS: "1"
+        run: bun run build
+
+      - name: Strip precompressed assets (safety net for native)
+        run: |
+          if [ -d dist ]; then
+            removed=$(find dist \( -name '*.gz' -o -name '*.br' \) -type f -print -delete | wc -l)
+            echo "Removed $removed precompressed files from dist/"
+          fi
+
+      - name: Regenerate iOS platform
+        run: |
+          rm -rf ios
+          bunx cap add ios
+          bunx cap sync ios
+
+      - name: Set version + build number
+        run: |
+          PLIST="ios/App/App/Info.plist"
+          RUN_NUM="${{ github.run_number }}"
+          # Marketing version legível: 1.0.<run_number>
+          VERSION="1.0.${RUN_NUM}"
+          # CFBundleVersion precisa ser ESTRITAMENTE crescente entre todos os
+          # uploads pra TestFlight (mesmo em versions diferentes) — usar
+          # somente github.run_number quebra quando um upload anterior já
+          # ocupou o mesmo número (erro -19232 "bundle version must be
+          # higher than previously uploaded"). Timestamp garante monotonia.
+          BUILD_NUM="$(date +%s)"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUM" "$PLIST"
+          echo "Version: $VERSION ($BUILD_NUM)"
+
+      - name: Inject App Icon (full AppIcon.appiconset)
+        run: |
+          set -euo pipefail
+          ICON_SRC="build-assets/ios-app-icon.png"
+          ICONSET="ios/App/App/Assets.xcassets/AppIcon.appiconset"
+          if [ ! -f "$ICON_SRC" ]; then
+            echo "::error::Ícone iOS não encontrado em $ICON_SRC"
+            exit 1
+          fi
+          rm -rf "$ICONSET"
+          mkdir -p "$ICONSET"
+
+          # App Store Connect usa o slot ios-marketing (1024x1024 @1x) para
+          # extrair o ícone exibido no painel do app. Os demais tamanhos evitam
+          # fallback/placeholder em superfícies menores do iOS/TestFlight.
+          cp "$ICON_SRC" "$ICONSET/AppIcon-1024.png"
+          make_icon() {
+            local size="$1"
+            local file="$2"
+            sips -z "$size" "$size" "$ICON_SRC" --out "$ICONSET/$file" >/dev/null
+          }
+          make_icon 40  "AppIcon-20@2x.png"
+          make_icon 60  "AppIcon-20@3x.png"
+          make_icon 58  "AppIcon-29@2x.png"
+          make_icon 87  "AppIcon-29@3x.png"
+          make_icon 80  "AppIcon-40@2x.png"
+          make_icon 120 "AppIcon-40@3x.png"
+          make_icon 120 "AppIcon-60@2x.png"
+          make_icon 180 "AppIcon-60@3x.png"
+          make_icon 20  "AppIcon-20-ipad@1x.png"
+          make_icon 40  "AppIcon-20-ipad@2x.png"
+          make_icon 29  "AppIcon-29-ipad@1x.png"
+          make_icon 58  "AppIcon-29-ipad@2x.png"
+          make_icon 40  "AppIcon-40-ipad@1x.png"
+          make_icon 80  "AppIcon-40-ipad@2x.png"
+          make_icon 76  "AppIcon-76-ipad@1x.png"
+          make_icon 152 "AppIcon-76-ipad@2x.png"
+          make_icon 167 "AppIcon-83.5-ipad@2x.png"
+
+          cat > "$ICONSET/Contents.json" <<'JSON'
+          {
+            "images": [
+              { "filename": "AppIcon-20@2x.png", "idiom": "iphone", "scale": "2x", "size": "20x20" },
+              { "filename": "AppIcon-20@3x.png", "idiom": "iphone", "scale": "3x", "size": "20x20" },
+              { "filename": "AppIcon-29@2x.png", "idiom": "iphone", "scale": "2x", "size": "29x29" },
+              { "filename": "AppIcon-29@3x.png", "idiom": "iphone", "scale": "3x", "size": "29x29" },
+              { "filename": "AppIcon-40@2x.png", "idiom": "iphone", "scale": "2x", "size": "40x40" },
+              { "filename": "AppIcon-40@3x.png", "idiom": "iphone", "scale": "3x", "size": "40x40" },
+              { "filename": "AppIcon-60@2x.png", "idiom": "iphone", "scale": "2x", "size": "60x60" },
+              { "filename": "AppIcon-60@3x.png", "idiom": "iphone", "scale": "3x", "size": "60x60" },
+              { "filename": "AppIcon-20-ipad@1x.png", "idiom": "ipad", "scale": "1x", "size": "20x20" },
+              { "filename": "AppIcon-20-ipad@2x.png", "idiom": "ipad", "scale": "2x", "size": "20x20" },
+              { "filename": "AppIcon-29-ipad@1x.png", "idiom": "ipad", "scale": "1x", "size": "29x29" },
+              { "filename": "AppIcon-29-ipad@2x.png", "idiom": "ipad", "scale": "2x", "size": "29x29" },
+              { "filename": "AppIcon-40-ipad@1x.png", "idiom": "ipad", "scale": "1x", "size": "40x40" },
+              { "filename": "AppIcon-40-ipad@2x.png", "idiom": "ipad", "scale": "2x", "size": "40x40" },
+              { "filename": "AppIcon-76-ipad@1x.png", "idiom": "ipad", "scale": "1x", "size": "76x76" },
+              { "filename": "AppIcon-76-ipad@2x.png", "idiom": "ipad", "scale": "2x", "size": "76x76" },
+              { "filename": "AppIcon-83.5-ipad@2x.png", "idiom": "ipad", "scale": "2x", "size": "83.5x83.5" },
+              { "filename": "AppIcon-1024.png", "idiom": "ios-marketing", "scale": "1x", "size": "1024x1024" }
+            ],
+            "info": { "author": "xcode", "version": 1 }
+          }
+          JSON
+          echo "AppIcon.appiconset atualizado:"
+          ls -la "$ICONSET"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          iconset = Path('ios/App/App/Assets.xcassets/AppIcon.appiconset')
+          contents = json.loads((iconset / 'Contents.json').read_text())
+          marketing = [img for img in contents['images'] if img.get('idiom') == 'ios-marketing']
+          if len(marketing) != 1:
+              raise SystemExit('ios-marketing icon slot ausente ou duplicado')
+          icon = iconset / marketing[0]['filename']
+          if not icon.exists():
+              raise SystemExit(f'Arquivo do ícone ios-marketing não existe: {icon}')
+          print(icon)
+          PY
+          MARKETING_ICON="$ICONSET/AppIcon-1024.png"
+          WIDTH="$(sips -g pixelWidth "$MARKETING_ICON" | awk '/pixelWidth/ {print $2}')"
+          HEIGHT="$(sips -g pixelHeight "$MARKETING_ICON" | awk '/pixelHeight/ {print $2}')"
+          if [ "$WIDTH" != "1024" ] || [ "$HEIGHT" != "1024" ]; then
+            echo "::error::Ícone App Store inválido: ${WIDTH}x${HEIGHT}. Precisa ser 1024x1024."
+            exit 1
+          fi
+          echo "Validated ios-marketing app icon: $MARKETING_ICON (${WIDTH}x${HEIGHT})"
+
+      - name: Ensure Info.plist references AppIcon (CFBundleIcons)
+        run: |
+          set -euo pipefail
+          PLIST="ios/App/App/Info.plist"
+          # Redundância explícita: mesmo com ASSETCATALOG_COMPILER_APPICON_NAME
+          # setado, iOS/App Store Connect usam CFBundleIcons pra localizar o
+          # ícone primário do app. Sem essa entrada, alguns pipelines geram um
+          # IPA sem ícone visível no TestFlight.
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleIcons" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons dict" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon dict" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName string AppIcon" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles array" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0 string AppIcon60x60" "$PLIST"
+
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleIcons~ipad" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons~ipad dict" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons~ipad:CFBundlePrimaryIcon dict" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons~ipad:CFBundlePrimaryIcon:CFBundleIconName string AppIcon" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons~ipad:CFBundlePrimaryIcon:CFBundleIconFiles array" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons~ipad:CFBundlePrimaryIcon:CFBundleIconFiles:0 string AppIcon60x60" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons~ipad:CFBundlePrimaryIcon:CFBundleIconFiles:1 string AppIcon76x76" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIcons" "$PLIST"
+
+      - name: Declare encryption exemption (ITSAppUsesNonExemptEncryption=false)
+        run: |
+          PLIST="ios/App/App/Info.plist"
+          # Add or update — Vacatio uses only Apple's standard TLS/Keychain, exempt from ERN.
+          /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PLIST" 2>/dev/null \
+            || /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :ITSAppUsesNonExemptEncryption" "$PLIST"
+
+      - name: Add privacy usage descriptions (ITMS-90683 fix)
+        run: |
+          set -euo pipefail
+          PLIST="ios/App/App/Info.plist"
+          add_or_set() {
+            local key="$1"; local value="$2"
+            /usr/libexec/PlistBuddy -c "Add :${key} string ${value}" "$PLIST" 2>/dev/null \
+              || /usr/libexec/PlistBuddy -c "Set :${key} ${value}" "$PLIST"
+          }
+          add_or_set NSPhotoLibraryUsageDescription "O Vacatio pode acessar sua biblioteca de fotos apenas se você optar por anexar imagens em comentários ou personalizar seu perfil."
+          add_or_set NSPhotoLibraryAddUsageDescription "O Vacatio solicita permissão para salvar imagens (como trechos de legislação) na sua biblioteca de fotos quando você usa a função de exportar."
+          add_or_set NSCameraUsageDescription "O Vacatio pode usar a câmera apenas se você optar por tirar uma foto para anexar em comentários ou personalizar seu perfil."
+          add_or_set NSLocationWhenInUseUsageDescription "O Vacatio pode usar sua localização apenas se você optar por filtrar conteúdos de legislação estadual pelo estado em que se encontra."
+          add_or_set NSLocationAlwaysAndWhenInUseUsageDescription "O Vacatio pode usar sua localização apenas se você optar por filtrar conteúdos de legislação estadual pelo estado em que se encontra."
+          add_or_set NSMicrophoneUsageDescription "O Vacatio pode acessar o microfone apenas se você optar por gravar áudio em comentários."
+          # NSUserTrackingUsageDescription intentionally NOT set — o app não usa
+          # AppTrackingTransparency / IDFA nem faz rastreamento cross-app. Declarar
+          # essa chave sem uso real bloqueia o envio para revisão na App Store.
+          # Remove qualquer valor herdado de builds anteriores.
+          /usr/libexec/PlistBuddy -c "Delete :NSUserTrackingUsageDescription" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Print :NSPhotoLibraryUsageDescription" "$PLIST"
+
+      - name: Add Privacy Manifest (PrivacyInfo.xcprivacy)
+        run: |
+          set -euo pipefail
+          cat > ios/App/App/PrivacyInfo.xcprivacy <<'XML'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>NSPrivacyTrackingDomains</key>
+            <array/>
+            <key>NSPrivacyTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypes</key>
+            <array>
+              <dict>
+                <key>NSPrivacyCollectedDataType</key>
+                <string>NSPrivacyCollectedDataTypeEmailAddress</string>
+                <key>NSPrivacyCollectedDataTypeLinked</key>
+                <true/>
+                <key>NSPrivacyCollectedDataTypeUsedForTracking</key>
+                <false/>
+                <key>NSPrivacyCollectedDataTypePurposes</key>
+                <array>
+                  <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+                </array>
+              </dict>
+              <dict>
+                <key>NSPrivacyCollectedDataType</key>
+                <string>NSPrivacyCollectedDataTypeUserID</string>
+                <key>NSPrivacyCollectedDataTypeLinked</key>
+                <true/>
+                <key>NSPrivacyCollectedDataTypeUsedForTracking</key>
+                <false/>
+                <key>NSPrivacyCollectedDataTypePurposes</key>
+                <array>
+                  <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+                  <string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+                </array>
+              </dict>
+              <dict>
+                <key>NSPrivacyCollectedDataType</key>
+                <string>NSPrivacyCollectedDataTypeCrashData</string>
+                <key>NSPrivacyCollectedDataTypeLinked</key>
+                <false/>
+                <key>NSPrivacyCollectedDataTypeUsedForTracking</key>
+                <false/>
+                <key>NSPrivacyCollectedDataTypePurposes</key>
+                <array>
+                  <string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+                </array>
+              </dict>
+            </array>
+            <key>NSPrivacyAccessedAPITypes</key>
+            <array>
+              <dict>
+                <key>NSPrivacyAccessedAPIType</key>
+                <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+                <key>NSPrivacyAccessedAPITypeReasons</key>
+                <array>
+                  <string>CA92.1</string>
+                </array>
+              </dict>
+              <dict>
+                <key>NSPrivacyAccessedAPIType</key>
+                <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+                <key>NSPrivacyAccessedAPITypeReasons</key>
+                <array>
+                  <string>C617.1</string>
+                </array>
+              </dict>
+            </array>
+          </dict>
+          </plist>
+          XML
+          echo "Created PrivacyInfo.xcprivacy"
+          cat ios/App/App/PrivacyInfo.xcprivacy
+
+      - name: Add push notification entitlements and background mode
+        run: |
+          set -euo pipefail
+          PLIST="ios/App/App/Info.plist"
+          # UIBackgroundModes array com remote-notification
+          /usr/libexec/PlistBuddy -c "Delete :UIBackgroundModes" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes array" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes:0 string remote-notification" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :UIBackgroundModes" "$PLIST"
+
+          # Entitlements file com aps-environment production
+          ENTITLEMENTS="ios/App/App/App.entitlements"
+          cat > "$ENTITLEMENTS" <<'XML'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>aps-environment</key>
+            <string>production</string>
+            <key>com.apple.developer.applesignin</key>
+            <array>
+              <string>Default</string>
+            </array>
+          </dict>
+          </plist>
+          XML
+          echo "Created App.entitlements:"
+          cat "$ENTITLEMENTS"
+
+      - name: Decode signing assets
+        env:
+          APPLE_DISTRIBUTION_CERT_P12_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERT_P12_BASE64 }}
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_APP_STORE_CONNECT_KEY_P8_BASE64: ${{ secrets.APPLE_APP_STORE_CONNECT_KEY_P8_BASE64 }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/signing"
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+
+          decode_secret() {
+            local value="$1"
+            local name="$2"
+            local out="$3"
+            if [ -z "${value:-}" ]; then
+              echo "::error::Missing or empty GitHub secret ${name}. Re-sync Apple secrets from /admin-secrets."
+              exit 1
+            fi
+            if ! printf '%s' "$value" | tr -d '\n\r\t ' | base64 -D > "$out" 2>/tmp/${name}.base64.err; then
+              echo "::error::GitHub secret ${name} is present but is not valid base64. Re-sync Apple secrets from /admin-secrets."
+              cat "/tmp/${name}.base64.err" || true
+              exit 1
+            fi
+            if [ ! -s "$out" ]; then
+              echo "::error::GitHub secret ${name} decoded to an empty file. Update/re-sync this secret."
+              exit 1
+            fi
+          }
+
+          decode_secret "$APPLE_DISTRIBUTION_CERT_P12_BASE64" "APPLE_DISTRIBUTION_CERT_P12_BASE64" "$RUNNER_TEMP/signing/dist.p12"
+          decode_secret "$APPLE_PROVISIONING_PROFILE_BASE64" "APPLE_PROVISIONING_PROFILE_BASE64" "$RUNNER_TEMP/signing/profile.mobileprovision"
+          decode_secret "$APPLE_APP_STORE_CONNECT_KEY_P8_BASE64" "APPLE_APP_STORE_CONNECT_KEY_P8_BASE64" "$HOME/.appstoreconnect/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
+          echo "p12 size: $(wc -c < "$RUNNER_TEMP/signing/dist.p12") bytes"
+          echo "profile size: $(wc -c < "$RUNNER_TEMP/signing/profile.mobileprovision") bytes"
+          echo "p8 size: $(wc -c < "$HOME/.appstoreconnect/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8") bytes"
+
+      - name: Create keychain and import certificate
+        env:
+          APPLE_DISTRIBUTION_CERT_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN="$RUNNER_TEMP/vacatio.keychain-db"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/signing/dist.p12" \
+            -k "$KEYCHAIN" \
+            -P "$APPLE_DISTRIBUTION_CERT_PASSWORD" \
+            -f pkcs12 \
+            -A \
+            -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productsign
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
+          security find-identity -v -p codesigning "$KEYCHAIN"
+
+      - name: Install provisioning profile
+        run: |
+          set -euo pipefail
+          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_DIR"
+          PROFILE_PLIST="$RUNNER_TEMP/signing/profile.plist"
+          if ! security cms -D -i "$RUNNER_TEMP/signing/profile.mobileprovision" > "$PROFILE_PLIST"; then
+            echo "::error::Could not decode provisioning profile. Recreate the App Store provisioning profile and re-sync APPLE_PROVISIONING_PROFILE_BASE64."
+            exit 1
+          fi
+          extract_next_string() {
+            local key="$1"
+            awk -v key="<key>${key}</key>" '
+              index($0, key) { found=1; next }
+              found && /<string>/ {
+                gsub(/^.*<string>/, "");
+                gsub(/<\/string>.*$/, "");
+                print;
+                exit;
+              }
+            ' "$PROFILE_PLIST"
+          }
+          UUID=$(extract_next_string "UUID")
+          NAME=$(extract_next_string "Name")
+          if [ -z "$UUID" ] || [ -z "$NAME" ]; then
+            echo "::error::Provisioning profile is missing UUID or Name. Recreate it in Apple Developer → Profiles → App Store Connect."
+            exit 1
+          fi
+          cp "$RUNNER_TEMP/signing/profile.mobileprovision" "$PROFILES_DIR/$UUID.mobileprovision"
+          echo "Installed profile: $NAME ($UUID)"
+          {
+            echo "PROFILE_NAME<<EOF"
+            echo "$NAME"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+      - name: Patch export options with profile name
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:${APPLE_BUNDLE_ID} ${PROFILE_NAME}" ios-export-options.plist
+          cat ios-export-options.plist
+
+      - name: Patch App target signing only
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          const projectPath = 'ios/App/App.xcodeproj/project.pbxproj';
+          const appleTeamId = process.env.APPLE_TEAM_ID;
+          const appleBundleId = process.env.APPLE_BUNDLE_ID;
+          const profileName = process.env.PROFILE_NAME;
+
+          let source = fs.readFileSync(projectPath, 'utf8');
+
+          const targetMatch = source.match(/([A-F0-9]{24}) \/\* App \*\/ = \{[\s\S]*?isa = PBXNativeTarget;[\s\S]*?buildConfigurationList = ([A-F0-9]{24}) \/\* Build configuration list for PBXNativeTarget "App" \*\//);
+          if (!targetMatch) {
+            throw new Error('Could not find App PBXNativeTarget build configuration list.');
+          }
+
+          const configListId = targetMatch[2];
+          const configListMatch = source.match(new RegExp(`${configListId} \\/\\* Build configuration list for PBXNativeTarget "App" \\*\\/ = \\{[\\s\\S]*?buildConfigurations = \\(\\n([\\s\\S]*?)\\n\\s*\\);`));
+          if (!configListMatch) {
+            throw new Error('Could not find App build configurations.');
+          }
+
+          const configIds = [...configListMatch[1].matchAll(/([A-F0-9]{24}) \/\*/g)].map((match) => match[1]);
+          if (!configIds.length) {
+            throw new Error('No App build configurations found.');
+          }
+
+          const upsertSetting = (block, key, value) => {
+            const line = `\t\t\t\t${key} = ${value};`;
+            const pattern = new RegExp(`\\n\\s*${key} = [^;]*;`);
+            if (pattern.test(block)) {
+              return block.replace(pattern, `\n${line}`);
+            }
+            return block.replace(/(buildSettings = \{\n)/, `$1${line}\n`);
+          };
+
+          for (const configId of configIds) {
+            const blockPattern = new RegExp(`${configId} \\/\\* [^*]+ \\*\\/ = \\{[\\s\\S]*?isa = XCBuildConfiguration;[\\s\\S]*?buildSettings = \\{[\\s\\S]*?\\n\\s*\\};[\\s\\S]*?\\n\\s*\\};`, 'm');
+            const original = source.match(blockPattern)?.[0];
+            if (!original) {
+              throw new Error(`Could not find build configuration ${configId}.`);
+            }
+
+            let updated = original;
+            updated = upsertSetting(updated, 'CODE_SIGN_IDENTITY', '"Apple Distribution"');
+            updated = upsertSetting(updated, '"CODE_SIGN_IDENTITY[sdk=iphoneos*]"', '"Apple Distribution"');
+            updated = upsertSetting(updated, 'CODE_SIGN_STYLE', 'Manual');
+            updated = upsertSetting(updated, 'DEVELOPMENT_TEAM', appleTeamId);
+            updated = upsertSetting(updated, 'PRODUCT_BUNDLE_IDENTIFIER', appleBundleId);
+            updated = upsertSetting(updated, 'PROVISIONING_PROFILE_SPECIFIER', `"${profileName.replace(/"/g, '\\"')}"`);
+            updated = upsertSetting(updated, 'CODE_SIGN_ENTITLEMENTS', '"App/App.entitlements"');
+            // Sem isto, `actool` não compila o AppIcon.appiconset e o App Store
+            // Connect não consegue extrair o ícone marketing — o app fica sem
+            // ícone ao lado do nome no TestFlight/App Store.
+            updated = upsertSetting(updated, 'ASSETCATALOG_COMPILER_APPICON_NAME', 'AppIcon');
+            source = source.replace(original, updated);
+          }
+
+          fs.writeFileSync(projectPath, source);
+          console.log(`Patched App target signing for ${appleBundleId} using profile ${profileName}.`);
+          NODE
+
+      - name: Copy GoogleService-Info.plist for Firebase Analytics
+        run: |
+          set -euo pipefail
+          if [ -f ios-config/GoogleService-Info.plist ]; then
+            cp ios-config/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
+            echo "✅ GoogleService-Info.plist copied to ios/App/App"
+            # Validate bundle ID matches the build
+            PLIST_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :BUNDLE_ID" ios/App/App/GoogleService-Info.plist 2>/dev/null || true)
+            echo "Plist BUNDLE_ID: ${PLIST_BUNDLE_ID}"
+            if [ -n "${PLIST_BUNDLE_ID}" ] && [ "${PLIST_BUNDLE_ID}" != "${APPLE_BUNDLE_ID}" ]; then
+              echo "::warning::GoogleService-Info.plist BUNDLE_ID (${PLIST_BUNDLE_ID}) differs from build bundle ID (${APPLE_BUNDLE_ID}). Firebase Analytics may not report data."
+            fi
+          else
+            echo "::warning::ios-config/GoogleService-Info.plist not found — skipping Firebase Analytics setup"
+          fi
+
+      - name: Add Facebook SDK for iOS install tracking
+        run: |
+          set -euo pipefail
+          PLIST="ios/App/App/Info.plist"
+
+          # Info.plist keys for Facebook SDK
+          add_or_set() {
+            local key="$1"; local value="$2"
+            /usr/libexec/PlistBuddy -c "Add :${key} string ${value}" "$PLIST" 2>/dev/null \
+              || /usr/libexec/PlistBuddy -c "Set :${key} ${value}" "$PLIST"
+          }
+          add_or_set FacebookAppID 1590734976033061
+          add_or_set FacebookDisplayName Vacatio
+          add_or_set FacebookClientToken d0f7c8833c75e815d78c81ac5f4b6fb3
+
+          # CFBundleURLTypes for fb{APP_ID} scheme
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleURLTypes" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string fb1590734976033061" "$PLIST"
+
+          # LSApplicationQueriesSchemes
+          /usr/libexec/PlistBuddy -c "Delete :LSApplicationQueriesSchemes" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :LSApplicationQueriesSchemes array" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :LSApplicationQueriesSchemes:0 string fbapi" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :LSApplicationQueriesSchemes:1 string fb-messenger-share-api" "$PLIST"
+
+          # Capacitor 8 may generate iOS with Swift Package Manager only (no Podfile).
+          # If a Podfile exists, add the pod there; otherwise keep using the SPM
+          # dependencies already brought by @capgo/capacitor-social-login.
+          PODFILE="ios/App/Podfile"
+          if [ -f "$PODFILE" ] && ! grep -q "FacebookSDK" "$PODFILE"; then
+            # Insert the Facebook pod before the final `end` without shell-quote collisions.
+            POD_LINE="  pod 'FacebookSDK', '~> 17.0'" python3 - "$PODFILE" <<'PY'
+          import os
+          import sys
+          from pathlib import Path
+
+          path = Path(sys.argv[1])
+          lines = path.read_text().splitlines()
+          pod_line = os.environ["POD_LINE"]
+          insert_at = None
+
+          for index in range(len(lines) - 1, -1, -1):
+              if lines[index].strip() == "end":
+                  insert_at = index
+                  break
+
+          if insert_at is None:
+              raise SystemExit("Podfile has no final end block")
+
+          lines.insert(insert_at, pod_line)
+          path.write_text("\n".join(lines) + "\n")
+          PY
+            echo "Added FacebookSDK pod to Podfile"
+            cat "$PODFILE"
+          elif [ -f "$PODFILE" ]; then
+            echo "FacebookSDK pod already present"
+            cat "$PODFILE"
+          else
+            echo "No Podfile found; Capacitor iOS is using Swift Package Manager. Skipping CocoaPods FacebookSDK injection."
+          fi
+
+          # Override AppDelegate.swift to initialize Facebook SDK and Firebase Analytics
+          # IMPORTANTE: com Capacitor 8 + SPM (sem Podfile) o FBSDKCoreKit/Firebase
+          # podem não estar disponíveis como módulos. Imports incondicionais quebram
+          # o archive com "unable to resolve module dependency: 'FBSDKCoreKit'".
+          # Por isso usamos canImport() para compilar em qualquer cenário.
+          cat > ios/App/App/AppDelegate.swift <<'SWIFT'
+          import UIKit
+          import Capacitor
+          #if canImport(FBSDKCoreKit)
+          import FBSDKCoreKit
+          #endif
+          #if canImport(FirebaseCore)
+          import FirebaseCore
+          #endif
+          #if canImport(FirebaseAnalytics)
+          import FirebaseAnalytics
+          #endif
+
+          @UIApplicationMain
+          class AppDelegate: UIResponder, UIApplicationDelegate {
+
+              var window: UIWindow?
+
+              func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+                  #if canImport(FirebaseCore)
+                  FirebaseApp.configure()
+                  #endif
+                  #if canImport(FBSDKCoreKit)
+                  _ = ApplicationDelegate.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
+                  ApplicationDelegate.shared.initializeSDK()
+                  AppEvents.shared.activateApp()
+                  AppEvents.shared.logEvent(AppEvents.Name("PageView"))
+                  #endif
+                  return true
+              }
+
+              func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+                  #if canImport(FBSDKCoreKit)
+                  if ApplicationDelegate.shared.application(app, open: url, options: options) {
+                      return true
+                  }
+                  #endif
+                  return true
+              }
+
+              func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+                  return true
+              }
+          }
+          SWIFT
+          echo "Overwrote AppDelegate.swift with Facebook SDK + Firebase Analytics init"
+
+      - name: Archive
+        run: |
+          set -euo pipefail
+          cd ios/App
+          if [ -f Podfile ]; then
+            pod install --repo-update
+          else
+            echo "No Podfile found; skipping CocoaPods install."
+          fi
+
+          if [ -d App.xcworkspace ]; then
+            BUILD_CONTAINER=(-workspace App.xcworkspace)
+          elif [ -d App.xcodeproj ]; then
+            BUILD_CONTAINER=(-project App.xcodeproj)
+          else
+            echo "::error::Neither App.xcworkspace nor App.xcodeproj was generated."
+            ls -la
+            exit 1
+          fi
+
+          xcodebuild "${BUILD_CONTAINER[@]}" \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            clean archive
+
+      - name: Verify AppIcon is embedded in archive
+        run: |
+          set -euo pipefail
+          APP_DIR="$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app"
+          if [ ! -d "$APP_DIR" ]; then
+            echo "::error::App bundle not found at $APP_DIR"; exit 1
+          fi
+          echo "Icons embedded no bundle:"
+          ls "$APP_DIR" | grep -i AppIcon || true
+          if ! ls "$APP_DIR" | grep -qi "AppIcon60x60@2x.png"; then
+            echo "::error::AppIcon60x60@2x.png não foi compilado no bundle. O TestFlight/App Store Connect não mostrará ícone ao lado do nome. Verifique ASSETCATALOG_COMPILER_APPICON_NAME e o Contents.json do AppIcon.appiconset."
+            exit 1
+          fi
+          # AssetCatalog binário — actool empacota tudo em Assets.car.
+          if [ ! -f "$APP_DIR/Assets.car" ]; then
+            echo "::warning::Assets.car ausente — asset catalog pode não ter sido compilado."
+          fi
+
+      - name: Export IPA
+        run: |
+          set -euo pipefail
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist ios-export-options.plist \
+            -exportPath "$RUNNER_TEMP/export"
+          ls -lh "$RUNNER_TEMP/export"
+
+      - name: Upload to TestFlight
+        if: ${{ github.event.inputs.submit_testflight == 'true' }}
+        run: |
+          set -euo pipefail
+          IPA=$(ls "$RUNNER_TEMP/export"/*.ipa | head -1)
+          echo "Uploading: $IPA"
+          # A App Store Connect API às vezes responde 500 em list-apps, o que faz o
+          # altool falhar com "Cannot determine the Apple ID from Bundle ID". É
+          # transitório: tentamos algumas vezes com espera crescente.
+          attempt=1
+          max_attempts=5
+          until [ "$attempt" -gt "$max_attempts" ]; do
+            echo "Tentativa ${attempt} de ${max_attempts}"
+            if xcrun altool --upload-app -f "$IPA" -t ios \
+                 --apiKey "$APPLE_API_KEY_ID" \
+                 --apiIssuer "$APPLE_API_ISSUER_ID" 2>&1 | tee /tmp/altool.log; then
+              echo "Upload concluído."
+              exit 0
+            fi
+            if ! grep -qE "status code 5[0-9][0-9]|Cannot determine the Apple ID|timed out|The request timed out" /tmp/altool.log; then
+              echo "::error::Falha permanente no upload para o TestFlight. Veja o log acima."
+              exit 1
+            fi
+            sleep $((attempt * 30))
+            attempt=$((attempt + 1))
+          done
+          echo "::error::App Store Connect segue retornando erro 500 após $max_attempts tentativas. O IPA está disponível como artefato desta run; tente novamente mais tarde."
+          exit 1
+
+      - name: Upload IPA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vacatio-ios-${{ github.run_number }}
+          path: ${{ runner.temp }}/export/*.ipa
+          retention-days: 14
+
+      - name: Cleanup keychain
+        if: always()
+        env:
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          security delete-keychain "$RUNNER_TEMP/vacatio.keychain-db" || true
+          rm -rf "$HOME/.appstoreconnect/private_keys" || true
+

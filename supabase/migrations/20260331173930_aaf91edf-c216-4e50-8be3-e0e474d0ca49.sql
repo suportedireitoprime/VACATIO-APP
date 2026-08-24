@@ -1,0 +1,1 @@
+ALTER TABLE simulado_questoes ADD COLUMN IF NOT EXISTS texto_base text;

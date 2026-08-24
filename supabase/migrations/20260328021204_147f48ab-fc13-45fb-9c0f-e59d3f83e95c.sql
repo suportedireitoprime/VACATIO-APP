@@ -1,0 +1,1 @@
+DELETE FROM public.artigo_ai_cache WHERE tabela_nome = 'CC_CODIGO_CIVIL' AND artigo_numero = 'Art. 2º' AND modo = 'explicacao';
