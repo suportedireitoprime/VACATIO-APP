@@ -20,7 +20,6 @@ import { leiPath, tipoToSlug } from '@/lib/legislacaoSlugs';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import VoiceCaptureOverlay from './VoiceCaptureOverlay';
 import HomeNoticiasCarousel from './HomeNoticiasCarousel';
-import AprendaSobreLeis from './AprendaSobreLeis';
 import HomeCard from './HomeCard';
 import { useOutrasNormasCounts } from '@/hooks/useOutrasNormasCounts';
 import JurisprudenciaSheet from './JurisprudenciaSheet';
@@ -380,12 +379,6 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                 />
               ))}
             </div>
-
-
-      {/* Aprenda sobre as Leis — carrossel infinito de posts do blog (categoria Leis) */}
-      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
-        <AprendaSobreLeis />
-      </div>
 
       {/* List — decretos & outras leis */}
       <div className="px-1 pb-24">
