@@ -1,21 +1,45 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Capacitor core + plugin discovery (reflection)
+-keep,allowobfuscation,allowshrinking class com.getcapacitor.** { *; }
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+-keepclassmembers @com.getcapacitor.annotation.CapacitorPlugin class * {
+    @com.getcapacitor.PluginMethod <methods>;
+}
+-keep class * extends com.getcapacitor.Plugin { *; }
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Firebase Messaging + GMS (Google Sign-In) — invoked via reflection.
+# allowobfuscation/allowshrinking permite R8 renomear/remover classes
+# não usadas, elevando as taxas de otimização/ofuscação/redução
+# (recomendação Play #4).
+-keep class * extends com.google.firebase.messaging.FirebaseMessagingService { *; }
+-keep,allowobfuscation,allowshrinking class com.google.firebase.iid.** { *; }
+-keep,allowobfuscation,allowshrinking class com.google.android.gms.** { *; }
+-keep,allowobfuscation,allowshrinking class com.google.firebase.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Firebase Kotlin extensions (ktx) — required for Firebase Installations
+-keep,allowobfuscation,allowshrinking class com.google.firebase.ktx.** { *; }
+-keep,allowobfuscation,allowshrinking class com.google.firebase.installations.ktx.** { *; }
+-keep,allowobfuscation,allowshrinking class com.google.firebase.messaging.ktx.** { *; }
+-keep,allowobfuscation,allowshrinking class com.google.firebase.common.ktx.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+
+# WebView JS bridge
+-keepclassmembers class * { @android.webkit.JavascriptInterface <methods>; }
+
+# Symbolication attributes for Play Console / Crashlytics
+-keepattributes SourceFile,LineNumberTable,*Annotation*,Signature,InnerClasses,EnclosingMethod
+-renamesourcefileattribute SourceFile
+
+# Aggressive optimizations
+-allowaccessmodification
+-repackageclasses ''
+
+# Silence warnings from optional transitive deps
+-dontwarn org.slf4j.**
+-dontwarn javax.annotation.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+# Firebase KTX may reference classes not present in stripped builds.
+-dontwarn com.google.firebase.ktx.**
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**

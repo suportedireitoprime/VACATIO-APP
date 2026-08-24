@@ -27,3 +27,23 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            // Material Components 1.13.x migrou BottomSheetDialog para APIs não deprecadas
+            force 'com.google.android.material:material:1.13.0'
+            // CameraX 1.5.x removeu chamadas a Window.setStatusBarColor
+            force 'androidx.camera:camera-core:1.5.0'
+            force 'androidx.camera:camera-camera2:1.5.0'
+            force 'androidx.camera:camera-lifecycle:1.5.0'
+            force 'androidx.camera:camera-view:1.5.0'
+            // ML Kit barcode + code scanner migrados para APIs modernas
+            force 'com.google.mlkit:barcode-scanning:17.3.0'
+            force 'com.google.android.gms:play-services-code-scanner:16.1.0'
+            // Play Services base
+            force 'com.google.android.gms:play-services-base:18.5.0'
+            force 'com.google.android.gms:play-services-basement:18.4.0'
+        }
+    }
+}
