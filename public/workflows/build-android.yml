@@ -296,8 +296,15 @@ jobs:
           # não cobre 100% dos pixels acima da status bar em todos os aparelhos.
           # Ícone do launcher segue amarelo (é o ícone na home, não afeta a UI).
           if [ -d assets ] && ls assets/*.png >/dev/null 2>&1; then
+            # Remove any cached sharp/capacitor-assets to force a clean install
             rm -rf node_modules/@capacitor/assets node_modules/sharp
-            npm install --no-save --platform=linux --arch=x64 sharp @capacitor/assets
+            # Install sharp with explicit linux-x64 platform binary
+            npm install --no-save --platform=linux --arch=x64 sharp@0.33.5
+            npm install --no-save @capacitor/assets
+            # Ensure the nested sharp inside @capacitor/assets also has the binary
+            if [ -d node_modules/@capacitor/assets/node_modules/sharp ]; then
+              (cd node_modules/@capacitor/assets/node_modules/sharp && npm install --platform=linux --arch=x64 --no-save)
+            fi
             npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#EFE039' --iconBackgroundColorDark '#EFE039' --splashBackgroundColor '#FFD500' --splashBackgroundColorDark '#FFD500'
           else
             echo "No native image assets found; skipping capacitor-assets."
