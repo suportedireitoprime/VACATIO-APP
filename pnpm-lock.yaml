@@ -125,6 +125,9 @@ importers:
       '@capawesome/capacitor-app-update':
         specifier: ^8.0.4
         version: 8.0.4(@capacitor/core@8.5.0)
+      '@capawesome/capacitor-file-picker':
+        specifier: ^8.0.4
+        version: 8.0.4(@capacitor/core@8.5.0)
       '@capawesome/capacitor-maps-launcher':
         specifier: ^0.1.1
         version: 0.1.1(@capacitor/core@8.5.0)
@@ -1275,6 +1278,11 @@ packages:
 
   '@capawesome/capacitor-app-update@8.0.4':
     resolution: {integrity: sha512-XZFTIhe/jQNXltCbpZ1oPlvQqNTNDeTKzPFkn19TOxSbF6KNH+NuWrX+NdyxrKTU7MPbao9rFbDRLlQyGpKEjw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capawesome/capacitor-file-picker@8.0.4':
+    resolution: {integrity: sha512-BanQxY2kgjw0Azm7F+k6L+Gf6p0h6jQ0ecnOCvayAS7Wjq7Jpr63+djgIGACINLQgDWXeo/Bu3ttf2+yFym8UQ==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -8571,6 +8579,10 @@ snapshots:
       '@capacitor/core': 8.5.0
 
   '@capawesome/capacitor-app-update@8.0.4(@capacitor/core@8.5.0)':
+    dependencies:
+      '@capacitor/core': 8.5.0
+
+  '@capawesome/capacitor-file-picker@8.0.4(@capacitor/core@8.5.0)':
     dependencies:
       '@capacitor/core': 8.5.0
 
