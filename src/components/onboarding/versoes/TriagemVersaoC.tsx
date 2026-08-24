@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Check, Volume2, VolumeX } from 'lucide-react';
+import { ArrowRight, Check, BookOpen, Clock, ShieldCheck } from 'lucide-react';
 import {
   DORES,
   FILOSOFOS,
@@ -10,9 +10,6 @@ import {
   type PersonaId,
   type TriagemResult,
 } from './triagemShared';
-import { useTriagemAudio } from './useTriagemAudio';
-
-const CadastroFeaturesReel = lazy(() => import('../CadastroFeaturesReel'));
 
 type Props = {
   open: boolean;
@@ -20,14 +17,13 @@ type Props = {
   previewMode?: boolean;
 };
 
-type Step = 'abertura' | 'persona' | 'interesses' | 'dores' | 'nome' | 'whatsapp' | 'features';
-const CONTENT_STEPS: Step[] = ['persona', 'interesses', 'dores', 'nome', 'whatsapp'];
+type Step = 'abertura' | 'persona' | 'interesses' | 'dores' | 'nome' | 'numero';
+const CONTENT_STEPS: Step[] = ['persona', 'interesses', 'dores', 'nome', 'numero'];
 
-// Paleta editorial — mesma linguagem da abertura "O Direito pensado por quem o
-// construiu": marrom profundo, tipografia serifada e detalhe dourado.
+// Paleta editorial — marrom profundo, tipografia serifada e detalhe dourado.
 const SERIF = 'Georgia, "Times New Roman", serif';
 
-const CARD_BG: Record<Exclude<Step, 'abertura' | 'features'>, { grad: string; accent: string; label: string }> = {
+const CARD_BG: Record<Exclude<Step, 'abertura'>, { grad: string; accent: string; label: string }> = {
   persona: {
     grad: 'radial-gradient(ellipse at 50% 0%, #4A2A18 0%, #2A1810 55%, #120906 100%)',
     accent: '#F3E7D6',
@@ -48,7 +44,7 @@ const CARD_BG: Record<Exclude<Step, 'abertura' | 'features'>, { grad: string; ac
     accent: '#F3E7D6',
     label: 'NOME',
   },
-  whatsapp: {
+  numero: {
     grad: 'radial-gradient(ellipse at 50% 0%, #362718 0%, #201710 55%, #100A06 100%)',
     accent: '#F3E7D6',
     label: 'CONTATO',
@@ -60,14 +56,11 @@ const GOLD = '#C9A84C';
 export default function TriagemVersaoC({ open, onFinished }: Props) {
   const [step, setStep] = useState<Step>('abertura');
   const [data, setData] = useState<TriagemResult>(emptyResult());
-  const { muted, toggleMute, playSfx } = useTriagemAudio(open);
 
   useEffect(() => {
     if (open) {
       setStep('abertura');
       setData(emptyResult());
-      // Pré-carrega as silhuetas usadas na abertura — evita a travada quando
-      // a cena muda pra "Vamos te conhecer".
       FILOSOFOS.slice(0, 6).forEach((f) => {
         const img = new Image();
         img.decoding = 'async';
@@ -76,24 +69,24 @@ export default function TriagemVersaoC({ open, onFinished }: Props) {
     }
   }, [open]);
 
-  const stepIndex =
-    step === 'abertura' ? -1 : step === 'features' ? CONTENT_STEPS.length - 1 : CONTENT_STEPS.indexOf(step);
-  const bg = step === 'abertura' || step === 'features' ? CARD_BG.persona : CARD_BG[step];
+  const stepIndex = step === 'abertura' ? -1 : CONTENT_STEPS.indexOf(step);
+  const bg = step === 'abertura' ? CARD_BG.persona : CARD_BG[step];
 
   const advance = (patch: Partial<TriagemResult>) => {
-    playSfx('whoosh');
     const next = { ...data, ...patch };
     setData(next);
+    
     if (step === 'abertura') {
       setStep('persona');
       return;
     }
+    
     const nx = CONTENT_STEPS[stepIndex + 1];
-    if (nx) setStep(nx);
-    else {
-      // Última pergunta respondida → entra no reel de funções antes de fechar.
-      playSfx('ding');
-      setStep('features');
+    if (nx) {
+      setStep(nx);
+    } else {
+      // Última etapa, finaliza a triagem e vai direto pro Início
+      onFinished(next);
     }
   };
 
@@ -111,23 +104,17 @@ export default function TriagemVersaoC({ open, onFinished }: Props) {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-20 flex items-center justify-between px-4 pt-4"
+          className="relative z-20 flex items-center justify-between px-6 pt-4"
           style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 28px)' }}
         >
-          <button
-            onClick={toggleMute}
-            className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center active:scale-95"
-          >
-            {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-          </button>
-          <div className="flex-1 flex items-center gap-1.5 ml-3">
+          <div className="flex-1 flex items-center gap-1.5">
             {CONTENT_STEPS.map((s, i) => (
-              <div key={s} className="flex-1 h-1 rounded-full bg-white/20 overflow-hidden">
+              <div key={s} className="flex-1 h-1.5 rounded-full bg-white/20 overflow-hidden">
                 <motion.div
-                  className="h-full bg-white"
+                  className="h-full bg-[#C9A84C]"
                   initial={false}
                   animate={{ width: i <= stepIndex ? '100%' : '0%' }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
                 />
               </div>
             ))}
@@ -144,15 +131,7 @@ export default function TriagemVersaoC({ open, onFinished }: Props) {
       >
         <AnimatePresence mode="wait">
           {step === 'abertura' ? (
-            <AberturaCinematografica key="abertura" onDone={() => advance({})} muted={muted} toggleMute={toggleMute} />
-          ) : step === 'features' ? (
-            <Suspense key="features" fallback={<div className="absolute inset-0 bg-black" />}>
-              <CadastroFeaturesReel
-                nome={data.nome}
-                onDone={() => onFinished(data)}
-                playSfx={playSfx}
-              />
-            </Suspense>
+            <AberturaCinematografica key="abertura" onDone={() => advance({})} />
           ) : (
             <motion.div
               key={step}
@@ -163,7 +142,6 @@ export default function TriagemVersaoC({ open, onFinished }: Props) {
               className="relative w-full max-w-lg rounded-[36px] overflow-hidden flex flex-col shadow-2xl border border-[#C9A84C]/25"
               style={{ background: bg.grad, color: bg.accent, minHeight: 0, maxHeight: '100%', willChange: 'transform, opacity' }}
             >
-              {/* Textura de filósofos suave no card */}
               <FilosofosTextura seed={stepIndex + 1} />
 
               <div className="relative z-10 px-6 pt-6 flex items-center justify-between">
@@ -173,7 +151,7 @@ export default function TriagemVersaoC({ open, onFinished }: Props) {
                 </span>
               </div>
 
-              <CardContent step={step as Exclude<Step, 'abertura' | 'features'>} data={data} setData={setData} advance={advance} playSfx={playSfx} bg={bg} />
+              <CardContent step={step as Exclude<Step, 'abertura'>} data={data} setData={setData} advance={advance} bg={bg} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -184,16 +162,7 @@ export default function TriagemVersaoC({ open, onFinished }: Props) {
 
 /* -------------------------- Abertura Cinematográfica -------------------------- */
 
-function AberturaCinematografica({
-  onDone,
-  muted,
-  toggleMute,
-}: {
-  onDone: () => void;
-  muted: boolean;
-  toggleMute: () => void;
-}) {
-  // Roteiro (frames em ms): filósofos aparecem em cascata sobre marrom → flash amarelo → título
+function AberturaCinematografica({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<0 | 1 | 2>(0);
 
   useEffect(() => {
@@ -206,7 +175,6 @@ function AberturaCinematografica({
   }, []);
 
   const filosofosOrdem = useMemo(() => {
-    // 4 posições — menos imagens grandes animadas = abertura sem travar
     const posicoes = [
       { top: '10%', left: '6%', size: 130, rot: -8 },
       { top: '16%', right: '4%', size: 145, rot: 6 },
@@ -222,24 +190,10 @@ function AberturaCinematografica({
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="absolute inset-0 flex items-center justify-center overflow-hidden"
-      style={{
-        background: 'radial-gradient(ellipse at 50% 40%, #4A2A18 0%, #2A1810 55%, #150A05 100%)',
-      }}
+      style={{ background: 'radial-gradient(ellipse at 50% 40%, #4A2A18 0%, #2A1810 55%, #150A05 100%)' }}
     >
-      {/* Botão mute discreto */}
-      <button
-        onClick={toggleMute}
-        className="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-white/15 backdrop-blur text-white flex items-center justify-center"
-        style={{ top: 'calc(env(safe-area-inset-top,0px) + 12px)' }}
-      >
-        {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-      </button>
-
-      {/* Vinheta */}
       <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(circle at 50% 45%, transparent 40%, rgba(0,0,0,0.55) 100%)' }} />
 
-      {/* Filósofos flutuando — nunca desmontam durante a transição (evita
-          reflow/decode no meio da animação); só somem por opacidade. */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         animate={{ opacity: phase === 0 ? 1 : 0 }}
@@ -255,12 +209,7 @@ function AberturaCinematografica({
               decoding="async"
               initial={{ opacity: 0 }}
               animate={{ opacity: [0, 0.8, 0.8, 0] }}
-              transition={{
-                duration: 2.4,
-                delay: i * 0.18,
-                times: [0, 0.35, 0.75, 1],
-                ease: 'linear',
-              }}
+              transition={{ duration: 2.4, delay: i * 0.18, times: [0, 0.35, 0.75, 1], ease: 'linear' }}
               className="absolute pointer-events-none select-none"
               style={{
                 ...f,
@@ -274,7 +223,6 @@ function AberturaCinematografica({
           ))}
       </motion.div>
 
-      {/* Título fase 0 — sussurro */}
       <AnimatePresence>
         {phase === 0 && (
           <motion.div
@@ -285,32 +233,22 @@ function AberturaCinematografica({
             transition={{ duration: 0.8, delay: 0.6 }}
             className="relative z-20 text-center px-8"
           >
-            <div className="text-[11px] font-black tracking-[0.5em] text-white/60 mb-4">
-              DOS CLÁSSICOS AOS CÓDIGOS
-            </div>
+            <div className="text-[11px] font-black tracking-[0.5em] text-white/60 mb-4">DOS CLÁSSICOS AOS CÓDIGOS</div>
             <h1 className="text-4xl sm:text-5xl font-black text-white leading-[0.95]" style={{ fontFamily: SERIF }}>
-              O Direito<br />
-              <span className="italic text-white/80">pensado por quem</span><br />
-              o construiu.
+              O Direito<br /><span className="italic text-white/80">pensado por quem</span><br />o construiu.
             </h1>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Brilho dourado — só opacidade (composição na GPU, sem repintar
-          gradiente em escala, que era o que travava a transição). */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         initial={false}
         animate={{ opacity: phase === 1 ? 1 : 0 }}
         transition={{ duration: 0.4, ease: 'linear' }}
-        style={{
-          background: 'radial-gradient(circle at 50% 45%, rgba(201,168,76,0.5) 0%, transparent 70%)',
-          willChange: 'opacity',
-        }}
+        style={{ background: 'radial-gradient(circle at 50% 45%, rgba(201,168,76,0.5) 0%, transparent 70%)', willChange: 'opacity' }}
       />
 
-      {/* Título fase 2 — amarelo com CTA */}
       <AnimatePresence>
         {phase === 2 && (
           <motion.div
@@ -362,7 +300,6 @@ function AberturaCinematografica({
   );
 }
 
-/* Textura sutil de filósofos no fundo do card */
 function FilosofosTextura({ seed = 0 }: { seed?: number }) {
   const spots = [
     { src: FILOSOFOS[seed % FILOSOFOS.length].src, top: '-30px', right: '-40px', size: 240, op: 0.14, rot: 8 },
@@ -394,7 +331,7 @@ function FilosofosTextura({ seed = 0 }: { seed?: number }) {
   );
 }
 
-/* -------------------------- Conteúdo dos passos -------------------------- */
+/* -------------------------- Conteúdo dos passos com Persuasão -------------------------- */
 
 const listVariants = {
   hidden: { opacity: 0 },
@@ -406,7 +343,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 350, damping: 25 } }
 };
 
-const maskWhatsapp = (v: string) => {
+const maskPhone = (v: string) => {
   const r = v.replace(/\D/g, '');
   if (r.length === 0) return '';
   if (r.length <= 2) return `(${r}`;
@@ -414,19 +351,62 @@ const maskWhatsapp = (v: string) => {
   return `(${r.slice(0, 2)}) ${r.slice(2, 7)}-${r.slice(7, 11)}`;
 };
 
+/* Componentes persuasivos */
+function PersuasionWidget({ icon: Icon, title, desc, delay = 0.5 }: { icon: any, title: string, desc: string, delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ delay, type: 'spring', damping: 20 }}
+      className="mt-4 mb-2 p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-4 shrink-0"
+    >
+      <div className="w-12 h-12 shrink-0 rounded-full bg-[#C9A84C]/20 flex items-center justify-center">
+        <Icon className="w-6 h-6 text-[#C9A84C]" />
+      </div>
+      <div>
+        <div className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: SERIF }}>{title}</div>
+        <div className="text-[11px] text-white/60 leading-snug mt-0.5">{desc}</div>
+      </div>
+    </motion.div>
+  );
+}
+
+function ProgressWidget({ delay = 0.5 }: { delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ delay, type: 'spring', damping: 20 }}
+      className="mt-4 mb-2 p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col gap-2 shrink-0"
+    >
+      <div className="flex justify-between items-end">
+        <div className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: SERIF }}>Leis Atualizadas</div>
+        <div className="text-[16px] font-black text-[#C9A84C]">100%</div>
+      </div>
+      <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
+        <motion.div 
+          className="h-full bg-gradient-to-r from-[#C9A84C] to-[#E3C575]" 
+          initial={{ width: '0%' }}
+          animate={{ width: '100%' }}
+          transition={{ delay: delay + 0.3, duration: 1.5, ease: 'circOut' }}
+        />
+      </div>
+      <div className="text-[10px] text-white/50 text-right uppercase tracking-wider">Em tempo real</div>
+    </motion.div>
+  );
+}
+
 function CardContent({
   step,
   data,
   setData,
   advance,
-  playSfx,
   bg,
 }: {
-  step: Exclude<Step, 'abertura' | 'features'>;
+  step: Exclude<Step, 'abertura'>;
   data: TriagemResult;
   setData: React.Dispatch<React.SetStateAction<TriagemResult>>;
   advance: (patch: Partial<TriagemResult>) => void;
-  playSfx: (k: 'tap' | 'whoosh' | 'ding') => void;
   bg: { grad: string; accent: string; label: string };
 }) {
   const nome1 = data.nome.trim().split(' ')[0];
@@ -449,7 +429,6 @@ function CardContent({
                 whileTap={{ scale: 0.94 }}
                 whileHover={{ scale: 1.02 }}
                 onClick={() => {
-                  playSfx('tap');
                   advance({ persona: p.id as PersonaId, personaLabel: p.label });
                 }}
                 className="relative overflow-hidden rounded-2xl aspect-[3/4] shadow-lg border border-[#C9A84C]/25"
@@ -472,6 +451,7 @@ function CardContent({
             O que <span className="italic">procura</span>?
           </h2>
           <p className="text-sm opacity-70 mb-3">Marque as funções que mais te interessam</p>
+          
           <motion.div variants={listVariants} initial="hidden" animate="show" className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] space-y-2 pb-2 -mx-1 px-1">
             {INTERESSES.map((it) => {
               const Icon = it.icon;
@@ -483,7 +463,6 @@ function CardContent({
                   whileTap={{ scale: 0.97 }}
                   whileHover={{ scale: 1.02 }}
                   onClick={() => {
-                    playSfx('tap');
                     setData((d) => ({
                       ...d,
                       interesses: d.interesses.includes(it.id)
@@ -507,6 +486,11 @@ function CardContent({
               );
             })}
           </motion.div>
+          <PersuasionWidget 
+            icon={BookOpen} 
+            title="Doutrina e Lei Seca" 
+            desc="Mais de 10.000 livros em um só lugar. Textos e comentários na palma da mão." 
+          />
           <ContinueBtn disabled={data.interesses.length === 0} onClick={() => advance({})} />
         </>
       )}
@@ -528,7 +512,6 @@ function CardContent({
                   whileTap={{ scale: 0.97 }}
                   whileHover={{ scale: 1.02 }}
                   onClick={() => {
-                    playSfx('tap');
                     setData((prev) => ({
                       ...prev,
                       dores: prev.dores.includes(d.id)
@@ -552,6 +535,7 @@ function CardContent({
               );
             })}
           </motion.div>
+          <ProgressWidget />
           <ContinueBtn disabled={data.dores.length === 0} onClick={() => advance({})} />
         </>
       )}
@@ -573,14 +557,20 @@ function CardContent({
             style={{ color: bg.accent }}
           />
           <div className="flex-1" />
+          <PersuasionWidget 
+            icon={ShieldCheck} 
+            title="Tudo pronto" 
+            desc="Sua experiência está sendo montada baseada no seu perfil..." 
+            delay={0.2}
+          />
           <ContinueBtn disabled={!data.nome.trim()} onClick={() => advance({})} />
         </>
       )}
 
-      {step === 'whatsapp' && (
+      {step === 'numero' && (
         <>
           <h2 className="text-3xl sm:text-4xl font-black leading-[1.05] mt-2 mb-1" style={{ fontFamily: SERIF }}>
-            Um <span className="italic">WhatsApp</span>?
+            Qual seu <span className="italic">Número</span>?
           </h2>
           <p className="text-sm opacity-70 mb-6">Pra receber lembretes de leitura. Opcional.</p>
           <input
@@ -589,7 +579,7 @@ function CardContent({
             onChange={(e) =>
               setData((d) => ({
                 ...d,
-                whatsapp: maskWhatsapp(e.target.value),
+                whatsapp: maskPhone(e.target.value),
               }))
             }
             enterKeyHint="done"
@@ -598,7 +588,13 @@ function CardContent({
             style={{ color: bg.accent }}
           />
           <div className="flex-1" />
-          <div className="flex gap-2 shrink-0">
+          <PersuasionWidget 
+            icon={Clock} 
+            title="Nunca perca o foco" 
+            desc="Enviaremos um breve aviso quando for a hora de retomar os estudos." 
+            delay={0.3}
+          />
+          <div className="flex gap-2 shrink-0 mt-4">
             <button
               onClick={() => advance({ whatsapp: null })}
               className="flex-1 h-14 rounded-2xl bg-white/[0.07] border border-white/20 font-bold active:scale-95"
@@ -614,7 +610,7 @@ function CardContent({
                       : null,
                 })
               }
-              className="flex-1 h-14 rounded-2xl bg-[#C9A84C] text-[#150C05] font-bold flex items-center justify-center gap-2 active:scale-95"
+              className="flex-1 h-14 rounded-2xl bg-[#C9A84C] text-[#150C05] font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform"
             >
               Finalizar <ArrowRight className="w-5 h-5" />
             </button>
@@ -630,7 +626,7 @@ function ContinueBtn({ disabled, onClick }: { disabled: boolean; onClick: () => 
     <button
       disabled={disabled}
       onClick={onClick}
-      className="mt-3 shrink-0 h-14 rounded-2xl bg-[#C9A84C] text-[#150C05] font-black flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30"
+      className="mt-3 shrink-0 h-14 rounded-2xl bg-[#C9A84C] text-[#150C05] font-black flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30 transition-all"
     >
       Continuar <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
     </button>

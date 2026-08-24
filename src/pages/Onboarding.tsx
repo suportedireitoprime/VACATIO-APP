@@ -60,7 +60,7 @@ const Onboarding = () => {
 
   return (
     <main className="min-h-dvh bg-black">
-      <CadastroOnboardingOverlay open onFinished={finalizar} />
+      {!pedirNotificacoes && !saving && <CadastroOnboardingOverlay open onFinished={finalizar} />}
       {pedirNotificacoes && <NotificacoesPermissaoStep onDone={concluirNotificacoes} />}
     </main>
   );
