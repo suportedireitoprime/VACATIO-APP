@@ -22,6 +22,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import ReactMarkdown from 'react-markdown';
 import type { ArtigoLei } from '@/data/mockData';
+import { linkifyCrossReferences } from '@/lib/crossReferences';
 import brasaoImgAsset from '@/assets/brasao-republica.webp';
 const brasaoImg = brasaoImgAsset;
 
@@ -56,8 +57,10 @@ import {
   loadTermosExistentes,
   termosKey,
 } from '@/lib/artigoFuncoesPrefetch';
+import { getCachedArtigos } from '@/services/legislacaoService';
 import { useNarracaoFlutuante } from '@/stores/useNarracaoFlutuante';
 import { useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { LEIS_SUPABASE_URL, LEIS_SUPABASE_ANON_KEY, LEIS_SUPABASE_PROJECT_ID } from "@/lib/legislacaoBackend";
 const SB_URL = LEIS_SUPABASE_URL;
@@ -139,7 +142,7 @@ function normalizeLegalLineBreaks(text: string): string {
 }
 
 
-function highlightTermos(text: string, showRedacao?: boolean): React.ReactNode[] {
+function highlightTermos(text: string, showRedacao?: boolean, onCrossReferenceClick?: (artigoNum: string) => void): React.ReactNode[] {
   // Pattern for ALL metadata references (shown in yellow, togglable via eye icon)
   const redacaoPattern = /\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Vigência|Revogado|Vetado)[^)]*\)/gi;
 
@@ -149,7 +152,7 @@ function highlightTermos(text: string, showRedacao?: boolean): React.ReactNode[]
     let m: RegExpExecArray | null;
     redacaoPattern.lastIndex = 0;
     while ((m = redacaoPattern.exec(text)) !== null) {
-      if (m.index > lastIndex) parts.push(...highlightTermosOnly(text.slice(lastIndex, m.index)));
+      if (m.index > lastIndex) parts.push(...highlightTermosOnly(text.slice(lastIndex, m.index), onCrossReferenceClick));
       parts.push(
         <span key={`r${m.index}`} className="text-yellow-400 text-xs font-normal bg-yellow-400/10 rounded px-0.5">
           {m[0]}
@@ -157,13 +160,13 @@ function highlightTermos(text: string, showRedacao?: boolean): React.ReactNode[]
       );
       lastIndex = m.index + m[0].length;
     }
-    if (lastIndex < text.length) parts.push(...highlightTermosOnly(text.slice(lastIndex)));
-    return parts.length > 0 ? parts : highlightTermosOnly(text);
+    if (lastIndex < text.length) parts.push(...highlightTermosOnly(text.slice(lastIndex), onCrossReferenceClick));
+    return parts.length > 0 ? parts : highlightTermosOnly(text, onCrossReferenceClick);
   }
-  return highlightTermosOnly(text);
+  return highlightTermosOnly(text, onCrossReferenceClick);
 }
 
-function highlightTermosOnly(text: string): React.ReactNode[] {
+function highlightTermosOnly(text: string, onCrossReferenceClick?: (artigoNum: string) => void): React.ReactNode[] {
   const patterns = [
     /^(Art\.\s*\d+[º°]?(?:-[A-Z])?)(\s*[–-]\s*)?/i,
     /^(§\s*\d+[º°]?(?:-[A-Z])?)(\s*[.–-]?\s*)?/i,
@@ -181,10 +184,10 @@ function highlightTermosOnly(text: string): React.ReactNode[] {
     const parts: React.ReactNode[] = [];
     parts.push(<span key="token" className="text-primary-light font-bold">{leadingToken}</span>);
     if (separator) parts.push(<span key="sep">{separator}</span>);
-    if (rest) parts.push(rest);
+    if (rest) parts.push(...linkifyCrossReferences(rest, onCrossReferenceClick));
     return parts;
   }
-  return [text];
+  return linkifyCrossReferences(text, onCrossReferenceClick);
 }
 
 function classifyLine(line: string): { type: 'nomen' | 'caput' | 'inciso' | 'alinea' | 'paragrafo' | 'text'; text: string } {
@@ -362,6 +365,21 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
   const [showTermosSheet, setShowTermosSheet] = useState(false);
   const [showLembretesLocal, setShowLembretesLocal] = useState(false);
   const [showBaixarSheet, setShowBaixarSheet] = useState(false);
+  
+  const [crossRefArtigo, setCrossRefArtigo] = useState<ArtigoLei | null>(null);
+  const handleCrossReferenceClick = (artigoNum: string) => {
+    if (!tabelaNome) return;
+    const artigos = getCachedArtigos(tabelaNome);
+    if (artigos) {
+      const found = artigos.find(a => a.numero === artigoNum || a.numero === `Art. ${artigoNum}` || a.numero === `Art. ${artigoNum}º` || a.numero === `Art. ${artigoNum}°`);
+      if (found) {
+        setCrossRefArtigo(found);
+        return;
+      }
+    }
+    toast.error('Artigo não encontrado para visualização rápida.');
+  };
+
   useEffect(() => { setShowLembretesLocal(false); }, [artigo?.numero, tabelaNome]);
   // Desktop: pílula flutuante Narrar/Grifar quando há seleção de texto no artigo
   useEffect(() => {
@@ -1943,9 +1961,9 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
       // Remove the article number prefix from the first line since the header already shows it
       const cleanedText = displayText.replace(/^Art\s*\.\s*\d+[º°]?(?:-[A-Z])?\s*[–-]?\s*/i, '');
       offsetShift = displayText.length - cleanedText.length;
-      baseNodes = highlightTermos(cleanedText, modificationInfo ? isModifiedLine && showRedacao : showRedacao);
+      baseNodes = highlightTermos(cleanedText, modificationInfo ? isModifiedLine && showRedacao : showRedacao, handleCrossReferenceClick);
     } else {
-      baseNodes = highlightTermos(displayText, modificationInfo ? isModifiedLine && showRedacao : showRedacao);
+      baseNodes = highlightTermos(displayText, modificationInfo ? isModifiedLine && showRedacao : showRedacao, handleCrossReferenceClick);
     }
 
     // Adjust highlight offsets to match rendered (prefix-stripped) text.
@@ -3521,6 +3539,14 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
               )}
             </div>
           </SheetContent>
+          {crossRefArtigo && (
+            <ArtigoBottomSheet
+              artigo={crossRefArtigo}
+              tabelaNome={tabelaNome}
+              onClose={() => setCrossRefArtigo(null)}
+              isFavorito={false}
+            />
+          )}
         </Sheet>
         </SheetContent>
       </Sheet>
