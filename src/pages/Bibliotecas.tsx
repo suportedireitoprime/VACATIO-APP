@@ -1,5 +1,4 @@
-import { Suspense, useEffect, useMemo, useState, useRef, memo, useCallback } from 'react';
-import { lazyWithRetry } from "@/utils/lazyWithRetry";
+import { Suspense, useEffect, useMemo, useState, useRef, memo, useCallback, lazy } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,7 +10,6 @@ import { useVisibleColecoes } from '@/hooks/useVisibleColecoes';
 import { supabase } from '@/integrations/supabase/client';
 import { startCapasPrefetch } from '@/services/bibliotecaCapasPrefetch';
 import { startLeituraNativaPrefetch } from '@/services/leituraNativaPrefetch';
-import { scheduleWarmBiblioteca } from '@/services/bibliotecaWarmup';
 import { styleForArea, styleForPerformance } from '@/lib/bibliotecaIcons';
 import { directImg } from '@/lib/cdnImg';
 import { withBundleFallback, bundle } from '@/services/offlineBundle';
@@ -31,7 +29,7 @@ import { FileUp, ChevronRight, Library, BookOpen, Gauge, X, Lock } from 'lucide-
 import { saveCustomPdf, listCustomPdfs, removeCustomPdf, getCustomPdf, type CustomPdfRecord } from '@/services/bibliotecaPersonalizadosDb';
 import { CheckCircle2, HardDrive } from 'lucide-react';
 
-const BibliotecasDesktop = lazyWithRetry(() => import('./BibliotecasDesktop'));
+const BibliotecasDesktop = lazy(() => import('./BibliotecasDesktop'));
 
 const VirtualLivroItem = memo(function VirtualLivroItem({ virtualRow, livro: l, onClick }: { virtualRow: VirtualItem, livro: LivroNormalizado, onClick: () => void }) {
   const isDownloaded = false; // Removido useIsPdfCached
@@ -208,9 +206,9 @@ const Bibliotecas = () => {
         if (colecaoAreas.orderBy) q = q.order(colecaoAreas.orderBy, { ascending: true, nullsFirst: false }) as any;
         
         const data = await withBundleFallback(
-          q.limit(2000).then((res: any) => {
+          Promise.resolve(q.limit(2000)).then((res: any) => {
              if (res.error) throw res.error;
-             return res.data;
+             return res.data as any[];
           }),
           async () => {
              const rows = await bundle.bibliotecaEstudos();
@@ -264,15 +262,10 @@ const Bibliotecas = () => {
   }, [aba]);
 
   useEffect(() => {
-    // Mesma mecânica de aquecimento usada no desktop:
-    // hidrata cache persistente → prefetch de todas as coleções → capas.
-    const cancel = scheduleWarmBiblioteca(queryClient);
-
-    if (!Capacitor.isNativePlatform()) return cancel;
+    if (!Capacitor.isNativePlatform()) return;
     // Capas: qualquer rede — usuário quer instantâneo offline.
     startCapasPrefetch({ wifiOnly: false }).catch(() => {});
     startLeituraNativaPrefetch({ wifiOnly: true }).catch(() => {});
-    return cancel;
   }, [queryClient]);
 
 

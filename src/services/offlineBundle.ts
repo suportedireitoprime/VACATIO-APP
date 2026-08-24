@@ -41,6 +41,7 @@ export const bundle = {
   tematicaObras: <T = any>() => fetchBundle<T>('tematica-obras'),
   bibliotecaClassicos: <T = any>() => fetchBundle<T>('biblioteca-classicos'),
   bibliotecaOab: <T = any>() => fetchBundle<T>('biblioteca-oab'),
+  bibliotecaEstudos: <T = any>() => fetchBundle<T>('biblioteca-estudos'),
 };
 
 /**
