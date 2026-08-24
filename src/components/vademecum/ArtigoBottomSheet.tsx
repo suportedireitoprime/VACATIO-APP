@@ -61,6 +61,7 @@ import { getCachedArtigos } from '@/services/legislacaoService';
 import { useNarracaoFlutuante } from '@/stores/useNarracaoFlutuante';
 import { useLeituraStore } from '@/stores/useLeituraStore';
 import { useLocation } from 'react-router-dom';
+import { haptic } from '@/lib/nativeHaptics';
 
 
 import { LEIS_SUPABASE_URL, LEIS_SUPABASE_ANON_KEY, LEIS_SUPABASE_PROJECT_ID } from "@/lib/legislacaoBackend";
@@ -86,6 +87,8 @@ interface ArtigoBottomSheetProps {
   forceShowRedacao?: boolean;
   modificationInfo?: ModificationInfo | null;
   breadcrumb?: { parte?: string; titulo?: string; tituloDesc?: string } | null;
+  onNext?: () => void;
+  onPrev?: () => void;
 }
 
 function stripRedacao(text: string): string {
@@ -285,7 +288,7 @@ function applyHighlightsToText(
   return result.length > 0 ? result : nodes;
 }
 
-const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, showNomenJuris = false, tabelaNome, forceShowRedacao, modificationInfo, breadcrumb }: ArtigoBottomSheetProps) => {
+const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, showNomenJuris = false, tabelaNome, forceShowRedacao, modificationInfo, breadcrumb, onNext, onPrev }: ArtigoBottomSheetProps) => {
   const [showRedacao, setShowRedacao] = useState(forceShowRedacao ?? false);
 
   // Reset showRedacao when forceShowRedacao changes (e.g. opening from novidades)
@@ -384,9 +387,9 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
   };
 
   useEffect(() => { setShowLembretesLocal(false); }, [artigo?.numero, tabelaNome]);
-  // Desktop: pílula flutuante Narrar/Grifar quando há seleção de texto no artigo
+  // Desktop/Mobile: pílula flutuante Narrar/Grifar quando há seleção de texto no artigo
   useEffect(() => {
-    if (!isDesktop || !artigo) { setSelectionPill(null); return; }
+    if (!artigo) { setSelectionPill(null); return; }
     const handler = () => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || sel.rangeCount === 0) { setSelectionPill(null); return; }
@@ -552,6 +555,7 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
       }
       invalidateCache(anotacoesKey(tabelaNome, artigo.numero, user.id));
       setAnotacoesRefreshTick((t) => t + 1);
+      haptic.success();
     } catch (err) {
       console.warn('persistMagicHighlights falhou', err);
       setAnotacoesRefreshTick((t) => t + 1);
@@ -2217,18 +2221,34 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
     <>
       <Sheet open={Boolean(artigo)} onOpenChange={(open) => { if (!open) handleSheetClose(); }}>
         <SheetContent
-          side="bottom"
+          side={isDesktop ? "right" : "bottom"}
           className={
             isDesktop
-              ? "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-2xl border border-white/5 bg-[#0f0f0f] p-0 shadow-2xl [&>button:last-child]:hidden top-[5%] bottom-[5%] inset-x-0 mx-auto max-w-[860px] h-[90dvh] max-h-[90dvh]"
+              ? "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border-l border-white/5 bg-[#0f0f0f] p-0 shadow-2xl [&>button:last-child]:hidden top-0 right-0 h-full w-[460px] max-w-[90vw]"
               : "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-t-3xl border-t border-white/5 bg-[#0f0f0f] p-0 [&>button:last-child]:hidden top-auto bottom-0 h-[90dvh] max-h-[90dvh]"
           }
-
         >
-        <div className="shrink-0 flex justify-center pt-3 pb-1 bg-[#0f0f0f]">
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-        </div>
+        {!isDesktop && (
+          <div className="shrink-0 flex justify-center pt-3 pb-1 bg-[#0f0f0f]">
+            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+          </div>
+        )}
 
+        <motion.div 
+          className="flex-1 flex flex-col min-h-0"
+          drag={isDesktop ? false : "x"}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.4}
+          onDragEnd={(_, info) => {
+            if (info.offset.x > 80 && onPrev) {
+              haptic.selection();
+              onPrev();
+            } else if (info.offset.x < -80 && onNext) {
+              haptic.selection();
+              onNext();
+            }
+          }}
+        >
         {/* Scrollable content area: header, tabs and article content scroll up; bottom nav stays fixed */}
         <div ref={scrollContainerRef as any} className="flex-1 overflow-y-auto min-h-0 relative overscroll-contain">
 
@@ -3612,6 +3632,7 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
             />
           )}
         </Sheet>
+        </motion.div>
         </SheetContent>
       </Sheet>
 

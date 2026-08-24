@@ -1388,6 +1388,14 @@ const CategoriaLegislacao = () => {
                 caput: openSumula.enunciado,
               }}
               onClose={() => setOpenSumula(null)}
+              onNext={filteredSumulas ? () => {
+                const idx = filteredSumulas.findIndex((s) => s.id === openSumula.id);
+                if (idx >= 0 && idx < filteredSumulas.length - 1) setOpenSumula(filteredSumulas[idx + 1]);
+              } : undefined}
+              onPrev={filteredSumulas ? () => {
+                const idx = filteredSumulas.findIndex((s) => s.id === openSumula.id);
+                if (idx > 0) setOpenSumula(filteredSumulas[idx - 1]);
+              } : undefined}
             />
           )}
         </div>
@@ -2615,6 +2623,18 @@ const CategoriaLegislacao = () => {
           onToggleFavorito={() => openArtigo && toggleFavorito(openArtigo.id)}
           showNomenJuris={selectedLeiId === 'cp' || selectedLeiId === 'cpm'}
           tabelaNome={selectedTabelaNome || undefined}
+          onNext={filteredArtigos ? () => {
+            const idx = filteredArtigos.findIndex((a) => a.id === openArtigo?.id);
+            if (idx >= 0 && idx < filteredArtigos.length - 1) {
+              setOpenArtigo(filteredArtigos[idx + 1]);
+            }
+          } : undefined}
+          onPrev={filteredArtigos ? () => {
+            const idx = filteredArtigos.findIndex((a) => a.id === openArtigo?.id);
+            if (idx > 0) {
+              setOpenArtigo(filteredArtigos[idx - 1]);
+            }
+          } : undefined}
           breadcrumb={(() => {
             try {
               if (!openArtigo) return null;

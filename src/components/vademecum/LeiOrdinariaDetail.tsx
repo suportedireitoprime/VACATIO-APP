@@ -359,6 +359,14 @@ const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
           }}
           tabelaNome={`resenha_${lei.id}`}
           onClose={() => setOpenArtigo(null)}
+          onNext={parsed?.artigos ? () => {
+            const idx = parsed.artigos.findIndex((a) => a.numero === openArtigo.numero);
+            if (idx >= 0 && idx < parsed.artigos.length - 1) setOpenArtigo(parsed.artigos[idx + 1]);
+          } : undefined}
+          onPrev={parsed?.artigos ? () => {
+            const idx = parsed.artigos.findIndex((a) => a.numero === openArtigo.numero);
+            if (idx > 0) setOpenArtigo(parsed.artigos[idx - 1]);
+          } : undefined}
         />
       )}
     </div>
