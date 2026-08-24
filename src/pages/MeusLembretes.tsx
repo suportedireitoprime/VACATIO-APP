@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bell, Plus, Clock, BookOpen, Smartphone, MessageCircle, Loader2, Sparkles, MapPin, Trash2, Home, GraduationCap, Briefcase, Building2, Grid2x2, Map, Layers } from 'lucide-react';
+import { Bell, Plus, Clock, BookOpen, Smartphone, MessageCircle, Loader2, Sparkles, MapPin, Trash2, Home, GraduationCap, Briefcase, Building2, Map, Layers, AlarmClock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AppHeader } from '@/components/layout/AppHeader';
 import {
@@ -242,13 +242,15 @@ const MeusLembretes = () => {
         )}
       </div>
 
-      {/* Bottom Menu (App Style) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border shadow-[0_-8px_30px_rgba(0,0,0,0.12)]" style={{ paddingBottom: 'var(--sai-bottom,env(safe-area-inset-bottom,0px))' }}>
-        <div className="flex items-center justify-around px-2 py-1.5">
-          <FilterTab icon={Grid2x2} label="Todos" active={filter === 'all'} onClick={() => setFilter('all')} />
-          <FilterTab icon={Map} label="Geolocalização" active={filter === 'location'} onClick={() => setFilter('location')} />
-          <FilterTab icon={BookOpen} label="Leitura" active={filter === 'reading'} onClick={() => setFilter('reading')} />
-          <FilterTab icon={Layers} label="Áreas" active={false} onClick={() => navigate('/biblioteca')} />
+      {/* Bottom Menu (App Style - 100% igual ao inicio) */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+        <div className="pointer-events-auto bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] md:border md:rounded-full md:shadow-2xl md:shadow-black/30 md:pb-0">
+          <div className="grid grid-cols-4 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto md:gap-2 md:px-4 md:py-2">
+            <FilterTab icon={AlarmClock} label="Horário" active={filter === 'all'} onClick={() => setFilter('all')} />
+            <FilterTab icon={Map} label="Geolocalização" active={filter === 'location'} onClick={() => setFilter('location')} />
+            <FilterTab icon={BookOpen} label="Leitura" active={filter === 'reading'} onClick={() => setFilter('reading')} />
+            <FilterTab icon={Layers} label="Áreas" active={false} onClick={() => navigate('/biblioteca')} />
+          </div>
         </div>
       </div>
 
@@ -295,16 +297,16 @@ function FilterTab({ icon: Icon, label, active, onClick }: { icon: any; label: s
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-center justify-center gap-1 w-20 py-2 active:scale-95 transition-all"
+      className={`flex flex-col items-center justify-end py-1.5 transition-colors ${active ? 'text-primary' : 'text-foreground hover:text-primary'}`}
     >
-      <div className={`relative flex items-center justify-center transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}>
-        <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 1.5} />
+      <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
+        <Icon className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={active ? 2 : 1.5} />
         {active && (
           <div className="absolute -inset-2 bg-primary/10 rounded-full blur-md -z-10" />
         )}
-      </div>
-      <span className={`text-[10px] font-body tracking-wide transition-colors ${active ? 'text-primary font-bold' : 'text-muted-foreground font-medium'}`}>
-        {label}
+        <span className={`font-body text-[11px] sm:text-[12px] leading-tight ${active ? 'font-bold' : ''}`}>
+          {label}
+        </span>
       </span>
     </button>
   );
