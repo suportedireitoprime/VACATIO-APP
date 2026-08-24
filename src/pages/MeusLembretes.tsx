@@ -273,8 +273,8 @@ const MeusLembretes = () => {
           <div className="grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto md:gap-2 md:px-4 md:py-2">
             <FilterTab icon={Grid2x2} label="Todos" active={filter === 'all'} onClick={() => setFilter('all')} />
             <FilterTab icon={AlarmClock} label="Horário" active={filter === 'time'} onClick={() => setFilter('time')} />
-            <FilterTab icon={Map} label="Geolocalização" active={filter === 'location'} onClick={() => setFilter('location')} />
-            <FilterTab icon={BookOpen} label="Leitura" active={filter === 'reading'} onClick={() => setFilter('reading')} />
+            <FilterTab icon={Map} label="Geolocalização" active={filter === 'location'} onClick={() => setFilter('location')} color="emerald" />
+            <FilterTab icon={BookOpen} label="Leitura" active={filter === 'reading'} onClick={() => setFilter('reading')} color="blue" />
             <FilterTab icon={Layers} label="Áreas" active={false} onClick={() => navigate('/biblioteca')} />
           </div>
         </div>
@@ -319,16 +319,42 @@ function ChBadge({ icon: Icon, label }: { icon: any; label: string }) {
   );
 }
 
-function FilterTab({ icon: Icon, label, active, onClick }: { icon: any; label: string; active: boolean; onClick: () => void }) {
+function FilterTab({ 
+  icon: Icon, 
+  label, 
+  active, 
+  onClick,
+  color = 'primary'
+}: { 
+  icon: any; 
+  label: string; 
+  active: boolean; 
+  onClick: () => void;
+  color?: 'primary' | 'emerald' | 'blue';
+}) {
+  const getActiveTextClass = () => {
+    if (!active) return 'text-foreground hover:text-primary';
+    if (color === 'emerald') return 'text-emerald-500';
+    if (color === 'blue') return 'text-blue-500';
+    return 'text-primary';
+  };
+
+  const getActiveGlowClass = () => {
+    if (!active) return '';
+    if (color === 'emerald') return 'bg-emerald-500/10';
+    if (color === 'blue') return 'bg-blue-500/10';
+    return 'bg-primary/10';
+  };
+
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-end py-1.5 transition-colors ${active ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+      className={`flex flex-col items-center justify-end py-1.5 transition-colors ${getActiveTextClass()}`}
     >
       <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
         <Icon className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={active ? 2 : 1.5} />
         {active && (
-          <div className="absolute -inset-2 bg-primary/10 rounded-full blur-md -z-10" />
+          <div className={`absolute -inset-2 rounded-full blur-md -z-10 ${getActiveGlowClass()}`} />
         )}
         <span className={`font-body text-[11px] sm:text-[12px] leading-tight ${active ? 'font-bold' : ''}`}>
           {label}
@@ -337,5 +363,4 @@ function FilterTab({ icon: Icon, label, active, onClick }: { icon: any; label: s
     </button>
   );
 }
-
 export default MeusLembretes;
