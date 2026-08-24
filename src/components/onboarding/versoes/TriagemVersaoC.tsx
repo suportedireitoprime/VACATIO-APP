@@ -156,10 +156,10 @@ export default function TriagemVersaoC({ open, onFinished }: Props) {
           ) : (
             <motion.div
               key={step}
-              initial={{ x: 120, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -120, opacity: 0 }}
-              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ x: 60, opacity: 0, scale: 0.98 }}
+              animate={{ x: 0, opacity: 1, scale: 1 }}
+              exit={{ x: -60, opacity: 0, scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28, mass: 1 }}
               className="relative w-full max-w-lg rounded-[36px] overflow-hidden flex flex-col shadow-2xl border border-[#C9A84C]/25"
               style={{ background: bg.grad, color: bg.accent, minHeight: 0, maxHeight: '100%', willChange: 'transform, opacity' }}
             >
@@ -396,6 +396,24 @@ function FilosofosTextura({ seed = 0 }: { seed?: number }) {
 
 /* -------------------------- Conteúdo dos passos -------------------------- */
 
+const listVariants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 350, damping: 25 } }
+};
+
+const maskWhatsapp = (v: string) => {
+  const r = v.replace(/\D/g, '');
+  if (r.length === 0) return '';
+  if (r.length <= 2) return `(${r}`;
+  if (r.length <= 7) return `(${r.slice(0, 2)}) ${r.slice(2)}`;
+  return `(${r.slice(0, 2)}) ${r.slice(2, 7)}-${r.slice(7, 11)}`;
+};
+
 function CardContent({
   step,
   data,
@@ -423,11 +441,13 @@ function CardContent({
           <h2 className="text-3xl sm:text-4xl font-black leading-[1.05] mt-2 mb-4" style={{ fontFamily: SERIF }}>
             Qual é o <span className="italic">seu perfil</span>?
           </h2>
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] grid grid-cols-2 gap-3 mt-2 content-start pb-2">
+          <motion.div variants={listVariants} initial="hidden" animate="show" className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] grid grid-cols-2 gap-3 mt-2 content-start pb-2">
             {PERSONAS.map((p) => (
               <motion.button
                 key={p.id}
+                variants={itemVariants}
                 whileTap={{ scale: 0.94 }}
+                whileHover={{ scale: 1.02 }}
                 onClick={() => {
                   playSfx('tap');
                   advance({ persona: p.id as PersonaId, personaLabel: p.label });
@@ -442,7 +462,7 @@ function CardContent({
                 </div>
               </motion.button>
             ))}
-          </div>
+          </motion.div>
         </>
       )}
 
@@ -452,14 +472,16 @@ function CardContent({
             O que <span className="italic">procura</span>?
           </h2>
           <p className="text-sm opacity-70 mb-3">Marque as funções que mais te interessam</p>
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] space-y-2 pb-2 -mx-1 px-1">
+          <motion.div variants={listVariants} initial="hidden" animate="show" className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] space-y-2 pb-2 -mx-1 px-1">
             {INTERESSES.map((it) => {
               const Icon = it.icon;
               const on = data.interesses.includes(it.id);
               return (
                 <motion.button
                   key={it.id}
+                  variants={itemVariants}
                   whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.02 }}
                   onClick={() => {
                     playSfx('tap');
                     setData((d) => ({
@@ -484,7 +506,7 @@ function CardContent({
                 </motion.button>
               );
             })}
-          </div>
+          </motion.div>
           <ContinueBtn disabled={data.interesses.length === 0} onClick={() => advance({})} />
         </>
       )}
@@ -495,14 +517,16 @@ function CardContent({
             Quais são suas <span className="italic">dores</span>?
           </h2>
           <p className="text-sm opacity-70 mb-3">Marque o que trava seus estudos na lei</p>
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] space-y-2 pb-2 -mx-1 px-1">
+          <motion.div variants={listVariants} initial="hidden" animate="show" className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] space-y-2 pb-2 -mx-1 px-1">
             {DORES.map((d) => {
               const Icon = d.icon;
               const on = data.dores.includes(d.id);
               return (
                 <motion.button
                   key={d.id}
+                  variants={itemVariants}
                   whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.02 }}
                   onClick={() => {
                     playSfx('tap');
                     setData((prev) => ({
@@ -527,7 +551,7 @@ function CardContent({
                 </motion.button>
               );
             })}
-          </div>
+          </motion.div>
           <ContinueBtn disabled={data.dores.length === 0} onClick={() => advance({})} />
         </>
       )}
@@ -543,8 +567,9 @@ function CardContent({
             value={data.nome}
             onChange={(e) => setData((d) => ({ ...d, nome: e.target.value.slice(0, 40) }))}
             onKeyDown={(e) => e.key === 'Enter' && data.nome.trim() && advance({})}
-            placeholder="Digite seu nome"
-            className="w-full h-14 px-5 rounded-2xl bg-white/[0.07] backdrop-blur border border-white/20 text-lg font-semibold outline-none focus:border-[#C9A84C] placeholder-white/35"
+            enterKeyHint="next"
+            placeholder="Digite seu nome..."
+            className="w-full h-14 px-5 rounded-2xl bg-white/[0.07] backdrop-blur border border-white/20 text-lg font-semibold outline-none focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/50 focus:bg-white/[0.1] transition-all placeholder-white/35"
             style={{ color: bg.accent }}
           />
           <div className="flex-1" />
@@ -559,15 +584,17 @@ function CardContent({
           </h2>
           <p className="text-sm opacity-70 mb-6">Pra receber lembretes de leitura. Opcional.</p>
           <input
+            autoFocus
             value={data.whatsapp || ''}
             onChange={(e) =>
               setData((d) => ({
                 ...d,
-                whatsapp: e.target.value.replace(/[^\d+\s()-]/g, '').slice(0, 20),
+                whatsapp: maskWhatsapp(e.target.value),
               }))
             }
+            enterKeyHint="done"
             placeholder="(11) 98765-4321"
-            className="w-full h-14 px-5 rounded-2xl bg-white/[0.07] backdrop-blur border border-white/20 text-lg font-semibold outline-none focus:border-[#C9A84C] placeholder-white/35"
+            className="w-full h-14 px-5 rounded-2xl bg-white/[0.07] backdrop-blur border border-white/20 text-lg font-semibold outline-none focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/50 focus:bg-white/[0.1] transition-all placeholder-white/35"
             style={{ color: bg.accent }}
           />
           <div className="flex-1" />
