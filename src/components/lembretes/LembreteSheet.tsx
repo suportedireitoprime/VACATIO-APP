@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, Bell, Smartphone, MessageCircle, Sparkles, Loader2, Trash2 } from 'lucide-react';
+import { X, Clock, Bell, Smartphone, MessageCircle, Sparkles, Loader2, Trash2, ChevronLeft, Calendar, Edit3, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useWebPush } from '@/hooks/useWebPush';
 import { scheduleLocalReminder, cancelLocalReminder } from '@/lib/localReminder';
-import { pickMensagem, ESTILOS, type EstiloMsg } from '@/lib/lembreteMessages';
 import { Capacitor } from '@capacitor/core';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 
@@ -41,29 +39,23 @@ const PRESET_DAYS: Record<Exclude<Preset, 'custom'>, number[]> = {
 const LembreteSheet = ({ open, onClose, reminderId, livroId, livroArea, livroTitulo, livroCapa }: LembreteSheetProps) => {
   useEscapeKey(open, onClose);
   const { user } = useAuth();
-  const webpush = useWebPush();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [id, setId] = useState<string | null>(reminderId || null);
   const [hora, setHora] = useState('20:00');
   const [preset, setPreset] = useState<Preset>('daily');
   const [dias, setDias] = useState<number[]>(PRESET_DAYS.daily);
-  const [canais, setCanais] = useState<string[]>(['push']);
-  const [estilo, setEstilo] = useState<EstiloMsg>('padrao');
-  const [horusReady, setHorusReady] = useState<boolean | null>(null);
+  const [customMessage, setCustomMessage] = useState(livroTitulo ? `Ler ${livroTitulo}` : 'Rotina de leitura');
+  const [view, setView] = useState<'main' | 'horario' | 'repetir' | 'mensagem'>('main');
 
-  useEffect(() => { setId(reminderId || null); }, [reminderId]);
+  useEffect(() => { 
+    setId(reminderId || null); 
+    if (open) setView('main');
+  }, [reminderId, open]);
 
   useEffect(() => {
     if (!open || !user) return;
     (async () => {
-      const { data: h } = await supabase
-        .from('horus_whatsapp_users')
-        .select('verified_at')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      setHorusReady(!!h?.verified_at);
-
       if (id) {
         setLoading(true);
         const { data } = await supabase.from('reading_reminders').select('*').eq('id', id).maybeSingle();
@@ -71,51 +63,24 @@ const LembreteSheet = ({ open, onClose, reminderId, livroId, livroArea, livroTit
           setHora((data.time_of_day as string).slice(0, 5));
           setPreset(data.preset as Preset);
           setDias(data.days_of_week as number[]);
-          setCanais(data.channels as string[]);
-          setEstilo((data.message_style as EstiloMsg) || 'padrao');
+          setCustomMessage(data.title || '');
         }
         setLoading(false);
       }
     })();
   }, [open, user, id]);
 
-  const previewMsg = useMemo(
-    () => pickMensagem(estilo, {
-      nome: (user?.user_metadata as any)?.display_name || (user?.email?.split('@')[0] ?? 'você'),
-      livro: livroTitulo || 'seu livro',
-      pag: '—',
-    }),
-    [estilo, user, livroTitulo]
-  );
-
   const setPresetSafe = (p: Preset) => {
     setPreset(p);
     if (p !== 'custom') setDias(PRESET_DAYS[p]);
   };
 
-  const toggleCanal = async (c: string) => {
-    if (canais.includes(c)) {
-      setCanais(canais.filter(x => x !== c));
-      return;
-    }
-    if (c === 'push') {
-      const ok = await webpush.subscribe();
-      if (!ok) {
-        toast.error('Não consegui ativar notificações do navegador');
-        return;
-      }
-    }
-    if (c === 'horus_whatsapp' && !horusReady) {
-      toast.info('Vincule seu WhatsApp ao Horus primeiro em Assistente Horus');
-      return;
-    }
-    setCanais([...canais, c]);
-  };
+
 
   const salvar = async () => {
     if (!user) return;
     if (dias.length === 0) { toast.error('Escolha ao menos 1 dia'); return; }
-    if (canais.length === 0) { toast.error('Escolha ao menos 1 canal'); return; }
+    if (!customMessage.trim()) { toast.error('A mensagem não pode estar vazia'); return; }
     setSaving(true);
     try {
       const payload = {
@@ -124,13 +89,13 @@ const LembreteSheet = ({ open, onClose, reminderId, livroId, livroArea, livroTit
         livro_area: livroArea || null,
         livro_titulo: livroTitulo || null,
         livro_capa: livroCapa || null,
-        title: livroTitulo ? `Ler ${livroTitulo}` : 'Rotina de leitura',
+        title: customMessage,
         time_of_day: `${hora}:00`,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo',
         preset,
         days_of_week: dias,
-        channels: canais,
-        message_style: estilo,
+        channels: Capacitor.isNativePlatform() ? ['local'] : ['push'],
+        message_style: 'padrao',
         enabled: true,
         next_fire_at: null,
       };
@@ -146,12 +111,11 @@ const LembreteSheet = ({ open, onClose, reminderId, livroId, livroArea, livroTit
         setId(data.id);
       }
 
-      // Local (Capacitor)
-      if (savedId && canais.includes('local')) {
+      if (savedId && Capacitor.isNativePlatform()) {
         await scheduleLocalReminder({
           reminderId: savedId,
-          title: previewMsg.title,
-          body: previewMsg.body,
+          title: 'Lembrete do Vacatio',
+          body: customMessage,
           timeHHMM: hora,
           daysOfWeek: dias,
         });
@@ -198,38 +162,130 @@ const LembreteSheet = ({ open, onClose, reminderId, livroId, livroArea, livroTit
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
 
-            <div className="flex-1 overflow-y-auto px-5 pb-8 pt-2 space-y-5">
-              <div>
-                <h2 className="font-display text-xl font-bold text-foreground">
-                  {livroTitulo ? `Lembrete • ${livroTitulo}` : 'Rotina de leitura'}
-                </h2>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Defina um horário e mantenha o foco nas suas metas.
-                </p>
-              </div>
-
-              {loading ? (
-                <div className="py-10 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-              ) : (
-                <>
-                  {/* Horário */}
-                  <div className="rounded-2xl bg-secondary/40 border border-border p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-primary" />
-                      <p className="font-body font-bold text-sm">Horário</p>
+            <AnimatePresence mode="wait">
+              {view === 'main' && (
+                <motion.div
+                  key="main"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1 flex flex-col min-h-0"
+                >
+                  <div className="flex-1 overflow-y-auto px-5 pb-8 pt-2 space-y-5">
+                    <div>
+                      <h2 className="font-display text-xl font-bold text-foreground">
+                        {id ? 'Editar Lembrete' : 'Novo Lembrete'}
+                      </h2>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        Configure as opções do seu lembrete.
+                      </p>
                     </div>
+
+                    {loading ? (
+                      <div className="py-10 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                    ) : (
+                      <>
+                        <div className="rounded-2xl bg-secondary/40 border border-border overflow-hidden">
+                          <ListButton icon={Clock} label="Horário" value={hora} onClick={() => setView('horario')} />
+                          <div className="h-[1px] bg-border mx-4" />
+                          <ListButton 
+                            icon={Calendar} 
+                            label="Repetir" 
+                            value={
+                              preset === 'daily' ? 'Todos os dias' : 
+                              preset === 'weekdays' ? 'Dias da semana' : 
+                              preset === 'weekends' ? 'Fins de semana' : 
+                              'Personalizado'
+                            } 
+                            onClick={() => setView('repetir')} 
+                          />
+                          <div className="h-[1px] bg-border mx-4" />
+                          <ListButton icon={Edit3} label="Mensagem" value={customMessage} onClick={() => setView('mensagem')} />
+                        </div>
+
+                        <div className="rounded-2xl bg-secondary/40 border border-border p-4 flex items-center justify-between opacity-70">
+                          <div className="flex items-center gap-3">
+                            <Smartphone className="w-5 h-5 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">Alarme no celular</p>
+                              <p className="text-[11px] text-muted-foreground">Notificação padrão ativada</p>
+                            </div>
+                          </div>
+                          <div className="w-10 h-6 rounded-full bg-primary relative pointer-events-none">
+                            <div className="absolute top-0.5 w-5 h-5 rounded-full bg-white translate-x-4" />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="p-4 border-t border-border bg-card flex gap-2 shrink-0">
+                    {id && (
+                      <button onClick={excluir} className="w-12 h-12 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={salvar}
+                      disabled={saving || loading}
+                      className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-body font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar lembrete'}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {view === 'horario' && (
+                <motion.div
+                  key="horario"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1 flex flex-col min-h-0 px-5"
+                >
+                  <div className="flex items-center gap-3 mb-6 pt-2 shrink-0">
+                    <button onClick={() => setView('main')} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <h3 className="font-display text-lg font-bold">Horário</h3>
+                  </div>
+                  
+                  <div className="flex-1 flex flex-col justify-center pb-12">
                     <input
                       type="time"
                       value={hora}
                       onChange={(e) => setHora(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-background border border-border font-mono text-2xl text-center"
+                      className="w-full px-4 py-8 rounded-2xl bg-secondary/40 border border-border font-mono text-5xl text-center focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
                   </div>
+                  
+                  <div className="mt-auto pb-4 pt-4 shrink-0">
+                    <button onClick={() => setView('main')} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-[15px]">Confirmar</button>
+                  </div>
+                </motion.div>
+              )}
 
-                  {/* Presets */}
-                  <div className="rounded-2xl bg-secondary/40 border border-border p-4">
-                    <p className="font-body font-bold text-sm mb-3">Repetir</p>
-                    <div className="grid grid-cols-2 gap-2 mb-3">
+              {view === 'repetir' && (
+                <motion.div
+                  key="repetir"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1 flex flex-col min-h-0 px-5"
+                >
+                  <div className="flex items-center gap-3 mb-6 pt-2 shrink-0">
+                    <button onClick={() => setView('main')} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <h3 className="font-display text-lg font-bold">Repetir</h3>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto pb-4 space-y-3">
+                    <div className="grid grid-cols-1 gap-2">
                       {[
                         { id: 'daily', label: 'Todos os dias' },
                         { id: 'weekdays', label: 'Dias da semana' },
@@ -239,102 +295,74 @@ const LembreteSheet = ({ open, onClose, reminderId, livroId, livroArea, livroTit
                         <button
                           key={p.id}
                           onClick={() => setPresetSafe(p.id as Preset)}
-                          className={`px-3 py-2 rounded-xl text-sm font-body transition ${
-                            preset === p.id ? 'bg-primary text-primary-foreground' : 'bg-background border border-border text-foreground'
+                          className={`w-full px-4 py-4 rounded-xl text-base font-body text-left transition font-semibold border ${
+                            preset === p.id ? 'bg-primary/10 border-primary text-primary' : 'bg-secondary/40 border-border text-foreground hover:bg-secondary'
                           }`}
                         >
                           {p.label}
                         </button>
                       ))}
                     </div>
-                    <div className="flex gap-1.5 justify-between">
-                      {DIAS.map(d => {
-                        const active = dias.includes(d.id);
-                        return (
-                          <button
-                            key={d.id}
-                            onClick={() => {
-                              setPreset('custom');
-                              setDias(active ? dias.filter(x => x !== d.id) : [...dias, d.id]);
-                            }}
-                            className={`flex-1 aspect-square rounded-lg font-body font-bold text-xs transition ${
-                              active ? 'bg-primary/80 text-primary-foreground' : 'bg-background border border-border text-muted-foreground'
-                            }`}
-                          >
-                            {d.label}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {preset === 'custom' && (
+                      <div className="flex gap-1.5 justify-between mt-4">
+                        {DIAS.map(d => {
+                          const active = dias.includes(d.id);
+                          return (
+                            <button
+                              key={d.id}
+                              onClick={() => {
+                                setPreset('custom');
+                                setDias(active ? dias.filter(x => x !== d.id) : [...dias, d.id]);
+                              }}
+                              className={`flex-1 aspect-square rounded-lg font-body font-bold text-sm transition ${
+                                active ? 'bg-primary text-primary-foreground' : 'bg-secondary border border-border text-muted-foreground'
+                              }`}
+                            >
+                              {d.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-
-                  {/* Canais */}
-                  <div className="rounded-2xl bg-secondary/40 border border-border p-4 space-y-2">
-                    <p className="font-body font-bold text-sm mb-1">Como te avisamos</p>
-                    <CanalRow
-                      icon={Bell} label="Notificação do navegador"
-                      hint={webpush.supported ? (webpush.permission === 'denied' ? 'Bloqueado nas permissões' : 'Web Push seguro') : 'Não suportado neste dispositivo'}
-                      active={canais.includes('push')} disabled={!webpush.supported || webpush.permission === 'denied'}
-                      onToggle={() => toggleCanal('push')}
-                    />
-                    <CanalRow
-                      icon={Smartphone} label="Alarme no celular (app)"
-                      hint={Capacitor.isNativePlatform() ? 'Notificação local do sistema' : 'Só no app instalado (Android/iOS)'}
-                      active={canais.includes('local')} disabled={!Capacitor.isNativePlatform()}
-                      onToggle={() => toggleCanal('local')}
-                    />
-                    <CanalRow
-                      icon={MessageCircle} label="WhatsApp via Horus"
-                      hint={horusReady ? 'Mensagem no seu número verificado' : 'Vincule seu WhatsApp em Horus primeiro'}
-                      active={canais.includes('horus_whatsapp')} disabled={!horusReady}
-                      onToggle={() => toggleCanal('horus_whatsapp')}
-                    />
+                  
+                  <div className="mt-auto pb-4 pt-4 shrink-0 border-t border-border/50">
+                    <button onClick={() => setView('main')} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-[15px]">Confirmar</button>
                   </div>
-
-                  {/* Estilo */}
-                  <div className="rounded-2xl bg-secondary/40 border border-border p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      <p className="font-body font-bold text-sm">Estilo da mensagem</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                      {ESTILOS.map(s => (
-                        <button
-                          key={s.id}
-                          onClick={() => setEstilo(s.id)}
-                          className={`px-3 py-2.5 rounded-xl text-left transition ${
-                            estilo === s.id ? 'bg-primary/15 border border-primary' : 'bg-background border border-border'
-                          }`}
-                        >
-                          <p className="text-sm font-body font-semibold">{s.label}</p>
-                          <p className="text-[11px] text-muted-foreground">{s.hint}</p>
-                        </button>
-                      ))}
-                    </div>
-                    <div className="rounded-xl bg-background border border-dashed border-border p-3">
-                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Prévia</p>
-                      <p className="text-sm font-semibold text-foreground">{previewMsg.title}</p>
-                      <p className="text-sm text-foreground/80">{previewMsg.body}</p>
-                    </div>
-                  </div>
-                </>
+                </motion.div>
               )}
-            </div>
 
-            <div className="p-4 border-t border-border bg-card flex gap-2">
-              {id && (
-                <button onClick={excluir} className="w-12 h-12 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center">
-                  <Trash2 className="w-5 h-5" />
-                </button>
+              {view === 'mensagem' && (
+                <motion.div
+                  key="mensagem"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1 flex flex-col min-h-0 px-5"
+                >
+                  <div className="flex items-center gap-3 mb-6 pt-2 shrink-0">
+                    <button onClick={() => setView('main')} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <h3 className="font-display text-lg font-bold">Mensagem</h3>
+                  </div>
+                  
+                  <div className="flex-1">
+                    <textarea
+                      value={customMessage}
+                      onChange={(e) => setCustomMessage(e.target.value)}
+                      className="w-full p-4 rounded-xl bg-secondary/40 border border-border resize-none h-40 focus:outline-none focus:border-primary/50 text-base"
+                      placeholder="Ex: Preciso estudar Direito Penal..."
+                    />
+                  </div>
+                  
+                  <div className="mt-auto pb-4 pt-4 shrink-0">
+                    <button onClick={() => setView('main')} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-[15px]">Confirmar</button>
+                  </div>
+                </motion.div>
               )}
-              <button
-                onClick={salvar}
-                disabled={saving}
-                className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-body font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar lembrete'}
-              </button>
-            </div>
+            </AnimatePresence>
           </motion.div>
         </>
       )}
@@ -345,26 +373,16 @@ const LembreteSheet = ({ open, onClose, reminderId, livroId, livroArea, livroTit
   return createPortal(sheet, document.body);
 };
 
-function CanalRow({
-  icon: Icon, label, hint, active, disabled, onToggle,
-}: { icon: any; label: string; hint: string; active: boolean; disabled?: boolean; onToggle: () => void }) {
+function ListButton({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: string; onClick: () => void }) {
   return (
-    <button
-      onClick={onToggle}
-      disabled={disabled}
-      className={`w-full flex items-center gap-3 p-3 rounded-xl transition ${
-        active ? 'bg-primary/10 border border-primary/40' : 'bg-background border border-border'
-      } ${disabled ? 'opacity-50' : ''}`}
-    >
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${active ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
-        <Icon className="w-5 h-5" />
+    <button onClick={onClick} className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-secondary/30 transition-colors">
+      <div className="flex items-center gap-3">
+        <Icon className="w-5 h-5 text-muted-foreground" />
+        <span className="font-semibold text-sm">{label}</span>
       </div>
-      <div className="flex-1 text-left">
-        <p className="text-sm font-body font-semibold text-foreground">{label}</p>
-        <p className="text-[11px] text-muted-foreground">{hint}</p>
-      </div>
-      <div className={`w-10 h-6 rounded-full relative ${active ? 'bg-primary' : 'bg-muted'}`}>
-        <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${active ? 'translate-x-4' : 'translate-x-0.5'}`} />
+      <div className="flex items-center gap-2 max-w-[50%]">
+        <span className="text-sm text-muted-foreground truncate">{value}</span>
+        <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
       </div>
     </button>
   );
