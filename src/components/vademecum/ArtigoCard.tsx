@@ -1,5 +1,7 @@
 import { ChevronRight, Heart, Highlighter, StickyNote } from 'lucide-react';
 import type { ArtigoLei } from '@/data/mockData';
+import { useLeituraStore } from '@/stores/useLeituraStore';
+import { applyBionicReading } from '@/lib/bionicReading';
 
 // Cascata suave só nos primeiros itens visíveis (delay incremental de 28ms).
 // Do 13º em diante o item entra sem delay — o browser + content-visibility
@@ -39,6 +41,7 @@ const planaltoAnnotationRe = /\s*[\(\[]?\s*(?:Redação\s+dada|Incluíd[oa]|Acre
 const cleanStructuralText = (value: string) => value.replace(planaltoAnnotationRe, '').replace(/\s+/g, ' ').trim();
 
 const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, withShine, tags }: ArtigoCardProps) => {
+  const { bionicReading } = useLeituraStore();
   const displayNumero = normalizeArtigoLabel(artigo.numero);
 
   // Cabeçalhos estruturais (PARTE, TÍTULO, CAPÍTULO…) — cartõezinhos verticais
@@ -120,7 +123,9 @@ const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, with
   const isRevogado = previewText.trim().length === 0 && cleanCaput.trim().length > 0;
   if (isRevogado) previewText = artigo.caput.trim();
 
-  const renderCaput = highlightText ? highlightText(previewText) : previewText;
+  let renderCaput: React.ReactNode = previewText;
+  if (highlightText) renderCaput = highlightText(previewText);
+  else if (bionicReading) renderCaput = applyBionicReading(previewText);
   const artLabel = /^Art\.?/i.test(displayNumero) ? displayNumero.replace(/\s+/g, ' ').trim() : `Art. ${badgeLabel}`;
 
   const cascadeDelay = `${Math.min(index, CASCADE_MAX_DELAY_INDEX) * CASCADE_STEP_MS}ms`;

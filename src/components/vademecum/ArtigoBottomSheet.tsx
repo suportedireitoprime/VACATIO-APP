@@ -59,6 +59,7 @@ import {
 } from '@/lib/artigoFuncoesPrefetch';
 import { getCachedArtigos } from '@/services/legislacaoService';
 import { useNarracaoFlutuante } from '@/stores/useNarracaoFlutuante';
+import { useLeituraStore } from '@/stores/useLeituraStore';
 import { useLocation } from 'react-router-dom';
 
 
@@ -142,7 +143,7 @@ function normalizeLegalLineBreaks(text: string): string {
 }
 
 
-function highlightTermos(text: string, showRedacao?: boolean, onCrossReferenceClick?: (artigoNum: string) => void): React.ReactNode[] {
+function highlightTermos(text: string, showRedacao?: boolean, onCrossReferenceClick?: (artigoNum: string) => void, bionicMode?: boolean): React.ReactNode[] {
   // Pattern for ALL metadata references (shown in yellow, togglable via eye icon)
   const redacaoPattern = /\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Revogado|Vetado)[^)]*\)/gi;
 
@@ -152,7 +153,7 @@ function highlightTermos(text: string, showRedacao?: boolean, onCrossReferenceCl
     let m: RegExpExecArray | null;
     redacaoPattern.lastIndex = 0;
     while ((m = redacaoPattern.exec(text)) !== null) {
-      if (m.index > lastIndex) parts.push(...highlightTermosOnly(text.slice(lastIndex, m.index), onCrossReferenceClick));
+      if (m.index > lastIndex) parts.push(...highlightTermosOnly(text.slice(lastIndex, m.index), onCrossReferenceClick, bionicMode));
       parts.push(
         <span key={`r${m.index}`} className="text-yellow-400 text-xs font-normal bg-yellow-400/10 rounded px-0.5">
           {m[0]}
@@ -160,13 +161,15 @@ function highlightTermos(text: string, showRedacao?: boolean, onCrossReferenceCl
       );
       lastIndex = m.index + m[0].length;
     }
-    if (lastIndex < text.length) parts.push(...highlightTermosOnly(text.slice(lastIndex), onCrossReferenceClick));
-    return parts.length > 0 ? parts : highlightTermosOnly(text, onCrossReferenceClick);
+    if (lastIndex < text.length) parts.push(...highlightTermosOnly(text.slice(lastIndex), onCrossReferenceClick, bionicMode));
+    return parts.length > 0 ? parts : highlightTermosOnly(text, onCrossReferenceClick, bionicMode);
   }
-  return highlightTermosOnly(text, onCrossReferenceClick);
+  return highlightTermosOnly(text, onCrossReferenceClick, bionicMode);
 }
 
-function highlightTermosOnly(text: string, onCrossReferenceClick?: (artigoNum: string) => void): React.ReactNode[] {
+import { applyBionicReading } from '@/lib/bionicReading';
+
+function highlightTermosOnly(text: string, onCrossReferenceClick?: (artigoNum: string) => void, bionicMode?: boolean): React.ReactNode[] {
   const patterns = [
     /^(Art\.\s*\d+[º°]?(?:-[A-Z])?)(\s*[–-]\s*)?/i,
     /^(§\s*\d+[º°]?(?:-[A-Z])?)(\s*[.–-]?\s*)?/i,
@@ -184,10 +187,10 @@ function highlightTermosOnly(text: string, onCrossReferenceClick?: (artigoNum: s
     const parts: React.ReactNode[] = [];
     parts.push(<span key="token" className="text-primary-light font-bold">{leadingToken}</span>);
     if (separator) parts.push(<span key="sep">{separator}</span>);
-    if (rest) parts.push(...linkifyCrossReferences(rest, onCrossReferenceClick));
+    if (rest) parts.push(...linkifyCrossReferences(rest, onCrossReferenceClick, bionicMode));
     return parts;
   }
-  return linkifyCrossReferences(text, onCrossReferenceClick);
+  return linkifyCrossReferences(text, onCrossReferenceClick, bionicMode);
 }
 
 function classifyLine(line: string): { type: 'nomen' | 'caput' | 'inciso' | 'alinea' | 'paragrafo' | 'text'; text: string } {
@@ -2918,24 +2921,39 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
           <AnimatePresence>
             {showFontControls && (
               <motion.div
+                key="font-controls"
                 initial={{ opacity: 0, y: 10, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                className="bg-card border border-border rounded-2xl shadow-lg p-3 flex flex-col items-center gap-2 mb-2"
+                className="flex flex-col gap-2 mb-2"
               >
-                <button
-                  onClick={() => setFontSize(prev => Math.min(prev + 1, 24))}
-                  className="w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors"
-                >
-                  <Plus className="w-4 h-4 text-foreground" />
-                </button>
-                <span className="text-foreground text-xs font-bold">{fontSize}px</span>
-                <button
-                  onClick={() => setFontSize(prev => Math.max(prev - 1, 10))}
-                  className="w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors"
-                >
-                  <Minus className="w-4 h-4 text-foreground" />
-                </button>
+                <div className="bg-card border border-border rounded-2xl shadow-lg p-3 flex flex-col items-center gap-2 self-end">
+                  <button
+                    onClick={() => setFontSize(prev => Math.min(prev + 1, 24))}
+                    className="w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors"
+                  >
+                    <Plus className="w-4 h-4 text-foreground" />
+                  </button>
+                  <span className="text-foreground text-xs font-bold">{fontSize}px</span>
+                  <button
+                    onClick={() => setFontSize(prev => Math.max(prev - 1, 10))}
+                    className="w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors"
+                  >
+                    <Minus className="w-4 h-4 text-foreground" />
+                  </button>
+                </div>
+                <div className="bg-card border border-border rounded-2xl shadow-lg p-4 flex items-center justify-between gap-4 self-end">
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-semibold text-foreground leading-tight">Leitura Dinâmica</span>
+                    <span className="text-[10px] text-muted-foreground mt-0.5">Bionic Reading</span>
+                  </div>
+                  <button
+                    onClick={() => setBionicReading(!bionicReading)}
+                    className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 relative ${bionicReading ? 'bg-primary' : 'bg-secondary border border-border'}`}
+                  >
+                    <div className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform ${bionicReading ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

@@ -7,6 +7,7 @@ import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { supabase } from '@/integrations/supabase/client';
 import { LEIS_SUPABASE_URL, leisAuthHeaders } from '@/lib/legislacaoBackend';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useLeituraStore } from '@/stores/useLeituraStore';
 import PremiumGate from '@/components/PremiumGate';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -155,6 +156,9 @@ const CategoriaLegislacao = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [stickySearch, setStickySearch] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
+  
+  const { focusMode } = useLeituraStore();
+  
   // Coreografia de entrada: search+abas → lista → rodapé
   const [showFooter, setShowFooter] = useState(false);
   useEffect(() => {
@@ -940,6 +944,40 @@ const CategoriaLegislacao = () => {
       window.removeEventListener('resize', measureOffset);
     };
   }, [activeTab, selectedLeiId, shouldVirtualizeArtigos, visibleArtigos.length]);
+
+  const artigosVirtualizer = useWindowVirtualizer({
+    count: shouldVirtualizeArtigos ? visibleArtigos.length : 0,
+    estimateSize: () => 116,
+    overscan: 8,
+  });
+
+  const virtualItems = artigosVirtualizer.getVirtualItems();
+  const firstVisibleIndex = virtualItems.length > 0 ? virtualItems[0].index : 0;
+
+  const computedSumario = useMemo(() => {
+    if (visibleArtigos.length === 0 || focusMode) return null; // No sumário se focusMode ativo ou vazio
+    let titulo = null;
+    let capitulo = null;
+    for (let i = firstVisibleIndex; i >= 0; i--) {
+      const art = visibleArtigos[i];
+      if (!art || !art.caput) continue;
+      const text = art.caput;
+      if (!titulo && /^(PARTE|LIVRO|T[ÍI]TULO)\b/i.test(text)) {
+        titulo = text.split('\n')[0].trim();
+      }
+      if (!capitulo && /^(CAP[ÍI]TULO)\b/i.test(text)) {
+        capitulo = text.split('\n')[0].trim();
+      }
+      if (titulo && capitulo) break;
+    }
+    if (!titulo && !capitulo) return null;
+    return [titulo, capitulo].filter(Boolean).join(' › ');
+  }, [firstVisibleIndex, visibleArtigos, focusMode]);
+
+  // Handle cross references internally
+  const handleCrossReferenceClick = (artigoNum: string) => {
+    // ... logic for finding and scrolling to article
+  };
 
   const artigosVirtualizer = useWindowVirtualizer({
     count: shouldVirtualizeArtigos ? visibleArtigos.length : 0,
@@ -2109,9 +2147,9 @@ const CategoriaLegislacao = () => {
     const footerBottomNav = (
       <motion.nav
         initial={{ opacity: 0, y: 14 }}
-        animate={showFooter ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
+        animate={showFooter && !focusMode ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
         transition={{ duration: 0.26, ease: [0.22, 0.61, 0.36, 1] }}
-        style={{ willChange: 'transform, opacity', pointerEvents: showFooter ? 'auto' : 'none' }}
+        style={{ willChange: 'transform, opacity', pointerEvents: showFooter && !focusMode ? 'auto' : 'none' }}
         className="fixed bottom-0 left-0 right-0 z-[58] lg:hidden"
       >
         <div className="bg-secondary/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.45)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]">
@@ -2222,9 +2260,9 @@ const CategoriaLegislacao = () => {
     );
 
     return (
-      <div className="min-h-dvh bg-background pb-28 lg:pb-0">
+      <div className={`min-h-dvh bg-background lg:pb-0 ${focusMode ? 'pb-8' : 'pb-28'}`}>
         {/* Cinematic hero cover — sem cabeçalho; botão flutuante em vidro sobre a capa */}
-        {(() => {
+        {!focusMode && (() => {
           const leiColor = getLeiColor(selectedLeiId, tipo);
           const cover = getLeiCover(selectedLeiId, tipo);
           const selectedLei = leis.find(l => l.id === selectedLeiId);
@@ -2360,8 +2398,26 @@ const CategoriaLegislacao = () => {
 
         <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-7xl' : 'max-w-5xl'}`}>
 
+          {/* Mini-Sumário Flutuante */}
+          <AnimatePresence>
+            {computedSumario && !focusMode && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="fixed top-[max(var(--sai-top,env(safe-area-inset-top,0px)),12px)] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+              >
+                <div className="bg-background/80 backdrop-blur-md border border-border/50 shadow-lg px-4 py-1.5 rounded-full whitespace-nowrap overflow-hidden text-ellipsis max-w-[90vw] sm:max-w-md">
+                  <span className="text-[11px] font-bold tracking-wide text-primary-light uppercase">
+                    {computedSumario}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Search bar + Tabs — entram juntos com fade sutil (evita "pop") */}
+          {!focusMode && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2396,9 +2452,25 @@ const CategoriaLegislacao = () => {
                       type="button"
                       onClick={() => setOcrOpen(true)}
                       aria-label="Fotografar artigo (OCR)"
-                      className="w-8 h-8 rounded-full flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+                      className="w-8 h-8 rounded-full flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/15 transition-colors shrink-0"
                     >
                       <Camera className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const numStr = window.prompt('Ir para artigo (número):');
+                        if (!numStr) return;
+                        const num = parseInt(numStr.replace(/\D/g, ''), 10);
+                        if (!num) return;
+                        const idx = visibleArtigos.findIndex(a => parseInt(a.numero.replace(/\D/g, ''), 10) === num);
+                        if (idx >= 0) artigosVirtualizer.scrollToIndex(idx, { align: 'center' });
+                      }}
+                      aria-label="Ir para o artigo número"
+                      title="Ir para o artigo específico"
+                      className="w-8 h-8 rounded-full flex items-center justify-center bg-secondary hover:bg-secondary/80 text-foreground transition-colors shrink-0 font-bold"
+                    >
+                      #
                     </button>
                   </div>
                 </div>
@@ -2446,6 +2518,7 @@ const CategoriaLegislacao = () => {
               </div>
             </div>
           </motion.div>
+          )}
 
 
 
@@ -2453,7 +2526,7 @@ const CategoriaLegislacao = () => {
 
           {/* Sticky floating audio search */}
           <AnimatePresence>
-            {stickySearch && (
+            {stickySearch && !focusMode && (
               <motion.div
                 initial={{ y: -60, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}

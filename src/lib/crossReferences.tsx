@@ -3,6 +3,7 @@
  * Focado na detecção de "art. 5", "arts. 3º e 4º", etc.
  */
 import React from 'react';
+import { applyBionicReading } from '@/lib/bionicReading';
 
 export interface CrossReference {
   text: string;     // O texto capturado ("art. 5º")
@@ -54,19 +55,24 @@ export function parseCrossReferences(text: string): CrossReference[] {
  */
 export function linkifyCrossReferences(
   text: string, 
-  onClick?: (artigoNum: string) => void
+  onClick?: (artigoNum: string) => void,
+  bionicMode?: boolean
 ): React.ReactNode[] {
-  if (!onClick) return [text];
+  if (!onClick && !bionicMode) return [text];
 
   const references = parseCrossReferences(text);
-  if (references.length === 0) return [text];
+  if (references.length === 0) {
+    return bionicMode ? applyBionicReading(text) : [text];
+  }
 
   const nodes: React.ReactNode[] = [];
   let currentIndex = 0;
 
   references.forEach((ref, i) => {
     if (ref.index > currentIndex) {
-      nodes.push(<React.Fragment key={`text-${i}`}>{text.substring(currentIndex, ref.index)}</React.Fragment>);
+      const subText = text.substring(currentIndex, ref.index);
+      if (bionicMode) nodes.push(...applyBionicReading(subText));
+      else nodes.push(<React.Fragment key={`text-${i}`}>{subText}</React.Fragment>);
     }
 
     nodes.push(
@@ -87,7 +93,9 @@ export function linkifyCrossReferences(
   });
 
   if (currentIndex < text.length) {
-    nodes.push(<React.Fragment key={`text-end`}>{text.substring(currentIndex)}</React.Fragment>);
+    const subText = text.substring(currentIndex);
+    if (bionicMode) nodes.push(...applyBionicReading(subText));
+    else nodes.push(<React.Fragment key={`text-end`}>{subText}</React.Fragment>);
   }
 
   return nodes;

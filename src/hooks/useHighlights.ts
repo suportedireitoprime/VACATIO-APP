@@ -13,11 +13,13 @@ export interface Highlight {
 }
 
 export const HIGHLIGHT_COLORS = [
-  { name: 'Amarelo', value: 'rgba(250, 204, 21, 0.42)', css: 'bg-yellow-400/40' },
-  { name: 'Verde', value: 'rgba(74, 222, 128, 0.42)', css: 'bg-green-400/40' },
-  { name: 'Azul', value: 'rgba(96, 165, 250, 0.42)', css: 'bg-blue-400/40' },
-  { name: 'Rosa', value: 'rgba(244, 114, 182, 0.42)', css: 'bg-pink-400/40' },
-  { name: 'Laranja', value: 'rgba(251, 146, 60, 0.42)', css: 'bg-orange-400/40' },
+  { name: 'Amarelo (Conceito)', value: 'rgba(250, 204, 21, 0.42)', css: 'bg-yellow-400/40' },
+  { name: 'Verde (Prazo)', value: 'rgba(74, 222, 128, 0.42)', css: 'bg-green-400/40' },
+  { name: 'Azul (Requisito)', value: 'rgba(96, 165, 250, 0.42)', css: 'bg-blue-400/40' },
+  { name: 'Vermelho (Atenção/Proibição)', value: 'rgba(248, 113, 113, 0.42)', css: 'bg-red-400/40' },
+  { name: 'Roxo (Exceção)', value: 'rgba(167, 139, 250, 0.42)', css: 'bg-purple-400/40' },
+  { name: 'Rosa (Importante)', value: 'rgba(244, 114, 182, 0.42)', css: 'bg-pink-400/40' },
+  { name: 'Laranja (Dúvida)', value: 'rgba(251, 146, 60, 0.42)', css: 'bg-orange-400/40' },
 ];
 
 
