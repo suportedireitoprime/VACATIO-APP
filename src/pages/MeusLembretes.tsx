@@ -150,8 +150,8 @@ const MeusLembretes = () => {
                 {r.image ? (
                   <img src={r.image} alt="" className="w-14 h-20 rounded-lg object-cover" />
                 ) : (
-                  <div className="w-14 h-20 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <r.icon className="w-6 h-6 text-primary" />
+                  <div className="w-14 h-20 rounded-lg bg-secondary/60 flex items-center justify-center text-muted-foreground">
+                    <r.icon className="w-6 h-6" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
@@ -225,23 +225,13 @@ const MeusLembretes = () => {
         )}
       </div>
 
-      {/* Floating Action Button (FAB) */}
-      <div className="fixed bottom-24 right-4 z-40">
-        <button
-          onClick={() => { setEditing(null); setSheetOpen(true); }}
-          className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-[0_8px_25px_rgba(250,204,21,0.35)] flex items-center justify-center hover:bg-primary/90 active:scale-90 transition-all border-2 border-primary-foreground/20"
-        >
-          <Plus className="w-7 h-7" />
-        </button>
-      </div>
-
       {/* Bottom Menu (App Style) */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border shadow-[0_-8px_30px_rgba(0,0,0,0.12)]" style={{ paddingBottom: 'var(--sai-bottom,env(safe-area-inset-bottom,0px))' }}>
         <div className="flex items-center justify-around px-2 py-1.5">
           <FilterTab icon={Grid2x2} label="Todos" active={filter === 'all'} onClick={() => setFilter('all')} />
           <FilterTab icon={Map} label="Geolocalização" active={filter === 'location'} onClick={() => setFilter('location')} />
           <FilterTab icon={BookOpen} label="Leitura" active={filter === 'reading'} onClick={() => setFilter('reading')} />
-          <FilterTab icon={Layers} label="Outras" active={filter === 'other'} onClick={() => setFilter('other')} />
+          <FilterTab icon={Layers} label="Áreas" active={false} onClick={() => navigate('/biblioteca')} />
         </div>
       </div>
 
