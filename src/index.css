@@ -86,24 +86,24 @@ body {
 @layer base {
   :root {
     /* Vacatio v2 — Preto + Amarelo Hazard + Cinza Neutro */
-    --background: 215 14% 10%;          /* Cinza Escuro (Fundo) */
-    --foreground: 215 20% 96%;
+    --background: 230 20% 12%;          /* Cinza Escuro (Fundo) */
+    --foreground: 230 20% 96%;
 
-    --card: 215 14% 15%;                /* Cinza Claro (Cards/Botões) */
-    --card-foreground: 215 20% 96%;
+    --card: 230 20% 18%;                /* Cinza Claro (Cards/Botões) */
+    --card-foreground: 230 20% 96%;
 
-    --popover: 215 14% 15%;
-    --popover-foreground: 215 20% 96%;
+    --popover: 230 20% 18%;
+    --popover-foreground: 230 20% 96%;
 
     --primary: 51 100% 50%;             /* #FFD500 hazard yellow */
     --primary-foreground: 0 0% 4%;
     --primary-light: 51 100% 62%;
 
-    --secondary: 215 14% 20%;
-    --secondary-foreground: 215 20% 96%;
+    --secondary: 230 20% 24%;
+    --secondary-foreground: 230 20% 96%;
 
-    --muted: 215 14% 13%;
-    --muted-foreground: 215 10% 65%;
+    --muted: 230 20% 16%;
+    --muted-foreground: 230 10% 65%;
 
     --accent: 51 100% 50%;
     --accent-foreground: 0 0% 4%;
@@ -111,19 +111,19 @@ body {
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 14% 24%;
-    --input: 215 14% 24%;
+    --border: 230 20% 26%;
+    --input: 230 20% 26%;
     --ring: 51 100% 50%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 215 14% 12%;
-    --sidebar-foreground: 215 20% 96%;
+    --sidebar-background: 230 20% 14%;
+    --sidebar-foreground: 230 20% 96%;
     --sidebar-primary: 51 100% 50%;
-    --sidebar-primary-foreground: 215 14% 10%;
-    --sidebar-accent: 215 14% 18%;
-    --sidebar-accent-foreground: 215 20% 96%;
-    --sidebar-border: 215 14% 22%;
+    --sidebar-primary-foreground: 230 20% 12%;
+    --sidebar-accent: 230 20% 20%;
+    --sidebar-accent-foreground: 230 20% 96%;
+    --sidebar-border: 230 20% 24%;
     --sidebar-ring: 51 100% 50%;
 
     /* Legacy aliases still referenced in code — mapped to yellow */
