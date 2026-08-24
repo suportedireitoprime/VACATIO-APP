@@ -4,8 +4,8 @@ run-name: "Build #${{ github.run_number }} • ${{ github.ref_name }}@${{ github
 
 
 on:
-  # ⚠️ Trigger automático em push desativado para economizar minutos do GitHub Actions.
-  # Para rodar a build, vá em Actions → "Build Android (.aab + .apk)" → "Run workflow".
+  push:
+    branches: [master, main]
   workflow_dispatch:
     inputs:
       mobile_config_urls:
@@ -104,6 +104,23 @@ jobs:
           rm -rf android
           bunx cap add android
           chmod +x android/gradlew
+
+      - name: Restore Android icons and splash from Git
+        run: |
+          # O step anterior faz rm -rf android && cap add android, que recria
+          # a pasta nativa do zero com ícones genéricos do Capacitor.
+          # Em vez de depender do @capacitor/assets + sharp (que tem problemas
+          # de binário nativo cross-platform entre bun/Windows e o runner Linux),
+          # restauramos os recursos que já estão commitados no repositório.
+          echo "Restoring Android resources from git..."
+          git checkout HEAD -- android/app/src/main/res/ 2>/dev/null && \
+            echo "✅ Android icons/splash restored from git" || \
+            echo "⚠️ No committed res/ found — cap add defaults will be used"
+          # Verify
+          if [ -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png ]; then
+            echo "Icon files present:"
+            ls android/app/src/main/res/mipmap-xxxhdpi/
+          fi
 
       - name: Bump AGP + Gradle wrapper + force modern Android deps
         run: |
@@ -285,35 +302,6 @@ jobs:
             fi
           done
           ls -la assets/ || true
-
-      - name: Generate Android icons and splash
-        run: |
-          # Splash em fundo ESCURO (#1a0a14 = mesma cor de capacitor.config.ts)
-          if [ -d assets ] && ls assets/*.png >/dev/null 2>&1; then
-            # Install sharp + capacitor-assets in an isolated temp dir to avoid
-            # bun lockfile conflicts. The main project uses bun which resolves
-            # sharp for the dev OS (Windows/macOS), but the runner is linux-x64.
-            ASSETS_DIR="$(pwd)/.cap-assets-tool"
-            rm -rf "$ASSETS_DIR"
-            mkdir -p "$ASSETS_DIR"
-            (
-              cd "$ASSETS_DIR"
-              npm init -y --silent
-              npm install --silent @capacitor/assets@latest sharp@0.33.5 @img/sharp-linux-x64@0.33.5
-            )
-            # Run capacitor-assets from the project root (it needs capacitor.config.ts)
-            PATH="$ASSETS_DIR/node_modules/.bin:$PATH" \
-            NODE_PATH="$ASSETS_DIR/node_modules" \
-            node "$ASSETS_DIR/node_modules/.bin/capacitor-assets" generate \
-              --android \
-              --assetPath assets \
-              --iconBackgroundColor '#EFE039' \
-              --iconBackgroundColorDark '#EFE039' \
-              --splashBackgroundColor '#1a0a14' \
-              --splashBackgroundColorDark '#1a0a14'
-          else
-            echo "No native image assets found; skipping capacitor-assets."
-          fi
 
       - name: Override Android launch theme (kill splash/actionbar strip)
         run: |
