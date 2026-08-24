@@ -290,9 +290,10 @@ jobs:
         run: |
           # Splash em fundo ESCURO (#1a0a14 = mesma cor de capacitor.config.ts)
           if [ -d assets ] && ls assets/*.png >/dev/null 2>&1; then
-            # Install globally to ensure sharp builds correctly for the Linux x64 runner environment
-            npm install -g @capacitor/assets
-            capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#EFE039' --iconBackgroundColorDark '#EFE039' --splashBackgroundColor '#1a0a14' --splashBackgroundColorDark '#1a0a14'
+            # Fix sharp binary issue on Linux runners by forcing architecture and avoiding bun.lockb conflicts
+            rm -rf node_modules/@capacitor/assets node_modules/sharp node_modules/@img
+            npm install --no-save --platform=linux --arch=x64 sharp @capacitor/assets
+            npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#EFE039' --iconBackgroundColorDark '#EFE039' --splashBackgroundColor '#1a0a14' --splashBackgroundColorDark '#1a0a14'
           else
             echo "No native image assets found; skipping capacitor-assets."
           fi

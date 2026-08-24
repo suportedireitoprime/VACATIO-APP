@@ -28,7 +28,7 @@ function normalizeItems(arr?: any[]): string[] {
 }
 
 function extrairHistorico(caput: string): { ano: number; texto: string }[] {
-  const modRegex = /\(((?:Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Vigência|Regulamento|Renumerado|Transformado|Suprimido|Restabelecido|Produção de efeito)[^)]*)\)/gi;
+  const modRegex = /\(((?:Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Regulamento|Renumerado|Transformado|Suprimido|Restabelecido|Produção de efeito)[^)]*)\)/gi;
   const out: { ano: number; texto: string }[] = [];
   const seen = new Set<string>();
   let m: RegExpExecArray | null;

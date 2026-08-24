@@ -88,7 +88,7 @@ interface ArtigoBottomSheetProps {
 }
 
 function stripRedacao(text: string): string {
-  return text.replace(/\s*\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Vigência|Vetado)[^)]*\)/gi, '');
+  return text.replace(/\s*\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Vetado)[^)]*\)/gi, '');
 }
 
 function normalizeNarracaoToken(text: string): string {
@@ -114,7 +114,7 @@ const LEGAL_LINE_START_RE = /^(?:Art\s*\.|§|Parágrafo\b|[IVXLCDM]+\s*[-–.)]|
 
 // Se a linha inteira for só uma nota entre parênteses (Redação/Incluído/…),
 // mantém como linha separada — o parser de metadados espera assim.
-const LEGAL_NOTE_ONLY_RE = /^\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Vigência|Revogado|Vetado)\b/i;
+const LEGAL_NOTE_ONLY_RE = /^\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Revogado|Vetado)\b/i;
 
 function normalizeLegalLineBreaks(text: string): string {
   const raw = text.split('\n').map(l => l.trim());
@@ -144,7 +144,7 @@ function normalizeLegalLineBreaks(text: string): string {
 
 function highlightTermos(text: string, showRedacao?: boolean, onCrossReferenceClick?: (artigoNum: string) => void): React.ReactNode[] {
   // Pattern for ALL metadata references (shown in yellow, togglable via eye icon)
-  const redacaoPattern = /\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Vigência|Revogado|Vetado)[^)]*\)/gi;
+  const redacaoPattern = /\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Revogado|Vetado)[^)]*\)/gi;
 
   if (showRedacao) {
     const parts: React.ReactNode[] = [];
@@ -2161,7 +2161,7 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
 
     const highlightBg = isModifiedLine
       ? 'bg-violet-500/20 border-l-3 border-violet-400 pl-3 rounded-r-lg'
-      : !modificationInfo && showRedacao && /\((?:Redação|Incluído|Acrescido|Alterado|Revogado|Vetado|Vigência)[^)]*\)/i.test(line)
+      : !modificationInfo && showRedacao && /\((?:Redação|Incluído|Acrescido|Alterado|Revogado|Vetado)[^)]*\)/i.test(line)
         ? 'bg-yellow-400/5 border-l-2 border-yellow-400/40 pl-2 rounded-r'
         : '';
 
@@ -2863,7 +2863,7 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
 
           <TabsContent value="historico" className="px-5 pb-[calc(8rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4">
             {(() => {
-              const modRegex = /\(((?:Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Vigência|Regulamento|Renumerado|Transformado|Suprimido|Restabelecido|Produção de efeito)[^)]*)\)/gi;
+              const modRegex = /\(((?:Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Regulamento|Renumerado|Transformado|Suprimido|Restabelecido|Produção de efeito)[^)]*)\)/gi;
               const found: { texto: string; ano: number }[] = [];
               const seen = new Set<string>();
               let m: RegExpExecArray | null;

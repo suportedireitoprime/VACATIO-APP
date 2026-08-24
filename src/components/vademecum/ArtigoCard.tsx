@@ -34,7 +34,7 @@ const normalizeArtigoLabel = (value: string) => value
 
 const structuralRe = /^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i;
 const structuralSuffixRe = /(^|[.;:)])\s+(?=(?:PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\s+(?:[IVXLCDM]+|[0-9]+|[ÚU]NICO|PRELIMINAR)\b)[\s\S]*$/i;
-const planaltoAnnotationRe = /\s*[\(\[]?\s*(?:Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vide|Vigência|Regulamento|Nova\s+redação|Renumerad[oa]|Transformad[oa]|Restabelecid[oa]|Produção\s+de\s+efeito)[\s\S]*$/i;
+const planaltoAnnotationRe = /\s*[\(\[]?\s*(?:Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vide|Regulamento|Nova\s+redação|Renumerad[oa]|Transformad[oa]|Restabelecid[oa]|Produção\s+de\s+efeito)[\s\S]*$/i;
 
 const cleanStructuralText = (value: string) => value.replace(planaltoAnnotationRe, '').replace(/\s+/g, ' ').trim();
 
