@@ -280,155 +280,116 @@ export default function PushCronogramaTab() {
   }
 
   return (
-    <div className="space-y-3">
-      {/* Cards de resumo do dia */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Card className="p-3">
-          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wide">
+    <div className="space-y-5">
+      {/* Cards de resumo do dia - Minimalista */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-card/20 border border-border/30">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
             <Send className="w-3 h-3" /> Enviadas
           </div>
-          <div className="text-2xl font-bold mt-1">{resumo.enviadas}</div>
+          <div className="text-2xl font-bold text-foreground">{resumo.enviadas}</div>
           <div className="text-[10px] text-muted-foreground">{resumo.campanhasSent} campanha{resumo.campanhasSent === 1 ? "" : "s"}</div>
-        </Card>
-        <Card className="p-3">
-          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wide">
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
             <MailOpen className="w-3 h-3" /> Abertas
           </div>
-          <div className="text-2xl font-bold mt-1 text-emerald-600">{resumo.abertas}</div>
+          <div className="text-2xl font-bold text-emerald-500">{resumo.abertas}</div>
           <div className="text-[10px] text-muted-foreground">{resumo.taxaAbertura}% de taxa</div>
-        </Card>
-        <Card className="p-3">
-          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wide">
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
             <Check className="w-3 h-3" /> Entregues
           </div>
-          <div className="text-2xl font-bold mt-1">{resumo.entregues}</div>
-          <div className="text-[10px] text-muted-foreground">confirmadas pelo dispositivo</div>
-        </Card>
-        <Card className={`p-3 ${resumo.falhas > 0 ? "border-red-500/40" : ""}`}>
-          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wide">
+          <div className="text-2xl font-bold text-foreground">{resumo.entregues}</div>
+          <div className="text-[10px] text-muted-foreground">confirmações FCM</div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
             <XCircle className="w-3 h-3" /> Falhas
           </div>
-          <div className={`text-2xl font-bold mt-1 ${resumo.falhas > 0 ? "text-red-500" : ""}`}>{resumo.falhas}</div>
-          <div className="text-[10px] text-muted-foreground">{resumo.comErro} campanha{resumo.comErro === 1 ? "" : "s"} c/ erro</div>
-        </Card>
+          <div className={`text-2xl font-bold ${resumo.falhas > 0 ? "text-red-500" : "text-foreground"}`}>{resumo.falhas}</div>
+          <div className="text-[10px] text-muted-foreground">{resumo.comErro} campanha{resumo.comErro === 1 ? "" : "s"}</div>
+        </div>
       </div>
 
       {resumo.enviadas > 0 && resumo.entregues === 0 && (
-        <Card className="p-3 border-amber-500/40 bg-amber-500/5">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-            <div className="text-[11px] leading-relaxed">
-              <strong>Push saindo, mas sem confirmação de entrega.</strong> Se você não recebeu no seu aparelho, verifique: (1) permissão de notificações do app nas Configurações do Android, (2) canal "Padrão" ativo, (3) modo "Não perturbe" desligado, e (4) app fora da otimização de bateria. O FCM aceitou {resumo.enviadas} envio(s) hoje.
-            </div>
+        <div className="flex items-start gap-2.5 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5 text-amber-600/90 dark:text-amber-400/90">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="text-[11px] leading-relaxed">
+            <strong>Push sem confirmação de entrega.</strong> Verifique as permissões de notificação, modo Não Perturbe e otimização de bateria do aparelho. O servidor aceitou {resumo.enviadas} envio(s) hoje.
           </div>
-        </Card>
+        </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground flex items-center gap-1">
-          <Clock className="w-3 h-3 text-primary" /> Linha do tempo das notificações do dia.
+      <div className="flex items-center justify-between pt-1">
+        <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5" /> Linha do tempo de hoje
         </p>
-        <Button size="sm" variant="ghost" onClick={load} disabled={loading}>
+        <Button size="sm" variant="ghost" onClick={load} disabled={loading} className="h-7 px-2 text-xs">
           {loading ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
           Atualizar
         </Button>
       </div>
 
-      <div className="relative pl-8">
-        <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-border" />
+      <div className="relative pl-6">
+        <div className="absolute left-[7px] top-2 bottom-4 w-px bg-border/40" />
         {eventos.map((ev, i) => {
           const isProximo = i === proximoIdx;
           const enviado = ev.status === "enviado";
           const erro = ev.status === "erro";
           const naoEnviado = ev.status === "nao_enviado";
           const agendado = ev.status === "agendado";
+          
           return (
-            <div key={i} className="relative pb-4">
+            <div key={i} className="relative pb-5">
               <div
-                className={`absolute -left-[26px] top-2 w-6 h-6 rounded-full border-2 flex items-center justify-center shadow-sm ${
-                  enviado ? "bg-emerald-500 border-emerald-500 text-white"
-                  : erro ? "bg-red-500 border-red-500 text-white"
-                  : isProximo ? "bg-primary border-primary text-primary-foreground animate-pulse"
-                  : agendado ? "bg-background border-primary/60 text-primary"
-                  : naoEnviado ? "bg-muted border-muted-foreground/40 text-muted-foreground"
-                  : "bg-background border-muted-foreground/40 text-muted-foreground"
+                className={`absolute -left-[24px] top-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center bg-background border-[1.5px] ${
+                  enviado ? "border-emerald-500 text-emerald-500"
+                  : erro ? "border-red-500 text-red-500"
+                  : isProximo ? "border-primary text-primary"
+                  : agendado ? "border-foreground/30 text-foreground/50"
+                  : naoEnviado ? "border-muted-foreground/30 text-muted-foreground/30"
+                  : "border-muted-foreground/30 text-muted-foreground/30"
                 }`}
               >
-                {enviado ? <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                  : erro ? <XCircle className="w-3.5 h-3.5" strokeWidth={2.5} />
-                  : isProximo ? <Bell className="w-3 h-3" />
-                  : agendado ? <Clock className="w-3 h-3" />
-                  : naoEnviado ? <CircleDashed className="w-3 h-3" />
-                  : <CircleDashed className="w-3 h-3" />}
+                {isProximo && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
               </div>
-              <Card className={`p-3 ${
-                erro ? "border-red-500/40"
-                : isProximo ? "border-primary/50"
-                : ""
+              
+              <div className={`ml-2 p-3 rounded-xl transition-all ${
+                erro ? "bg-red-500/5 border border-red-500/10"
+                : isProximo ? "bg-primary/5 border border-primary/10"
+                : "hover:bg-muted/20"
               }`}>
-                <div className="flex items-start gap-2">
-                  <div className="text-xl leading-none">{ev.emoji}</div>
+                <div className="flex items-start gap-3">
+                  <div className="text-xl opacity-90 pt-0.5 grayscale-[0.2]">{ev.emoji}</div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-mono font-semibold text-primary">{ev.label}</span>
-                      <span className="text-sm font-medium truncate">{ev.nome}</span>
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="text-[11px] font-mono font-medium text-muted-foreground">{ev.label}</span>
+                      <span className="text-[13px] font-semibold text-foreground truncate">{ev.nome}</span>
                       <CanalBadge canal={ev.canal} />
-                      {ev.complemento && (
-                        <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
-                          <span>+</span>
-                          <CanalBadge canal={ev.complemento} />
-                          <span className="italic">complemento</span>
-                        </span>
-                      )}
-                      {ev.papel === "principal" && (
-                        <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">principal</Badge>
-                      )}
-                      {enviado && (
-                        <Badge className="text-[10px] bg-emerald-500/15 text-emerald-600 border-emerald-500/30 border">
-                          <CheckCircle2 className="w-3 h-3 mr-0.5" />enviado
-                        </Badge>
-                      )}
-                      {erro && (
-                        <Badge className="text-[10px] bg-red-500/15 text-red-600 border-red-500/30 border">
-                          <XCircle className="w-3 h-3 mr-0.5" />erro
-                        </Badge>
-                      )}
-                      {agendado && (
-                        <Badge variant="outline" className="text-[10px]">agendado</Badge>
-                      )}
-                      {ev.status === "previsto" && (
-                        <Badge variant="outline" className="text-[10px]">
-                          <CircleDashed className="w-3 h-3 mr-0.5" />previsto
-                        </Badge>
-                      )}
-                      {naoEnviado && (
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground">não enviado</Badge>
-                      )}
+                      {enviado && <span className="text-[10px] text-emerald-500 font-medium">✓ Enviado</span>}
+                      {erro && <span className="text-[10px] text-red-500 font-medium">✗ Erro</span>}
                     </div>
                     {ev.descricao && (
-                      <div className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{ev.descricao}</div>
+                      <div className="text-[11px] text-muted-foreground/80 leading-relaxed mb-2">{ev.descricao}</div>
                     )}
-                    {ev.badge && (
-                      <div className="text-[10px] text-muted-foreground mt-1">{ev.badge}</div>
-                    )}
-                    <div className="flex gap-2 mt-2">
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setDetalhe(ev)}>
-                        <Eye className="w-3 h-3 mr-1" /> Ver
+                    
+                    <div className="flex items-center gap-1.5">
+                      <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2 text-muted-foreground hover:text-foreground" onClick={() => setDetalhe(ev)}>
+                        Ver detalhes
                       </Button>
                       <Button
-                        size="sm" variant="secondary" className="h-7 text-xs"
+                        size="sm" variant="secondary" className="h-6 text-[10px] px-2 bg-secondary/50"
                         disabled={testando === ev.automation_key}
                         onClick={() => testarAdmin(ev)}
                       >
-                        {testando === ev.automation_key
-                          ? <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                          : <Send className="w-3 h-3 mr-1" />}
-                        Testar admin
+                        {testando === ev.automation_key ? "Testando..." : "Testar admin"}
                       </Button>
                     </div>
                   </div>
                 </div>
-              </Card>
+              </div>
             </div>
           );
         })}
