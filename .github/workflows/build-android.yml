@@ -4,8 +4,8 @@ run-name: "Build #${{ github.run_number }} • ${{ github.ref_name }}@${{ github
 
 
 on:
-  # ⚠️ Trigger automático em push desativado para economizar minutos do GitHub Actions.
-  # Para rodar a build, vá em Actions → "Build Android (.aab + .apk)" → "Run workflow".
+  push:
+    branches: [master, main]
   workflow_dispatch:
     inputs:
       mobile_config_urls:
@@ -290,12 +290,27 @@ jobs:
         run: |
           # Splash em fundo ESCURO (#1a0a14 = mesma cor de capacitor.config.ts)
           if [ -d assets ] && ls assets/*.png >/dev/null 2>&1; then
-            # Isolate sharp and capacitor-assets installation to completely bypass bun lockfile conflicts on Linux
-            mkdir -p .assets-tmp && cd .assets-tmp
-            npm init -y
-            npm install @capacitor/assets sharp@0.33.5 @img/sharp-linux-x64@0.33.5
-            cd ..
-            .assets-tmp/node_modules/.bin/capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#EFE039' --iconBackgroundColorDark '#EFE039' --splashBackgroundColor '#1a0a14' --splashBackgroundColorDark '#1a0a14'
+            # Install sharp + capacitor-assets in an isolated temp dir to avoid
+            # bun lockfile conflicts. The main project uses bun which resolves
+            # sharp for the dev OS (Windows/macOS), but the runner is linux-x64.
+            ASSETS_DIR="$(pwd)/.cap-assets-tool"
+            rm -rf "$ASSETS_DIR"
+            mkdir -p "$ASSETS_DIR"
+            (
+              cd "$ASSETS_DIR"
+              npm init -y --silent
+              npm install --silent @capacitor/assets@latest sharp@0.33.5 @img/sharp-linux-x64@0.33.5
+            )
+            # Run capacitor-assets from the project root (it needs capacitor.config.ts)
+            PATH="$ASSETS_DIR/node_modules/.bin:$PATH" \
+            NODE_PATH="$ASSETS_DIR/node_modules" \
+            node "$ASSETS_DIR/node_modules/.bin/capacitor-assets" generate \
+              --android \
+              --assetPath assets \
+              --iconBackgroundColor '#EFE039' \
+              --iconBackgroundColorDark '#EFE039' \
+              --splashBackgroundColor '#1a0a14' \
+              --splashBackgroundColorDark '#1a0a14'
           else
             echo "No native image assets found; skipping capacitor-assets."
           fi
