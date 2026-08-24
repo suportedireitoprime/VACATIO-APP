@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import GrafoArtigos from '@/pages/GrafoArtigos';
 
 interface GrafoOverlayProps {
@@ -10,7 +11,9 @@ interface GrafoOverlayProps {
 }
 
 const GrafoOverlay = ({ open, onClose, tabelaNome, leiNome, artigoNumero }: GrafoOverlayProps) => {
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -29,7 +32,8 @@ const GrafoOverlay = ({ open, onClose, tabelaNome, leiNome, artigoNumero }: Graf
           />
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
