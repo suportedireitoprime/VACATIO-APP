@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird } from 'lucide-react';
+import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import MentorOverlay from './MentorOverlay';
 // PessoalSheet removido — Meu Espaço agora é rota dedicada (/meu-espaco).
@@ -100,13 +100,18 @@ const BottomNav = () => {
       const detail = (e as CustomEvent).detail;
       setExternalMenuOpen(!!detail?.open);
     };
+    const chatHandler = () => setChatOpen(true);
     window.addEventListener('sidemenu-state', handler);
+    window.addEventListener('vacatio:open-chat', chatHandler);
     startAppMetrics();
     // Aquece o cache de "Meu Espaço" logo após o boot para que os stats
     // apareçam no primeiro paint quando o usuário abrir a página.
     const idle: any = (window as any).requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 300));
     idle(() => prefetchProfile());
-    return () => window.removeEventListener('sidemenu-state', handler);
+    return () => {
+      window.removeEventListener('sidemenu-state', handler);
+      window.removeEventListener('vacatio:open-chat', chatHandler);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -205,17 +210,17 @@ const BottomNav = () => {
 
           </button>
 
-          {/* Chat Jurídico */}
+          {/* Lembretes */}
           <button
-            onClick={() => { haptic.selection(); setChatOpen(true); }}
+            onClick={() => { haptic.selection(); navigate('/meus-lembretes'); }}
             data-track="bottom_nav_click"
-            data-track-destino="chat"
+            data-track-destino="lembretes"
             className="flex flex-col items-center justify-end py-1.5 text-foreground hover:text-primary transition-colors"
-            aria-label="Chat Jurídico"
+            aria-label="Lembretes"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <MessageCircle className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
-              <span className="font-body text-[11px] sm:text-[12px] leading-tight">Chat</span>
+              <AlarmClock className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
+              <span className="font-body text-[11px] sm:text-[12px] leading-tight">Lembretes</span>
             </span>
           </button>
 

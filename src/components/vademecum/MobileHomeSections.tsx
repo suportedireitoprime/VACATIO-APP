@@ -10,7 +10,7 @@ import {
   Landmark, LandPlot, LayoutGrid, Leaf, List, Map, Mic, MicOff, Network, NotebookPen,
   PiggyBank, Plane, PocketKnife, RadioTower, ReceiptText, Scale, Scroll, ScrollText, Search,
   Shield, ShieldAlert, ShieldCheck, ShieldX, Ship, ShoppingCart, Sprout, Stamp, Store,
-  Tractor, TreePine, Users, Vote, Wallet, Wifi, X, type LucideIcon,
+  Tractor, TreePine, Users, Vote, Wallet, Wifi, X, MessageCircle, type LucideIcon,
 } from 'lucide-react';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { ESTADOS } from '@/pages/LegislacaoEstadual';
@@ -176,6 +176,55 @@ const normalizeSearch = (value: string) =>
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
+
+const CHAT_HINTS = [
+  'Tire dúvidas sobre lei seca em segundos',
+  'Resolva casos complexos com IA avançada',
+  'Sua pesquisa jurídica muito mais rápida',
+  'Encontre jurisprudências em um clique',
+  'Descomplique termos jurídicos na hora',
+  'Seu assistente virtual 24 horas por dia',
+  'Analise contratos de forma eficiente',
+  'Obtenha teses jurídicas fundamentadas',
+  'Ganhe tempo na rotina de estudos',
+  'Consulte a constituição sem complicação'
+];
+
+function TypewriterText({ hints }: { hints: string[] }) {
+  const [text, setText] = useState('');
+  const [hintIndex, setHintIndex] = useState(0);
+  const [phase, setPhase] = useState<'typing' | 'paused' | 'erasing'>('typing');
+
+  useEffect(() => {
+    const current = hints[hintIndex];
+    let timer: ReturnType<typeof setTimeout>;
+
+    if (phase === 'typing') {
+      if (text.length < current.length) {
+        timer = setTimeout(() => setText(current.slice(0, text.length + 1)), 50);
+      } else {
+        timer = setTimeout(() => setPhase('paused'), 2000);
+      }
+    } else if (phase === 'paused') {
+      timer = setTimeout(() => setPhase('erasing'), 50);
+    } else if (phase === 'erasing') {
+      if (text.length > 0) {
+        timer = setTimeout(() => setText(text.slice(0, text.length - 1)), 25);
+      } else {
+        setHintIndex((i) => (i + 1) % hints.length);
+        setPhase('typing');
+      }
+    }
+    return () => clearTimeout(timer);
+  }, [text, hintIndex, phase, hints]);
+
+  return (
+    <span className="inline-flex items-center min-h-[15px]">
+      {text}
+      <span className="ml-[1px] inline-block w-[1.5px] h-[12px] bg-primary/80 animate-pulse" />
+    </span>
+  );
+}
 
 interface Props {
   onTabChange?: (tab: Tab) => void;
@@ -382,6 +431,30 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                   data-track-section="emalta"
                 />
               ))}
+            </div>
+
+            <div className="px-1">
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('vacatio:open-chat'))}
+                data-track="home_chat_juridico_click"
+                className="w-full relative overflow-hidden flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-primary/15 border border-primary/30 shadow-sm active:scale-[0.99] transition"
+              >
+                <span aria-hidden className="pointer-events-none absolute inset-0 icon-shine" />
+                <MessageCircle
+                  className="w-8 h-8 shrink-0 text-primary"
+                  style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))' }}
+                  strokeWidth={1.5}
+                />
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="font-display text-primary text-[16px] font-bold leading-tight truncate tracking-[0.02em]">
+                    Chat Jurídico
+                  </p>
+                  <p className="font-body text-primary/80 text-[12px] sm:text-[12.5px] leading-tight mt-0.5 min-h-[15px]">
+                    <TypewriterText hints={CHAT_HINTS} />
+                  </p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-primary shrink-0 opacity-80" />
+              </button>
             </div>
 
       {/* List — decretos & outras leis */}

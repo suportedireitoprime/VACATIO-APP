@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send, Sparkles, Plus, Globe, History as HistoryIcon,
   FileDown, Layers, HelpCircle, GitBranch, Paperclip, X, Check, Loader2, Zap, FileText, Image as ImageIcon,
-  BookOpen, Share2, Scale, Mic, Camera, Music,
+  BookOpen, Share2, Scale, Mic, Camera, Music, Brain,
 } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import ReactMarkdown from 'react-markdown';
@@ -88,6 +88,67 @@ function loadSessions(): Session[] {
 function saveSessions(s: Session[]) { localStorage.setItem(HIST_KEY, JSON.stringify(s.slice(0, 100))); }
 
 interface Props { open: boolean; onClose: () => void; }
+
+function BrainEmptyState({ suggestions, onSelect }: { suggestions: string[], onSelect: (q: string) => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full text-center pb-8 pt-10 md:pt-16">
+      {/* Brain Animation Container */}
+      <div className="relative w-40 h-40 mb-6 flex items-center justify-center">
+        {/* Animated Lines / Particles coming into the brain */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 60, opacity: [0, 1, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+            className="absolute top-0 w-[1.5px] bg-gradient-to-b from-transparent via-accent to-transparent"
+          />
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 60, opacity: [0, 1, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+            className="absolute left-0 h-[1.5px] bg-gradient-to-r from-transparent via-accent to-transparent"
+          />
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 60, opacity: [0, 1, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+            className="absolute right-0 h-[1.5px] bg-gradient-to-l from-transparent via-accent to-transparent"
+          />
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 60, opacity: [0, 1, 0] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut', delay: 0.1 }}
+            className="absolute bottom-0 w-[1.5px] bg-gradient-to-t from-transparent via-accent to-transparent"
+          />
+        </div>
+
+        {/* The Brain Icon */}
+        <div className="relative z-10 w-24 h-24 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.15)] backdrop-blur-sm">
+           <Brain className="w-12 h-12 text-accent" strokeWidth={1.5} />
+        </div>
+        
+        {/* Glow behind the brain */}
+        <div className="absolute inset-0 bg-accent/5 rounded-full blur-3xl animate-pulse" />
+      </div>
+
+      <h2 className="font-display text-[22px] font-bold text-foreground mb-2 tracking-tight">Como posso ajudar hoje?</h2>
+      <p className="font-body text-[14.5px] text-muted-foreground max-w-[320px] mb-10 leading-snug">
+        Faça perguntas sobre leis, artigos, súmulas ou envie um documento para análise.
+      </p>
+
+      {/* Suggestions Flex Wrap (Compact Style) */}
+      <div className="w-full max-w-2xl flex flex-wrap justify-center gap-2 px-2 md:px-4">
+        {suggestions.map(q => (
+          <button key={q} onClick={() => onSelect(q)}
+            className="px-3.5 py-2 md:px-4 md:py-2.5 rounded-full bg-secondary/40 text-[12px] md:text-[13px] font-body text-foreground border border-border/60 text-center hover:bg-accent/10 hover:border-accent/40 active:scale-[0.99] transition-all flex items-center gap-2 group">
+            <span>{q}</span>
+            <Send className="w-3 h-3 text-muted-foreground group-hover:text-accent transition-colors hidden sm:block" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const AssistenteOverlay = ({ open, onClose }: Props) => {
   const isDesktop = useIsDesktop();
@@ -476,22 +537,7 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
           <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-4 space-y-3">
             <div className={isDesktop ? 'max-w-3xl mx-auto w-full space-y-3' : 'contents'}>
             {messages.length === 0 && !loading && (
-              <div className="flex flex-col items-center justify-center h-full text-center gap-4 pb-4">
-                <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center">
-                  <Scale className="w-8 h-8 text-accent" />
-                </div>
-                <p className="font-body text-sm text-muted-foreground max-w-xs">
-                  Pergunte sobre leis, artigos, súmulas ou envie um documento.
-                </p>
-                <div className="w-full max-w-md flex flex-col gap-2.5 mt-1 px-2">
-                  {suggestions.map(q => (
-                    <button key={q} onClick={() => setInput(q)}
-                      className="w-full px-5 py-4 rounded-2xl bg-secondary text-sm font-body text-foreground border border-border text-left hover:bg-accent/15 hover:border-accent/40 active:scale-[0.99] transition">
-                      {q}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <BrainEmptyState suggestions={suggestions} onSelect={(q) => setInput(q)} />
             )}
 
             {messages.map(msg => {

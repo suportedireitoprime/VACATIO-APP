@@ -1,23 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Bell, Plus, Clock, BookOpen, Smartphone, MessageCircle, Loader2, Sparkles } from 'lucide-react';
+import { Bell, Plus, Clock, BookOpen, Smartphone, MessageCircle, Loader2, Sparkles, MapPin, Trash2, Home, GraduationCap, Briefcase, Building2, Grid2x2, Map, Layers } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import LembreteSheet from '@/components/lembretes/LembreteSheet';
 import { toast } from 'sonner';
 
-interface Reminder {
+interface UnifiedReminder {
+  _type: 'reading' | 'location';
   id: string;
-  livro_id: string | null;
-  livro_titulo: string | null;
-  livro_capa: string | null;
-  livro_area: string | null;
-  title: string;
-  time_of_day: string;
-  days_of_week: number[];
-  channels: string[];
   enabled: boolean;
-  next_fire_at: string | null;
+  title: string;
+  subtitle: string;
+  icon: any;
+  image?: string;
+  raw: any;
+  created_at: string;
 }
 
 const DAYS_SHORT = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
@@ -25,45 +24,99 @@ const DAYS_SHORT = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 const MeusLembretes = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [rows, setRows] = useState<Reminder[]>([]);
-  const [editing, setEditing] = useState<Reminder | null>(null);
+  const navigate = useNavigate();
+  const [rows, setRows] = useState<UnifiedReminder[]>([]);
+  const [editing, setEditing] = useState<any | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'reading' | 'location' | 'other'>('all');
 
   const load = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from('reading_reminders')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    setRows((data as any) || []);
+    const [{ data: rData }, { data: lData }] = await Promise.all([
+      supabase.from('reading_reminders').select('*').eq('user_id', user.id),
+      supabase.from('location_reminders').select('*').eq('user_id', user.id)
+    ]);
+
+    const readMap = (rData || []).map((r: any) => ({
+      _type: 'reading' as const,
+      id: r.id,
+      enabled: r.enabled,
+      title: r.livro_titulo || 'Rotina de leitura',
+      subtitle: (r.time_of_day || '').slice(0, 5),
+      icon: BookOpen,
+      image: r.livro_capa,
+      raw: r,
+      created_at: r.created_at || ''
+    }));
+
+    const locMap = (lData || []).map((l: any) => {
+      let Icon = MapPin;
+      const lbl = (l.label || '').toLowerCase();
+      if (lbl.includes('casa')) Icon = Home;
+      else if (lbl.includes('faculdade') || lbl.includes('universidade')) Icon = GraduationCap;
+      else if (lbl.includes('trabalho') || lbl.includes('escritório')) Icon = Briefcase;
+      else if (lbl.includes('fórum') || lbl.includes('tribunal')) Icon = Building2;
+      
+      return {
+        _type: 'location' as const,
+        id: l.id,
+        enabled: l.active,
+        title: l.label || 'Localização',
+        subtitle: l.address,
+        message: l.message,
+        icon: Icon,
+        raw: l,
+        created_at: l.created_at || ''
+      };
+    });
+
+    const unified = [...readMap, ...locMap].sort((a, b) => {
+       return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    });
+
+    setRows(unified);
     setLoading(false);
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user]);
   useEffect(() => { if (!sheetOpen) load();   }, [sheetOpen]);
 
-  const toggleEnabled = async (r: Reminder) => {
-    const { error } = await supabase
-      .from('reading_reminders')
-      .update({ enabled: !r.enabled, next_fire_at: null })
-      .eq('id', r.id);
-    if (error) toast.error(error.message);
-    else load();
+  const toggleEnabled = async (r: UnifiedReminder) => {
+    if (r._type === 'reading') {
+      const { error } = await supabase.from('reading_reminders').update({ enabled: !r.enabled, next_fire_at: null }).eq('id', r.id);
+      if (error) toast.error(error.message);
+      else load();
+    } else {
+      const { error } = await supabase.from('location_reminders').update({ active: !r.enabled }).eq('id', r.id);
+      if (error) toast.error(error.message);
+      else load();
+    }
   };
+
+  const removeReminder = async (r: UnifiedReminder) => {
+    if (!confirm(`Excluir "${r.title}"?`)) return;
+    if (r._type === 'reading') {
+      const { error } = await supabase.from('reading_reminders').delete().eq('id', r.id);
+      if (error) toast.error(error.message);
+      else { toast.success('Lembrete removido'); load(); }
+    } else {
+      const { error } = await supabase.from('location_reminders').delete().eq('id', r.id);
+      if (error) toast.error(error.message);
+      else { toast.success('Lembrete removido'); load(); }
+    }
+  };
+
+  const filteredRows = rows.filter(r => {
+    if (filter === 'all') return true;
+    if (filter === 'other') return false; // Adicionar outras categorias futuramente
+    return r._type === filter;
+  });
 
   return (
     <div className="min-h-dvh bg-background">
-      <AppHeader
-        title={
-          <span className="flex items-center gap-1.5">
-            <Bell className="w-4 h-4 text-primary" />
-            Meus lembretes
-          </span>
-        }
-      />
+      <AppHeader title="Meus lembretes" />
 
-      <div className="p-4 max-w-2xl mx-auto space-y-3">
+      <div className="p-4 max-w-2xl mx-auto space-y-3 pb-32">
         <button
           onClick={() => { setEditing(null); setSheetOpen(true); }}
           className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/50 bg-primary/5 text-primary font-body font-semibold flex items-center justify-center gap-2 hover:bg-primary/10 transition"
@@ -74,60 +127,94 @@ const MeusLembretes = () => {
 
         {loading ? (
           <div className="py-16 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-        ) : rows.length === 0 ? (
+        ) : filteredRows.length === 0 ? (
           <div className="py-16 text-center space-y-3">
             <Sparkles className="w-10 h-10 mx-auto text-muted-foreground/50" />
             <p className="text-sm text-muted-foreground">
-              Ainda sem lembretes. Comece criando uma rotina de leitura ou<br />configure direto na tela de um livro.
+              Ainda sem lembretes nesta categoria.
             </p>
           </div>
         ) : (
-          rows.map(r => (
+          filteredRows.map(r => (
             <div key={r.id} className="rounded-2xl bg-card border border-border overflow-hidden">
               <button
-                onClick={() => { setEditing(r); setSheetOpen(true); }}
+                onClick={() => { 
+                  if (r._type === 'reading') {
+                    setEditing(r.raw); setSheetOpen(true); 
+                  } else {
+                    navigate('/pessoal/lembretes-local');
+                  }
+                }}
                 className="w-full p-4 flex gap-3 text-left"
               >
-                {r.livro_capa ? (
-                  <img src={r.livro_capa} alt="" className="w-14 h-20 rounded-lg object-cover" />
+                {r.image ? (
+                  <img src={r.image} alt="" className="w-14 h-20 rounded-lg object-cover" />
                 ) : (
                   <div className="w-14 h-20 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-primary" />
+                    <r.icon className="w-6 h-6 text-primary" />
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-body font-bold text-sm text-foreground truncate">
-                    {r.livro_titulo || 'Rotina de leitura'}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {r.time_of_day.slice(0, 5)}
-                  </p>
-                  <div className="flex gap-1 mt-2">
-                    {DAYS_SHORT.map((d, i) => (
-                      <span
-                        key={i}
-                        className={`w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center ${
-                          r.days_of_week.includes(i) ? 'bg-primary/80 text-primary-foreground' : 'bg-muted text-muted-foreground/50'
-                        }`}
-                      >
-                        {d}
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-body font-bold text-[15px] text-foreground truncate">
+                      {r.title}
+                    </p>
+                    {r._type === 'location' && (
+                      <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wide shrink-0">
+                        {r.title}
                       </span>
-                    ))}
+                    )}
                   </div>
-                  <div className="flex gap-1.5 mt-2">
-                    {r.channels.includes('push') && <ChBadge icon={Bell} label="Push" />}
-                    {r.channels.includes('local') && <ChBadge icon={Smartphone} label="App" />}
-                    {r.channels.includes('horus_whatsapp') && <ChBadge icon={MessageCircle} label="WhatsApp" />}
+                  
+                  {r._type === 'location' && r.raw.message && (
+                    <p className="text-[13.5px] text-foreground/90 font-medium mt-0.5 line-clamp-2 leading-tight">
+                      {r.raw.message}
+                    </p>
+                  )}
+                  
+                  <p className="text-[12.5px] text-muted-foreground mt-1 flex items-center gap-1.5 line-clamp-2 leading-snug">
+                    {r._type === 'reading' ? <Clock className="w-3.5 h-3.5 shrink-0" /> : <MapPin className="w-3 h-3 shrink-0" />}
+                    {r.subtitle}
+                  </p>
+                  
+                  {r._type === 'reading' && r.raw.days_of_week && (
+                    <div className="flex gap-1 mt-2.5">
+                      {DAYS_SHORT.map((d, i) => (
+                        <span
+                          key={i}
+                          className={`w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center ${
+                            r.raw.days_of_week.includes(i) ? 'bg-primary/80 text-primary-foreground' : 'bg-muted text-muted-foreground/50'
+                          }`}
+                        >
+                          {d}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {(r.raw.channels || []).includes('push') && <ChBadge icon={Bell} label="Push" />}
+                    {(r.raw.channels || []).includes('local') && <ChBadge icon={Smartphone} label="App" />}
+                    {(r.raw.channels || []).includes('horus_whatsapp') && <ChBadge icon={MessageCircle} label="WhatsApp" />}
                   </div>
                 </div>
               </button>
               <div className="px-4 pb-3 flex items-center justify-between border-t border-border pt-3">
-                <span className="text-[11px] text-muted-foreground">
-                  {r.enabled ? (r.next_fire_at ? `Próximo: ${new Date(r.next_fire_at).toLocaleString('pt-BR', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}` : 'Agendando…') : 'Desativado'}
-                </span>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); removeReminder(r); }}
+                    className="w-7 h-7 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center justify-center transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-[11px] text-muted-foreground font-medium">
+                    {r.enabled 
+                      ? (r.raw.next_fire_at ? `Próximo: ${new Date(r.raw.next_fire_at).toLocaleString('pt-BR', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}` : (r._type === 'location' ? 'Monitorando localização' : 'Agendando…')) 
+                      : 'Desativado'}
+                  </span>
+                </div>
                 <button
-                  onClick={() => toggleEnabled(r)}
+                  onClick={(e) => { e.stopPropagation(); toggleEnabled(r); }}
                   className={`relative w-10 h-6 rounded-full transition ${r.enabled ? 'bg-primary' : 'bg-muted'}`}
                 >
                   <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${r.enabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
@@ -136,6 +223,26 @@ const MeusLembretes = () => {
             </div>
           ))
         )}
+      </div>
+
+      {/* Floating Action Button (FAB) */}
+      <div className="fixed bottom-24 right-4 z-40">
+        <button
+          onClick={() => { setEditing(null); setSheetOpen(true); }}
+          className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-[0_8px_25px_rgba(250,204,21,0.35)] flex items-center justify-center hover:bg-primary/90 active:scale-90 transition-all border-2 border-primary-foreground/20"
+        >
+          <Plus className="w-7 h-7" />
+        </button>
+      </div>
+
+      {/* Bottom Menu (App Style) */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border shadow-[0_-8px_30px_rgba(0,0,0,0.12)]" style={{ paddingBottom: 'var(--sai-bottom,env(safe-area-inset-bottom,0px))' }}>
+        <div className="flex items-center justify-around px-2 py-1.5">
+          <FilterTab icon={Grid2x2} label="Todos" active={filter === 'all'} onClick={() => setFilter('all')} />
+          <FilterTab icon={Map} label="Geolocalização" active={filter === 'location'} onClick={() => setFilter('location')} />
+          <FilterTab icon={BookOpen} label="Leitura" active={filter === 'reading'} onClick={() => setFilter('reading')} />
+          <FilterTab icon={Layers} label="Outras" active={filter === 'other'} onClick={() => setFilter('other')} />
+        </div>
       </div>
 
       <LembreteSheet
@@ -157,6 +264,25 @@ function ChBadge({ icon: Icon, label }: { icon: any; label: string }) {
       <Icon className="w-3 h-3" />
       {label}
     </span>
+  );
+}
+
+function FilterTab({ icon: Icon, label, active, onClick }: { icon: any; label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center justify-center gap-1 w-20 py-2 active:scale-95 transition-all"
+    >
+      <div className={`relative flex items-center justify-center transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}>
+        <Icon className="w-6 h-6" strokeWidth={active ? 2.5 : 1.5} />
+        {active && (
+          <div className="absolute -inset-2 bg-primary/10 rounded-full blur-md -z-10" />
+        )}
+      </div>
+      <span className={`text-[10px] font-body tracking-wide transition-colors ${active ? 'text-primary font-bold' : 'text-muted-foreground font-medium'}`}>
+        {label}
+      </span>
+    </button>
   );
 }
 
