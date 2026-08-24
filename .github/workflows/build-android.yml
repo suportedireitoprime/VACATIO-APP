@@ -105,23 +105,6 @@ jobs:
           bunx cap add android
           chmod +x android/gradlew
 
-      - name: Restore Android icons and splash from Git
-        run: |
-          # O step anterior faz rm -rf android && cap add android, que recria
-          # a pasta nativa do zero com ícones genéricos do Capacitor.
-          # Em vez de depender do @capacitor/assets + sharp (que tem problemas
-          # de binário nativo cross-platform entre bun/Windows e o runner Linux),
-          # restauramos os recursos que já estão commitados no repositório.
-          echo "Restoring Android resources from git..."
-          git checkout HEAD -- android/app/src/main/res/ 2>/dev/null && \
-            echo "✅ Android icons/splash restored from git" || \
-            echo "⚠️ No committed res/ found — cap add defaults will be used"
-          # Verify
-          if [ -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png ]; then
-            echo "Icon files present:"
-            ls android/app/src/main/res/mipmap-xxxhdpi/
-          fi
-
       - name: Bump AGP + Gradle wrapper + force modern Android deps
         run: |
           # ----------------------------------------------------------------
@@ -302,6 +285,30 @@ jobs:
             fi
           done
           ls -la assets/ || true
+
+      - name: Generate Android icons and splash
+        run: |
+          # Splash em fundo ESCURO (#1a0a14 = mesma cor de capacitor.config.ts →
+          # SplashScreen.backgroundColor). Antes estava #EFE039 (amarelo brand),
+          # o que fazia o windowBackground/Android 12 SplashScreen deixar uma
+          # faixa amarela com o logo comprimido visível no topo enquanto a
+          # WebView carregava e, em edge-to-edge, também depois — a WebView
+          # não cobre 100% dos pixels acima da status bar em todos os aparelhos.
+          # Ícone do launcher segue amarelo (é o ícone na home, não afeta a UI).
+          if [ -d assets ] && ls assets/*.png >/dev/null 2>&1; then
+            # Remove any cached sharp/capacitor-assets to force a clean install
+            rm -rf node_modules/@capacitor/assets node_modules/sharp
+            # Install sharp with explicit linux-x64 platform binary
+            npm install --no-save --platform=linux --arch=x64 sharp@0.33.5
+            npm install --no-save @capacitor/assets
+            # Ensure the nested sharp inside @capacitor/assets also has the binary
+            if [ -d node_modules/@capacitor/assets/node_modules/sharp ]; then
+              (cd node_modules/@capacitor/assets/node_modules/sharp && npm install --platform=linux --arch=x64 --no-save)
+            fi
+            npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#EFE039' --iconBackgroundColorDark '#EFE039' --splashBackgroundColor '#FFD500' --splashBackgroundColorDark '#FFD500'
+          else
+            echo "No native image assets found; skipping capacitor-assets."
+          fi
 
       - name: Override Android launch theme (kill splash/actionbar strip)
         run: |
