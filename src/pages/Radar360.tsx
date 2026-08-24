@@ -242,14 +242,7 @@ export default function Radar360() {
               >
                 {reextracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
               </button>
-              <button
-                onClick={doRefresh}
-                disabled={refreshing}
-                className="min-w-[44px] min-h-[44px] rounded-full bg-muted flex items-center justify-center text-muted-foreground disabled:opacity-50"
-                aria-label="Atualizar"
-              >
-                {refreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              </button>
+
             </div>
           }
         />
