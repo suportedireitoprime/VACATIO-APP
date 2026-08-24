@@ -4,8 +4,10 @@ run-name: "Build #${{ github.run_number }} • ${{ github.ref_name }}@${{ github
 
 
 on:
-  # ⚠️ Trigger automático em push desativado para economizar minutos do GitHub Actions.
-  # Para rodar a build, vá em Actions → "Build Android (.aab + .apk)" → "Run workflow".
+  push:
+    branches:
+      - master
+      - main
   workflow_dispatch:
     inputs:
       mobile_config_urls:
