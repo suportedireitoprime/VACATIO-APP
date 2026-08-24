@@ -560,10 +560,10 @@ const HomeHeaderHero = ({ onSearchOpenChange }: { onSearchOpenChange?: (open: bo
           {/* Atalhos rápidos — abaixo da barra de pesquisa */}
           <div className="grid grid-cols-4 gap-2 mt-1">
             {[
-              { label: 'Me Explique', icon: Camera,     to: '/me-explique',       color: '#EFE039', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-              { label: 'Anotações',  icon: ScrollText,  to: '/pessoal/anotacoes', color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-              { label: 'Grifos',     icon: Feather,       to: '/pessoal/grifos',    color: '#34D399', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-              { label: 'Favoritos',  icon: Heart,    to: '/pessoal/favoritos', color: '#F97316', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+              { label: 'Me Explique', icon: Camera,     to: '/me-explique',       color: '#EFE039', bg: 'bg-black/75', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+              { label: 'Anotações',  icon: ScrollText,  to: '/pessoal/anotacoes', color: '#38BDF8', bg: 'bg-black/65', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+              { label: 'Grifos',     icon: Feather,       to: '/pessoal/grifos',    color: '#34D399', bg: 'bg-black/55', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+              { label: 'Favoritos',  icon: Heart,    to: '/pessoal/favoritos', color: '#F97316', bg: 'bg-black/45', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
             ].map((item) => {
               const Icon = item.icon;
               const badgeCount = item.badgeKey ? shortcutBadges.counts[item.badgeKey] : 0;
@@ -577,7 +577,7 @@ const HomeHeaderHero = ({ onSearchOpenChange }: { onSearchOpenChange?: (open: bo
                     if (item.badgeKey) shortcutBadges.markSeen(item.badgeKey);
                     navigate(item.to);
                   }}
-                  className="group relative flex flex-col items-center justify-center gap-1 h-[72px] rounded-2xl bg-black/45 backdrop-blur-md border border-white/15 shadow-lg shadow-black/30 active:scale-[0.96] transition"
+                  className={`group relative flex flex-col items-center justify-center gap-1 h-[72px] rounded-2xl ${item.bg} backdrop-blur-md border border-white/15 shadow-lg shadow-black/30 active:scale-[0.96] transition`}
                 >
                   {badgeCount > 0 && item.badgeColor && (
                     <span
