@@ -979,12 +979,6 @@ const CategoriaLegislacao = () => {
     // ... logic for finding and scrolling to article
   };
 
-  const artigosVirtualizer = useWindowVirtualizer({
-    count: shouldVirtualizeArtigos ? visibleArtigos.length : 0,
-    estimateSize: () => 116,
-    overscan: 8,
-    scrollMargin: artigosListOffset,
-  });
 
   // View: Leis Ordinárias — year selection + list
   if (tipo === 'lei-ordinaria' && !selectedLeiId) {
