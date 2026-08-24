@@ -117,7 +117,7 @@ export class SessaoMeExplique {
     // Nativo (Android/iOS): garante RECORD_AUDIO (e CAMERA, se o preview ainda
     // não abriu) antes do getUserMedia, senão a WebView devolve NotAllowedError.
     const precisaCamera = !this.opcoes.streamVideo;
-    const { garantirPermissoesMidia } = await import("@/lib/nativo/permissoesMidia");
+    const { garantirPermissoesMidia } = await import("@/lib/nativeMediaPermissions");
     const permissoes = await garantirPermissoesMidia(precisaCamera, true);
     if ((precisaCamera && !permissoes.camera) || !permissoes.microfone) {
       throw new Error(permissoes.motivo ?? "Precisamos da câmera e do microfone para explicar o conteúdo.");

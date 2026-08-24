@@ -76,7 +76,7 @@ export class CameraMeExplique {
       return this.recursos();
     }
 
-    const { garantirPermissoesMidia } = await import("@/lib/nativo/permissoesMidia");
+    const { garantirPermissoesMidia } = await import("@/lib/nativeMediaPermissions");
     const permissoes = await garantirPermissoesMidia(true, false);
     if (!permissoes.camera) {
       throw new Error(permissoes.motivo ?? "Precisamos da câmera para ver o material.");

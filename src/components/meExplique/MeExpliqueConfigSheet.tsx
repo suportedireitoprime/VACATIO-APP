@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Mic2, User, FileText, CheckCircle2 } from 'lucide-react';
-import { haptic } from '@/lib/nativo';
+import { haptic } from '@/lib/nativeHaptics';
 
 export interface MeExpliqueConfig {
   voz: 'feminina' | 'masculina';

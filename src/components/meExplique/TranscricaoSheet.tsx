@@ -1,6 +1,18 @@
 import { useMemo, useState } from 'react';
 import { Download, FileText, Copy, X, Loader2 } from 'lucide-react';
-import { baixarBlob, copiarTexto, haptic } from '@/lib/nativo';
+import { haptic } from '@/lib/nativeHaptics';
+
+function baixarBlob(blob: Blob, nome: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nome;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+async function copiarTexto(texto: string) {
+  await navigator.clipboard.writeText(texto);
+}
 import { toast } from 'sonner';
 
 export type FalaSalva = { quem: 'professor' | 'aluno'; texto: string; em: number };
@@ -33,9 +45,7 @@ const TranscricaoSheet = ({ open, onClose, falas }: Props) => {
     setGerando('txt');
     try {
       void haptic.light();
-      await baixarBlob(new Blob([texto], { type: 'text/plain;charset=utf-8' }), `${nomeBase}.txt`, {
-        titulo: 'Transcrição do Me Explique',
-      });
+      await baixarBlob(new Blob([texto], { type: 'text/plain;charset=utf-8' }), `${nomeBase}.txt`);
     } finally {
       setGerando(null);
     }
@@ -90,9 +100,7 @@ const TranscricaoSheet = ({ open, onClose, falas }: Props) => {
         y += 12;
       });
 
-      await baixarBlob(doc.output('blob'), `${nomeBase}.pdf`, {
-        titulo: 'Explicação em PDF',
-      });
+      await baixarBlob(doc.output('blob'), `${nomeBase}.pdf`);
     } catch {
       toast.error('Não consegui gerar o PDF.');
     } finally {
