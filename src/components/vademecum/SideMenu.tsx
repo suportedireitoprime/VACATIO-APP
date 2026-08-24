@@ -80,7 +80,10 @@ const SideMenu = ({ open, onClose, onNavigate }: SideMenuProps) => {
       import('@/pages/Assinatura.tsx').catch(() => {});
       import('@/pages/Perfil.tsx').catch(() => {});
     } else delete document.body.dataset.sideMenuOpen;
-    return () => { delete document.body.dataset.sideMenuOpen; };
+    return () => {
+      delete document.body.dataset.sideMenuOpen;
+      window.dispatchEvent(new CustomEvent('sidemenu-state', { detail: { open: false } }));
+    };
   }, [open]);
 
   const displayName =
