@@ -60,7 +60,7 @@ import {
 import { getCachedArtigos } from '@/services/legislacaoService';
 import { useNarracaoFlutuante } from '@/stores/useNarracaoFlutuante';
 import { useLocation } from 'react-router-dom';
-import { toast } from 'sonner';
+
 
 import { LEIS_SUPABASE_URL, LEIS_SUPABASE_ANON_KEY, LEIS_SUPABASE_PROJECT_ID } from "@/lib/legislacaoBackend";
 const SB_URL = LEIS_SUPABASE_URL;
