@@ -25,10 +25,10 @@ Deno.serve(async (req) => {
 
     const resposta = {
       token: key,
-      modelo: "models/gemini-2.0-flash",
+      modelo: "models/gemini-2.0-flash-exp",
       ephemeral: false,
       setup: {
-        model: "models/gemini-2.0-flash",
+        model: "models/gemini-2.0-flash-exp",
         generationConfig: {
           responseModalities: ["AUDIO"],
           speechConfig: {
