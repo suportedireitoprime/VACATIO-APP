@@ -2522,16 +2522,62 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
 
               <div
                 ref={containerRef}
-                className={`space-y-4 font-legal text-base ${highlightMode ? 'select-text cursor-text highlight-selectable' : ''}`}
+                className={`space-y-4 font-legal text-base ${highlightMode ? 'highlight-selectable' : ''}`}
                 style={highlightMode ? {
-                  WebkitUserSelect: 'text',
                   userSelect: 'text',
-                  WebkitTouchCallout: 'default' as any,
-                  WebkitTapHighlightColor: selectedColor,
+                  WebkitUserSelect: 'text',
+                  touchAction: 'none',
+                  WebkitTouchCallout: 'none',
                   ['--hl-selection' as any]: selectedColor,
                 } : undefined}
-
-                onMouseUp={handleTextSelection}
+                onPointerDown={highlightMode ? (e) => {
+                  if (e.pointerType === 'mouse' && e.button !== 0) return;
+                  const getCaretRange = (x: number, y: number) => {
+                    if (typeof document.caretRangeFromPoint === 'function') return document.caretRangeFromPoint(x, y);
+                    if ((document as any).caretPositionFromPoint) {
+                      const pos = (document as any).caretPositionFromPoint(x, y);
+                      if (pos) { const r = document.createRange(); r.setStart(pos.offsetNode, pos.offset); r.collapse(true); return r; }
+                    }
+                    return null;
+                  };
+                  const range = getCaretRange(e.clientX, e.clientY);
+                  if (range) {
+                    (containerRef.current as any)._paintState = { isDragging: true, startNode: range.startContainer, startOffset: range.startOffset };
+                    const sel = window.getSelection();
+                    sel?.removeAllRanges();
+                    sel?.addRange(range);
+                  }
+                } : undefined}
+                onPointerMove={highlightMode ? (e) => {
+                  const state = (containerRef.current as any)?._paintState;
+                  if (!state?.isDragging) return;
+                  const getCaretRange = (x: number, y: number) => {
+                    if (typeof document.caretRangeFromPoint === 'function') return document.caretRangeFromPoint(x, y);
+                    if ((document as any).caretPositionFromPoint) return (document as any).caretPositionFromPoint(x, y);
+                    return null;
+                  };
+                  const point = getCaretRange(e.clientX, e.clientY);
+                  if (point && state.startNode) {
+                    const sel = window.getSelection();
+                    if (point.startContainer) { // caretRange
+                      sel?.setBaseAndExtent(state.startNode, state.startOffset, point.startContainer, point.startOffset);
+                    } else if (point.offsetNode) { // caretPosition
+                      sel?.setBaseAndExtent(state.startNode, state.startOffset, point.offsetNode, point.offset);
+                    }
+                  }
+                } : undefined}
+                onPointerUp={highlightMode ? (e) => {
+                  const state = (containerRef.current as any)?._paintState;
+                  if (state) state.isDragging = false;
+                  handleTextSelection();
+                  window.getSelection()?.removeAllRanges();
+                } : undefined}
+                onPointerCancel={highlightMode ? (e) => {
+                  const state = (containerRef.current as any)?._paintState;
+                  if (state) state.isDragging = false;
+                  window.getSelection()?.removeAllRanges();
+                } : undefined}
+                onMouseUp={!highlightMode ? handleTextSelection : undefined}
               >
                 {displayLines.map((line, i) => renderLine(line, i, i === 0))}
               </div>
