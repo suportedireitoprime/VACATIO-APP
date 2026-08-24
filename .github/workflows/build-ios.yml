@@ -2,6 +2,9 @@ name: Build iOS (.ipa → TestFlight)
 run-name: "iOS Build #${{ github.run_number }} • ${{ github.ref_name }}@${{ github.sha }}"
 
 on:
+  push:
+    paths:
+      - '.github/workflows/build-ios.yml'
   workflow_dispatch:
     inputs:
       submit_testflight:
@@ -12,7 +15,7 @@ on:
 jobs:
   build:
     name: Build iOS release
-    runs-on: macos-26
+    runs-on: macos-14
     timeout-minutes: 60
     permissions:
       contents: read
