@@ -86,24 +86,24 @@ body {
 @layer base {
   :root {
     /* Vacatio v2 — Preto + Amarelo Hazard + Cinza Neutro */
-    --background: 0 0% 4%;              /* #0A0A0A */
-    --foreground: 45 15% 96%;
+    --background: 215 14% 10%;          /* Cinza Escuro (Fundo) */
+    --foreground: 215 20% 96%;
 
-    --card: 0 0% 8%;                    /* #141414 */
-    --card-foreground: 45 15% 96%;
+    --card: 215 14% 15%;                /* Cinza Claro (Cards/Botões) */
+    --card-foreground: 215 20% 96%;
 
-    --popover: 0 0% 8%;
-    --popover-foreground: 45 15% 96%;
+    --popover: 215 14% 15%;
+    --popover-foreground: 215 20% 96%;
 
     --primary: 51 100% 50%;             /* #FFD500 hazard yellow */
     --primary-foreground: 0 0% 4%;
     --primary-light: 51 100% 62%;
 
-    --secondary: 0 0% 12%;              /* #1F1F1F */
-    --secondary-foreground: 45 15% 92%;
+    --secondary: 215 14% 20%;
+    --secondary-foreground: 215 20% 96%;
 
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 62%;
+    --muted: 215 14% 13%;
+    --muted-foreground: 215 10% 65%;
 
     --accent: 51 100% 50%;
     --accent-foreground: 0 0% 4%;
@@ -111,19 +111,19 @@ body {
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 16%;                 /* #2A2A2A */
-    --input: 0 0% 16%;
+    --border: 215 14% 24%;
+    --input: 215 14% 24%;
     --ring: 51 100% 50%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 6%;
-    --sidebar-foreground: 45 15% 92%;
+    --sidebar-background: 215 14% 12%;
+    --sidebar-foreground: 215 20% 96%;
     --sidebar-primary: 51 100% 50%;
-    --sidebar-primary-foreground: 0 0% 4%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 45 15% 92%;
-    --sidebar-border: 0 0% 14%;
+    --sidebar-primary-foreground: 215 14% 10%;
+    --sidebar-accent: 215 14% 18%;
+    --sidebar-accent-foreground: 215 20% 96%;
+    --sidebar-border: 215 14% 22%;
     --sidebar-ring: 51 100% 50%;
 
     /* Legacy aliases still referenced in code — mapped to yellow */
