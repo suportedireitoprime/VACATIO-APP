@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowUpRight, Film, Star } from 'lucide-react';
+import { Clock, ArrowUpRight, Film, Star, Popcorn } from 'lucide-react';
 import { getNoticiasCache, prefetchNoticias, subscribeNoticias, type Noticia } from '@/services/noticiasService';
 import { newsImg, cdnImg } from '@/lib/cdnImg';
 import NoticiaViewerSheet from '@/components/vademecum/NoticiaViewerSheet';
@@ -363,9 +363,10 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
                   </div>
 
                   <span
-                    className="absolute top-2.5 left-[108px] text-[9.5px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
+                    className="absolute top-2.5 left-[108px] text-[9.5px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider"
                     style={{ background: palette.chipBg, color: palette.chipText }}
                   >
+                    {label.toUpperCase() === 'FILME' && <Popcorn className="w-3 h-3" strokeWidth={1.5} />}
                     {label}
                   </span>
 
