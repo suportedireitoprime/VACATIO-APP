@@ -5,7 +5,7 @@ import {
   Gamepad2, Brain, BookA, MessageCircle, BellRing, Mic, Lightbulb, Building2,
   Rss, Palette, Users, GitBranch, Github, ImageIcon, KeyRound, Bug, Newspaper,
   Quote, Monitor, Send, RefreshCcw, Lock, Wrench, FileText, Crown, Search, Target, MapPin, PlayCircle,
-  Sparkles, UserPlus, GraduationCap, Scale, Store, Mail, FileSignature,
+  Sparkles, UserPlus, GraduationCap, Scale, Store, Mail, FileSignature, User,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -58,6 +58,7 @@ const PREFETCH: Record<string, () => Promise<unknown>> = {
   '/configuracoes': () => import('./Configuracoes'),
   '/ferramentas/peticao-inicial': () => import('./PeticaoInicial'),
   '/anotacoes/audio': () => import('./AnotacoesAudio'),
+  '/meu-espaco': () => import('./MeuEspaco'),
 };
 const prefetched = new Set<string>();
 const prefetching = new Map<string, Promise<unknown>>();
@@ -115,6 +116,7 @@ const CATEGORIES: Category[] = [
       { id: 'admin-gravar-aula', label: 'Gravar aula', icon: Mic, desc: 'Grave aulas longas com resumo automático por IA', route: '/anotacoes/audio' },
       { id: 'admin-horus-congelado', label: 'Assistente Horus (Congelado)', icon: MessageCircle, desc: 'Assistente virtual por IA (oculto do app principal)', route: '/assistente-horus' },
       { id: 'admin-blog-congelado', label: 'Blog Jurídico (Congelado)', icon: Rss, desc: 'Artigos jurídicos (oculto do app principal)', route: '/blog' },
+      { id: 'admin-meu-espaco', label: 'Meu Espaço (Oculto)', icon: User, desc: 'Seção original de perfil e estatísticas do usuário', route: '/meu-espaco' },
     ],
   },
   {

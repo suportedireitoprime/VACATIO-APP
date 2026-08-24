@@ -264,19 +264,19 @@ const BottomNav = () => {
             </span>
           </button>
 
-          {/* Meu Espaço */}
+          {/* Radares */}
           <button
-            onClick={() => { haptic.selection(); navigate('/meu-espaco'); }}
-            onPointerEnter={() => { import('@/pages/MeuEspaco.tsx'); warmMeuEspaco(); }}
-            onPointerDown={() => { import('@/pages/MeuEspaco.tsx'); warmMeuEspaco(); }}
-            onTouchStart={() => { import('@/pages/MeuEspaco.tsx'); warmMeuEspaco(); }}
+            onClick={() => { haptic.selection(); navigate('/radares'); }}
+            onPointerEnter={() => prefetchRoute('radar360')}
+            onPointerDown={() => prefetchRoute('radar360')}
+            onTouchStart={() => prefetchRoute('radar360')}
             data-track="bottom_nav_click"
-            data-track-destino="meu-espaco"
+            data-track-destino="radares"
             className="flex flex-col items-center justify-end py-1.5 text-foreground hover:text-primary transition-colors"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <User className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
-              <span className="font-body text-[11px] sm:text-[12px] leading-tight">Meu Espaço</span>
+              <ScanEye className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
+              <span className="font-body text-[11px] sm:text-[12px] leading-tight">Radares</span>
             </span>
           </button>
         </div>

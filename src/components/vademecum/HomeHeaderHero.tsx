@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { pickAsset, assetUrl } from '@/lib/assetUrl';
-import { Menu as MenuIcon, Search, Scale, BookOpen, Clock, Layers, Eye, Feather, Lightbulb, ScrollText, History, ChevronLeft, User as UserIcon, Mic, Radar, MapPin, Monitor, Library, Bell, GraduationCap, Target, CloudOff, Newspaper, Heart } from 'lucide-react';
+import { Menu as MenuIcon, Search, Scale, BookOpen, Clock, Layers, Eye, Feather, Lightbulb, ScrollText, History, ChevronLeft, User as UserIcon, Mic, Radar, MapPin, Monitor, Library, Bell, GraduationCap, Target, CloudOff, Newspaper, Heart, Bot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfileSummary } from '@/hooks/useProfileSummary';
@@ -563,7 +563,7 @@ const HomeHeaderHero = ({ onSearchOpenChange }: { onSearchOpenChange?: (open: bo
               { label: 'Anotações',  icon: ScrollText,  to: '/pessoal/anotacoes', color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
               { label: 'Grifos',     icon: Feather,       to: '/pessoal/grifos',    color: '#34D399', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
               { label: 'Favoritos',  icon: Heart,    to: '/pessoal/favoritos', color: '#F97316', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-              { label: 'Radares',    icon: Radar,       to: '/radares',           color: '#EFE039', badgeColor: null, badgeKey: null, prefetch: 'radar360' as PrefetchKey },
+              { label: 'Me Explique', icon: Bot,     to: '/me-explique',       color: '#EFE039', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
             ].map((item) => {
               const Icon = item.icon;
               const badgeCount = item.badgeKey ? shortcutBadges.counts[item.badgeKey] : 0;
