@@ -68,7 +68,6 @@ const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
-  const [ferramentasOpen, setFerramentasOpen] = useState(false);
   const [assistenteChooserOpen, setAssistenteChooserOpen] = useState(false);
   const [estudosOpen, setEstudosOpen] = useState(false);
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
@@ -140,7 +139,7 @@ const BottomNav = () => {
 
   const FERRAMENTAS: Array<{ id: string; label: string; desc: string; icon: any; action: () => void; hot?: boolean; prefetch?: PrefetchKey }> = [
     { id: 'desktop', label: 'Desktop', desc: 'Versão para computador', icon: Monitor, action: () => navigate('/desktop'), hot: true, prefetch: 'desktop' },
-    { id: 'peticao-inicial', label: 'Petição Inicial', desc: 'Gere petições com IA e jurisprudência real do STF/STJ', icon: FileSignature, action: () => navigate('/ferramentas/peticao-inicial'), prefetch: 'peticaoInicial' },
+
     { id: 'dicionario', label: 'Dicionário Jurídico', desc: 'Consulte termos e conceitos do Direito', icon: BookOpen, action: () => navigate('/ferramentas/dicionario'), prefetch: 'dicionario' },
     { id: 'radar360', label: 'Radar 360', desc: 'Alterações recentes e projetos de lei', icon: ScanEye, action: () => navigate('/radar-360'), prefetch: 'radar360' },
     { id: 'locais', label: 'Locais Jurídicos', desc: 'Tribunais, cartórios, delegacias e museus perto de você', icon: Scale, action: () => navigate('/ferramentas/locais'), prefetch: 'locais' },
@@ -162,11 +161,6 @@ const BottomNav = () => {
     { id: 'videoaulas', label: 'Videoaulas', desc: 'Aulas em vídeo com transcrição', icon: Video, action: () => navigate('/estudos'), prefetch: 'estudos' },
   ];
 
-
-  const handleFerramenta = (fn: () => void) => {
-    setFerramentasOpen(false);
-    fn();
-  };
 
   const handleEstudo = (fn: () => void) => {
     setEstudosOpen(false);
@@ -233,7 +227,7 @@ const BottomNav = () => {
               // clique instantâneo no mobile (onde hover não existe).
               for (const f of FERRAMENTAS) if (f.prefetch) prefetchRoute(f.prefetch);
             }}
-            onClick={() => { haptic.light(); setFerramentasOpen(true); }}
+            onClick={() => { haptic.light(); navigate('/ferramentas'); }}
             data-track="bottom_nav_click"
             data-track-destino="ferramentas"
             className="flex flex-col items-center justify-end -mt-11"
@@ -357,88 +351,7 @@ const BottomNav = () => {
     </AnimatePresence>
 
 
-    {/* Ferramentas Sheet */}
-    <AnimatePresence>
-      {ferramentasOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-            onClick={() => setFerramentasOpen(false)}
-            className="fixed inset-0 z-[70] bg-background/80 lg:hidden"
-          />
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-            style={{ willChange: 'transform', transform: 'translateZ(0)' }}
-            className="fixed bottom-0 left-0 right-0 z-[80] bg-card border-t border-border rounded-t-2xl pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] lg:hidden flex flex-col h-[90vh] md:max-w-2xl md:mx-auto md:max-h-[90vh] md:h-auto md:min-h-[60vh] md:rounded-3xl md:mb-6 md:border"
-          >
-            <div className="flex items-center justify-center pt-2 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-            </div>
-            <div className="flex items-center justify-between px-5 pb-4 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-                  <Gavel className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-display text-xl font-bold text-foreground leading-tight">Ferramentas</h3>
-                  <p className="font-body text-xs text-muted-foreground">Recursos jurídicos e utilitários</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setFerramentasOpen(false)}
-                aria-label="Fechar ferramentas"
-                className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
-              >
-                <ChevronDown className="w-5 h-5 text-foreground" aria-hidden="true" />
-              </button>
-            </div>
-            <div className="px-4 pb-8 overflow-y-auto flex-1">
-              <div className="rounded-2xl border border-border/60 bg-secondary/30 divide-y divide-border/50 overflow-hidden">
-                {FERRAMENTAS.map((f) => {
-                  const Icon = f.icon;
-                  return (
-                    <button
-                      key={f.id}
-                      onPointerEnter={() => { if (f.prefetch) prefetchRoute(f.prefetch); }}
-                      onFocus={() => { if (f.prefetch) prefetchRoute(f.prefetch); }}
-                      onClick={() => handleFerramenta(f.action)}
-                      data-track="ferramenta_abrir"
-                      data-ferramenta-id={f.id}
-                      data-ferramenta-nome={f.label}
-                      data-ferramenta-origin="bottom_sheet"
-                      className="w-full flex items-center gap-4 px-4 py-5 min-h-[84px] text-left hover:bg-secondary/60 active:bg-secondary transition-colors"
-                    >
-                      <div className="w-14 h-14 rounded-2xl bg-background flex items-center justify-center text-primary shrink-0">
-                        <Icon className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <div className="font-body text-base font-semibold text-foreground truncate">{f.label}</div>
-                        </div>
-                        <div className="font-body text-[12px] text-muted-foreground truncate mt-0.5">{f.desc}</div>
-                      </div>
-                      {f.hot && (
-                        <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold uppercase tracking-wide border border-primary/30">
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                          Em alta
-                        </span>
-                      )}
-                      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+
 
     {/* Assistente Chooser Sheet — grande, tela cheia */}
     <AnimatePresence>

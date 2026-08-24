@@ -112,7 +112,7 @@ const CATEGORIES: Category[] = [
     icon: Crown,
     items: [
       { id: 'admin-newsletter', label: 'Newsletter', icon: Mail, desc: 'Receba um resumo jurídico diário no e-mail', route: '/newsletter' },
-      { id: 'admin-peticao-inicial', label: 'Petição Inicial', icon: FileSignature, desc: 'Gere petições com IA e jurisprudência real do STF/STJ', route: '/ferramentas/peticao-inicial' },
+      { id: 'admin-peticao-inicial', label: 'Petição Inicial (Congelado)', icon: FileSignature, desc: 'Gere petições com IA e jurisprudência real do STF/STJ', route: '/ferramentas/peticao-inicial' },
       { id: 'admin-gravar-aula', label: 'Gravar aula', icon: Mic, desc: 'Grave aulas longas com resumo automático por IA', route: '/anotacoes/audio' },
       { id: 'admin-horus-congelado', label: 'Assistente Horus (Congelado)', icon: MessageCircle, desc: 'Assistente virtual por IA (oculto do app principal)', route: '/assistente-horus' },
       { id: 'admin-blog-congelado', label: 'Blog Jurídico (Congelado)', icon: Rss, desc: 'Artigos jurídicos (oculto do app principal)', route: '/blog' },
