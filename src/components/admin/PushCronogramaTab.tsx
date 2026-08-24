@@ -303,15 +303,6 @@ export default function PushCronogramaTab() {
         </div>
       </div>
 
-      {resumo.enviadas > 0 && resumo.entregues === 0 && (
-        <div className="flex items-start gap-2.5 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5 text-amber-600/90 dark:text-amber-400/90">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-          <div className="text-[11px] leading-relaxed">
-            <strong>Push sem confirmação de entrega.</strong> Verifique as permissões de notificação, modo Não Perturbe e otimização de bateria do aparelho. O servidor aceitou {resumo.enviadas} envio(s) hoje.
-          </div>
-        </div>
-      )}
-
       <div className="flex items-center justify-between pt-1">
         <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5" /> Linha do tempo de hoje
