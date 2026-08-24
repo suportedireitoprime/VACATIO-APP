@@ -51,7 +51,7 @@ jobs:
           sdkmanager --list_installed | grep -E 'platforms;android-36|build-tools;36.0.0|platform-tools' || true
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Remove Lovable hot-reload from capacitor.config.ts
         run: |
