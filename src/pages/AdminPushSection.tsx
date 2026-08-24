@@ -356,11 +356,9 @@ export default function AdminPushSection() {
     <div className="min-h-dvh bg-background">
       <PageHeader title={meta.title} subtitle={meta.subtitle} onBack={() => navigate('/admin-push')} />
       <div className="max-w-3xl mx-auto p-4 space-y-4">
-        <div className="grid grid-cols-4 gap-2">
-          <StatCard label="Devices" value={stats.total} />
-          <StatCard icon={<Smartphone className="w-3 h-3" />} label="Android" value={stats.android} />
-          <StatCard icon={<Smartphone className="w-3 h-3" />} label="iOS" value={stats.ios} />
-          <StatCard icon={<Globe className="w-3 h-3" />} label="Web" value={stats.web} />
+        <div className="grid grid-cols-2 gap-2">
+          <StatCard icon={<Smartphone className="w-3 h-3" />} label="Android" value={`${stats.android} (${stats.total > 0 ? Math.round((stats.android / stats.total) * 100) : 0}%)`} />
+          <StatCard icon={<Smartphone className="w-3 h-3" />} label="iOS" value={`${stats.ios} (${stats.total > 0 ? Math.round((stats.ios / stats.total) * 100) : 0}%)`} />
         </div>
 
         {section === "enviar" && (
@@ -715,10 +713,10 @@ export default function AdminPushSection() {
   );
 }
 
-function StatCard({ label, value, icon }: { label: string; value: number; icon?: React.ReactNode }) {
+function StatCard({ label, value, icon }: { label: string; value: number | string; icon?: React.ReactNode }) {
   return (
-    <Card className="p-2 text-center">
-      <div className="text-[10px] text-muted-foreground flex items-center justify-center gap-1">{icon}{label}</div>
+    <Card className="p-2 text-center bg-muted/40 border-0 shadow-none">
+      <div className="text-[10px] text-muted-foreground flex items-center justify-center gap-1 uppercase tracking-wider">{icon}{label}</div>
       <div className="text-lg font-bold">{value}</div>
     </Card>
   );
