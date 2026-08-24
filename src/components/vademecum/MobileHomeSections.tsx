@@ -21,7 +21,6 @@ import { useVoiceInput } from '@/hooks/useVoiceInput';
 import VoiceCaptureOverlay from './VoiceCaptureOverlay';
 import HomeNoticiasCarousel from './HomeNoticiasCarousel';
 import HomeCard from './HomeCard';
-import ContinuarLendo from './ContinuarLendo';
 import { useOutrasNormasCounts } from '@/hooks/useOutrasNormasCounts';
 import JurisprudenciaSheet from './JurisprudenciaSheet';
 import { bandeiraUF } from '@/data/estadoFlags';
@@ -309,8 +308,6 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
 
   return (
     <div className="space-y-6 pt-4">
-      {/* Card "Continuar lendo" — retomar última atividade */}
-      <ContinuarLendo />
 
       {/* Carrossel de notícias no topo — full-bleed (sem margens laterais) */}
       <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
