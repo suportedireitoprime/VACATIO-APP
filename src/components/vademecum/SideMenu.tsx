@@ -50,32 +50,6 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    title: 'Estudar',
-    items: [
-      { id: 'estudar', label: 'Estudos', icon: GraduationCap },
-      { id: 'resumos', label: 'Resumos', icon: StickyNote },
-      { id: 'biblioteca', label: 'Biblioteca', icon: Library },
-    ],
-  },
-  {
-    title: 'Legislação',
-    items: [
-      { id: 'constituicao', label: 'Constituição Federal', icon: Landmark },
-      { id: 'codigos', label: 'Códigos', icon: BookOpen },
-      { id: 'estatutos', label: 'Estatutos', icon: Shield },
-      { id: 'leis-ordinarias', label: 'Leis Ordinárias', icon: FileText },
-      { id: 'decretos', label: 'Decretos', icon: ScrollText },
-      { id: 'sumulas', label: 'Jurisprudência', icon: Gavel },
-    ],
-  },
-  {
-    title: 'Conteúdo',
-    items: [
-      { id: 'explicacao', label: 'Artigos e Análises', icon: FileText },
-      { id: 'atualizacao', label: 'Notícias Jurídicas', icon: Newspaper },
-    ],
-  },
-  {
     title: 'Sistema',
     items: [
       { id: 'sobre', label: 'Sobre o App', icon: Info },
