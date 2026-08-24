@@ -4,8 +4,8 @@ import { useScreenTracking } from "@/lib/screenTracking";
 import { initNavTelemetry, markRouteChange } from "@/lib/navTelemetry";
 import { prefetchNearby } from "@/lib/nearbyPrefetch";
 
-// IntroOverlay desativado: o app agora usa apenas o splash nativo estático.
-// import IntroOverlay from "@/components/IntroOverlay";
+// Splash animado
+import { IntroOverlay } from "@/components/IntroOverlay";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
 
 
@@ -546,6 +546,7 @@ function AnimatedRoutes() {
 
   return (
     <div className="overflow-x-hidden">
+      <IntroOverlay />
       <NativeBootstrap />
       <PushNavListener />
       <DeepLinkBootstrap />

@@ -51,7 +51,7 @@ jobs:
           sdkmanager --list_installed | grep -E 'platforms;android-36|build-tools;36.0.0|platform-tools' || true
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Remove Lovable hot-reload from capacitor.config.ts
         run: |
@@ -296,7 +296,9 @@ jobs:
           # não cobre 100% dos pixels acima da status bar em todos os aparelhos.
           # Ícone do launcher segue amarelo (é o ícone na home, não afeta a UI).
           if [ -d assets ] && ls assets/*.png >/dev/null 2>&1; then
-            bunx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#EFE039' --iconBackgroundColorDark '#EFE039' --splashBackgroundColor '#FFD500' --splashBackgroundColorDark '#FFD500'
+            rm -rf node_modules/@capacitor/assets node_modules/sharp
+            npm install --no-save --platform=linux --arch=x64 sharp @capacitor/assets
+            npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#EFE039' --iconBackgroundColorDark '#EFE039' --splashBackgroundColor '#FFD500' --splashBackgroundColorDark '#FFD500'
           else
             echo "No native image assets found; skipping capacitor-assets."
           fi
