@@ -224,6 +224,14 @@ export async function getAprenderCache<T = any>(key: string): Promise<T | null> 
   } catch { return null; }
 }
 
+export async function getAprenderCacheEntry<T = any>(key: string): Promise<{ payload: T; updatedAt: number } | null> {
+  try {
+    const row = await db.aprenderCache.get(key);
+    if (!row) return null;
+    return { payload: JSON.parse(row.payload) as T, updatedAt: row.updatedAt };
+  } catch { return null; }
+}
+
 export async function setAprenderCache(key: string, kind: 'area' | 'aula' | 'home', payload: any): Promise<void> {
   try {
     await db.aprenderCache.put({
