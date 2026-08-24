@@ -4,13 +4,11 @@ import { motion } from 'framer-motion';
 import { lazy, Suspense, useState } from 'react';
 import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
 import { PageHeader } from '@/components/vademecum/PageHeader';
-import { useTrackArea } from "@/hooks/useTrackArea";
 import { DESKTOP_TOOL_GROUPS, DESKTOP_TOOLS_FLAT } from '@/config/desktopTools';
 
 const DicionarioJuridico = lazy(() => import('@/components/ferramentas/DicionarioJuridico'));
 
 const Ferramentas = () => {
-  useTrackArea("ferramentas_aberta");
   const navigate = useNavigate();
   const [dicionarioOpen, setDicionarioOpen] = useState(false);
 
@@ -113,7 +111,6 @@ const Ferramentas = () => {
       title="Ferramentas"
       subtitle="Todos os recursos em um só lugar"
       mobileHeader={mobileHeader}
-      wide
     >
       <div className="px-4 sm:px-6 py-4 lg:hidden">
         {toolsList}
