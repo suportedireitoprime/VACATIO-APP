@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
-import { lazyWithRetry } from "@/utils/lazyWithRetry";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, ChevronRight, Clock, Film, Star } from 'lucide-react';
