@@ -55,6 +55,12 @@ const Onboarding = () => {
   const concluirNotificacoes = (granted: boolean) => {
     setPedirNotificacoes(false);
     toast.success(granted ? 'Notificações ativadas. Bora estudar!' : 'Bora estudar!');
+    
+    // Mostra o prompt nativo de avaliação após finalizar a triagem
+    import('@/lib/inAppReview').then(({ requestReviewNow }) => {
+      setTimeout(() => requestReviewNow(), 1500);
+    });
+
     navigate('/', { replace: true });
   };
 

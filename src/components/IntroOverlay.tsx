@@ -250,9 +250,9 @@ export const IntroOverlay: React.FC = () => {
                 mass: 0.7,
                 delay: 0.45,
               }}
-              className="font-display text-white text-[36px] leading-none font-black tracking-tight mt-4"
+              className="font-display text-zinc-900 text-[36px] leading-none font-black tracking-tight mt-4"
               style={{
-                textShadow: "0 2px 12px rgba(0,0,0,0.45), 0 4px 20px rgba(0,0,0,0.25)",
+                textShadow: "0 2px 12px rgba(0,0,0,0.1), 0 4px 20px rgba(0,0,0,0.05)",
               }}
             >
               Vade Mecum
@@ -269,7 +269,7 @@ export const IntroOverlay: React.FC = () => {
               }}
               className="mt-2 mb-1 h-[2px] w-24 rounded-full"
               style={{
-                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)",
+                background: "linear-gradient(90deg, transparent, rgba(24,24,27,0.3), transparent)",
                 transformOrigin: "center",
               }}
             />
@@ -283,9 +283,9 @@ export const IntroOverlay: React.FC = () => {
                 ease: [0.22, 1, 0.36, 1],
                 delay: 1.1,
               }}
-              className="font-body text-white/95 text-[15px] font-semibold tracking-[0.18em] uppercase"
+              className="font-body text-zinc-800 text-[15px] font-semibold tracking-[0.18em] uppercase"
               style={{
-                textShadow: "0 1px 6px rgba(0,0,0,0.45)",
+                textShadow: "0 1px 2px rgba(0,0,0,0.05)",
               }}
             >
               Uso Profissional
@@ -300,9 +300,9 @@ export const IntroOverlay: React.FC = () => {
                 ease: [0.22, 1, 0.36, 1],
                 delay: 1.5,
               }}
-              className="font-body text-white/60 text-[11px] mt-1.5 font-medium tracking-wider uppercase"
+              className="font-body text-zinc-700 text-[11px] mt-1.5 font-medium tracking-wider uppercase"
               style={{
-                textShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                textShadow: "0 1px 2px rgba(0,0,0,0.05)",
               }}
             >
               Legislação Comentada com IA
