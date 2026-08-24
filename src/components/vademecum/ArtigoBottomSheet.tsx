@@ -45,6 +45,7 @@ import { usePremiumUsage } from '@/hooks/usePremiumUsage';
 import PremiumGate, { type PremiumFeatureKey } from '@/components/PremiumGate';
 import { toast } from 'sonner';
 import { requireOnline } from '@/lib/offlineFeatures';
+import { haptic } from '@/lib/nativeHaptics';
 
 import { setupMediaSession, clearMediaSession } from '@/lib/mediaSession';
 import GrifoMagicoLoader from '@/components/vademecum/GrifoMagicoLoader';
@@ -61,7 +62,6 @@ import { getCachedArtigos } from '@/services/legislacaoService';
 import { useNarracaoFlutuante } from '@/stores/useNarracaoFlutuante';
 import { useLeituraStore } from '@/stores/useLeituraStore';
 import { useLocation } from 'react-router-dom';
-import { haptic } from '@/lib/nativeHaptics';
 
 
 import { LEIS_SUPABASE_URL, LEIS_SUPABASE_ANON_KEY, LEIS_SUPABASE_PROJECT_ID } from "@/lib/legislacaoBackend";
@@ -284,11 +284,22 @@ function applyHighlightsToText(
       result.push(segText);
     }
   }
-
   return result.length > 0 ? result : nodes;
 }
 
-const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, showNomenJuris = false, tabelaNome, forceShowRedacao, modificationInfo, breadcrumb, onNext, onPrev }: ArtigoBottomSheetProps) => {
+const ArtigoBottomSheet = ({ 
+  artigo, 
+  onClose, 
+  isFavorito, 
+  onToggleFavorito, 
+  showNomenJuris = false, 
+  tabelaNome, 
+  forceShowRedacao, 
+  modificationInfo, 
+  breadcrumb,
+  onNext,
+  onPrev,
+}: ArtigoBottomSheetProps) => {
   const [showRedacao, setShowRedacao] = useState(forceShowRedacao ?? false);
 
   // Reset showRedacao when forceShowRedacao changes (e.g. opening from novidades)
@@ -387,9 +398,9 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
   };
 
   useEffect(() => { setShowLembretesLocal(false); }, [artigo?.numero, tabelaNome]);
-  // Desktop/Mobile: pílula flutuante Narrar/Grifar quando há seleção de texto no artigo
+  // Desktop: pílula flutuante Narrar/Grifar quando há seleção de texto no artigo
   useEffect(() => {
-    if (!artigo) { setSelectionPill(null); return; }
+    if (!isDesktop || !artigo) { setSelectionPill(null); return; }
     const handler = () => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || sel.rangeCount === 0) { setSelectionPill(null); return; }
@@ -555,7 +566,6 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
       }
       invalidateCache(anotacoesKey(tabelaNome, artigo.numero, user.id));
       setAnotacoesRefreshTick((t) => t + 1);
-      haptic.success();
     } catch (err) {
       console.warn('persistMagicHighlights falhou', err);
       setAnotacoesRefreshTick((t) => t + 1);
@@ -1523,11 +1533,13 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
         return;
       }
         const anchor = sel.anchorNode;
-        if (!anchor || !containerRef.current?.contains(anchor)) return;
-        const newId = addHighlight();
-        if (newId && lastCreatedHlRef.current !== newId) {
-          lastCreatedHlRef.current = newId;
-          requestAnimationFrame(() => openCreatePrompt(newId));
+        if (anchor && containerRef.current?.contains(anchor)) {
+          const newId = addHighlight();
+          if (newId && lastCreatedHlRef.current !== newId) {
+            lastCreatedHlRef.current = newId;
+            haptic.selection();
+            requestAnimationFrame(() => openCreatePrompt(newId));
+          }
         }
       lastText = '';
     };
@@ -2227,6 +2239,7 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
               ? "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border-l border-white/5 bg-[#0f0f0f] p-0 shadow-2xl [&>button:last-child]:hidden top-0 right-0 h-full w-[460px] max-w-[90vw]"
               : "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-t-3xl border-t border-white/5 bg-[#0f0f0f] p-0 [&>button:last-child]:hidden top-auto bottom-0 h-[90dvh] max-h-[90dvh]"
           }
+
         >
         {!isDesktop && (
           <div className="shrink-0 flex justify-center pt-3 pb-1 bg-[#0f0f0f]">
@@ -2234,8 +2247,10 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
           </div>
         )}
 
+        {/* Scrollable content area: header, tabs and article content scroll up; bottom nav stays fixed */}
         <motion.div 
-          className="flex-1 flex flex-col min-h-0"
+          ref={scrollContainerRef as any} 
+          className="flex-1 overflow-y-auto min-h-0 relative overscroll-contain"
           drag={isDesktop ? false : "x"}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.4}
@@ -2249,8 +2264,6 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
             }
           }}
         >
-        {/* Scrollable content area: header, tabs and article content scroll up; bottom nav stays fixed */}
-        <div ref={scrollContainerRef as any} className="flex-1 overflow-y-auto min-h-0 relative overscroll-contain">
 
         {/* Top bar: heart/eye (left) + online count + close (right) */}
         <div className="px-4 pt-1 pb-2 flex items-center justify-between">
@@ -2980,7 +2993,7 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
         </Tabs>
 
 
-        </div>
+        </motion.div>
 
         {/* Floating FABs — Font size */}
         <div className={`absolute ${activeTab === 'artigo' ? 'bottom-32 sm:bottom-36' : 'bottom-6'} right-4 sm:right-5 z-[60] flex flex-col items-end gap-2`}>
@@ -3632,7 +3645,6 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
             />
           )}
         </Sheet>
-        </motion.div>
         </SheetContent>
       </Sheet>
 
@@ -3716,8 +3728,8 @@ const ArtigoBottomSheet = ({ artigo, onClose, isFavorito, onToggleFavorito, show
         document.body
       )}
 
-      {/* Desktop: pílula flutuante Narrar / Grifar ao selecionar trecho */}
-      {isDesktop && artigo && selectionPill && createPortal(
+      {/* Desktop/Mobile: pílula flutuante Narrar / Grifar ao selecionar trecho */}
+      {artigo && selectionPill && createPortal(
         <motion.div
           initial={{ opacity: 0, y: 6, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
