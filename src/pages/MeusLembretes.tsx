@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react';
 import { Bell, Plus, Clock, BookOpen, Smartphone, MessageCircle, Loader2, Sparkles, MapPin, Trash2, Home, GraduationCap, Briefcase, Building2, Grid2x2, Map, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AppHeader } from '@/components/layout/AppHeader';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import LembreteSheet from '@/components/lembretes/LembreteSheet';
@@ -29,6 +39,7 @@ const MeusLembretes = () => {
   const [editing, setEditing] = useState<any | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'reading' | 'location' | 'other'>('all');
+  const [reminderToDelete, setReminderToDelete] = useState<UnifiedReminder | null>(null);
 
   const load = async () => {
     if (!user) return;
@@ -93,8 +104,14 @@ const MeusLembretes = () => {
     }
   };
 
-  const removeReminder = async (r: UnifiedReminder) => {
-    if (!confirm(`Excluir "${r.title}"?`)) return;
+  const removeReminder = (r: UnifiedReminder) => {
+    setReminderToDelete(r);
+  };
+
+  const confirmDelete = async () => {
+    if (!reminderToDelete) return;
+    const r = reminderToDelete;
+    setReminderToDelete(null);
     if (r._type === 'reading') {
       const { error } = await supabase.from('reading_reminders').delete().eq('id', r.id);
       if (error) toast.error(error.message);
@@ -244,6 +261,23 @@ const MeusLembretes = () => {
         livroTitulo={editing?.livro_titulo || undefined}
         livroCapa={editing?.livro_capa || undefined}
       />
+
+      <AlertDialog open={!!reminderToDelete} onOpenChange={(open) => !open && setReminderToDelete(null)}>
+        <AlertDialogContent className="w-[90%] max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir lembrete?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o lembrete <strong className="text-foreground">"{reminderToDelete?.title}"</strong>? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
