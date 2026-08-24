@@ -1,30 +1,16 @@
-// Geofence caseiro usando @capacitor/geolocation em foreground (funciona em web também)
-// e @capacitor-community/background-geolocation para continuar rodando com o app
-// fechado / em segundo plano (Android usa foreground service, iOS Significant
-// Location Changes).
+// Geofence híbrido usando @capgo/background-geolocation para o app nativo
+// (iOS e Android) via Geofencing API (sem Foreground Service fixo/persistente)
+// e @capacitor/geolocation como fallback em foreground (para web).
 //
 // Regras:
 // - O lembrete só dispara na TRANSIÇÃO fora→dentro do raio (evita spam enquanto
 //   a pessoa fica no local). Enquanto está dentro, apenas mantemos o "presence
 //   banner" no topo do app e falamos "Você está no local" uma vez.
 // - Debounce adicional de 10 min por lembrete pra caso de GPS oscilar na borda.
+// - No background, a transição ativa o webhook no backend via Supabase Edge Function.
 
-import { Capacitor, registerPlugin } from '@capacitor/core';
-
-interface BackgroundGeolocationPlugin {
-  addWatcher(
-    options: {
-      backgroundMessage?: string;
-      backgroundTitle?: string;
-      requestPermissions?: boolean;
-      stale?: boolean;
-      distanceFilter?: number;
-    },
-    callback: (location: { latitude: number; longitude: number } | null, error?: unknown) => void,
-  ): Promise<string>;
-  removeWatcher(options: { id: string }): Promise<void>;
-}
-const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
+import { Capacitor } from '@capacitor/core';
+import { BackgroundGeolocation } from '@capgo/background-geolocation';
 import { supabase } from '@/integrations/supabase/client';
 import { haversineMeters } from './nativeGeocoder';
 
@@ -43,7 +29,7 @@ export interface GeofenceReminder {
 }
 
 let watchId: string | null = null;
-let bgWatcherId: string | null = null;
+let bgListenerInstalled = false;
 let reminders: GeofenceReminder[] = [];
 const cooldownMs = 10 * 60 * 1000;
 const localCooldown = new Map<string, number>();
@@ -194,29 +180,63 @@ async function startForegroundWatcher() {
   }
 }
 
-async function startBackgroundWatcher() {
+async function setupNativeGeofences() {
   if (!Capacitor.isNativePlatform()) return;
-  if (bgWatcherId) return;
+
   try {
-    bgWatcherId = await BackgroundGeolocation.addWatcher(
-      {
-        backgroundMessage: 'Vademecum monitora seus lembretes por local.',
-        backgroundTitle: 'Lembretes ativos',
-        requestPermissions: true,
-        stale: false,
-        distanceFilter: 50,
-      },
-      (location, error) => {
-        if (error) {
-          console.warn('[geofence-bg]', error);
-          return;
+    const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/location-reminder-horus`;
+
+    await BackgroundGeolocation.setupGeofencing({
+      url: webhookUrl,
+      notifyOnEntry: true,
+      notifyOnExit: true,
+      backgroundLocation: true
+    });
+
+    for (const r of reminders) {
+      try {
+        await BackgroundGeolocation.addGeofence({
+          identifier: r.id,
+          latitude: r.lat,
+          longitude: r.lng,
+          radius: r.radius_m
+        });
+      } catch (e) {
+        console.warn(`[geofence] failed to add geofence ${r.id}`, e);
+      }
+    }
+
+    if (!bgListenerInstalled) {
+      bgListenerInstalled = true;
+      await BackgroundGeolocation.addListener("geofenceTransition", (event: any) => {
+        const id = event.identifier || event.geofence?.identifier;
+        if (!id) return;
+        
+        const action = String(event.action || event.transition).toUpperCase();
+        const r = reminders.find(x => x.id === id);
+        if (!r) return;
+
+        const isEnter = action === "ENTER" || action === "1";
+        if (isEnter) {
+          if (!insideIds.has(r.id)) {
+            insideIds.add(r.id);
+            emitPresence();
+            speakArrived(r.label);
+            spokenOnce.add(r.id);
+            fireReminder(r);
+          }
+        } else {
+          if (insideIds.has(r.id)) {
+            insideIds.delete(r.id);
+            spokenOnce.delete(r.id);
+            localCooldown.delete(r.id);
+            emitPresence();
+          }
         }
-        if (!location) return;
-        checkPosition(location.latitude, location.longitude);
-      },
-    );
+      });
+    }
   } catch (e) {
-    console.warn('[geofence] background watch falhou', e);
+    console.warn('[geofence] background geofencing falhou', e);
   }
 }
 
@@ -225,7 +245,7 @@ export async function startGeofenceWatcher(userId: string): Promise<void> {
   if (!reminders.length) return;
 
   await startForegroundWatcher();
-  await startBackgroundWatcher();
+  await setupNativeGeofences();
 }
 
 export async function stopGeofenceWatcher(): Promise<void> {
@@ -236,16 +256,22 @@ export async function stopGeofenceWatcher(): Promise<void> {
     } catch {}
     watchId = null;
   }
-  if (bgWatcherId) {
+  
+  if (Capacitor.isNativePlatform()) {
     try {
-      await BackgroundGeolocation.removeWatcher({ id: bgWatcherId });
-    } catch {}
-    bgWatcherId = null;
+      for (const r of reminders) {
+        await BackgroundGeolocation.removeGeofence({ identifier: r.id });
+      }
+    } catch (e) {
+      console.warn('[geofence] falha ao remover geofences', e);
+    }
   }
 }
 
 export async function refreshGeofenceReminders(userId: string): Promise<void> {
-  await loadReminders(userId);
+  // Para atualizar nativamente, paramos os antigos e registramos novamente
+  await stopGeofenceWatcher();
+  await startGeofenceWatcher(userId);
 }
 
 /**

@@ -11,9 +11,6 @@ importers:
       '@aparajita/capacitor-secure-storage':
         specifier: ^8.0.0
         version: 8.0.0
-      '@capacitor-community/background-geolocation':
-        specifier: ^1.2.26
-        version: 1.2.26(@capacitor/core@8.5.0)
       '@capacitor-community/file-opener':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.5.0)
@@ -131,6 +128,9 @@ importers:
       '@capawesome/capacitor-maps-launcher':
         specifier: ^0.1.1
         version: 0.1.1(@capacitor/core@8.5.0)
+      '@capgo/background-geolocation':
+        specifier: ^8.4.3
+        version: 8.4.3(@capacitor/core@8.5.0)
       '@capgo/native-purchases':
         specifier: ^8.6.4
         version: 8.6.6(@capacitor/core@8.5.0)
@@ -1061,11 +1061,6 @@ packages:
     resolution: {integrity: sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==}
     engines: {node: '>=6.9.0'}
 
-  '@capacitor-community/background-geolocation@1.2.26':
-    resolution: {integrity: sha512-kuva8VQ6zM+uIKgHUJTP87IYbmGKhX7DZw62JYfGZ888h4Xr5zeN+UTR6KBRHQVrGBpzSfbv+6/HQVuHYa7W5A==}
-    peerDependencies:
-      '@capacitor/core': '>=3.0.0'
-
   '@capacitor-community/file-opener@8.0.1':
     resolution: {integrity: sha512-kiPybhOlDUMmt5LLsulxLZC/j4gHcPuvKsdbCZTDsQTShGc2G5SNqalYSJUFUfNYl3gQSF7jnNPRlfD5JnSeaw==}
     engines: {node: '>=16.0.0', npm: '>=8.0.0'}
@@ -1288,6 +1283,11 @@ packages:
 
   '@capawesome/capacitor-maps-launcher@0.1.1':
     resolution: {integrity: sha512-f+l1Ex+qdAv0W/S4Mb8uZ/Y2Pb9WJJCjfc2rViQ1FK8UBM4fnTNeURLk8s7gwpVPhW/h4LHgr7TqFQi+8acwnA==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capgo/background-geolocation@8.4.3':
+    resolution: {integrity: sha512-FMzq8/0UZDeNjUIfU3hHZ2MCGrSSU+CPPSc81LWZUOrya2RL42awB0A4tLUChVr64JQq4JnrF/6ceXsdojXpvA==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -8353,10 +8353,6 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
-  '@capacitor-community/background-geolocation@1.2.26(@capacitor/core@8.5.0)':
-    dependencies:
-      '@capacitor/core': 8.5.0
-
   '@capacitor-community/file-opener@8.0.1(@capacitor/core@8.5.0)':
     dependencies:
       '@capacitor/core': 8.5.0
@@ -8587,6 +8583,10 @@ snapshots:
       '@capacitor/core': 8.5.0
 
   '@capawesome/capacitor-maps-launcher@0.1.1(@capacitor/core@8.5.0)':
+    dependencies:
+      '@capacitor/core': 8.5.0
+
+  '@capgo/background-geolocation@8.4.3(@capacitor/core@8.5.0)':
     dependencies:
       '@capacitor/core': 8.5.0
 
