@@ -442,13 +442,6 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
               >
                 <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.15] text-black">
                   <motion.div
-                    animate={{ x: [0, -10, 0], y: [0, -5, 0], rotate: [12, 8, 12] }}
-                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -left-2 -bottom-2"
-                  >
-                    <Scale className="w-16 h-16" strokeWidth={1.5} />
-                  </motion.div>
-                  <motion.div
                     animate={{ x: [0, 10, 0], y: [0, 5, 0], rotate: [-12, -16, -12] }}
                     transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute right-12 -top-4"
