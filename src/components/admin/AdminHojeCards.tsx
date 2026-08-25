@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { UserDossieSheet } from './UserDossieSheet';
 import { rotaParaFuncao } from '@/lib/rotaFuncoes';
 
-type CardId = 'online' | 'cadastros' | 'trial';
+type CardId = 'online5m' | 'online' | 'cadastros' | 'trial';
 
 interface Row {
   key: string;
@@ -104,10 +104,11 @@ const writeSeen = (id: CardId, d: Date, seen: Seen) => {
 };
 
 export function AdminHojeCards() {
-  const [counts, setCounts] = useState<Record<CardId, number>>({ online: 0, cadastros: 0, trial: 0 });
+  const [counts, setCounts] = useState<Record<CardId, number>>({ online5m: 0, online: 0, cadastros: 0, trial: 0 });
   const [seenCounts, setSeenCounts] = useState<Record<CardId, number>>(() => {
     const hoje = new Date();
     return {
+      online5m: readSeen('online5m', hoje).count,
       online: readSeen('online', hoje).count,
       cadastros: readSeen('cadastros', hoje).count,
       trial: readSeen('trial', hoje).count,
@@ -170,12 +171,15 @@ export function AdminHojeCards() {
 
   const load = useCallback(async () => {
     const hoje = new Date();
-    const { data } = await supabase.rpc('admin_metricas_dia' as any, { _dia: isoDate(hoje) });
+    const [{ data }, { count: c5m }] = await Promise.all([
+      supabase.rpc('admin_metricas_dia' as any, { _dia: isoDate(hoje) }),
+      supabase.from('user_activity_log').select('*', { count: 'exact', head: true }).gte('last_seen_at', new Date(Date.now() - 5 * 60 * 1000).toISOString()),
+    ]);
     const m = (data as any) || {};
-    const novos: Record<CardId, number> = { online: m.online || 0, cadastros: m.cadastros || 0, trial: m.trial || 0 };
+    const novos: Record<CardId, number> = { online5m: c5m || 0, online: m.online || 0, cadastros: m.cadastros || 0, trial: m.trial || 0 };
     setCounts(novos);
     // Primeira visita do dia: considera tudo como já visto (sem badge)
-    (['online', 'cadastros', 'trial'] as CardId[]).forEach((id) => {
+    (['online5m', 'online', 'cadastros', 'trial'] as CardId[]).forEach((id) => {
       if (!localStorage.getItem(seenStorageKey(id, hoje))) {
         writeSeen(id, hoje, { count: novos[id], keys: [] });
         setSeenCounts((c) => ({ ...c, [id]: novos[id] }));
@@ -194,16 +198,34 @@ export function AdminHojeCards() {
     setLoading(true);
     setRows([]);
     try {
-      const { data } = await supabase.rpc('admin_lista_dia' as any, { _tipo: id, _dia: isoDate(date) });
-      const list = ((data as any[]) || []).map((r) => ({
-        key: r.key,
-        userId: r.user_id,
-        title: r.title || 'Usuário',
-        email: r.email || null,
-        subtitle: id === 'online' ? rotaParaFuncao(r.subtitle).label : r.subtitle,
-        meta: hora(r.at),
-        acessos: typeof r.acessos === 'number' ? r.acessos : null,
-      }));
+      let rawList: any[] = [];
+      if (id === 'online5m') {
+        // Query users seen in last 5m regardless of selected day (it only makes sense for "now")
+        const limitDate = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const { data } = await supabase.from('user_activity_log').select('*').gte('last_seen_at', limitDate).order('last_seen_at', { ascending: false });
+        rawList = ((data as any[]) || []).map((r) => ({
+          key: r.user_id,
+          userId: r.user_id,
+          title: r.display_name || 'Usuário',
+          email: r.email || null,
+          subtitle: rotaParaFuncao(r.current_route).label,
+          meta: hora(r.last_seen_at),
+          acessos: null,
+        }));
+      } else {
+        const { data } = await supabase.rpc('admin_lista_dia' as any, { _tipo: id, _dia: isoDate(date) });
+        rawList = ((data as any[]) || []).map((r) => ({
+          key: r.key,
+          userId: r.user_id,
+          title: r.title || 'Usuário',
+          email: r.email || null,
+          subtitle: id === 'online' ? rotaParaFuncao(r.subtitle).label : r.subtitle,
+          meta: hora(r.at),
+          acessos: typeof r.acessos === 'number' ? r.acessos : null,
+        }));
+      }
+      
+      const list = rawList;
       setRows(list);
       if (sameDay(date, new Date())) {
         const seen = readSeen(id, date);
@@ -263,12 +285,14 @@ export function AdminHojeCards() {
 
 
   const CARDS: { id: CardId; label: string; icon: any }[] = [
+    { id: 'online5m', label: 'Online 5 min', icon: Sparkles },
     { id: 'online', label: 'Online hoje', icon: Radio },
     { id: 'cadastros', label: 'Cadastrados hoje', icon: UserPlus },
     { id: 'trial', label: 'Iniciou teste', icon: Sparkles },
   ];
 
   const titles: Record<CardId, string> = {
+    online5m: 'Online (últimos 5m)',
     online: 'Online',
     cadastros: 'Cadastrados',
     trial: 'Iniciaram assinatura teste',
@@ -285,7 +309,7 @@ export function AdminHojeCards() {
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-2 mb-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
         {CARDS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
