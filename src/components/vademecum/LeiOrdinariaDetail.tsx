@@ -251,8 +251,8 @@ const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
 
                 {/* Ementa */}
                 {parsed.ementa && (
-                  <div className="bg-card/50 border border-destructive/20 rounded-2xl p-3 sm:p-4">
-                    <p className="text-destructive font-body italic text-sm leading-relaxed">
+                  <div className="bg-card/50 border border-red-500/20 rounded-2xl p-3 sm:p-4">
+                    <p className="text-red-400 font-body italic text-[15px] leading-relaxed">
                       {parsed.ementa}
                     </p>
                   </div>
@@ -268,9 +268,6 @@ const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
                 {/* Artigos */}
                 {parsed.artigos.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
-                      📋 Artigos ({parsed.artigos.length})
-                    </p>
                     {parsed.artigos.map((art, i) => (
                       <motion.button
                         key={i}
