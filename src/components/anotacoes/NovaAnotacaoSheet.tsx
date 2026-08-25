@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, Save } from 'lucide-react';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { db } from '@/services/offlineDb';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { v4 as uuidv4 } from 'uuid';
@@ -73,6 +74,22 @@ export default function NovaAnotacaoSheet({ open, onClose, onSaved }: NovaAnotac
         artigoId,
         data: JSON.stringify(payload)
       });
+
+      // Salva no Supabase se logado
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user?.id) {
+        await supabase
+          .from('artigos_anotacoes')
+          .upsert({
+            tabela_codigo: lei.tabela_nome,
+            numero_artigo: artigoNumero,
+            anotacao: texto.trim(),
+            user_id: sessionData.session.user.id
+          }, {
+            onConflict: 'tabela_codigo, numero_artigo, user_id'
+          });
+      }
+
       toast.success('Anotação salva!');
       onSaved();
       handleClose();

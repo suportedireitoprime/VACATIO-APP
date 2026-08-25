@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { StickyNote, ChevronRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { StickyNote, ChevronRight, Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import PessoalListLayout from "./PessoalListLayout";
+import NovaAnotacaoSheet from "@/components/anotacoes/NovaAnotacaoSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { getCache, setCache } from "@/lib/pessoalCache";
 import { getLeiByTabela } from "@/data/leisCatalog";
@@ -23,23 +24,26 @@ export default function AnotacoesPage() {
   const [items, setItems] = useState<Anot[]>(() => getCache<Anot[]>(CK) ?? []);
   const [loading, setLoading] = useState(items.length === 0);
   const [offline, setOffline] = useState(!navigator.onLine);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const loadData = async () => {
+    const { data, error } = await supabase
+      .from("artigos_anotacoes")
+      .select("id, tabela_codigo, numero_artigo, anotacao, updated_at")
+      .order("updated_at", { ascending: false });
+    if (!error && data) {
+      setItems(data as any);
+      setCache(CK, data);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     const on = () => setOffline(false);
     const off = () => setOffline(true);
     window.addEventListener("online", on);
     window.addEventListener("offline", off);
-    (async () => {
-      const { data, error } = await supabase
-        .from("artigos_anotacoes")
-        .select("id, tabela_codigo, numero_artigo, anotacao, updated_at")
-        .order("updated_at", { ascending: false });
-      if (!error && data) {
-        setItems(data as any);
-        setCache(CK, data);
-      }
-      setLoading(false);
-    })();
+    loadData();
     return () => {
       window.removeEventListener("online", on);
       window.removeEventListener("offline", off);
@@ -120,6 +124,28 @@ export default function AnotacoesPage() {
           })}
         </div>
       )}
+
+      {/* FAB (Floating Action Button) para criar nova anotação */}
+      <AnimatePresence>
+        {!sheetOpen && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            onClick={() => setSheetOpen(true)}
+            className="fixed bottom-24 right-5 w-14 h-14 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-xl flex items-center justify-center transition-colors z-40 active:scale-95"
+            aria-label="Nova anotação"
+          >
+            <Plus className="w-6 h-6" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <NovaAnotacaoSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onSaved={loadData}
+      />
     </PessoalListLayout>
   );
 }
