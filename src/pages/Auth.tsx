@@ -860,9 +860,10 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
         <div className="flex flex-col gap-3 w-full max-w-[400px] mx-auto">
           <button
             onClick={() => { setMode('login'); setDrawerOpen(true); }}
-            className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base shadow-lg active:scale-95 transition-transform"
+            className="relative overflow-hidden group w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base shadow-lg active:scale-95 transition-transform"
           >
-            Acessar conta
+            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
+            <span className="relative z-10">Acessar conta</span>
           </button>
           
           <button

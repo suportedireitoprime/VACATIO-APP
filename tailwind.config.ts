@@ -168,6 +168,7 @@ export default {
         "pulse-hazard": "pulse-hazard 2s ease-in-out infinite",
         waveform: "waveform 1.1s ease-in-out infinite",
         "cascade-in": "cascade-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both",
+        shimmer: "shimmer 2.5s ease-in-out infinite",
       },
     },
   },
