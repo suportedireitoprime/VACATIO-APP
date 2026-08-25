@@ -345,6 +345,12 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [legalOpen, setLegalOpen] = useState<null | 'privacidade' | 'termos'>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+
+  // Reseta o form de e-mail ao fechar o drawer ou mudar de aba
+  useEffect(() => {
+    if (!drawerOpen) setShowEmailForm(false);
+  }, [drawerOpen, mode]);
 
   // Pré-carrega o bundle da triagem para abrir sem delay logo após signup.
   useEffect(() => {
@@ -525,7 +531,26 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       )}
 
       <AnimatePresence mode="wait">
-        <motion.form
+        {!showEmailForm && mode !== 'forgot' ? (
+          <motion.div
+            key="email-btn"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="w-full"
+          >
+            <button
+              type="button"
+              onClick={() => setShowEmailForm(true)}
+              className="w-full py-4 rounded-2xl bg-white/[0.04] text-white font-body font-semibold text-base flex items-center justify-center gap-2.5 border border-white/10 hover:bg-white/10 transition-colors shadow-sm"
+            >
+              <Mail className="w-5 h-5 text-white/50" />
+              Usar e-mail com senha
+            </button>
+          </motion.div>
+        ) : (
+          <motion.form
           key={mode + (resetEmailSent ? '-sent' : '')}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -633,6 +658,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             </button>
           )}
         </motion.form>
+        )}
       </AnimatePresence>
 
       <LegalSheet
