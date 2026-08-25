@@ -8,7 +8,7 @@ import {
   Star, Sprout, Globe2, Tent, Mountain, Palette, Store, Ribbon,
   Lock, HeartHandshake, Pill, AlertTriangle, Phone, UserCog, FileWarning,
   FileText, ScrollText, Handshake, SquareStack, CircleDot, Wifi, BookMarked,
-  type LucideIcon,
+  ChevronDown, type LucideIcon,
 } from 'lucide-react';
 import type { LeiCatalogItem } from '@/data/leisCatalog';
 import { useNavigate } from 'react-router-dom';
@@ -251,89 +251,92 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          className="fixed z-50 inset-x-0 bottom-0 top-[10vh] bg-background flex flex-col rounded-t-3xl lg:top-[10%] lg:max-w-[800px] lg:mx-auto lg:rounded-t-2xl lg:shadow-2xl"
+          className="fixed z-50 inset-0 bg-background flex flex-col lg:top-[10%] lg:bottom-auto lg:h-[80vh] lg:max-w-[800px] lg:mx-auto lg:rounded-2xl lg:shadow-2xl"
         >
-          {/* Header: back + título */}
-          <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-border">
-            <button
-              onClick={onClose}
-              className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0"
-              aria-label="Fechar"
-            >
-              <ArrowLeft className="w-6 h-6 text-foreground" />
-            </button>
-            <div className="flex-1 text-center">
-              <h2 className="font-display text-lg font-semibold text-foreground tracking-wide">Pesquise leis e artigos</h2>
+          {/* Header estilizado (layout APP.PRIME) */}
+          <div className="bg-gradient-to-br from-primary to-primary/80 px-4 pb-4 pt-[calc(0.5rem+var(--sai-top,env(safe-area-inset-top,0px)))] shrink-0 shadow-md">
+            <div className="flex items-center justify-center pb-2">
+              <div className="w-10 h-1 rounded-full bg-white/30" />
             </div>
-            <div className="w-12 shrink-0" />
-          </div>
-
-          {/* Mode toggle: Nº do Artigo | Nº da Lei | Recentes */}
-          <div className="flex gap-2 px-4 py-3">
-            <button
-              onClick={() => { track('search_modo_trocado', { modo: 'leis' }); setMode('leis'); }}
-              data-track="search_modo_trocado"
-              data-modo="leis"
-              className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold transition-all ${
-                mode === 'leis' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              <Scale className="w-5 h-5" />
-              <span className="whitespace-nowrap">Leis</span>
-            </button>
-            <button
-              onClick={() => { track('search_modo_trocado', { modo: 'conteudo' }); setMode('conteudo'); }}
-              data-track="search_modo_trocado"
-              data-modo="conteudo"
-              className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold transition-all ${
-                mode === 'conteudo' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              <BookOpen className="w-5 h-5" />
-              <span className="whitespace-nowrap">Conteúdo</span>
-            </button>
-            <button
-              onClick={() => { track('search_modo_trocado', { modo: 'favoritos' }); setMode('favoritos'); }}
-              data-track="search_modo_trocado"
-              data-modo="favoritos"
-              className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold transition-all ${
-                mode === 'favoritos' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              <Heart className={`w-5 h-5 ${mode === 'favoritos' ? 'fill-current' : ''}`} />
-              <span className="whitespace-nowrap">Favoritos</span>
-            </button>
-          </div>
-
-
-          {/* Barra de pesquisa — sempre visível nos três modos */}
-          <div className="flex items-center gap-3 px-4 pt-3 pb-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                ref={inputRef}
-                value={voice.listening && voice.partial ? voice.partial : query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={placeholder}
-                inputMode="text"
-                className="pl-11 pr-4 h-14 bg-muted border-none text-base rounded-xl"
-              />
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={onClose}
+                aria-label="Fechar busca"
+                className="w-11 h-11 rounded-full bg-black/20 border border-white/20 flex items-center justify-center active:scale-95 transition shrink-0"
+              >
+                <ChevronDown className="w-6 h-6 text-white" />
+              </button>
+              <div className="relative flex-1 min-w-0">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70" />
+                <input
+                  ref={inputRef}
+                  value={voice.listening && voice.partial ? voice.partial : query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={placeholder}
+                  className="w-full h-12 pl-11 pr-10 rounded-2xl bg-black/20 border border-white/25 text-white placeholder:text-white/50 outline-none focus:border-white/40 transition-colors"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={voice.toggle}
+                aria-label={voice.listening ? "Parar gravação" : "Pesquisar por voz"}
+                className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition ${
+                  voice.listening
+                    ? "bg-red-500 text-white animate-pulse shadow-red-500/40"
+                    : "bg-black/20 border border-white/25 text-white hover:bg-black/30"
+                }`}
+              >
+                {voice.listening ? <MicOff className="w-5 h-5" strokeWidth={2.4} /> : <Mic className="w-5 h-5" strokeWidth={2.4} />}
+              </button>
             </div>
-            <button
-              onClick={voice.toggle}
-              aria-label={voice.listening ? 'Parar' : 'Buscar por voz'}
-              className={`btn-attention-shine w-14 h-14 rounded-full flex items-center justify-center shrink-0 transition-all shadow-lg ${
-                voice.listening
-                  ? 'bg-red-500 text-white animate-pulse shadow-red-500/40'
-                  : 'bg-primary text-primary-foreground shadow-primary/30'
-              }`}
-            >
-              {voice.listening ? <MicOff className="w-6 h-6 relative z-[2]" /> : <Mic className="w-6 h-6 relative z-[2]" />}
-            </button>
+
+            {/* Menu de alternância de abas */}
+            <div className="mt-4 flex items-center gap-1 p-1 rounded-full bg-black/20 border border-white/15 overflow-x-auto hide-scrollbar">
+              <button
+                onClick={() => { track('search_modo_trocado', { modo: 'leis' }); setMode('leis'); }}
+                className={`flex-1 shrink-0 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-wide font-bold transition-all ${
+                  mode === 'leis'
+                    ? "bg-white text-black shadow-sm"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                Leis
+              </button>
+              <button
+                onClick={() => { track('search_modo_trocado', { modo: 'conteudo' }); setMode('conteudo'); }}
+                className={`flex-1 shrink-0 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-wide font-bold transition-all ${
+                  mode === 'conteudo'
+                    ? "bg-white text-black shadow-sm"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                Conteúdo
+              </button>
+              <button
+                onClick={() => { track('search_modo_trocado', { modo: 'jurisprudencia' }); setMode('jurisprudencia'); }}
+                className={`flex-1 shrink-0 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-wide font-bold transition-all ${
+                  mode === 'jurisprudencia'
+                    ? "bg-white text-black shadow-sm"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                Jurisprudência
+              </button>
+              <button
+                onClick={() => { track('search_modo_trocado', { modo: 'favoritos' }); setMode('favoritos'); }}
+                className={`flex-1 shrink-0 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-wide font-bold transition-all ${
+                  mode === 'favoritos'
+                    ? "bg-white text-black shadow-sm"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                Favoritos
+              </button>
+            </div>
           </div>
 
           {/* Results */}
-          <div className="flex-1 overflow-y-auto px-2 pb-6 relative">
+          <div className="flex-1 overflow-y-auto px-2 pb-[calc(3.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] relative border-t border-border/50 pt-2">
             {mode === 'leis' && (() => {
               const temTextoSemNumero = !artigoQueryDigits && query.trim().length >= 1;
               const leisPorTexto = temTextoSemNumero ? filteredByNumero.slice(0, 40) : [];
