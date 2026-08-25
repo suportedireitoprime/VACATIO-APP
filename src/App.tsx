@@ -4,8 +4,8 @@ import { useScreenTracking } from "@/lib/screenTracking";
 import { initNavTelemetry, markRouteChange } from "@/lib/navTelemetry";
 import { prefetchNearby } from "@/lib/nearbyPrefetch";
 
-// Splash animado
-import { IntroOverlay } from "@/components/IntroOverlay";
+// IntroOverlay desativado: o app agora usa apenas o splash nativo estático.
+// import { IntroOverlay } from "@/components/IntroOverlay";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
 
 
@@ -437,30 +437,6 @@ function NativeBootstrap() {
       import("@/lib/tematicaStore").then((m) => m.hydrateTematicaCache()).catch(() => {});
       import("@/services/syncQueue").then((m) => m.startSyncQueueWorker()).catch(() => {});
       import("@/services/jurisprudenciaWarmup").then((m) => m.warmupJurisprudencia()).catch(() => {});
-      import("@capawesome/capacitor-app-update").then(async (m) => {
-        const { Capacitor } = await import('@capacitor/core');
-        if (Capacitor.isNativePlatform()) {
-          try {
-            const result = await m.AppUpdate.getAppUpdateInfo();
-            if (result.updateAvailability === 2) { // UPDATE_AVAILABLE
-              if (Capacitor.getPlatform() === 'android') {
-                if (result.immediateUpdateAllowed) {
-                  await m.AppUpdate.performImmediateUpdate();
-                }
-              } else if (Capacitor.getPlatform() === 'ios') {
-                const { Dialog } = await import('@capacitor/dialog');
-                await Dialog.alert({
-                  title: 'Atualização Disponível',
-                  message: 'Uma nova versão do aplicativo está disponível. Por favor, atualize na App Store para continuar aproveitando todas as novidades e melhorias.',
-                  buttonTitle: 'Entendi'
-                });
-              }
-            }
-          } catch (e) {
-            console.error('Erro ao checar atualizacao', e);
-          }
-        }
-      }).catch(() => {});
       import("@/lib/backgroundRunner").then(async (m) => {
         try {
           await m.ensureBackgroundPermissions();
@@ -547,7 +523,6 @@ function AnimatedRoutes() {
 
   return (
     <div className="overflow-x-hidden">
-      <IntroOverlay />
       <NativeBootstrap />
       <PushNavListener />
       <DeepLinkBootstrap />
