@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { ExternalLink, FileText, ChevronRight, Scale, Sparkles, Loader2 } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { ExternalLink, FileText, ChevronRight, Scale, Sparkles, Loader2, Focus } from 'lucide-react';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
@@ -201,6 +201,35 @@ interface LeiOrdinariaDetailProps {
 const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
   const [openArtigo, setOpenArtigo] = useState<{ numero: string; texto: string } | null>(null);
   
+  const [focusMode, setFocusMode] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState<number>(0);
+  const articleRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    if (!focusMode) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Number(entry.target.getAttribute('data-index'));
+            setFocusedIndex(index);
+          }
+        });
+      },
+      {
+        rootMargin: '-30% 0px -40% 0px', // Ativa no centro da tela
+        threshold: 0,
+      }
+    );
+
+    articleRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
+  }, [focusMode]);
+  
   const parsed = useMemo(() => {
     if (!lei.texto_completo) return null;
     return parseTextoCompleto(lei.texto_completo);
@@ -268,15 +297,26 @@ const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
                 {/* Artigos */}
                 {parsed.artigos.length > 0 && (
                   <div className="space-y-2">
-                    {parsed.artigos.map((art, i) => (
-                      <motion.button
-                        key={i}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.02 }}
-                        onClick={() => setOpenArtigo(art)}
-                        className="w-full text-left rounded-2xl bg-card hover:bg-secondary/60 transition-all group flex overflow-hidden min-h-[68px]"
-                      >
+                    {parsed.artigos.map((art, i) => {
+                      const isFocused = focusMode ? focusedIndex === i : true;
+                      
+                      return (
+                        <motion.button
+                          key={i}
+                          ref={(el) => (articleRefs.current[i] = el)}
+                          data-index={i}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.02 }}
+                          onClick={() => setOpenArtigo(art)}
+                          className={`w-full text-left rounded-2xl transition-all duration-300 group flex overflow-hidden min-h-[68px] ${
+                            focusMode 
+                              ? isFocused 
+                                ? 'bg-card scale-[1.02] shadow-[0_0_20px_rgba(255,255,255,0.05)] border border-primary/30 z-10 relative' 
+                                : 'bg-card/40 opacity-40 blur-[1px] grayscale hover:opacity-100 hover:blur-none'
+                              : 'bg-card hover:bg-secondary/60'
+                          }`}
+                        >
                         <div className="w-1.5 bg-primary rounded-l-2xl shrink-0" />
                         <div className="flex items-center gap-3 p-4 flex-1 min-w-0">
                           <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
@@ -293,7 +333,8 @@ const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
                           <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary shrink-0 transition-colors" />
                         </div>
                       </motion.button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
@@ -345,6 +386,17 @@ const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Régua de Foco FAB */}
+      <button
+        onClick={() => setFocusMode(!focusMode)}
+        className={`fixed bottom-24 right-4 md:right-8 z-40 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${
+          focusMode ? 'bg-primary text-primary-foreground scale-110 shadow-primary/30' : 'bg-secondary text-foreground hover:bg-secondary/80'
+        }`}
+        title="Modo Foco"
+      >
+        <Focus className="w-5 h-5" />
+      </button>
 
       {/* Bottom sheet for individual article */}
       {openArtigo && (
