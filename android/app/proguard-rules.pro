@@ -18,10 +18,18 @@
 -keep class io.capawesome.** { *; }
 -keep class com.codetrixstudio.** { *; }
 -keep class ee.forgr.audio.** { *; }
--keep class com.capacitorjs.plugins.** { *; }
+-keep class com.capacitorjs.** { *; }
 -keep class com.tchvu3.** { *; }
 -keep class com.aparajita.** { *; }
 -keep class com.capgo.** { *; }
+
+# Keep app core and AndroidX components (prevent crash on open)
+-keep class br.com.vacatio.app.** { *; }
+-keep class androidx.core.** { *; }
+-keep class androidx.core.splashscreen.** { *; }
+-keep class androidx.appcompat.** { *; }
+-keep class androidx.activity.** { *; }
+-keep class androidx.fragment.** { *; }
 
 # Firebase Kotlin extensions (ktx) — required for Firebase Installations
 -keep class com.google.firebase.ktx.** { *; }
