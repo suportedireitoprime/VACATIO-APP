@@ -25,11 +25,8 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Tem que vir ANTES do super.onCreate(): se a Activity nasce com
-        // AppTheme.NoActionBarLaunch antigo/compat, o Android pode desenhar
-        // uma ActionBar preta com o label "Vacatio" antes da WebView.
-        setTheme(R.style.AppTheme_NoActionBar);
-        getApplication().setTheme(R.style.AppTheme_NoActionBar);
+        // O AndroidX SplashScreen gerencia a transição de tema via postSplashScreenTheme.
+        // Chamar setTheme aqui antes do super.onCreate quebra o plugin SplashScreen no Android 12+.
 
         // Antes do super.onCreate por causa do BridgeActivity/ComponentActivity.
         EdgeToEdge.enable(this);
