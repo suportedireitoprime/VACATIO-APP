@@ -2455,13 +2455,19 @@ const ArtigoBottomSheet = ({
           {modificationInfo ? (
             <TabsList className="mx-5 bg-secondary/60 rounded-2xl h-11 grid grid-cols-2 w-auto p-1">
               <TabsTrigger value="artigo" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Artigo</TabsTrigger>
-              <TabsTrigger value="explicacao" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Explicação</TabsTrigger>
+              <TabsTrigger value="explicacao" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1">
+                Explicação {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
+              </TabsTrigger>
             </TabsList>
           ) : (
             <TabsList className="mx-5 bg-secondary/60 rounded-2xl h-11 grid grid-cols-4 w-auto p-1">
               <TabsTrigger value="artigo" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Artigo</TabsTrigger>
-              <TabsTrigger value="explicacao" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Explicação</TabsTrigger>
-              <TabsTrigger value="exemplo" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Exemplo</TabsTrigger>
+              <TabsTrigger value="explicacao" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1">
+                Explicação {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
+              </TabsTrigger>
+              <TabsTrigger value="exemplo" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1">
+                Exemplo {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
+              </TabsTrigger>
               <TabsTrigger value="historico" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Histórico</TabsTrigger>
             </TabsList>
 
