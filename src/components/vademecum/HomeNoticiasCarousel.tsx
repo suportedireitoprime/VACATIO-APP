@@ -71,7 +71,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
       if (!col) return;
       const { data } = await supabase.from(col.table).select(col.select).limit(40);
       if (data) {
-        const norm = shuffle(data.map((r) => normalizeLivro(col, r)));
+        const norm = shuffle(data.map((r) => normalizeLivro(r, col)));
         setLivros(norm);
         livroQueueRef.current = norm;
       }
