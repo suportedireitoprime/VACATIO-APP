@@ -53,6 +53,42 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Patch @capgo/background-geolocation to fix NullPointerException
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          plugin_dir = Path('node_modules/@capgo/background-geolocation/android/src/main/java/com/capgo/capacitor_background_geolocation')
+          if not plugin_dir.exists():
+              print('Plugin @capgo/background-geolocation não encontrado. Pulando patch.')
+          else:
+              for java_file in plugin_dir.rglob('*.java'):
+                  text = java_file.read_text(encoding='utf-8')
+                  orig = text
+                  
+                  # Substituir chamadas estáticas problemáticas
+                  # As chamadas problemáticas estão na inicialização de campos estáticos (ACTION_BROADCAST, etc)
+                  # Como a classe não tem acesso direto a Context no contexto estático de forma global (a não ser que passem),
+                  # vamos substituir hardcoded pela string literal que é usada na action, ou 
+                  # simplesmente hardcodar "com.capgo.capacitor_background_geolocation".
+                  
+                  # A biblioteca faz: BackgroundGeolocationService.class.getPackage().getName()
+                  # Vamos fixar para: "com.capgo.capacitor_background_geolocation"
+                  text = text.replace(
+                      "BackgroundGeolocationService.class.getPackage().getName()", 
+                      '"com.capgo.capacitor_background_geolocation"'
+                  )
+                  text = text.replace(
+                      "GeofenceStore.class.getPackage().getName()", 
+                      '"com.capgo.capacitor_background_geolocation"'
+                  )
+                  
+                  if text != orig:
+                      java_file.write_text(text, encoding='utf-8')
+                      print(f'✅ Patched {java_file.name}')
+          PY
+
       - name: Remove Lovable hot-reload from capacitor.config.ts
         run: |
           node -e "
