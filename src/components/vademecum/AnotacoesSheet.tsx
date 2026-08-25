@@ -132,7 +132,13 @@ function fmtDuration(ms: number | null) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+import { useSubscription } from '@/hooks/useSubscription';
+import PremiumGate from '@/components/PremiumGate';
+
 const AnotacoesSheet = ({ open, onClose, tabelaNome, artigoNumero, artigoTexto, onCountChange }: AnotacoesSheetProps) => {
+  const { isPremium } = useSubscription();
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+
   const [notas, setNotas] = useState<Anotacao[]>([]);
   const [novaTexto, setNovaTexto] = useState('');
   const [loading, setLoading] = useState(false);
@@ -361,7 +367,13 @@ const AnotacoesSheet = ({ open, onClose, tabelaNome, artigoNumero, artigoTexto, 
             </div>
             <Button
               size="icon"
-              onClick={() => setComposerOpen((current) => !current)}
+              onClick={() => {
+                if (!isPremium) {
+                  setShowPremiumGate(true);
+                  return;
+                }
+                setComposerOpen((current) => !current);
+              }}
               aria-label={composerOpen ? 'Fechar nova anotação' : 'Criar nova anotação'}
               aria-expanded={composerOpen}
             >
@@ -471,11 +483,24 @@ const AnotacoesSheet = ({ open, onClose, tabelaNome, artigoNumero, artigoTexto, 
             <div className="text-center py-16 space-y-3">
               <FileText className="w-8 h-8 text-muted-foreground mx-auto" />
               <p className="text-muted-foreground text-sm">Nenhuma anotação ainda.</p>
-              <Button variant="outline" onClick={() => setComposerOpen(true)}><Plus /> Criar anotação</Button>
+              <Button variant="outline" onClick={() => {
+                if (!isPremium) {
+                  setShowPremiumGate(true);
+                  return;
+                }
+                setComposerOpen(true);
+              }}>
+                <Plus /> Criar anotação
+              </Button>
             </div>
           )}
         </div>
       </motion.div>
+      <PremiumGate 
+        open={showPremiumGate} 
+        onClose={() => setShowPremiumGate(false)} 
+        feature="anotacoes" 
+      />
     </AnimatePresence>
   );
 };

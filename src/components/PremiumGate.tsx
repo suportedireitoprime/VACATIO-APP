@@ -62,6 +62,8 @@ interface PremiumGateProps {
   description?: string;
   /** Texto extra tipo "Você já usou 1 de 1 narração hoje" */
   usageLabel?: string;
+  /** Callback para botão especial da narração (ouvir exemplo). */
+  onListenExample?: () => void;
 }
 
 const PremiumGate = ({
@@ -71,6 +73,7 @@ const PremiumGate = ({
   title,
   description,
   usageLabel,
+  onListenExample,
 }: PremiumGateProps) => {
   const navigate = useNavigate();
   const info = FEATURES[feature] ?? FEATURES.default;
@@ -156,6 +159,16 @@ const PremiumGate = ({
                 >
                   Começar 7 dias grátis
                 </button>
+
+                {feature === 'narracao' && onListenExample && (
+                  <button
+                    onClick={onListenExample}
+                    className="w-full py-3 rounded-xl border border-primary/30 bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors active:scale-[0.98] mb-3 flex items-center justify-center gap-2"
+                  >
+                    <Volume2 className="w-4 h-4" />
+                    Ouvir exemplo (Art. 4º - CP)
+                  </button>
+                )}
 
                 {/* Ver mais benefícios */}
                 <button

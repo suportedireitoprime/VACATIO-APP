@@ -13,6 +13,13 @@
 -keep class com.google.android.gms.** { *; }
 -keep class com.google.firebase.** { *; }
 
+# Important Capacitor Plugins Namespaces
+-keep class com.getcapacitor.community.** { *; }
+-keep class io.capawesome.** { *; }
+-keep class com.codetrixstudio.** { *; }
+-keep class ee.forgr.audio.** { *; }
+-keep class com.capacitorjs.plugins.** { *; }
+
 # Firebase Kotlin extensions (ktx) — required for Firebase Installations
 -keep class com.google.firebase.ktx.** { *; }
 -keep class com.google.firebase.installations.ktx.** { *; }

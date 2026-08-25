@@ -431,26 +431,17 @@ const ArtigoBottomSheet = ({
   };
 
   /**
-   * Gate padrão das funções do artigo: 3 usos/mês na conta gratuita.
-   * O mesmo artigo não consome cota duas vezes (contagem por `ref_key`).
+   * Bloqueio rigoroso de funcionalidades (apenas Premium).
    */
-  const gateFeature = async (
-    featureKey: string,
+  const strictGateFeature = (
     gateKey: PremiumFeatureKey,
-    label: string,
     action: () => void,
   ) => {
-    if (isPremium) { action(); return; }
-    const ref = `${tabelaNome}_${artigo?.numero}`;
-    try {
-      const ok = await canUseRef(featureKey, ref);
-      if (!ok) {
-        openPremiumGate(gateKey, `Você usou seus 3 usos gratuitos deste mês em ${label}. Comece 7 dias grátis para liberar.`);
-        return;
-      }
-      await registerUsage(featureKey, ref);
-    } catch { /* falha de rede: não bloqueia */ }
-    action();
+    if (isPremium) {
+      action();
+    } else {
+      openPremiumGate(gateKey);
+    }
   };
 
 
@@ -949,21 +940,15 @@ const ArtigoBottomSheet = ({
     narrarActionInFlightRef.current = true;
 
     try {
-      // Gate premium: bloqueia ao iniciar a reprodução de outro artigo, inclusive cache já gerado.
-      const articleRefKey = tabelaNome && artigo?.numero ? `${tabelaNome}_${artigo.numero}` : null;
-      const iniciandoReproducao = !narracaoPlaying && !!articleRefKey;
-      if (iniciandoReproducao && !isPremium && !(await canUseRef('narracao', articleRefKey))) {
-        openPremiumGate('narracao', 'Você usou suas 3 narrações gratuitas deste mês. Comece 7 dias grátis para ouvir sem limite.');
+      const iniciandoReproducao = !narracaoPlaying;
+      if (iniciandoReproducao && !isPremium) {
+        openPremiumGate('narracao');
         return;
       }
 
-      if (iniciandoReproducao && !isPremium && articleRefKey) {
-        await registerUsage('narracao', articleRefKey);
-      }
       await handleNarrar();
     } catch (e) {
-      console.error('Erro ao validar limite de narração:', e);
-      openPremiumGate('narracao', 'Não consegui validar seu limite gratuito agora. Assine para ouvir sem limite.');
+      console.error('Erro na narração:', e);
     } finally {
       narrarActionInFlightRef.current = false;
     }
@@ -2462,7 +2447,7 @@ const ArtigoBottomSheet = ({
         <Tabs value={activeTab} onValueChange={(v) => {
           if (!isPremium && (v === 'explicacao' || v === 'exemplo')) {
             const label = v === 'explicacao' ? 'Explicação' : 'Exemplo';
-            gateFeature(v, v as PremiumFeatureKey, label, () => setActiveTab(v));
+            strictGateFeature(v as PremiumFeatureKey, () => setActiveTab(v));
             return;
           }
           setActiveTab(v);
@@ -3045,27 +3030,27 @@ const ArtigoBottomSheet = ({
                       setActiveActionMenu(null);
                       if (!requireOnline('Jurisprudência')) return;
                       if (!tabelaNome || !artigo?.numero) { toast.error('Artigo não identificado'); return; }
-                      gateFeature('jurisprudencia', 'jurisprudencia', 'Jurisprudência', () =>
+                      strictGateFeature('jurisprudencia', () =>
                         navigate(`/jurisprudencia/${tabelaNome}/${encodeURIComponent(String(artigo.numero))}`),
                       );
                     } },
                     { icon: Play, label: 'Videoaulas', desc: 'Aulas em vídeo sobre este artigo', color: '#EF4444', onClick: () => {
                       setActiveActionMenu(null);
                       if (!requireOnline('Videoaulas')) return;
-                      gateFeature('videoaula', 'videoaula', 'Videoaulas', () => setShowVideoaulasListSheet(true));
+                      strictGateFeature('videoaula', () => setShowVideoaulasListSheet(true));
                     } },
                     
-                    { icon: BookOpen, label: 'Termos jurídicos', desc: 'Vocabulário do artigo explicado', color: '#F97316', onClick: () => { setActiveActionMenu(null); if (!requireOnline('Termos jurídicos')) return; gateFeature('termos', 'termos', 'Termos jurídicos', () => setShowTermosSheet(true)); } },
-                    { icon: MessageCircle, label: 'Perguntar', desc: 'Tire dúvidas com a IA', color: '#A855F7', onClick: () => { setActiveActionMenu(null); if (!requireOnline('Perguntar à IA')) return; gateFeature('perguntar', 'perguntar', 'Perguntar à IA', () => setShowPerguntarSheet(true)); } },
-                    ...(tabelaNome ? [{ icon: Network, label: 'Grafo de conexões', desc: 'Ver relações do artigo', color: '#10B981', onClick: () => { setActiveActionMenu(null); gateFeature('grafo', 'grafo', 'Grafo de conexões', () => setShowGrafo(true)); } }] : []),
+                    { icon: BookOpen, label: 'Termos jurídicos', desc: 'Vocabulário do artigo explicado', color: '#F97316', onClick: () => { setActiveActionMenu(null); if (!requireOnline('Termos jurídicos')) return; strictGateFeature('termos', () => setShowTermosSheet(true)); } },
+                    { icon: MessageCircle, label: 'Perguntar', desc: 'Tire dúvidas com a IA', color: '#A855F7', onClick: () => { setActiveActionMenu(null); if (!requireOnline('Perguntar à IA')) return; strictGateFeature('perguntar', () => setShowPerguntarSheet(true)); } },
+                    ...(tabelaNome ? [{ icon: Network, label: 'Grafo de conexões', desc: 'Ver relações do artigo', color: '#10B981', onClick: () => { setActiveActionMenu(null); strictGateFeature('grafo', () => setShowGrafo(true)); } }] : []),
                     { icon: Copy, label: 'Copiar artigo', desc: 'Texto para a área de transferência', color: '#8B5CF6', onClick: () => { setActiveActionMenu(null); handleCopy(); } },
-                    { icon: Bell, label: 'Lembretes', desc: 'Avisar ao chegar em um local', color: '#F59E0B', onClick: () => { setActiveActionMenu(null); import('./LembretesArtigoSheet'); gateFeature('lembretes', 'lembretes', 'Lembretes', () => setShowLembretesLocal(true)); } },
+                    { icon: Bell, label: 'Lembretes', desc: 'Avisar ao chegar em um local', color: '#F59E0B', onClick: () => { setActiveActionMenu(null); import('./LembretesArtigoSheet'); strictGateFeature('lembretes', () => setShowLembretesLocal(true)); } },
                     { icon: Download, label: 'Baixar artigo', desc: 'PDF ou imagem, lei seca ou comentado', color: '#0EA5E9', onClick: () => { setActiveActionMenu(null); setShowBaixarSheet(true); } },
                     { icon: Share2, label: 'Compartilhar', desc: 'Enviar para outro app', color: '#06B6D4', onClick: () => { setActiveActionMenu(null); setShowSharePanel(p => !p); } },
                   ];
 
                   const gateGrifo = (label: string, action: () => void) =>
-                    gateFeature('grifo', 'grifo', label, action);
+                    strictGateFeature('grifo', action);
                   const grifarItems = [
                     { icon: Highlighter, label: highlightMode ? 'Desativar grifo manual' : 'Grifo manual', desc: 'Marcar com o dedo', color: '#EC4899', active: highlightMode, onClick: () => { setActiveActionMenu(null); if (highlightMode) { toggleMode(); return; } gateGrifo('Grifar', () => toggleMode()); } },
                     { icon: Sparkles, label: 'Grifo mágico (IA)', desc: 'Destaques automáticos', color: '#F59E0B', active: magicMode, spin: magicLoading, badge: magicHighlights.length, onClick: () => { setActiveActionMenu(null); gateGrifo('Grifar', () => handleToggleMagic()); } },
@@ -3200,7 +3185,7 @@ const ArtigoBottomSheet = ({
               <div aria-hidden="true" />
             ) : (
               <button
-                onClick={() => gateFeature('praticar', 'praticar', 'Praticar', () => setShowPraticarSheet(true))}
+                onClick={() => setShowPraticarSheet(true)}
                 className="flex flex-col items-center justify-end gap-1.5 py-1.5 text-foreground hover:text-primary transition-colors"
               >
                 <Target className="w-7 h-7 sm:w-8 sm:h-8" />
@@ -3285,7 +3270,7 @@ const ArtigoBottomSheet = ({
               <div aria-hidden="true" />
             ) : (
               <button
-                onClick={() => gateFeature('lei_anotacao', 'anotacoes', 'Anotações', () => { setShowAnotacoesSheet(true); setShowFontControls(false); })}
+                onClick={() => { setShowAnotacoesSheet(true); setShowFontControls(false); }}
                 className="relative flex flex-col items-center justify-end gap-1.5 py-1.5 text-foreground hover:text-primary transition-colors"
               >
                 <span className="relative">
@@ -3636,6 +3621,8 @@ const ArtigoBottomSheet = ({
               )}
             </div>
           </SheetContent>
+        </Sheet>
+
           {crossRefArtigo && (
             <ArtigoBottomSheet
               artigo={crossRefArtigo}
@@ -3644,10 +3631,23 @@ const ArtigoBottomSheet = ({
               isFavorito={false}
             />
           )}
-        </Sheet>
         </SheetContent>
-      </Sheet>
+        </Sheet>
 
+        {/* Paywall rigoroso (sem limites gratuitos) */}
+        <PremiumGate 
+          open={showPremiumGate} 
+          onClose={() => setShowPremiumGate(false)} 
+          feature={premiumGateFeature} 
+          description={premiumGateDesc}
+          onListenExample={() => {
+            const synth = window.speechSynthesis;
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance('Artigo 4º do Código Penal: Diz-se praticado o crime no momento da ação ou omissão, ainda que outro seja o momento do resultado.');
+            utterance.lang = 'pt-BR';
+            synth.speak(utterance);
+          }}
+        />
 
       <Suspense fallback={null}>
         {tabelaNome && artigo && showGrafo && (
@@ -3704,7 +3704,7 @@ const ArtigoBottomSheet = ({
               <span className="font-body text-sm font-medium max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-0">Funções</span>
             </button>
             <button
-              onClick={() => gateFeature('praticar', 'praticar', 'Praticar', () => setShowPraticarSheet(true))}
+              onClick={() => setShowPraticarSheet(true)}
               className="group flex items-center gap-2 rounded-xl px-3 py-2.5 text-foreground hover:bg-secondary transition-colors"
               title="Praticar"
               aria-label="Praticar"
@@ -3715,7 +3715,7 @@ const ArtigoBottomSheet = ({
           </div>
           <div className="fixed right-4 top-1/2 -translate-y-1/2 z-[10000] flex flex-col gap-2 rounded-2xl bg-card/95 backdrop-blur-md border border-border p-2 shadow-xl shadow-black/40">
             <button
-              onClick={() => gateFeature('lei_anotacao', 'anotacoes', 'Anotações', () => setShowAnotacoesSheet(true))}
+              onClick={() => setShowAnotacoesSheet(true)}
               className="group flex items-center gap-2 rounded-xl px-3 py-2.5 text-foreground hover:bg-secondary transition-colors"
               title="Anotações"
               aria-label="Anotações"
