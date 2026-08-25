@@ -25,6 +25,26 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
+            try {
+                android.util.Log.e("FATAL_CRASH", "Crash fatal capturado", ex);
+                java.io.StringWriter sw = new java.io.StringWriter();
+                ex.printStackTrace(new java.io.PrintWriter(sw));
+                
+                android.content.Intent intent = new android.content.Intent(this, CrashActivity.class);
+                intent.putExtra("STACK_TRACE", sw.toString());
+                intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                
+                android.os.Process.killProcess(android.os.Process.myPid());
+                System.exit(10);
+            } catch (Throwable ignored) {}
+            if (defaultHandler != null) {
+                defaultHandler.uncaughtException(thread, ex);
+            }
+        });
+
         // O AndroidX SplashScreen gerencia a transição de tema via postSplashScreenTheme.
         // Chamar setTheme aqui antes do super.onCreate quebra o plugin SplashScreen no Android 12+.
 
