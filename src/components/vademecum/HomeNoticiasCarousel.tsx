@@ -4,9 +4,8 @@ import { Clock, ArrowUpRight, Film, Star, Popcorn } from 'lucide-react';
 import { getNoticiasCache, prefetchNoticias, subscribeNoticias, type Noticia } from '@/services/noticiasService';
 import { newsImg, cdnImg } from '@/lib/cdnImg';
 import NoticiaViewerSheet from '@/components/vademecum/NoticiaViewerSheet';
-import BlogPostSheet from '@/components/vademecum/BlogPostSheet';
-import ObraDetailSheet, { type Obra } from '@/components/tematica/ObraDetailSheet';
-import { BLOG_POSTS, TEMA_COLORS, type BlogPost } from '@/data/blogPosts';
+import LivroDetailSheet from '@/components/biblioteca/LivroDetailSheet';
+import { COLECOES, normalizeLivro, type LivroNormalizado } from '@/lib/bibliotecaColecoes';
 import { supabase } from '@/integrations/supabase/client';
 
 const AUTOPLAY_MS = 10000;
@@ -14,8 +13,7 @@ const MAX_NEWS = 8;
 
 type FeedItem =
   | { kind: 'noticia'; id: string; data: Noticia }
-  | { kind: 'blog'; id: string; data: BlogPost }
-  | { kind: 'obra'; id: string; data: Obra };
+  | { kind: 'livro'; id: string; data: LivroNormalizado };
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
@@ -29,21 +27,9 @@ function formatTime(dateStr: string) {
   return `${day} ${months[d.getMonth()]} · ${hh}:${mm}`;
 }
 
-function tipoLabel(o: Obra): string {
-  if ((o.categorias_juridicas ?? []).includes('Documentário')) return 'Documentário';
-  return o.tipo === 'tv' ? 'Série' : 'Filme';
-}
-
-const OBRA_PALETTE: Record<string, { deep: string; mid: string; chipBg: string; chipText: string }> = {
-  Filme:         { deep: '#2a0a12', mid: '#4a1524', chipBg: '#e11d48', chipText: '#fff5f7' },
-  Série:         { deep: '#0d1230', mid: '#1e2757', chipBg: '#6366f1', chipText: '#f0f2ff' },
-  Documentário:  { deep: '#0f1f14', mid: '#1e3a26', chipBg: '#10b981', chipText: '#ecfdf5' },
-};// Padrão do carrossel (um ciclo = 7 blogs + 1 notícia + 1 obra):
-//   5 blogs → 1 notícia → 2 blogs → 1 obra → repete.
-// Filas garantem que nada repita antes de esgotar cada fonte.
-const CYCLE: Array<'blog' | 'noticia'> = [
+const CYCLE: Array<'livro' | 'noticia'> = [
   'noticia',
-  'blog',
+  'livro',
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -64,16 +50,13 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
   const autoplayRef = useRef<number | null>(null);
   const userInteractingRef = useRef(false);
   const [noticias, setNoticias] = useState<Noticia[]>(() => (getNoticiasCache() ?? []).slice(0, MAX_NEWS));
-  const [obras, setObras] = useState<Obra[]>([]);
+  const [livros, setLivros] = useState<LivroNormalizado[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedNoticia, setSelectedNoticia] = useState<Noticia | null>(null);
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
-  const [selectedObra, setSelectedObra] = useState<Obra | null>(null);
+  const [selectedLivro, setSelectedLivro] = useState<LivroNormalizado | null>(null);
 
-  const postsAll = useMemo(() => [...BLOG_POSTS], []);
-
-  // Filas persistentes por sessão do carrossel (mantidas em ref, não causam re-render).
-  const blogQueueRef = useRef<BlogPost[]>(shuffle(postsAll));
+  // Filas persistentes por sessão do carrossel
+  const livroQueueRef = useRef<LivroNormalizado[]>([]);
   const noticiaQueueRef = useRef<Noticia[]>([]);
   const usedNoticiaIdsRef = useRef<Set<string>>(new Set());
   const cycleStepRef = useRef(0);
@@ -83,6 +66,20 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
   // Recalcula a fila de notícias sempre que a fonte muda: sempre a mais recente
   // ainda não exibida vai na frente. Notícias já mostradas não voltam.
   useEffect(() => {
+    async function loadLivros() {
+      const col = COLECOES.find((c) => c.id === 'fora_da_toga') || COLECOES.find((c) => c.id === 'classicos');
+      if (!col) return;
+      const { data } = await supabase.from(col.table).select(col.select).limit(40);
+      if (data) {
+        const norm = shuffle(data.map((r) => normalizeLivro(col, r)));
+        setLivros(norm);
+        livroQueueRef.current = norm;
+      }
+    }
+    loadLivros();
+  }, []);
+
+  useEffect(() => {
     const sorted = [...noticias].sort(
       (a, b) => new Date(b.data_publicacao).getTime() - new Date(a.data_publicacao).getTime(),
     );
@@ -91,14 +88,18 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
 
 
 
-  const takeNext = useCallback((kind: 'blog' | 'noticia' | 'obra'): FeedItem | null => {
-    if (kind === 'blog') {
-      if (blogQueueRef.current.length === 0) {
-        blogQueueRef.current = shuffle(postsAll);
+  const takeNext = useCallback((kind: 'livro' | 'noticia'): FeedItem | null => {
+    if (kind === 'livro') {
+      if (livroQueueRef.current.length === 0) {
+        if (livros.length > 0) {
+          livroQueueRef.current = shuffle([...livros]);
+        } else {
+          return null;
+        }
       }
-      const p = blogQueueRef.current.shift();
+      const p = livroQueueRef.current.shift();
       if (!p) return null;
-      return { kind: 'blog', id: `b-${p.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, data: p };
+      return { kind: 'livro', id: `l-${p.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, data: p };
     }
     if (kind === 'noticia') {
       if (noticiaQueueRef.current.length === 0) {
@@ -114,7 +115,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
       return { kind: 'noticia', id: `n-${n.id}-${Date.now()}`, data: n };
     }
     return null;
-  }, [noticias, postsAll]);
+  }, [noticias, livros]);
 
   const extendFeed = useCallback((minItemsAhead: number) => {
     setFeed((prev) => {
@@ -162,8 +163,8 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
 
 
   useEffect(() => {
-    onOpenChange?.(!!selectedNoticia || !!selectedPost || !!selectedObra);
-  }, [selectedNoticia, selectedPost, selectedObra, onOpenChange]);
+    onOpenChange?.(!!selectedNoticia || !!selectedLivro);
+  }, [selectedNoticia, selectedLivro, onOpenChange]);
 
 
   const scrollToIndex = useCallback((idx: number, behavior: ScrollBehavior = 'smooth') => {
@@ -211,8 +212,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
 
   const handleOpen = (item: FeedItem) => {
     if (item.kind === 'noticia') setSelectedNoticia(item.data);
-    else if (item.kind === 'blog') setSelectedPost(item.data);
-    else setSelectedObra(item.data);
+    else setSelectedLivro(item.data as LivroNormalizado);
   };
 
 
@@ -227,14 +227,8 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
   }
 
   const kind = activeItem?.kind ?? 'noticia';
-  const headerTitle =
-    kind === 'blog' ? 'Blogger Jurídico' : kind === 'obra' ? 'Temática Jurídica' : 'Notícias Jurídicas';
-  const headerSubtitle =
-    kind === 'blog'
-      ? 'artigos, filosofia e curiosidades do Direito'
-      : kind === 'obra'
-      ? 'filmes, séries e documentários para juristas'
-      : 'notícias do mundo jurídico em tempo real';
+  const headerTitle = kind === 'livro' ? 'Recomendação de Livros' : 'Notícias Jurídicas';
+  const headerSubtitle = kind === 'livro' ? 'obras fundamentais e leituras sugeridas' : 'notícias do mundo jurídico em tempo real';
   return (
     <div className="space-y-2.5">
       <div className="px-5 min-h-[54px]">
@@ -269,101 +263,14 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
           const isActive = i === activeIndex;
 
           // OBRA — poster vertical à esquerda + fundo com poster borrado (paleta natural)
-          if (item.kind === 'obra') {
-            const o = item.data;
-            const poster = o.poster_url;
-            const bg = o.backdrop_url || poster;
-            const label = tipoLabel(o);
-            const palette = OBRA_PALETTE[label] ?? OBRA_PALETTE.Filme;
-            const meta = [o.ano, o.nota ? `★ ${o.nota.toFixed(1)}` : null].filter(Boolean).join(' · ');
-            return (
-              <motion.button
-                key={item.id}
-                onClick={() => handleOpen(item)}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i * 0.04, 0.2) }}
-                className="group snap-center shrink-0 w-[85%] md:w-[46%] lg:w-[31%] active:scale-[0.99] text-left cursor-pointer transition-transform duration-200 hover:-translate-y-0.5"
-              >
-
-                <div
-                  className={`relative w-full h-[140px] overflow-hidden rounded-2xl transition-all duration-300 group-hover:shadow-2xl group-hover:shadow-black/40 group-hover:ring-1 group-hover:ring-primary/40 ${
-                    isActive ? 'opacity-100 scale-100 shadow-lg' : 'opacity-60 scale-[0.94] group-hover:opacity-90'
-                  }`}
-                  style={{ backgroundColor: palette.deep }}
-                >
-                  {/* fundo: poster borrado extraindo a paleta natural */}
-                   {bg && (
-                     <img
-                       src={cdnImg(bg, 320)}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      className="absolute inset-0 w-full h-full object-cover scale-125 blur-xl opacity-40"
-                    />
-                  )}
-                  {/* degradê da categoria: entra da direita para a esquerda,
-                      conversando com o poster (que fica à esquerda) */}
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background: `linear-gradient(to left, ${palette.deep} 42%, ${palette.mid}cc 68%, transparent 100%)`,
-                    }}
-                  />
-
-                  {/* poster vertical à esquerda */}
-                  <div className="absolute inset-y-2 left-2 w-[92px] rounded-lg overflow-hidden shadow-xl ring-1 ring-white/10">
-                    {poster ? (
-                      <img
-                        src={cdnImg(poster, 200)}
-                        alt={o.titulo}
-                        loading={i < 2 ? 'eager' : 'lazy'}
-                        {...(i < 2 ? { fetchpriority: 'high' as any } : {})}
-                        decoding="async"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-neutral-800">
-                        <Film className="w-6 h-6 text-white/50" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-md">
-                    <ArrowUpRight className="w-3.5 h-3.5 text-white" strokeWidth={2.2} />
-                  </div>
-
-                  <span
-                    className="absolute top-2.5 left-[108px] text-[9.5px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider"
-                    style={{ background: palette.chipBg, color: palette.chipText }}
-                  >
-                    {label.toUpperCase() === 'FILME' && <Popcorn className="w-3 h-3" strokeWidth={1.5} />}
-                    {label}
-                  </span>
-
-                  <div className="absolute inset-y-0 right-0 left-[108px] flex flex-col justify-end pr-4 pb-3">
-                    <div className="flex items-center gap-2 mb-1 text-[11.5px] text-white/90">
-                      {o.nota ? <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> : <Clock className="w-3 h-3" />}
-                      <span className="truncate">{meta || 'Temática jurídica'}</span>
-                    </div>
-                    <p className="font-display text-white text-[15px] font-normal leading-snug line-clamp-2 drop-shadow-sm">
-                      {o.titulo}
-                    </p>
-                  </div>
-                </div>
-              </motion.button>
-            );
-          }
-
-          const isB = item.kind === 'blog';
-          const c = isB ? TEMA_COLORS[(item.data as BlogPost).tema] : null;
-          const rawImg = isB
-            ? (item.data as BlogPost).imagem_url ?? ''
+          const isL = item.kind === 'livro';
+          const rawImg = isL
+            ? (item.data as LivroNormalizado).capa
             : (item.data as Noticia).imagem_url ?? '';
-          const img = isB ? cdnImg(rawImg, 640) : newsImg(rawImg, 640);
-          const title = isB ? (item.data as BlogPost).titulo : (item.data as Noticia).titulo;
-          const meta = isB
-            ? `${(item.data as BlogPost).tempo_leitura_min} min · ${(item.data as BlogPost).tema}`
+          const img = isL ? cdnImg(rawImg, 320) : newsImg(rawImg, 640);
+          const title = isL ? (item.data as LivroNormalizado).titulo : (item.data as Noticia).titulo;
+          const meta = isL
+            ? `Livro · ${(item.data as LivroNormalizado).autor || 'Diversos'}`
             : `${formatTime((item.data as Noticia).data_publicacao)} · Migalhas`;
 
           return (
@@ -380,7 +287,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
                 className={`relative w-full h-[140px] overflow-hidden rounded-2xl transition-all duration-300 ${
                   isActive ? 'opacity-100 scale-100 shadow-lg' : 'opacity-60 scale-[0.94]'
                 }`}
-                style={isB && c ? { background: c.bg } : undefined}
+                style={isL ? { backgroundColor: '#111827' } : undefined}
               >
                 {img && (
                   <img
@@ -390,7 +297,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
                     {...(i < 2 ? { fetchpriority: 'high' as any } : {})}
                     decoding="async"
                     className={`absolute inset-0 w-full h-full object-cover ${
-                      isB ? 'object-top opacity-90' : 'brightness-110 contrast-105 saturate-110'
+                      isL ? 'opacity-30 scale-125 blur-xl' : 'brightness-110 contrast-105 saturate-110'
                     }`}
                   />
                 )}
@@ -400,16 +307,13 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
                   <ArrowUpRight className="w-3.5 h-3.5 text-white" strokeWidth={2.2} />
                 </div>
 
-                {isB && c && (
-                  <span
-                    className="absolute top-2.5 left-2.5 text-[9.5px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
-                    style={{ background: c.chip, color: c.chipText }}
-                  >
-                    Blog · {(item.data as BlogPost).tema}
-                  </span>
+                {isL && img && (
+                  <div className="absolute inset-y-2 left-2 w-[72px] rounded-lg shadow-xl overflow-hidden ring-1 ring-white/10 z-10 bg-neutral-900">
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </div>
                 )}
 
-                <div className="absolute inset-0 flex flex-col justify-end px-4 pb-3 pt-4">
+                <div className={`absolute inset-0 flex flex-col justify-end pb-3 pt-4 z-20 ${isL ? 'pl-[92px] pr-4' : 'px-4'}`}>
                   <div className="flex items-center gap-2 mb-1 text-[11.5px] text-white/90">
                     <Clock className="w-3 h-3" />
                     <span className="truncate">{meta}</span>
@@ -438,8 +342,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
       )}
 
       <NoticiaViewerSheet noticia={selectedNoticia} onClose={() => setSelectedNoticia(null)} />
-      <BlogPostSheet post={selectedPost} onClose={() => setSelectedPost(null)} />
-      <ObraDetailSheet obra={selectedObra} open={!!selectedObra} onClose={() => setSelectedObra(null)} />
+      <LivroDetailSheet livro={selectedLivro} open={!!selectedLivro} onClose={() => setSelectedLivro(null)} />
     </div>
   );
 }
