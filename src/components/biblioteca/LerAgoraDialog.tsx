@@ -1,7 +1,9 @@
-import { Sparkles, BookOpen, BookCopy, Download, Monitor, X, Check, Loader2, WifiOff } from 'lucide-react';
+import { Sparkles, BookOpen, Download, Monitor, X, Check, Loader2, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import PremiumGate from '@/components/PremiumGate';
+import { useSubscription } from '@/hooks/useSubscription';
 
 export type LerModo = 'nativa' | 'pdf' | 'online' | 'download' | 'desktop';
 
@@ -19,18 +21,21 @@ interface Props {
 
 const LerAgoraDialog = ({ open, onClose, onSelect, hasPdf, hasOnline, pdfCached, downloadProgress }: Props) => {
   const isDownloading = downloadProgress != null;
-  const [online, setOnline] = useState<boolean>(typeof navigator === 'undefined' ? true : navigator.onLine);
-  useEffect(() => {
-    const on = () => setOnline(true);
-    const off = () => setOnline(false);
-    window.addEventListener('online', on);
-    window.addEventListener('offline', off);
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
-  }, []);
+  const { isPremium } = useSubscription();
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+
+  const handleSelect = (modo: LerModo) => {
+    if (!isPremium) {
+      setShowPremiumGate(true);
+      return;
+    }
+    onSelect(modo);
+  };
 
   if (typeof document === 'undefined') return null;
 
   return createPortal(
+    <>
     <AnimatePresence>
       {open && (
         <motion.div
@@ -74,14 +79,16 @@ const LerAgoraDialog = ({ open, onClose, onSelect, hasPdf, hasOnline, pdfCached,
                     Recomendado
                   </div>
                   <button
-                    onClick={() => onSelect('nativa')}
+                    onClick={() => handleSelect('nativa')}
                     className="w-full min-h-[68px] rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-4 text-left flex items-center gap-3 shadow-lg hover:brightness-110 active:scale-[0.99] transition-all"
                   >
                     <div className="w-12 h-12 rounded-xl bg-primary-foreground/15 flex items-center justify-center shrink-0 border border-primary-foreground/20 backdrop-blur-sm">
                       <Sparkles className="w-5 h-5 text-primary-foreground" strokeWidth={2.25} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-display font-bold text-sm">Leitura Nativa</div>
+                      <div className="font-display font-bold text-sm flex items-center gap-1.5">
+                        Leitura Nativa {!isPremium && <Lock className="w-3.5 h-3.5 text-primary-foreground/80" />}
+                      </div>
                       <div className="text-[11px] opacity-90 leading-tight mt-0.5">
                         Estilo Kindle, com OCR e busca por IA
                       </div>
@@ -91,7 +98,7 @@ const LerAgoraDialog = ({ open, onClose, onSelect, hasPdf, hasOnline, pdfCached,
               )}
 
               {/* Outras opções — lista compacta */}
-              {(hasPdf || hasOnline) && (
+              {hasPdf && (
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">
                     Outras opções
@@ -102,27 +109,9 @@ const LerAgoraDialog = ({ open, onClose, onSelect, hasPdf, hasOnline, pdfCached,
                         icon={BookOpen}
                         title="Ler em PDF"
                         desc="Abre o PDF dentro do app com rolagem contínua"
-                        onClick={() => onSelect('pdf')}
+                        onClick={() => handleSelect('pdf')}
+                        isPremium={isPremium}
                       />
-                    )}
-                    {hasOnline && online && (
-                      <OptionRow
-                        icon={BookCopy}
-                        title="Versão folheada"
-                        desc="Versão folheável no navegador"
-                        onClick={() => onSelect('online')}
-                      />
-                    )}
-                    {hasOnline && !online && (
-                      <div className="w-full min-h-[52px] rounded-2xl bg-secondary/30 p-3 flex items-center gap-3 border border-border/40 opacity-70">
-                        <div className="w-9 h-9 rounded-xl bg-background flex items-center justify-center shrink-0">
-                          <WifiOff className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-body font-semibold text-sm text-foreground">Versão folheada</div>
-                          <div className="text-[11px] text-muted-foreground leading-tight mt-0.5">Indisponível offline</div>
-                        </div>
-                      </div>
                     )}
                     {hasPdf && (
                       isDownloading ? (
@@ -140,14 +129,16 @@ const LerAgoraDialog = ({ open, onClose, onSelect, hasPdf, hasOnline, pdfCached,
                           icon={Check}
                           title="PDF disponível offline"
                           desc="Baixado. Toque em 'Ler em PDF' para abrir sem internet."
-                          onClick={() => onSelect('pdf')}
+                          onClick={() => handleSelect('pdf')}
+                          isPremium={isPremium}
                         />
                       ) : (
                         <OptionRow
                           icon={Download}
                           title="Baixar para offline"
                           desc="Salva o PDF no aparelho para ler sem internet"
-                          onClick={() => onSelect('download')}
+                          onClick={() => handleSelect('download')}
+                          isPremium={isPremium}
                         />
                       )
                     )}
@@ -161,14 +152,16 @@ const LerAgoraDialog = ({ open, onClose, onSelect, hasPdf, hasOnline, pdfCached,
                   Continuar em outro dispositivo
                 </div>
                 <button
-                  onClick={() => onSelect('desktop')}
+                  onClick={() => handleSelect('desktop')}
                   className="w-full min-h-[56px] rounded-2xl bg-secondary/60 hover:bg-secondary active:scale-[0.99] p-3 text-left flex items-center gap-3 transition-all border border-border/60"
                 >
                   <div className="w-11 h-11 rounded-xl bg-background flex items-center justify-center shrink-0">
                     <Monitor className="w-5 h-5 text-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-body font-semibold text-sm text-foreground">Versão desktop</div>
+                    <div className="font-body font-semibold text-sm text-foreground flex items-center gap-1.5">
+                      Versão desktop {!isPremium && <Lock className="w-3.5 h-3.5 text-muted-foreground/70" />}
+                    </div>
                     <div className="text-[11px] text-muted-foreground leading-tight mt-0.5">
                       Ler no computador com layout ampliado
                     </div>
@@ -185,7 +178,13 @@ const LerAgoraDialog = ({ open, onClose, onSelect, hasPdf, hasOnline, pdfCached,
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>,
+    </AnimatePresence>
+    <PremiumGate
+      open={showPremiumGate}
+      onClose={() => setShowPremiumGate(false)}
+      feature="biblioteca"
+    />
+    </>,
     document.body
   );
 };
@@ -195,11 +194,13 @@ const OptionRow = ({
   title,
   desc,
   onClick,
+  isPremium,
 }: {
   icon: typeof BookOpen;
   title: string;
   desc: string;
   onClick: () => void;
+  isPremium: boolean;
 }) => (
   <button
     onClick={onClick}
@@ -209,7 +210,9 @@ const OptionRow = ({
       <Icon className="w-4 h-4 text-foreground" strokeWidth={2} />
     </div>
     <div className="flex-1 min-w-0">
-      <div className="font-body font-semibold text-sm text-foreground">{title}</div>
+      <div className="font-body font-semibold text-sm text-foreground flex items-center gap-1.5">
+        {title} {!isPremium && <Lock className="w-3.5 h-3.5 text-muted-foreground/70" />}
+      </div>
       <div className="text-[11px] text-muted-foreground leading-tight mt-0.5">{desc}</div>
     </div>
   </button>
