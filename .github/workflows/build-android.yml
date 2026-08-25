@@ -148,57 +148,10 @@ jobs:
 
       - name: Patch @capgo/background-geolocation getPackage() NPE
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import glob
-
-          # Procurar em TODOS os locais possíveis onde o source Java pode estar:
-          # 1. node_modules (fonte original)
-          # 2. android/ (copiado pelo cap add)
-          search_dirs = [
-              'node_modules/@capgo/background-geolocation/android/src/main/java',
-              'android',
-          ]
-
-          patched = 0
-          for base in search_dirs:
-              base_path = Path(base)
-              if not base_path.exists():
-                  continue
-              for java_file in base_path.rglob('*.java'):
-                  try:
-                      text = java_file.read_text(encoding='utf-8')
-                  except Exception:
-                      continue
-                  orig = text
-
-                  # Substituir todas as variantes de getPackage().getName()
-                  # que causam NullPointerException em classes carregadas por
-                  # classloaders que não preservam info de pacote.
-                  text = text.replace(
-                      "BackgroundGeolocationService.class.getPackage().getName()",
-                      '"com.capgo.capacitor_background_geolocation"'
-                  )
-                  text = text.replace(
-                      "GeofenceStore.class.getPackage().getName()",
-                      '"com.capgo.capacitor_background_geolocation"'
-                  )
-                  # Também capturar variações genéricas
-                  text = text.replace(
-                      ".class.getPackage().getName()",
-                      '.class.getName().substring(0, com.capgo.capacitor_background_geolocation.BackgroundGeolocationService.class.getName().lastIndexOf("."))'
-                  )
-
-                  if text != orig:
-                      java_file.write_text(text, encoding='utf-8')
-                      print(f'✅ Patched: {java_file}')
-                      patched += 1
-
-          if patched == 0:
-              print('⚠️ Nenhum arquivo precisou de patch (já patcheado ou padrão diferente)')
-          else:
-              print(f'✅ Total de arquivos patcheados: {patched}')
-          PY
+          echo "Buscando e substituindo getPackage().getName() via sed..."
+          find node_modules/@capgo/background-geolocation/android -name "*.java" -type f -exec sed -i 's/BackgroundGeolocationService\.class\.getPackage()\.getName()/"com.capgo.capacitor_background_geolocation"/g' {} +
+          find node_modules/@capgo/background-geolocation/android -name "*.java" -type f -exec sed -i 's/GeofenceStore\.class\.getPackage()\.getName()/"com.capgo.capacitor_background_geolocation"/g' {} +
+          echo "Patch aplicado com sucesso."
 
       - name: Bump AGP + Gradle wrapper + force modern Android deps
         run: |
