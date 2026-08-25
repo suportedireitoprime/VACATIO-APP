@@ -18,6 +18,7 @@ interface Row {
   email?: string | null;
   provider?: string | null;
   acessos?: number | null;
+  avatar_url?: string | null;
 }
 
 const ProviderTag = ({ provider }: { provider?: string | null }) => {
@@ -239,9 +240,17 @@ export function AdminHojeCards() {
       }
       const ids = Array.from(new Set(list.map((r) => r.userId).filter(Boolean))) as string[];
       if (ids.length) {
-        const { data: provs } = await supabase.rpc('admin_user_auth_providers' as any, { _ids: ids });
+        const [{ data: provs }, { data: profiles }] = await Promise.all([
+          supabase.rpc('admin_user_auth_providers' as any, { _ids: ids }),
+          supabase.from('profiles' as any).select('id, avatar_url').in('id', ids)
+        ]);
         const map = new Map<string, string>(((provs as any[]) || []).map((p) => [p.user_id, p.provider]));
-        setRows((current) => current.map((r) => ({ ...r, provider: map.get(r.userId || r.key) || r.provider })));
+        const avatarMap = new Map<string, string>(((profiles as any[]) || []).map((p) => [p.id, p.avatar_url]));
+        setRows((current) => current.map((r) => ({ 
+          ...r, 
+          provider: map.get(r.userId || r.key) || r.provider,
+          avatar_url: avatarMap.get(r.userId || r.key) || null
+        })));
       }
     } finally {
       setLoading(false);
@@ -309,7 +318,7 @@ export function AdminHojeCards() {
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+      <div className="grid grid-cols-4 gap-2 mb-3">
         {CARDS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -407,7 +416,14 @@ export function AdminHojeCards() {
                       novosKeys.has(r.key) && 'bg-emerald-500/10',
                     )}
                   >
-                    <div className="flex-1 min-w-0">
+                    {r.avatar_url ? (
+                      <img src={r.avatar_url} alt="" className="w-10 h-10 shrink-0 rounded-full object-cover bg-muted" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    ) : (
+                      <div className="w-10 h-10 shrink-0 rounded-full bg-secondary border border-border/60 flex items-center justify-center font-display text-[15px] font-bold text-muted-foreground uppercase">
+                        {r.title.charAt(0)}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0 py-0.5">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="font-body text-sm font-semibold text-foreground truncate">{r.title}</div>
                         {typeof r.acessos === 'number' && r.acessos > 0 && (
