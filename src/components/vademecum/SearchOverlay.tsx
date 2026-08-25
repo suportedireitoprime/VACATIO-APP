@@ -63,7 +63,7 @@ interface SearchOverlayProps {
   onSelectLei: (lei: { tipo: string; leiId: string; nome: string; descricao: string; tabela_nome: string; artigoNumero?: string }) => void;
 }
 
-type SearchMode = 'leis' | 'conteudo' | 'favoritos';
+type SearchMode = 'todos' | 'constituicao' | 'codigo' | 'estatuto' | 'lei-especial' | 'previdenciario' | 'conteudo' | 'jurisprudencia' | 'favoritos';
 
 // Prioridade padrão de relevância (fallback quando não há histórico de buscas)
 const DEFAULT_ORDER = ['cf88', 'cp', 'cc', 'cpc', 'cpp', 'ctn', 'cdc', 'clt', 'eca', 'ctb', 'ei', 'epd'];
@@ -116,7 +116,7 @@ const identificarLeiPorTexto = (text: string) => {
 
 const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
   const [query, setQuery] = useState('');
-  const [mode, setMode] = useState<SearchMode>('leis');
+  const [mode, setMode] = useState<SearchMode>('todos');
   const [ocrOpen, setOcrOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -143,10 +143,14 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
     window.addEventListener('search:sugestao', handler);
     return () => window.removeEventListener('search:sugestao', handler);
   }, []);
+  const isLeisMode = !['conteudo', 'jurisprudencia', 'favoritos'].includes(mode);
+  const leisParaFiltrar = isLeisMode
+    ? (mode === 'todos' ? LEIS_CATALOG : LEIS_CATALOG.filter(l => l.tipo === mode))
+    : [];
 
   // Fuzzy search por nome/sigla/descrição/tags — usado tanto em "Nº da Lei"
   // quanto em "Nº do Artigo" (quando o usuário digita texto ao invés de número).
-  const filteredByNumero = useFuzzySearch(LEIS_CATALOG, mode === 'leis' ? query : '', {
+  const filteredByNumero = useFuzzySearch(leisParaFiltrar, isLeisMode ? query : '', {
     keys: ['descricao', 'sigla', 'nome', 'tags'],
     threshold: 0.35,
     limit: 40,
@@ -154,19 +158,19 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
 
   // Também casa por número puro/normalizado (ex.: "8078", "8.078", "8078/1990", "L8078")
   const leiNumericResults = (() => {
-    if (mode !== 'leis') return [] as typeof LEIS_CATALOG;
+    if (!isLeisMode) return [] as typeof LEIS_CATALOG;
     const raw = query.trim();
     if (!raw) return [];
     const digits = raw.replace(/[^\d]/g, '');
     if (digits.length < 3) return [];
-    return LEIS_CATALOG.filter((l) => {
+    return leisParaFiltrar.filter((l) => {
       const desc = (l.descricao || '').replace(/[^\d]/g, '');
       return desc.includes(digits);
     });
   })();
 
   const leiResults = (() => {
-    if (mode !== 'leis' || !query.trim()) return [] as typeof LEIS_CATALOG;
+    if (!isLeisMode || !query.trim()) return [] as typeof LEIS_CATALOG;
     const seen = new Set<string>();
     const merged: typeof LEIS_CATALOG = [];
     for (const l of [...leiNumericResults, ...filteredByNumero]) {
@@ -187,7 +191,7 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
   const baseArtigoLeis = sortByRelevance(
     LEIS_CATALOG.filter((l) => l.tipo === 'constituicao' || l.tipo === 'codigo' || l.tipo === 'estatuto')
   );
-  const artigoLeis = mode === 'leis' && artigoQueryDigits
+  const artigoLeis = isLeisMode && artigoQueryDigits
     ? (() => {
         if (!leiSearchTerm) return baseArtigoLeis;
         const matched = baseArtigoLeis.filter((l) =>
@@ -200,16 +204,17 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
       })()
     : [];
 
-
   const favoritos: LeiFavorita[] = mode === 'favoritos' ? (favVersion >= 0 ? getFavoritos() : []) : [];
 
   const placeholder =
     voice.listening
       ? 'Ouvindo…'
-      : mode === 'leis'
+      : isLeisMode
       ? 'Digite o nome ou nº da lei (ex.: CF, 8.078, art 5 CP)…'
       : mode === 'conteudo'
       ? 'Pesquise qualquer termo (ex.: princípios, dolo, boa-fé)…'
+      : mode === 'jurisprudencia'
+      ? 'Pesquisar na jurisprudência...'
       : 'Buscar em favoritos…';
 
   const emitSelect = (lei: typeof LEIS_CATALOG[number], artigoNumero?: string) => {
@@ -291,58 +296,44 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
             </div>
 
             {/* Menu de alternância de abas */}
-            <div className="mt-4 flex items-center gap-1 p-1 rounded-full bg-black/20 border border-white/15 overflow-x-auto hide-scrollbar">
-              <button
-                onClick={() => { track('search_modo_trocado', { modo: 'leis' }); setMode('leis'); }}
-                className={`flex-1 shrink-0 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-wide font-bold transition-all ${
-                  mode === 'leis'
-                    ? "bg-white text-black shadow-sm"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                Leis
-              </button>
-              <button
-                onClick={() => { track('search_modo_trocado', { modo: 'conteudo' }); setMode('conteudo'); }}
-                className={`flex-1 shrink-0 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-wide font-bold transition-all ${
-                  mode === 'conteudo'
-                    ? "bg-white text-black shadow-sm"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                Conteúdo
-              </button>
-              <button
-                onClick={() => { track('search_modo_trocado', { modo: 'jurisprudencia' }); setMode('jurisprudencia'); }}
-                className={`flex-1 shrink-0 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-wide font-bold transition-all ${
-                  mode === 'jurisprudencia'
-                    ? "bg-white text-black shadow-sm"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                Jurisprudência
-              </button>
-              <button
-                onClick={() => { track('search_modo_trocado', { modo: 'favoritos' }); setMode('favoritos'); }}
-                className={`flex-1 shrink-0 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-wide font-bold transition-all ${
-                  mode === 'favoritos'
-                    ? "bg-white text-black shadow-sm"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                Favoritos
-              </button>
+            <div className="mt-4 flex items-center gap-1 p-1 rounded-full bg-black/20 border border-white/15 overflow-x-auto hide-scrollbar scroll-smooth">
+              {[
+                { id: 'todos', label: 'Todos' },
+                { id: 'constituicao', label: 'Constituição' },
+                { id: 'codigo', label: 'Códigos' },
+                { id: 'estatuto', label: 'Estatutos' },
+                { id: 'lei-especial', label: 'Leis Especiais' },
+                { id: 'previdenciario', label: 'Previdenciário' },
+                { id: 'conteudo', label: 'Conteúdo' },
+                { id: 'jurisprudencia', label: 'Jurisprudência' },
+                { id: 'favoritos', label: 'Favoritos' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => { track('search_modo_trocado', { modo: tab.id }); setMode(tab.id as SearchMode); }}
+                  className={`shrink-0 px-3.5 py-2 rounded-full text-[11px] uppercase tracking-wide font-bold transition-all ${
+                    mode === tab.id
+                      ? "bg-white text-black shadow-sm"
+                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Results */}
           <div className="flex-1 overflow-y-auto px-2 pb-[calc(3.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] relative border-t border-border/50 pt-2">
-            {mode === 'leis' && (() => {
+            {isLeisMode && (() => {
               const temTextoSemNumero = !artigoQueryDigits && query.trim().length >= 1;
-              const leisPorTexto = temTextoSemNumero ? filteredByNumero.slice(0, 40) : [];
+              const leisParaMostrar = temTextoSemNumero ? leiResults : (query.trim() === '' && mode !== 'todos' ? leisParaFiltrar : []);
+              const hasLeis = leisParaMostrar.length > 0;
+              const hasArtigoLeis = artigoLeis.length > 0;
+              const showRecentes = query.trim() === '' && mode === 'todos';
               return (
               <div className="space-y-2">
-                {!artigoQueryDigits && !temTextoSemNumero && (
+                {showRecentes && (
                   <>
                     <p className="text-xs uppercase tracking-wider text-muted-foreground py-2 px-3 font-semibold mt-2">
                       Leis mais procuradas
@@ -379,15 +370,15 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
                     })}
                   </>
                 )}
-                {temTextoSemNumero && (
+                {(temTextoSemNumero || (query.trim() === '' && mode !== 'todos')) && (
                   <>
                     <p className="text-xs uppercase tracking-wider text-muted-foreground py-2 px-3 font-semibold mt-2">
-                      Leis encontradas
+                      {temTextoSemNumero ? 'Leis encontradas' : 'Leis da categoria'}
                     </p>
-                    {leisPorTexto.length === 0 && (
+                    {leisParaMostrar.length === 0 && (
                       <p className="text-center text-muted-foreground text-base py-8">Nenhuma lei encontrada</p>
                     )}
-                    {leisPorTexto.map((lei) => {
+                    {leisParaMostrar.map((lei) => {
                       const fav = isFavorito(lei.id);
                       return (
                       <div
