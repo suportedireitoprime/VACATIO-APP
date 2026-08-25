@@ -94,7 +94,7 @@ const BibliotecaAtalhosBar = ({ onAbrirLivro }: Props) => {
     <>
       {/* Fixed Bottom Menu */}
       {createPortal(
-        <div className="fixed bottom-[72px] lg:bottom-0 inset-x-0 z-40 bg-background/80 backdrop-blur-lg border-t border-border/50 pb-safe">
+        <div className="fixed bottom-0 inset-x-0 z-[60] bg-card border-t border-border shadow-[0_-8px_30px_rgba(0,0,0,0.12)] pb-safe">
           <div className="max-w-3xl mx-auto px-2">
             <div className="flex items-center justify-around overflow-x-auto hide-scrollbar gap-2 py-2 snap-x">
               {TABS.map((t) => {
