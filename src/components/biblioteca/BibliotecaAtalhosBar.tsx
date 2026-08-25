@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { Heart, Clock, HardDrive, BookMarked, ChevronRight, BookOpen, Sparkles, Settings2, Play, Bell } from 'lucide-react';
+import { Heart, Clock, HardDrive, BookMarked, ChevronRight, BookOpen, Sparkles, Settings2, Play, Bell, Library } from 'lucide-react';
 import LembreteLivroSheet from './LembreteLivroSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,13 +20,14 @@ import { isPdfCached, downloadPdf, removePdfFromCache } from '@/services/bibliot
 import { Capacitor } from '@capacitor/core';
 import { toast } from 'sonner';
 
-type Tab = 'favoritos' | 'recentes' | 'leitura' | 'offline';
+type Tab = 'biblioteca' | 'favoritos' | 'recentes' | 'leitura' | 'offline';
 
 interface Props {
   onAbrirLivro: (livro: LivroNormalizado) => void;
 }
 
 const TABS: { id: Tab; label: string; icon: typeof Heart }[] = [
+  { id: 'biblioteca', label: 'Biblioteca', icon: Library },
   { id: 'leitura', label: 'Leitura', icon: BookMarked },
   { id: 'favoritos', label: 'Favoritos', icon: Heart },
   { id: 'recentes', label: 'Recentes', icon: Clock },
@@ -94,9 +95,9 @@ const BibliotecaAtalhosBar = ({ onAbrirLivro }: Props) => {
     <>
       {/* Fixed Bottom Menu */}
       {createPortal(
-        <div className="fixed bottom-0 inset-x-0 z-[60] bg-card border-t border-border shadow-[0_-8px_30px_rgba(0,0,0,0.12)] pb-safe">
-          <div className="max-w-3xl mx-auto px-2">
-            <div className="flex items-center justify-around overflow-x-auto hide-scrollbar gap-2 py-2 snap-x">
+        <div className="fixed bottom-0 left-0 right-0 z-[60]">
+          <div className="bg-secondary/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.45)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]">
+            <div className="grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
               {TABS.map((t) => {
                 const Icon = t.icon;
                 const count =
@@ -104,28 +105,31 @@ const BibliotecaAtalhosBar = ({ onAbrirLivro }: Props) => {
                   : t.id === 'recentes' ? recentes.length
                   : t.id === 'leitura' ? emLeitura.length
                   : null;
-                const isActive = active === t.id;
+                const isActive = (active === null && t.id === 'biblioteca') || active === t.id;
                 return (
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => setActive(t.id)}
-                    className={`snap-start shrink-0 flex flex-col items-center justify-center px-4 py-1.5 rounded-xl transition-colors ${
-                      isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                    onClick={() => {
+                      if (t.id === 'biblioteca') {
+                        setActive(null);
+                      } else {
+                        setActive(t.id);
+                      }
+                    }}
+                    className={`relative flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors ${
+                      isActive ? 'text-primary' : 'text-foreground hover:text-primary'
                     }`}
                   >
-                    <span className="relative flex flex-col items-center gap-1.5 px-2 py-1">
-                      <Icon className="w-6 h-6" strokeWidth={isActive ? 2 : 1.5} />
-                      {isActive && <div className="absolute -inset-2 rounded-full blur-md -z-10 bg-primary/10" />}
-                      <span className={`font-body text-[11px] leading-tight ${isActive ? 'font-bold' : ''}`}>
-                        {t.label}
-                      </span>
-                      {count !== null && count > 0 && (
-                        <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
-                          {count}
-                        </span>
-                      )}
+                    <Icon className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={2} fill="none" />
+                    <span className={`font-body text-[11px] sm:text-[12px] leading-tight ${isActive ? 'font-bold' : ''}`}>
+                      {t.label}
                     </span>
+                    {count !== null && count > 0 && (
+                      <span className="absolute top-0 right-1 sm:right-3 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                        {count}
+                      </span>
+                    )}
                   </button>
                 );
               })}
