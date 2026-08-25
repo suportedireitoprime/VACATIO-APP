@@ -11,12 +11,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 const AUTOPLAY_MS = 10000;
 const MAX_NEWS = 8;
-const MAX_OBRAS = 6;
+const MAX_NEWS = 8;
 
 type FeedItem =
   | { kind: 'noticia'; id: string; data: Noticia }
-  | { kind: 'blog'; id: string; data: BlogPost }
-  | { kind: 'obra'; id: string; data: Obra };
+  | { kind: 'blog'; id: string; data: BlogPost };
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
@@ -30,25 +29,14 @@ function formatTime(dateStr: string) {
   return `${day} ${months[d.getMonth()]} · ${hh}:${mm}`;
 }
 
-function tipoLabel(o: Obra): string {
-  if ((o.categorias_juridicas ?? []).includes('Documentário')) return 'Documentário';
-  return o.tipo === 'tv' ? 'Série' : 'Filme';
-}
 
-// Paleta por categoria — combina com o tema Wine/Ivory do app.
-// Filme → wine/bordô (primary do app). Série → índigo profundo. Documentário → verde-musgo.
-const OBRA_PALETTE: Record<string, { deep: string; mid: string; chipBg: string; chipText: string }> = {
-  Filme:         { deep: '#2a0a12', mid: '#4a1524', chipBg: '#e11d48', chipText: '#fff5f7' },
-  Série:         { deep: '#0d1230', mid: '#1e2757', chipBg: '#6366f1', chipText: '#f0f2ff' },
-  Documentário:  { deep: '#0f1f14', mid: '#1e3a26', chipBg: '#10b981', chipText: '#ecfdf5' },
-};
 
 // Padrão do carrossel (um ciclo = 7 blogs + 1 notícia + 1 obra):
 //   5 blogs → 1 notícia → 2 blogs → 1 obra → repete.
 // Filas garantem que nada repita antes de esgotar cada fonte.
-const CYCLE: Array<'blog' | 'noticia' | 'obra'> = [
+const CYCLE: Array<'blog' | 'noticia'> = [
   'noticia',
-  'obra',
+  'blog',
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -80,9 +68,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
   // Filas persistentes por sessão do carrossel (mantidas em ref, não causam re-render).
   const blogQueueRef = useRef<BlogPost[]>(shuffle(postsAll));
   const noticiaQueueRef = useRef<Noticia[]>([]);
-  const obraQueueRef = useRef<Obra[]>([]);
   const usedNoticiaIdsRef = useRef<Set<string>>(new Set());
-  const usedObraIdsRef = useRef<Set<string>>(new Set());
   const cycleStepRef = useRef(0);
 
   const [feed, setFeed] = useState<FeedItem[]>([]);
@@ -96,10 +82,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
     noticiaQueueRef.current = sorted.filter((n) => !usedNoticiaIdsRef.current.has(String(n.id)));
   }, [noticias]);
 
-  // Fila de obras: recalcula quando a fonte muda, removendo já exibidas.
-  useEffect(() => {
-    obraQueueRef.current = obras.filter((o) => !usedObraIdsRef.current.has(String(o.id)));
-  }, [obras]);
+
 
   const takeNext = useCallback((kind: 'blog' | 'noticia' | 'obra'): FeedItem | null => {
     if (kind === 'blog') {
@@ -123,16 +106,8 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
       usedNoticiaIdsRef.current.add(String(n.id));
       return { kind: 'noticia', id: `n-${n.id}-${Date.now()}`, data: n };
     }
-    // obra
-    if (obraQueueRef.current.length === 0) {
-      usedObraIdsRef.current.clear();
-      obraQueueRef.current = [...obras];
-    }
-    const o = obraQueueRef.current.shift();
-    if (!o) return null;
-    usedObraIdsRef.current.add(String(o.id));
-    return { kind: 'obra', id: `o-${o.id}-${Date.now()}`, data: o };
-  }, [noticias, obras, postsAll]);
+    return null;
+  }, [noticias, postsAll]);
 
   const extendFeed = useCallback((minItemsAhead: number) => {
     setFeed((prev) => {
@@ -177,18 +152,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
     return unsub;
   }, [noticias.length]);
 
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from('tematica_juridica_obras')
-        .select('*')
-        .eq('ativo', true)
-        .order('destaque', { ascending: false })
-        .order('ordem', { ascending: true })
-        .limit(MAX_OBRAS);
-      if (data) setObras((data as unknown) as Obra[]);
-    })();
-  }, []);
+
 
   useEffect(() => {
     onOpenChange?.(!!selectedNoticia || !!selectedPost || !!selectedObra);

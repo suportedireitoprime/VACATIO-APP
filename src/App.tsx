@@ -434,6 +434,7 @@ function NativeBootstrap() {
     const run = () => {
       import("@/lib/webPush").then((m) => m.trackPushLandingIfAny()).catch(() => {});
       import("@/services/noticiasService").then((m) => m.prefetchNoticias()).catch(() => {});
+      import("@/lib/tematicaStore").then((m) => m.hydrateTematicaCache()).catch(() => {});
       import("@/services/syncQueue").then((m) => m.startSyncQueueWorker()).catch(() => {});
       import("@/services/jurisprudenciaWarmup").then((m) => m.warmupJurisprudencia()).catch(() => {});
       import("@capawesome/capacitor-app-update").then(async (m) => {

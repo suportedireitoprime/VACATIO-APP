@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, ChevronRight, Clock, Film, Star } from 'lucide-react';
 import type { Obra } from '@/components/tematica/ObraDetailSheet';
-import { getCachedObras, loadObras } from '@/lib/tematicaStore';
+import { getCachedObras, loadObras, subscribeTematica } from '@/lib/tematicaStore';
 import { cdnImg } from '@/lib/cdnImg';
 
 const ObraDetailSheet = lazyWithRetry(() => import('@/components/tematica/ObraDetailSheet'));
@@ -45,15 +45,29 @@ const TematicaCarrossel = () => {
 
   useEffect(() => {
     let vivo = true;
-    loadObras()
-      .then((lista) => {
-        if (vivo) setObras(shuffle((lista as Obra[]) ?? []));
-      })
-      .catch(() => {});
+    
+    // Atualiza imediatamente quando a store notificar
+    const unsub = subscribeTematica(() => {
+      if (vivo) {
+        const cached = getCachedObras();
+        if (cached && cached.length) setObras(shuffle(cached as Obra[]));
+      }
+    });
+
+    // Se estiver vazio, também dispara o carregamento inicial (memória ou rede)
+    if (obras.length === 0) {
+      loadObras()
+        .then((lista) => {
+          if (vivo && lista && lista.length) setObras(shuffle((lista as Obra[]) ?? []));
+        })
+        .catch(() => {});
+    }
+
     return () => {
       vivo = false;
+      unsub();
     };
-  }, []);
+  }, [obras.length]);
 
   // Semeia / repõe o feed sempre que a fonte muda ou o usuário chega perto do fim.
   useEffect(() => {
