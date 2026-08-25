@@ -19,6 +19,9 @@
 -keep class com.codetrixstudio.** { *; }
 -keep class ee.forgr.audio.** { *; }
 -keep class com.capacitorjs.plugins.** { *; }
+-keep class com.tchvu3.** { *; }
+-keep class com.aparajita.** { *; }
+-keep class com.capgo.** { *; }
 
 # Firebase Kotlin extensions (ktx) — required for Firebase Installations
 -keep class com.google.firebase.ktx.** { *; }
