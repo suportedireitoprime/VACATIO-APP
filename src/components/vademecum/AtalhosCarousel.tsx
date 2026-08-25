@@ -623,28 +623,8 @@ function LeisList({
                 onClick={() => onSelect(row.id)}
                 className="flex-1 flex items-stretch gap-3 sm:gap-4 text-left active:scale-[0.99] transition-transform min-w-0"
               >
-                <div
-                  className="relative w-[86px] sm:w-[96px] md:w-[112px] lg:w-[128px] shrink-0 overflow-hidden flex flex-col items-center justify-center"
-                  style={{
-                    background: `linear-gradient(155deg, ${color} 0%, ${color}E6 45%, ${color}99 100%)`,
-                    boxShadow: 'inset 0 0 0 1px rgba(255,215,120,0.28), inset 0 -1px 0 rgba(0,0,0,0.35)',
-                  }}
-                >
-                  <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.18),transparent_60%)]" />
-                  <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_bottom,rgba(0,0,0,0.35),transparent_65%)]" />
-                  <div className="absolute top-2 left-2 right-2 h-px bg-gradient-to-r from-transparent via-amber-200/50 to-transparent" />
-                  <div className="absolute bottom-2 left-2 right-2 h-px bg-gradient-to-r from-transparent via-amber-200/50 to-transparent" />
-                  <Icon className="relative w-4 h-4 text-white/70 mt-2" strokeWidth={2} />
-                  <span
-                    className="relative font-display font-bold text-white tracking-wider leading-none mt-1"
-                    style={{
-                      fontSize: tag.length <= 3 ? '1.9rem' : tag.length <= 5 ? '1.35rem' : '1.05rem',
-                      textShadow: '0 1px 0 rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.35)',
-                    }}
-                  >
-                    {tag}
-                  </span>
-                  <span className="relative w-1 h-1 rounded-full bg-amber-200/70 mt-1.5 mb-2" style={{ boxShadow: '0 0 6px rgba(255,215,120,0.6)' }} />
+                <div className="w-[86px] sm:w-[96px] md:w-[112px] lg:w-[128px] shrink-0 flex items-center justify-center">
+                  <Icon className="w-12 h-12 sm:w-14 sm:h-14" style={{ color }} strokeWidth={1.5} />
                 </div>
                 <div className="flex-1 min-w-0 py-4 sm:py-5">
                   <p className="font-display text-[15px] sm:text-[17px] font-semibold text-foreground leading-snug uppercase" style={{ letterSpacing: '0.06em' }}>

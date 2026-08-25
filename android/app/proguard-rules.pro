@@ -23,14 +23,6 @@
 -keep class com.aparajita.** { *; }
 -keep class com.capgo.** { *; }
 
-# Keep app core and AndroidX components (prevent crash on open)
--keep class br.com.vacatio.app.** { *; }
--keep class androidx.core.** { *; }
--keep class androidx.core.splashscreen.** { *; }
--keep class androidx.appcompat.** { *; }
--keep class androidx.activity.** { *; }
--keep class androidx.fragment.** { *; }
-
 # Firebase Kotlin extensions (ktx) — required for Firebase Installations
 -keep class com.google.firebase.ktx.** { *; }
 -keep class com.google.firebase.installations.ktx.** { *; }
