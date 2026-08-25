@@ -246,6 +246,10 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
 
   const { counts: radarCounts } = useOutrasNormasCounts();
 
+  const [seenCounts, setSeenCounts] = useState<Record<string, number>>(() => {
+    try { return JSON.parse(localStorage.getItem('outras_normas_seen') || '{}'); } catch { return {}; }
+  });
+
   const handle = useCallback((id: string) => {
     const radarCat = RADAR_CATS.find(c => c.id === id);
     if (radarCat) {
@@ -467,21 +471,30 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
           {RADAR_CATS.map((c) => {
             const Icon = c.icon;
             const n = radarCounts[c.radarTipo] ?? 0;
+            const seen = seenCounts[c.id] || 0;
+            const isNew = n > seen;
+
             return (
               <button
                 key={c.id}
-                onClick={() => handle(c.id)}
+                onClick={() => {
+                  if (isNew) {
+                    const next = { ...seenCounts, [c.id]: n };
+                    setSeenCounts(next);
+                    try { localStorage.setItem('outras_normas_seen', JSON.stringify(next)); } catch {}
+                  }
+                  handle(c.id);
+                }}
                 data-track="home_outras_normas_click"
                 data-track-name={c.label}
                 className="w-full flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-card border border-border/60 shadow-sm active:scale-[0.99] transition"
               >
                 <Icon
-                  className="w-8 h-8 shrink-0"
+                  className="w-8 h-8 shrink-0 text-white"
                   style={{
-                    color: c.color,
-                    filter: 'saturate(1.35) brightness(1.15) drop-shadow(0 2px 6px rgba(0,0,0,0.45))',
+                    filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.3)) drop-shadow(0 2px 4px rgba(0,0,0,0.4))',
                   }}
-                  strokeWidth={1.15}
+                  strokeWidth={1.3}
                 />
                 <div className="flex-1 min-w-0 text-left">
                   <p className="font-display text-foreground text-[15.5px] font-bold leading-tight truncate">
@@ -491,15 +504,11 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                     {c.sublabel}
                   </p>
                 </div>
-                <span
-                  className={`shrink-0 text-[11px] font-body font-semibold px-2 py-0.5 rounded-full border ${
-                    n > 0
-                      ? 'bg-primary/15 text-primary border-primary/25'
-                      : 'bg-muted text-muted-foreground border-border'
-                  }`}
-                >
-                  {n > 0 ? `${n} nova${n === 1 ? '' : 's'}` : '0 novas'}
-                </span>
+                {isNew && (
+                  <span className="shrink-0 text-[11px] font-body font-semibold px-2 py-0.5 rounded-full border bg-primary/15 text-primary border-primary/25">
+                    {n} nova{n === 1 ? '' : 's'}
+                  </span>
+                )}
                 <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
               </button>
             );
@@ -515,12 +524,11 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                 className="w-full flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-card border border-border/60 shadow-sm active:scale-[0.99] transition"
               >
                 <Icon
-                  className="w-8 h-8 shrink-0"
+                  className="w-8 h-8 shrink-0 text-white"
                   style={{
-                    color: c.color,
-                    filter: 'saturate(1.35) brightness(1.15) drop-shadow(0 2px 6px rgba(0,0,0,0.45))',
+                    filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.3)) drop-shadow(0 2px 4px rgba(0,0,0,0.4))',
                   }}
-                  strokeWidth={1.15}
+                  strokeWidth={1.3}
                 />
                 <div className="flex-1 min-w-0 text-left">
                   <p className="font-display text-foreground text-[15.5px] font-bold leading-tight truncate">
