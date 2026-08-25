@@ -1,7 +1,7 @@
 import { cloneElement, isValidElement, useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronRight, ExternalLink, Volume2, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Layers, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2 } from 'lucide-react';
+import { X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronRight, ExternalLink, Volume2, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Layers, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2, Lock } from 'lucide-react';
 const LembretesArtigoSheet = lazy(() => import('./LembretesArtigoSheet'));
 const BaixarArtigoSheet = lazy(() => import('./BaixarArtigoSheet'));
 // Sheets/overlays pesados são carregados sob demanda: o chunk só desce
@@ -3010,18 +3010,6 @@ const ArtigoBottomSheet = ({
                     className="w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors"
                   >
                     <Minus className="w-4 h-4 text-foreground" />
-                  </button>
-                </div>
-                <div className="bg-card border border-border rounded-2xl shadow-lg p-4 flex items-center justify-between gap-4 self-end">
-                  <div className="flex flex-col">
-                    <span className="text-[13px] font-semibold text-foreground leading-tight">Leitura Dinâmica</span>
-                    <span className="text-[10px] text-muted-foreground mt-0.5">Bionic Reading</span>
-                  </div>
-                  <button
-                    onClick={() => setBionicReading(!bionicReading)}
-                    className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 relative ${bionicReading ? 'bg-primary' : 'bg-secondary border border-border'}`}
-                  >
-                    <div className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform ${bionicReading ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
               </motion.div>
