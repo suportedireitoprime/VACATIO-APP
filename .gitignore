@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+crash_full.txt
+crash_log.txt
+crash_log2.txt
+crashes.txt
+log.txt
+logcat.txt

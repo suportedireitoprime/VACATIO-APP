@@ -53,41 +53,6 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Patch @capgo/background-geolocation to fix NullPointerException
-        run: |
-          python3 - <<'PY'
-          import os
-          from pathlib import Path
-
-          plugin_dir = Path('node_modules/@capgo/background-geolocation/android/src/main/java/com/capgo/capacitor_background_geolocation')
-          if not plugin_dir.exists():
-              print('Plugin @capgo/background-geolocation não encontrado. Pulando patch.')
-          else:
-              for java_file in plugin_dir.rglob('*.java'):
-                  text = java_file.read_text(encoding='utf-8')
-                  orig = text
-                  
-                  # Substituir chamadas estáticas problemáticas
-                  # As chamadas problemáticas estão na inicialização de campos estáticos (ACTION_BROADCAST, etc)
-                  # Como a classe não tem acesso direto a Context no contexto estático de forma global (a não ser que passem),
-                  # vamos substituir hardcoded pela string literal que é usada na action, ou 
-                  # simplesmente hardcodar "com.capgo.capacitor_background_geolocation".
-                  
-                  # A biblioteca faz: BackgroundGeolocationService.class.getPackage().getName()
-                  # Vamos fixar para: "com.capgo.capacitor_background_geolocation"
-                  text = text.replace(
-                      "BackgroundGeolocationService.class.getPackage().getName()", 
-                      '"com.capgo.capacitor_background_geolocation"'
-                  )
-                  text = text.replace(
-                      "GeofenceStore.class.getPackage().getName()", 
-                      '"com.capgo.capacitor_background_geolocation"'
-                  )
-                  
-                  if text != orig:
-                      java_file.write_text(text, encoding='utf-8')
-                      print(f'✅ Patched {java_file.name}')
-          PY
 
       - name: Remove Lovable hot-reload from capacitor.config.ts
         run: |
@@ -140,6 +105,100 @@ jobs:
           rm -rf android
           bunx cap add android
           chmod +x android/gradlew
+
+      - name: Disable R8 minification + add ProGuard keep rules
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # --- 1. Desabilitar minifyEnabled no build.gradle do app ---
+          # O Capacitor gera com minifyEnabled true por padrão para release.
+          # O R8 remove informações de pacote das classes, fazendo
+          # Class.getPackage() retornar null → NullPointerException fatal.
+          app_gradle = Path('android/app/build.gradle')
+          if app_gradle.exists():
+              s = app_gradle.read_text()
+              s = s.replace('minifyEnabled true', 'minifyEnabled false')
+              # Também desabilitar shrinkResources se estiver habilitado
+              s = s.replace('shrinkResources true', 'shrinkResources false')
+              app_gradle.write_text(s)
+              print('✅ minifyEnabled e shrinkResources desabilitados no app/build.gradle')
+          else:
+              print('⚠️ android/app/build.gradle não encontrado')
+
+          # --- 2. Adicionar regras ProGuard como safety net ---
+          proguard = Path('android/app/proguard-rules.pro')
+          rules = """
+          # Keep @capgo/background-geolocation classes to prevent R8 from
+          # stripping package info (getPackage() returns null otherwise)
+          -keep class com.capgo.capacitor_background_geolocation.** { *; }
+          -keepnames class com.capgo.capacitor_background_geolocation.** { *; }
+          """
+          if proguard.exists():
+              existing = proguard.read_text()
+              if 'capgo' not in existing:
+                  proguard.write_text(existing + '\n' + rules)
+                  print('✅ ProGuard keep rules adicionadas')
+              else:
+                  print('ProGuard rules para capgo já presentes')
+          else:
+              proguard.write_text(rules)
+              print('✅ proguard-rules.pro criado com keep rules')
+          PY
+
+      - name: Patch @capgo/background-geolocation getPackage() NPE
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import glob
+
+          # Procurar em TODOS os locais possíveis onde o source Java pode estar:
+          # 1. node_modules (fonte original)
+          # 2. android/ (copiado pelo cap add)
+          search_dirs = [
+              'node_modules/@capgo/background-geolocation/android/src/main/java',
+              'android',
+          ]
+
+          patched = 0
+          for base in search_dirs:
+              base_path = Path(base)
+              if not base_path.exists():
+                  continue
+              for java_file in base_path.rglob('*.java'):
+                  try:
+                      text = java_file.read_text(encoding='utf-8')
+                  except Exception:
+                      continue
+                  orig = text
+
+                  # Substituir todas as variantes de getPackage().getName()
+                  # que causam NullPointerException em classes carregadas por
+                  # classloaders que não preservam info de pacote.
+                  text = text.replace(
+                      "BackgroundGeolocationService.class.getPackage().getName()",
+                      '"com.capgo.capacitor_background_geolocation"'
+                  )
+                  text = text.replace(
+                      "GeofenceStore.class.getPackage().getName()",
+                      '"com.capgo.capacitor_background_geolocation"'
+                  )
+                  # Também capturar variações genéricas
+                  text = text.replace(
+                      ".class.getPackage().getName()",
+                      '.class.getName().substring(0, com.capgo.capacitor_background_geolocation.BackgroundGeolocationService.class.getName().lastIndexOf("."))'
+                  )
+
+                  if text != orig:
+                      java_file.write_text(text, encoding='utf-8')
+                      print(f'✅ Patched: {java_file}')
+                      patched += 1
+
+          if patched == 0:
+              print('⚠️ Nenhum arquivo precisou de patch (já patcheado ou padrão diferente)')
+          else:
+              print(f'✅ Total de arquivos patcheados: {patched}')
+          PY
 
       - name: Bump AGP + Gradle wrapper + force modern Android deps
         run: |
