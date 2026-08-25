@@ -2179,14 +2179,11 @@ jobs:
           BASE_BUILD = 3
           BASE_PATCH = 65
           k = max(build_number - BASE_BUILD, 0)
-          if k <= (99 - BASE_PATCH):
-              version_name = f"1.0.{BASE_PATCH + k}"
-          else:
-              m = k - (99 - BASE_PATCH) - 1
-              cycle = m // 100
-              pos = m % 100
-              minor = 1 + cycle
-              version_name = f"1.{minor}.0" if pos == 0 else f"1.{minor}.0.{pos}"
+          total_patch = BASE_PATCH + k
+          
+          major = 1 + (total_patch // 100)
+          minor = total_patch % 100
+          version_name = f"{major}.{minor}"
 
 
           p = Path('android/app/build.gradle')

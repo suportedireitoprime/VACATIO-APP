@@ -6,7 +6,7 @@ const GOOGLE_WEB_CLIENT_ID = process.env.GOOGLE_WEB_CLIENT_ID || '833040915353-t
 
 const config: CapacitorConfig = {
   appId: 'br.com.vacatio.app',
-  appName: 'Vade Mecum',
+  appName: 'Vademecum',
   webDir: 'dist',
   // 🔥 Hot-reload durante desenvolvimento. REMOVA o bloco `server` inteiro
   // antes de gerar o AAB de release para que o app rode 100% offline com o

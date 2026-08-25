@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Vade Mecum</string>
-    <string name="title_activity_main">Vade Mecum</string>
+    <string name="app_name">Vademecum</string>
+    <string name="title_activity_main">Vademecum</string>
     <string name="package_name">br.com.vacatio.app</string>
     <string name="custom_url_scheme">br.com.vacatio.app</string>
 </resources>
