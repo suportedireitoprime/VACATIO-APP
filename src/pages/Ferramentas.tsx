@@ -33,7 +33,7 @@ const Ferramentas = () => {
   const primaryTools = [itemDesktop, itemDicionario, itemBoletins, itemOffline].filter(Boolean);
   const primaryIds = primaryTools.map(t => t?.id);
   // Tematica will be handled separately by the carousel, so we exclude it from the list
-  const usedIds = new Set([...primaryIds, 'tematica']);
+  const usedIds = new Set([...primaryIds, 'tematica', 'noticias', 'resumos']);
   const secondaryTools = DESKTOP_TOOLS_FLAT.filter(t => !usedIds.has(t.id));
 
   const toolsList = (
@@ -89,7 +89,7 @@ const Ferramentas = () => {
 
       <section className="space-y-3 mt-4">
         <div className="flex items-baseline gap-2 pb-1 border-b border-border/40 px-1">
-          <h2 className="font-display text-lg font-bold text-foreground">Explorar</h2>
+          <h2 className="font-display text-lg font-bold text-foreground uppercase">Outros Destaques</h2>
         </div>
         <div className="space-y-3">
           {secondaryTools.map((tool, i) => {

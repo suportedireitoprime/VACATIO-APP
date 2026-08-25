@@ -438,23 +438,47 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('vacatio:open-chat'))}
                 data-track="home_chat_juridico_click"
-                className="w-full relative overflow-hidden flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-primary/15 border border-primary/30 shadow-sm active:scale-[0.99] transition"
+                className="w-full relative overflow-hidden flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-primary border border-primary/30 shadow-sm active:scale-[0.99] transition"
               >
+                <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.15] text-black">
+                  <motion.div
+                    animate={{ x: [0, -10, 0], y: [0, -5, 0], rotate: [12, 8, 12] }}
+                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -left-2 -bottom-2"
+                  >
+                    <Scale className="w-16 h-16" strokeWidth={1.5} />
+                  </motion.div>
+                  <motion.div
+                    animate={{ x: [0, 10, 0], y: [0, 5, 0], rotate: [-12, -16, -12] }}
+                    transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute right-12 -top-4"
+                  >
+                    <Gavel className="w-12 h-12" strokeWidth={1.5} />
+                  </motion.div>
+                  <motion.div
+                    animate={{ x: [0, 5, 0], y: [0, -8, 0], rotate: [6, 10, 6] }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -right-2 -bottom-2"
+                  >
+                    <BookOpen className="w-12 h-12" strokeWidth={1.5} />
+                  </motion.div>
+                </div>
+
                 <span aria-hidden className="pointer-events-none absolute inset-0 icon-shine" />
                 <MessageCircle
-                  className="w-8 h-8 shrink-0 text-primary"
-                  style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))' }}
+                  className="relative z-10 w-8 h-8 shrink-0 text-black"
+                  style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
                   strokeWidth={1.5}
                 />
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="font-display text-primary text-[16px] font-bold leading-tight truncate tracking-[0.02em]">
+                <div className="relative z-10 flex-1 min-w-0 text-left">
+                  <p className="font-display text-black text-[16px] font-bold leading-tight truncate tracking-[0.02em]">
                     Chat Jurídico
                   </p>
-                  <p className="font-body text-primary/80 text-[12px] sm:text-[12.5px] leading-tight mt-0.5 min-h-[15px]">
+                  <p className="font-body text-black/80 text-[12px] sm:text-[12.5px] leading-tight mt-0.5 min-h-[15px]">
                     <TypewriterText hints={CHAT_HINTS} />
                   </p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-primary shrink-0 opacity-80" />
+                <ChevronRight className="relative z-10 w-5 h-5 text-black/80 shrink-0" />
               </button>
             </div>
 
