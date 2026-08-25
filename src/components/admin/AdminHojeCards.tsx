@@ -417,7 +417,7 @@ export function AdminHojeCards() {
                     )}
                   >
                     {r.avatar_url ? (
-                      <img src={r.avatar_url} alt="" className="w-10 h-10 shrink-0 rounded-full object-cover bg-muted" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                      <img src={r.avatar_url} alt="" referrerPolicy="no-referrer" className="w-10 h-10 shrink-0 rounded-full object-cover bg-muted" onError={(e) => (e.currentTarget.style.display = 'none')} />
                     ) : (
                       <div className="w-10 h-10 shrink-0 rounded-full bg-secondary border border-border/60 flex items-center justify-center font-display text-[15px] font-bold text-muted-foreground uppercase">
                         {r.title.charAt(0)}
