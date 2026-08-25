@@ -106,7 +106,7 @@ const COLOR_MAP: Record<string, string> = {
 
 const TIPO_COLOR: Record<string, string> = {
   constituicao: '#22C55E',
-  codigo: '#3B82F6',
+  codigo: '#F87171',
   estatuto: '#EC4899',
   'lei-especial': '#F97316',
   sumula: '#EAB308',
@@ -236,8 +236,8 @@ interface CatCard {
 
 const CAT_PRINCIPAIS: CatCard[] = [
   { id: 'constituicao', label: 'CONSTITUIÇÃO', sublabel: 'CF/88', icon: Landmark, accent: '#22C55E' },
-  { id: 'codigo',       label: 'CÓDIGOS',      sublabel: 'Civil, Penal, Processo…', icon: BookMarked, accent: '#60A5FA' },
-  { id: 'estatuto',     label: 'ESTATUTOS',    sublabel: 'ECA, Idoso, OAB…', icon: ScrollText, accent: '#F87171' },
+  { id: 'codigo',       label: 'CÓDIGOS',      sublabel: 'Civil, Penal, Processo…', icon: BookMarked, accent: '#F87171' },
+  { id: 'estatuto',     label: 'ESTATUTOS',    sublabel: 'ECA, Idoso, OAB…', icon: ScrollText, accent: '#3B82F6' },
   { id: 'jurisprudencia', label: 'JURISPRUDÊNCIA', sublabel: 'STF, STJ e Vinculantes', icon: Gavel, accent: '#F5C542' },
 ];
 
@@ -326,7 +326,7 @@ const AtalhosCarousel = ({ onSelect }: Props) => {
   const HEADER_CONFIG: Record<Mode, { title: string; icon: React.ElementType; desc: string; color: string }> = {
     'em-alta':   { title: 'Em alta',   icon: Flame,    desc: 'As normas mais consultadas pelos estudantes', color: '#F97316' },
     'dashboard': { title: 'Coleção',   icon: Landmark, desc: 'Explore por tipo de norma',                  color: 'hsl(var(--primary))' },
-    'favoritos': { title: 'Favoritos', icon: Heart,    desc: 'Suas leis salvas para acesso rápido',        color: '#EF4444' },
+    'favoritos': { title: 'Favoritos', icon: Heart,    desc: 'Suas leis salvas para acesso rápido',        color: '#F87171' },
   };
 
   const header = HEADER_CONFIG[mode];

@@ -10,7 +10,7 @@ import {
   Landmark, LandPlot, LayoutGrid, Leaf, List, Map, Mic, MicOff, Network, NotebookPen,
   PiggyBank, Plane, PocketKnife, RadioTower, ReceiptText, Scale, Scroll, ScrollText, Search,
   Shield, ShieldAlert, ShieldCheck, ShieldX, Ship, ShoppingCart, Sprout, Stamp, Store,
-  Tractor, TreePine, Users, Vote, Wallet, Wifi, X, MessageCircle, type LucideIcon,
+  Tractor, TreePine, Users, Vote, Wallet, Wifi, X, MessageCircle, BookOpen, type LucideIcon,
 } from 'lucide-react';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { ESTADOS } from '@/pages/LegislacaoEstadual';
@@ -35,7 +35,7 @@ interface Cat {
 
 const GRID_CATS: Cat[] = [
   { id: 'constituicao',    label: 'Constituição',    sublabel: 'CF/88',                     icon: Landmark,   color: '#FACC15' },
-  { id: 'codigo',          label: 'Códigos',         sublabel: 'Civil, Penal, Processo…',   icon: Gavel,      color: '#FB923C' },
+  { id: 'codigo',          label: 'Códigos',         sublabel: 'Civil, Penal, Processo…',   icon: Gavel,      color: '#F87171' },
   { id: 'estatuto',        label: 'Estatutos',       sublabel: 'ECA, Idoso, OAB…',          icon: BookMarked, color: '#3B82F6' },
   { id: 'jurisprudencia',  label: 'Jurisprudência',  sublabel: 'STF, STJ, Vinculantes',     icon: ScrollText, color: '#EC4899' },
   { id: 'lei-ordinaria',   label: 'Leis Ordinárias', sublabel: 'Federais complementares',   icon: Columns3,   color: '#38BDF8' },
