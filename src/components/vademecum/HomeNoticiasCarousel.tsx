@@ -11,11 +11,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 const AUTOPLAY_MS = 10000;
 const MAX_NEWS = 8;
-const MAX_NEWS = 8;
 
 type FeedItem =
   | { kind: 'noticia'; id: string; data: Noticia }
-  | { kind: 'blog'; id: string; data: BlogPost };
+  | { kind: 'blog'; id: string; data: BlogPost }
+  | { kind: 'obra'; id: string; data: Obra };
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
@@ -29,9 +29,16 @@ function formatTime(dateStr: string) {
   return `${day} ${months[d.getMonth()]} · ${hh}:${mm}`;
 }
 
+function tipoLabel(o: Obra): string {
+  if ((o.categorias_juridicas ?? []).includes('Documentário')) return 'Documentário';
+  return o.tipo === 'tv' ? 'Série' : 'Filme';
+}
 
-
-// Padrão do carrossel (um ciclo = 7 blogs + 1 notícia + 1 obra):
+const OBRA_PALETTE: Record<string, { deep: string; mid: string; chipBg: string; chipText: string }> = {
+  Filme:         { deep: '#2a0a12', mid: '#4a1524', chipBg: '#e11d48', chipText: '#fff5f7' },
+  Série:         { deep: '#0d1230', mid: '#1e2757', chipBg: '#6366f1', chipText: '#f0f2ff' },
+  Documentário:  { deep: '#0f1f14', mid: '#1e3a26', chipBg: '#10b981', chipText: '#ecfdf5' },
+};// Padrão do carrossel (um ciclo = 7 blogs + 1 notícia + 1 obra):
 //   5 blogs → 1 notícia → 2 blogs → 1 obra → repete.
 // Filas garantem que nada repita antes de esgotar cada fonte.
 const CYCLE: Array<'blog' | 'noticia'> = [
