@@ -875,7 +875,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
 
           <button
             onClick={() => { setMode('forgot'); setDrawerOpen(true); }}
-            className="mt-2 text-white/70 font-body text-sm font-medium hover:text-white transition-colors py-2 active:scale-95 transition-transform"
+            className="mt-2 text-white/70 font-body text-sm font-medium hover:text-white active:scale-95 transition-all"
           >
             Preciso de ajuda
           </button>
