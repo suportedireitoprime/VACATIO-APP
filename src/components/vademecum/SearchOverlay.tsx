@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, Scale, BookOpen, Clock, Camera, Mic, MicOff, X, Loader2, Heart } from 'lucide-react';
+import {
+  ArrowLeft, Search, Scale, BookOpen, Clock, Camera, Mic, MicOff, X, Loader2, Heart,
+  Landmark, Swords, Users, Gavel, Coins, ShieldCheck, Briefcase, Car, Vote,
+  Shield, TreePine, Anchor, Pickaxe, Radio, Plane, Droplets,
+  Baby, UserCheck, Accessibility, HandHeart, Building2, Target, GraduationCap,
+  Star, Sprout, Globe2, Tent, Mountain, Palette, Store, Ribbon,
+  Lock, HeartHandshake, Pill, AlertTriangle, Phone, UserCog, FileWarning,
+  FileText, ScrollText, Handshake, SquareStack, CircleDot, Wifi, BookMarked,
+  type LucideIcon,
+} from 'lucide-react';
+import type { LeiCatalogItem } from '@/data/leisCatalog';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 
@@ -16,6 +26,36 @@ import { useBuscaConteudo, type ConteudoTipo } from '@/hooks/useBuscaConteudo';
 import CategoriaFiltroBar, { type CategoriaKey } from './CategoriaFiltroBar';
 import ResultadoConteudoCard from './ResultadoConteudoCard';
 import ConteudoBusca from './ConteudoBusca';
+
+// Mapa de ícones temáticos por lei.id
+const LEI_ICON_MAP: Record<string, LucideIcon> = {
+  cf88: Landmark,
+  cp: Swords, cc: Users, cpc: Gavel, cpp: Shield, ctn: Coins,
+  cdc: ShieldCheck, clt: Briefcase, ctb: Car, ce: Vote,
+  cpm: Shield, cppm: Shield, cflor: TreePine, ccom: Anchor,
+  cba: Plane, cagua: Droplets, cmin: Pickaxe, ctel: Radio,
+  eca: Baby, ei: UserCheck, epd: Accessibility, eir: HandHeart,
+  ec: Building2, ed: Target, eoab: GraduationCap, et: Star,
+  ej: Sprout, em: Shield, eind: Tent, eterra: Mountain,
+  emig: Globe2, eref: Globe2, emet: Building2, emus: Palette,
+  eme: Store, epc: Ribbon,
+  lep: Lock, lmp: HeartHandshake, ld: Pill, loc: AlertTriangle,
+  laa: FileWarning, lit: Phone, l8112: UserCog, lia: FileWarning,
+  nll: FileText, lms: ScrollText, lacp: Handshake, lje: SquareStack,
+  lgpd: ShieldCheck, mci: Wifi,
+};
+
+const DEFAULT_LEI_ICON: LucideIcon = BookMarked;
+
+function LeiIcon({ lei }: { lei: LeiCatalogItem }) {
+  const Icon = LEI_ICON_MAP[lei.id] || DEFAULT_LEI_ICON;
+  const color = lei.iconColor || 'hsl(var(--primary))';
+  return (
+    <div className="w-12 h-12 flex items-center justify-center shrink-0">
+      <Icon className="w-7 h-7" style={{ color }} strokeWidth={1.8} />
+    </div>
+  );
+}
 
 interface SearchOverlayProps {
   open: boolean;
@@ -318,9 +358,7 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
                           onClick={() => emitSelect(lei)}
                           className="flex items-center gap-4 flex-1 min-w-0 text-left"
                         >
-                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <span className="text-xs font-bold text-primary">{lei.sigla}</span>
-                          </div>
+                          <LeiIcon lei={lei} />
                           <div className="min-w-0 flex-1">
                             <p className="text-base font-semibold text-foreground truncate">{lei.nome}</p>
                             <p className="text-sm text-muted-foreground truncate">{lei.descricao}</p>
@@ -357,9 +395,7 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
                           onClick={() => emitSelect(lei)}
                           className="flex items-center gap-4 flex-1 min-w-0 text-left"
                         >
-                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <span className="text-xs font-bold text-primary">{lei.sigla}</span>
-                          </div>
+                          <LeiIcon lei={lei} />
                           <div className="min-w-0 flex-1">
                             <p className="text-base font-semibold text-foreground truncate">{lei.nome}</p>
                             <p className="text-sm text-muted-foreground truncate">{lei.descricao}</p>
@@ -393,9 +429,7 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
                         onClick={() => openArtigoInLei(lei)}
                         className="w-full flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary/40 transition-all text-left"
                       >
-                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-primary">{lei.sigla}</span>
-                        </div>
+                        <LeiIcon lei={lei} />
                         <div className="min-w-0 flex-1">
                           <p className="text-base font-semibold text-foreground truncate">{lei.nome}</p>
                           <p className="text-sm text-muted-foreground truncate">{lei.descricao}</p>
@@ -442,9 +476,7 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
                           onClick={() => emitSelect(cat)}
                           className="flex items-center gap-4 flex-1 min-w-0 text-left"
                         >
-                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <span className="text-xs font-bold text-primary">{cat.sigla || 'LEI'}</span>
-                          </div>
+                          <LeiIcon lei={cat} />
                           <div className="min-w-0 flex-1">
                             <p className="text-base font-semibold text-foreground truncate">{lei.nome}</p>
                             <p className="text-sm text-muted-foreground truncate">{lei.descricao}</p>
