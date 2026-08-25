@@ -64,6 +64,8 @@ interface PremiumGateProps {
   usageLabel?: string;
   /** Callback para botão especial da narração (ouvir exemplo). */
   onListenExample?: () => void;
+  /** Callback para botão especial da biblioteca (ver exemplo 5 pgs). */
+  onLibraryExample?: () => void;
 }
 
 const PremiumGate = ({
@@ -74,6 +76,7 @@ const PremiumGate = ({
   description,
   usageLabel,
   onListenExample,
+  onLibraryExample,
 }: PremiumGateProps) => {
   const navigate = useNavigate();
   const info = FEATURES[feature] ?? FEATURES.default;
@@ -167,6 +170,16 @@ const PremiumGate = ({
                   >
                     <Volume2 className="w-4 h-4" />
                     Ouvir exemplo (Art. 4º - CP)
+                  </button>
+                )}
+
+                {feature === 'biblioteca' && onLibraryExample && (
+                  <button
+                    onClick={onLibraryExample}
+                    className="w-full py-3 rounded-xl border border-primary/30 bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors active:scale-[0.98] mb-3 flex items-center justify-center gap-2"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    Ver exemplo prático (5 págs)
                   </button>
                 )}
 

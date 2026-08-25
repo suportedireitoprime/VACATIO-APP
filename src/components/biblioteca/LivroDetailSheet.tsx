@@ -41,6 +41,7 @@ const LivroDetailSheet = ({ livro, open, onClose }: LivroDetailSheetProps) => {
   const isDesktop = useIsDesktop();
   const contentRef = useRef<HTMLDivElement>(null);
   const [readerMode, setReaderMode] = useState<null | 'pdf' | 'nativa' | 'online'>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [lerDialog, setLerDialog] = useState(false);
 
   const [pdfCached, setPdfCached] = useState(false);
@@ -175,11 +176,16 @@ const LivroDetailSheet = ({ livro, open, onClose }: LivroDetailSheetProps) => {
     }
   };
 
-  const onSelectModo = async (modo: LerModo) => {
-    // Bloqueio de leitura: 1 livro por mês (bypass se este mesmo livro já foi liberado)
-    if (!canUse) { setLerDialog(false); setGateOpen(true); return; }
-    // Registra o uso antes de liberar qualquer modo (scope/ref = id do livro)
-    register(String(livro.id));
+  const onSelectModo = async (modo: LerModo, isPreview: boolean = false) => {
+    setIsPreviewMode(isPreview);
+
+    // Se NÃO for preview, aplicamos o bloqueio
+    if (!isPreview && !canUse) { setLerDialog(false); setGateOpen(true); return; }
+    
+    // Registra o uso se não for preview
+    if (!isPreview) {
+      register(String(livro.id));
+    }
 
     if (modo === 'download') { handleDownloadPdf(); return; }
     if (modo === 'desktop') {
@@ -488,7 +494,8 @@ const LivroDetailSheet = ({ livro, open, onClose }: LivroDetailSheetProps) => {
       <LerAgoraDialog
         open={lerDialog}
         onClose={() => setLerDialog(false)}
-        onSelect={onSelectModo}
+        onSelect={(m) => onSelectModo(m, false)}
+        onSelectExample={(m) => onSelectModo(m, true)}
         hasPdf={hasPdf}
         hasOnline={hasOnline}
         pdfCached={pdfCached}
@@ -500,7 +507,8 @@ const LivroDetailSheet = ({ livro, open, onClose }: LivroDetailSheetProps) => {
         <PdfScrollReader
           url={pdfUrlForReader || livro.download!}
           titulo={livro.titulo}
-          onClose={() => { setReaderMode(null); setPdfUrlForReader(null); }}
+          isPreview={isPreviewMode}
+          onClose={() => { setReaderMode(null); setPdfUrlForReader(null); setIsPreviewMode(false); }}
         />
       )}
       {readerMode === 'nativa' && livro.download && (
@@ -515,7 +523,8 @@ const LivroDetailSheet = ({ livro, open, onClose }: LivroDetailSheetProps) => {
           sobre={livro.sobre}
           curiosidades={livro.curiosidades}
           capa={livro.capa}
-          onClose={() => setReaderMode(null)}
+          isPreview={isPreviewMode}
+          onClose={() => { setReaderMode(null); setIsPreviewMode(false); }}
         />
       )}
       {readerMode === 'online' && livro.link && (

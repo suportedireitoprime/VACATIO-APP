@@ -67,6 +67,7 @@ interface Props {
   titulo: string;
   onClose: () => void;
   livroId?: number | string | null;
+  isPreview?: boolean;
 }
 
 const BOOKMARK_KEY = (url: string) => `pdf-reader:bookmark:${url}`;
@@ -76,7 +77,7 @@ const PAGE_KEY = (url: string) => `pdf-reader:page:${url}`;
  * Leitor de PDF em scroll vertical contínuo.
  * Renderiza páginas em <canvas> conforme entram no viewport (IntersectionObserver).
  */
-const PdfScrollReader = ({ url, titulo, onClose, livroId }: Props) => {
+const PdfScrollReader = ({ url, titulo, onClose, livroId, isPreview }: Props) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const pdfRef = useRef<any>(null);
   const renderedRef = useRef<Set<number>>(new Set());
@@ -138,7 +139,7 @@ const PdfScrollReader = ({ url, titulo, onClose, livroId }: Props) => {
         if (timeoutId) window.clearTimeout(timeoutId);
         if (cancelled) return;
         pdfRef.current = pdf;
-        setTotalPages(pdf.numPages);
+        setTotalPages(isPreview ? Math.min(pdf.numPages, 5) : pdf.numPages);
         setLoading(false);
         logPdfEvent({
           url,
@@ -170,7 +171,7 @@ const PdfScrollReader = ({ url, titulo, onClose, livroId }: Props) => {
       pdfRef.current = null;
       renderedRef.current.clear();
     };
-  }, [url, livroId, titulo]);
+  }, [url, livroId, titulo, isPreview]);
 
   useEffect(() => {
     if (loading || error || !totalPages || !containerRef.current) return;
@@ -436,6 +437,29 @@ const PdfScrollReader = ({ url, titulo, onClose, livroId }: Props) => {
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
+          
+          <button
+              onClick={() => setShowJumper(true)}
+              className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md rounded-full px-4 py-1.5 text-xs text-white/90 font-semibold shadow-xl border border-white/10 hover:bg-black/80 transition-colors"
+            >
+              Pág {currentPage} {totalPages ? `/ ${totalPages}` : ''}
+            </button>
+            
+            {isPreview && (
+              <div className="absolute bottom-4 left-4 right-4 bg-primary/95 backdrop-blur-md rounded-2xl p-4 text-primary-foreground shadow-2xl border border-primary-foreground/20 text-center animate-in fade-in slide-in-from-bottom-4 z-[9999]">
+                <p className="font-bold text-sm mb-1">Prévia do livro (5 págs)</p>
+                <p className="text-xs opacity-90 mb-3">Assine o Premium para liberar a leitura completa deste livro e de todo o acervo.</p>
+                <button
+                  onClick={() => {
+                    onClose();
+                    window.location.href = '/assinatura';
+                  }}
+                  className="w-full py-2.5 bg-background text-foreground rounded-xl text-sm font-bold active:scale-95 transition-transform"
+                >
+                  Assinar Premium
+                </button>
+              </div>
+            )}
         </motion.div>
       )}
 

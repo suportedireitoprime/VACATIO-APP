@@ -45,6 +45,7 @@ interface Props {
   sobre?: string | null;
   curiosidades?: string[] | null;
   capa?: string | null;
+  isPreview?: boolean;
 }
 
 type CapituloJson = {
@@ -119,7 +120,20 @@ type BookmarkEntry = {
 
 const LOCAL_KEY = (t: string, i: string) => `leitura-nativa:${t}:${i}`;
 
-const LeitorNativo = ({ livroId, livroTabela, pdfUrl, titulo, onClose, autor, ano, editora, sobre, curiosidades, capa }: Props) => {
+const LeitorNativo = ({ 
+  livroId, 
+  livroTabela, 
+  pdfUrl, 
+  titulo, 
+  onClose, 
+  autor, 
+  ano, 
+  editora, 
+  sobre, 
+  curiosidades, 
+  capa,
+  isPreview,
+}: Props) => {
   const [status, setStatus] = useState<Registro['status']>('pendente');
   const [conteudo, setConteudo] = useState<string>('');
   const [speaking, setSpeaking] = useState(false);
@@ -539,7 +553,7 @@ const LeitorNativo = ({ livroId, livroTabela, pdfUrl, titulo, onClose, autor, an
           });
         }
       });
-      return out;
+      return isPreview ? out.slice(0, 5) : out;
     }
 
     // ---- Fallback: parse do markdown legado ----
@@ -605,8 +619,8 @@ const LeitorNativo = ({ livroId, livroTabela, pdfUrl, titulo, onClose, autor, an
         });
       }
     });
-    return out;
-  }, [conteudo, capitulos]);
+    return isPreview ? out.slice(0, 5) : out;
+  }, [conteudo, capitulos, isPreview]);
 
   // ============================================================
   // TOC final: prefere capitulos_json; senão sumario_json
@@ -1903,6 +1917,23 @@ const LeitorNativo = ({ livroId, livroTabela, pdfUrl, titulo, onClose, autor, an
           />
         )}
       </AnimatePresence>
+
+      {/* Banner de Preview (5 páginas) */}
+      {isPreview && status === 'pronto' && (
+        <div className="absolute bottom-4 left-4 right-4 bg-primary/95 backdrop-blur-md rounded-2xl p-4 text-primary-foreground shadow-2xl border border-primary-foreground/20 text-center animate-in fade-in slide-in-from-bottom-4 z-[9999]">
+          <p className="font-bold text-sm mb-1">Prévia do livro (5 págs)</p>
+          <p className="text-xs opacity-90 mb-3">Assine o Premium para liberar a leitura completa deste livro e de todo o acervo.</p>
+          <button
+            onClick={() => {
+              onClose();
+              window.location.href = '/assinatura';
+            }}
+            className="w-full py-2.5 bg-background text-foreground rounded-xl text-sm font-bold active:scale-95 transition-transform"
+          >
+            Assinar Premium
+          </button>
+        </div>
+      )}
     </div>
 
   );

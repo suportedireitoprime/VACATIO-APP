@@ -17,15 +17,19 @@ interface Props {
   pdfCached?: boolean;
   /** progresso de download em %, null quando não está baixando */
   downloadProgress?: number | null;
+  /** Disparado quando o usuário gratuito quer ver um exemplo prático */
+  onSelectExample?: (modo: LerModo) => void;
 }
 
-const LerAgoraDialog = ({ open, onClose, onSelect, hasPdf, hasOnline, pdfCached, downloadProgress }: Props) => {
+const LerAgoraDialog = ({ open, onClose, onSelect, onSelectExample, hasPdf, hasOnline, pdfCached, downloadProgress }: Props) => {
   const isDownloading = downloadProgress != null;
   const { isPremium } = useSubscription();
   const [showPremiumGate, setShowPremiumGate] = useState(false);
+  const [attemptedModo, setAttemptedModo] = useState<LerModo | null>(null);
 
   const handleSelect = (modo: LerModo) => {
     if (!isPremium) {
+      setAttemptedModo(modo);
       setShowPremiumGate(true);
       return;
     }
@@ -183,6 +187,15 @@ const LerAgoraDialog = ({ open, onClose, onSelect, hasPdf, hasOnline, pdfCached,
       open={showPremiumGate}
       onClose={() => setShowPremiumGate(false)}
       feature="biblioteca"
+      onLibraryExample={
+        onSelectExample && attemptedModo && (attemptedModo === 'nativa' || attemptedModo === 'pdf')
+          ? () => {
+              setShowPremiumGate(false);
+              onClose();
+              onSelectExample(attemptedModo);
+            }
+          : undefined
+      }
     />
     </>,
     document.body
