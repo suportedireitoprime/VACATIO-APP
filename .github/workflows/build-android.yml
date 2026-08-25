@@ -2169,7 +2169,7 @@ jobs:
           major = 1 + (total_minor // 100)
           minor = total_minor % 100
           
-          version_name = f"{major}.{minor}"
+          version_name = f"{major}.0.{minor}"
 
           # versionCode: sempre cresce. max(timestamp UTC, ultimo+1) cobre
           # o caso normal (timestamp maior) e o caso de relógio adiantado
