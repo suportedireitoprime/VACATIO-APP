@@ -52,7 +52,7 @@ function LeiIcon({ lei }: { lei: LeiCatalogItem }) {
   const color = lei.iconColor || 'hsl(var(--primary))';
   return (
     <div className="w-12 h-12 flex items-center justify-center shrink-0">
-      <Icon className="w-7 h-7" style={{ color }} strokeWidth={1.8} />
+      <Icon className="w-7 h-7" style={{ color, filter: 'saturate(1.75) brightness(1.1)' }} strokeWidth={1.2} />
     </div>
   );
 }
@@ -189,7 +189,10 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
     .replace(/\b(do|da|de|no|na|paragrafo|parágrafo)\b/gi, '')
     .trim();
   const baseArtigoLeis = sortByRelevance(
-    LEIS_CATALOG.filter((l) => l.tipo === 'constituicao' || l.tipo === 'codigo' || l.tipo === 'estatuto')
+    LEIS_CATALOG.filter((l) => {
+      if (mode !== 'todos') return l.tipo === mode;
+      return l.tipo === 'constituicao' || l.tipo === 'codigo' || l.tipo === 'estatuto';
+    })
   );
   const artigoLeis = isLeisMode && artigoQueryDigits
     ? (() => {
