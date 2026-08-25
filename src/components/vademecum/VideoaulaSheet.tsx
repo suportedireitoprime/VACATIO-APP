@@ -655,9 +655,9 @@ const VideoaulaSheet = ({ open, onClose, video, tabelaNome, artigoNumero, artigo
               {video.videoId ? (
                 <div className="aspect-video w-full shrink-0 bg-black">
                   <iframe
-                    src={`https://www.youtube.com/embed/${video.videoId}?autoplay=1&rel=0`}
+                    src={`https://www.youtube.com/embed/${video.videoId}?autoplay=1&rel=0&playsinline=1`}
                     className="w-full h-full"
-                    allow="autoplay; encrypted-media; fullscreen"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                   />
                 </div>

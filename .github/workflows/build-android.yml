@@ -2152,9 +2152,7 @@ jobs:
           # pra outro repositório e quebrava a continuidade da numeração
           # publicada na Play Store. Agora o número vive no código: cada
           # build lê o último valor, incrementa, aplica no build.gradle e o
-          # próximo step commita o arquivo de volta. Assim, remix → clone →
-          # build continua de onde parou, sem colisão de versionCode.
-          # ------------------------------------------------------------------
+          # próximo step commita o arquivo de volta. Assim
           state_path = Path('.build-version.json')
           if state_path.exists():
               state = json.loads(state_path.read_text())
@@ -2162,6 +2160,16 @@ jobs:
               state = {'buildNumber': 2, 'versionCode': 0, 'versionName': '1.0.64'}
 
           build_number = int(state.get('buildNumber', 2)) + 1
+
+          BASE_BUILD = 3
+          BASE_MINOR = 65
+          k = max(build_number - BASE_BUILD, 0)
+          
+          total_minor = BASE_MINOR + k
+          major = 1 + (total_minor // 100)
+          minor = total_minor % 100
+          
+          version_name = f"{major}.{minor}"
 
           # versionCode: sempre cresce. max(timestamp UTC, ultimo+1) cobre
           # o caso normal (timestamp maior) e o caso de relógio adiantado
@@ -2171,22 +2179,6 @@ jobs:
           last_code = int(state.get('versionCode', 0) or 0)
           version_code = max(ts_code, last_code + 1, FLOOR)
           assert version_code < 2_100_000_000, f'versionCode {version_code} excede o limite do Android'
-
-          # versionName derivado do buildNumber persistente. Mesma regra do
-          # esquema antigo (que usava run_number) — só a fonte mudou.
-          #   build #3   → 1.0.65        build #38  → 1.1.0
-          #   build #37  → 1.0.99        build #138 → 1.2.0
-          BASE_BUILD = 3
-          BASE_PATCH = 65
-          k = max(build_number - BASE_BUILD, 0)
-          if k <= (99 - BASE_PATCH):
-              version_name = f"1.0.{BASE_PATCH + k}"
-          else:
-              m = k - (99 - BASE_PATCH) - 1
-              cycle = m // 100
-              pos = m % 100
-              minor = 1 + cycle
-              version_name = f"1.{minor}.0" if pos == 0 else f"1.{minor}.0.{pos}"
 
 
           p = Path('android/app/build.gradle')
