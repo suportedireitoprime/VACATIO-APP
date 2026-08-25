@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { LegalSheet } from '@/components/auth/LegalSheet';
 import { track } from '@/lib/analyticsEvents';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
 
 /** Traduz mensagens de erro comuns do Supabase Auth para PT-BR. */
 const traduzirErroAuth = (raw?: string): string => {
@@ -343,6 +344,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [legalOpen, setLegalOpen] = useState<null | 'privacidade' | 'termos'>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Pré-carrega o bundle da triagem para abrir sem delay logo após signup.
   useEffect(() => {
@@ -790,75 +792,84 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
       transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-      className="min-h-dvh flex flex-col bg-[#0e0e0c] overflow-x-hidden"
+      className="min-h-dvh flex flex-col relative overflow-hidden bg-black"
     >
-      {/* ── Top hero: cinematic image with headline overlay ── */}
-      <div className="relative w-full h-[46vh] min-h-[320px] max-h-[420px] flex-shrink-0 overflow-hidden">
-        {/* Full-bleed hero image */}
+      {/* ── Fullscreen background image ── */}
+      <div className="absolute inset-0 z-0">
         <img
           src={themisAuthYellow}
           alt="Themis e a advocacia"
           loading="eager"
           decoding="sync"
           fetchPriority="high"
-          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
+          className="w-full h-full object-cover object-center pointer-events-none select-none opacity-85"
         />
+        {/* Gradients to ensure text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+      </div>
 
-        {/* Bottom gradient wash — black only at the very beginning, lighter above */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/25 to-[#0e0e0c]" />
-        {/* Left-to-right subtle darken for headline legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/15 to-black/30" />
+      {/* Back button */}
+      <button
+        onClick={onBack}
+        aria-label="Voltar"
+        className="absolute top-[max(var(--sai-top,env(safe-area-inset-top,0px)),1rem)] left-4 z-20 w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition"
+      >
+        <ArrowLeft className="w-5 h-5 text-white" />
+      </button>
 
-        {/* Back button */}
-        <button
-          onClick={onBack}
-          aria-label="Voltar"
-          className="absolute top-[max(var(--sai-top,env(safe-area-inset-top,0px)),1rem)] left-4 z-20 w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition"
-        >
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
-
-        {/* Headline block — brand on top, then title */}
-        <div className="absolute inset-x-0 bottom-0 z-10 px-6 pb-6">
-          {/* Brand row — logo + Vacatio, above the headline */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="relative shrink-0">
-              <div className="absolute inset-0 rounded-2xl ring-pulse" />
-              <img
-                src={logoOABnaRisca}
-                alt="Vacatio"
-                className="relative w-12 h-12 rounded-2xl object-cover border-2 border-primary/60"
-              />
-            </div>
-            <div className="min-w-0">
-              <h2 className="font-display text-white text-lg font-bold leading-none drop-shadow">Vacatio</h2>
-              <p className="font-body text-white/70 text-[11px] mt-1 drop-shadow">Vade Mecum Jurídico Profissional</p>
-            </div>
+      {/* Content at the bottom */}
+      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(var(--sai-bottom,env(safe-area-inset-bottom,0px)),1.5rem)]">
+        
+        {/* Brand block */}
+        <div className="flex flex-col items-center text-center mb-8">
+          <div className="relative shrink-0 mb-4">
+            <div className="absolute inset-0 rounded-3xl ring-pulse" />
+            <img
+              src={logoOABnaRisca}
+              alt="Vacatio"
+              className="relative w-20 h-20 rounded-3xl object-cover border-2 border-primary/60 shadow-xl"
+            />
           </div>
-
-
-
-
-          <h1 className="font-display text-white text-[28px] leading-[1.05] font-bold drop-shadow-lg max-w-[90%]">
-            A justiça começa nos <span className="text-primary">seus estudos</span>.
-          </h1>
-          <p className="font-body text-white/85 text-sm mt-2 leading-snug max-w-[85%] drop-shadow">
-            Toda a legislação brasileira comentada, na sua mão.
-          </p>
+          <h2 className="font-display text-white text-3xl font-bold leading-none drop-shadow">Vacatio</h2>
+          <p className="font-body text-white/70 text-sm mt-2 drop-shadow">Vade Mecum Jurídico Profissional</p>
         </div>
 
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-3 w-full max-w-[400px] mx-auto">
+          <button
+            onClick={() => { setMode('login'); setDrawerOpen(true); }}
+            className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base shadow-lg active:scale-95 transition-transform"
+          >
+            Acessar conta
+          </button>
+          
+          <button
+            onClick={() => { setMode('signup'); setDrawerOpen(true); }}
+            className="w-full py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl font-body font-bold text-base shadow-lg active:scale-95 transition-transform"
+          >
+            Criar uma conta
+          </button>
+
+          <button
+            onClick={() => { setMode('forgot'); setDrawerOpen(true); }}
+            className="mt-2 text-white/70 font-body text-sm font-medium hover:text-white transition-colors py-2 active:scale-95 transition-transform"
+          >
+            Preciso de ajuda
+          </button>
+        </div>
+        
+        <p className="text-center text-[10px] font-body text-white/50 mt-6">
+          Vacatio — Vade Mecum © 2026
+        </p>
       </div>
 
-      {/* ── Form area ── */}
-      <div className="flex-1 px-5 pt-6 pb-[max(var(--sai-bottom,env(safe-area-inset-bottom,0px)),1.5rem)] w-full max-w-[440px] mx-auto">
+      {/* Bottom Sheet Drawer for Auth Form */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent className="bg-neutral-900 border-neutral-800 px-5 pt-6 pb-[max(var(--sai-bottom,env(safe-area-inset-bottom,0px)),1.5rem)] outline-none">
+          {formContent}
+        </DrawerContent>
+      </Drawer>
 
-
-        {formContent}
-      </div>
-
-      <p className="text-center text-[10px] font-body text-white/70 pb-[max(var(--sai-bottom,env(safe-area-inset-bottom,0px)),1rem)]">
-        Vacatio — Vade Mecum © 2026
-      </p>
     </motion.main>
   );
 };
