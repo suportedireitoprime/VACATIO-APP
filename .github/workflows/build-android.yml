@@ -148,10 +148,35 @@ jobs:
 
       - name: Patch @capgo/background-geolocation getPackage() NPE
         run: |
-          echo "Buscando e substituindo getPackage().getName() via sed..."
-          find node_modules/@capgo/background-geolocation/android -name "*.java" -type f -exec sed -i 's/BackgroundGeolocationService\.class\.getPackage()\.getName()/"com.capgo.capacitor_background_geolocation"/g' {} +
-          find node_modules/@capgo/background-geolocation/android -name "*.java" -type f -exec sed -i 's/GeofenceStore\.class\.getPackage()\.getName()/"com.capgo.capacitor_background_geolocation"/g' {} +
-          echo "Patch aplicado com sucesso."
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            
+            function patchFile(filePath) {
+              if (!fs.existsSync(filePath)) {
+                console.log('Arquivo não encontrado: ' + filePath);
+                return;
+              }
+              let content = fs.readFileSync(filePath, 'utf8');
+              const orig = content;
+              content = content.replace(/BackgroundGeolocationService\.class\.getPackage\(\)\.getName\(\)/g, '\"com.capgo.capacitor_background_geolocation\"');
+              content = content.replace(/GeofenceStore\.class\.getPackage\(\)\.getName\(\)/g, '\"com.capgo.capacitor_background_geolocation\"');
+              
+              if (content !== orig) {
+                // Break hardlink/read-only by unlinking first
+                fs.unlinkSync(filePath);
+                fs.writeFileSync(filePath, content, 'utf8');
+                console.log('✅ Patched: ' + filePath);
+              } else {
+                console.log('⚠️ Padrão não encontrado ou já patcheado: ' + filePath);
+              }
+            }
+
+            const baseDir = 'node_modules/@capgo/background-geolocation/android/src/main/java/com/capgo/capacitor_background_geolocation';
+            patchFile(path.join(baseDir, 'BackgroundGeolocationService.java'));
+            patchFile(path.join(baseDir, 'BackgroundGeolocation.java'));
+            patchFile(path.join(baseDir, 'GeofenceStore.java'));
+          "
 
       - name: Bump AGP + Gradle wrapper + force modern Android deps
         run: |
