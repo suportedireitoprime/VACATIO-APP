@@ -45,7 +45,6 @@ const GROUPS: Group[] = [
   {
     title: 'Conta',
     items: [
-      { id: 'lembretes', label: 'Meus lembretes', icon: BellIcon },
       { id: 'suporte', label: 'Suporte', icon: LifeBuoy },
     ],
   },

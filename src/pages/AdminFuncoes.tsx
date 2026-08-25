@@ -205,6 +205,15 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
+    id: 'feedbacks',
+    title: 'Feedback e Suporte',
+    desc: 'Mensagens e opiniões dos usuários',
+    icon: MessageCircle,
+    items: [
+      { id: 'admin-feedbacks', label: 'Ver Feedbacks e Suporte', icon: MessageCircle, desc: 'Acompanhe as opiniões e suporte solicitados', route: '/admin-feedbacks' },
+    ],
+  },
+  {
     id: 'horus-exclusivo',
     title: 'Horus (Exclusivo)',
     desc: 'Assistente Horus no WhatsApp — instância, usuários e conversas',
