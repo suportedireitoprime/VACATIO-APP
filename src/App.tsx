@@ -556,7 +556,7 @@ function AnimatedRoutes() {
       <DesktopFileDropOverlay />
       <PersistentHome />
       <Suspense fallback={<LazyFallback />}>
-        <Routes location={location} key={location.pathname}>
+        <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/landing" element={<Landing />} />
           <Route path="/ir/*" element={<SmartLink />} />

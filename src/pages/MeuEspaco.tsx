@@ -23,7 +23,7 @@ const prefetchRoute = (path: string) => {
   switch (path) {
     case '/pessoal/leis': import("@/pages/pessoal/Leis.tsx"); break;
     case '/pessoal/artigos': import("@/pages/pessoal/Artigos.tsx"); break;
-    case '/pessoal/anotacoes': import("@/pages/pessoal/Anotacoes.tsx"); break;
+    case '/anotacoes': import("@/pages/Anotacoes.tsx"); break;
     case '/pessoal/grifos': import("@/pages/pessoal/Grifos.tsx"); break;
     case '/pessoal/livros': import("@/pages/pessoal/Livros.tsx"); break;
     case '/pessoal/filmes': import("@/pages/pessoal/Filmes.tsx"); break;
