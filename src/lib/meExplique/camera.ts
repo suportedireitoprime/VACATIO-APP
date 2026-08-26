@@ -31,10 +31,8 @@ export interface RecursosCamera {
 }
 
 const CASCATA: MediaTrackConstraints[] = [
-  { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } },
-  { facingMode: { ideal: "environment" }, width: { ideal: 2560 }, height: { ideal: 1440 }, frameRate: { ideal: 30 } },
   { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
-  { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+  { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
   { facingMode: "environment" },
   {},
 ];
@@ -107,7 +105,7 @@ export class CameraMeExplique {
     return this.recursos();
   }
 
-  /** Sobe para o máximo real do sensor e liga foco/exposição contínuos. */
+  /** Liga foco, exposição e balanço de branco contínuos. */
   private async aplicarMelhorias() {
     const trilha = this.trilha;
     if (!trilha?.getCapabilities) return;
@@ -120,9 +118,6 @@ export class CameraMeExplique {
     }
 
     const alvo: ConstraintsAvancadas = {};
-    if (caps.width?.max) alvo.width = { ideal: caps.width.max };
-    if (caps.height?.max) alvo.height = { ideal: caps.height.max };
-    if (caps.frameRate?.max) alvo.frameRate = { ideal: Math.min(30, caps.frameRate.max) };
     if (caps.focusMode?.includes("continuous")) alvo.focusMode = "continuous";
     if (caps.exposureMode?.includes("continuous")) alvo.exposureMode = "continuous";
     if (caps.whiteBalanceMode?.includes("continuous")) alvo.whiteBalanceMode = "continuous";

@@ -16,9 +16,8 @@ const WS_HOST = "wss://generativelanguage.googleapis.com/ws";
 const WS_URL_APIKEY = `${WS_HOST}/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent`;
 const WS_URL_EPHEMERAL = `${WS_HOST}/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent`;
 
-/** Primeira instrução falada: faz o professor comentar o que está vendo. */
 const ABERTURA =
-  "Estou apontando a câmera agora. Olhe a imagem e fale em português do Brasil. REGRA ESTRITA: Se você não enxergar NENHUM texto legível ou material de estudo claro (por exemplo, se estiver vendo apenas uma mesa vazia, parede, teto, tela preta, rosto, ou imagem muito borrada), NÃO invente NADA. Apenas diga: 'Ainda não estou vendo o material. Por favor, aponte a câmera para o livro, caderno ou tela que você está estudando.' MAS, se você realmente vir um material de estudo ou texto, identifique o tema exato que está escrito e comece a explicar. Fale sempre em voz alta.";
+  "Aja como um professor particular ao vivo por chamada de voz. Estou apontando a câmera agora para o meu material de estudo. Olhe a imagem e fale em português do Brasil. REGRA ESTRITA: Se você não enxergar NENHUM texto legível ou material claro, diga apenas: 'Ainda não estou vendo o material. Por favor, aponte a câmera para o livro ou tela.' MAS, se você vir um material de estudo, identifique o tema e comece a explicar de forma natural e conversacional. Estarei falando com você pelo microfone a qualquer momento para tirar dúvidas, responda às minhas perguntas com clareza e interaja de volta.";
 
 export type StatusLive =
   | "inativo"
@@ -432,8 +431,8 @@ export class SessaoMeExplique {
     if (!this.pronto || this.ws?.readyState !== WebSocket.OPEN) return;
     if (!video.videoWidth || !video.videoHeight) return;
 
-    // Até 1920px no lado maior: resolução Full HD de texto limpo para leitura perfeita.
-    const MAIOR = 1920;
+    // Até 1024px no lado maior: resolução boa o suficiente para leitura sem travar a rede.
+    const MAIOR = 1024;
     const escala = Math.min(1, MAIOR / Math.max(video.videoWidth, video.videoHeight));
     const largura = Math.round(video.videoWidth * escala);
     const altura = Math.round(video.videoHeight * escala);
@@ -443,8 +442,8 @@ export class SessaoMeExplique {
     if (!ctx) return;
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(video, 0, 0, largura, altura);
-    // Qualidade 1.0 (100%) para não borrar texto!
-    const dataUrl = this.canvas.toDataURL("image/jpeg", 1.0);
+    // Qualidade 0.8 para reduzir lag de áudio/vídeo
+    const dataUrl = this.canvas.toDataURL("image/jpeg", 0.8);
     const base64 = dataUrl.split(",")[1];
     if (!base64) return;
 
