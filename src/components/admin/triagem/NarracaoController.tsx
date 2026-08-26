@@ -120,7 +120,7 @@ export default function NarracaoController({
         <div className="flex items-center gap-2">
           <Volume2 className="w-5 h-5 text-primary" />
           <div>
-            <div className="font-semibold text-sm">Narração (Lovable AI TTS)</div>
+            <div className="font-semibold text-sm">Narração (App AI TTS)</div>
             <div className="text-xs text-muted-foreground">{status || 'Gere o áudio antes de ativar.'}</div>
           </div>
         </div>

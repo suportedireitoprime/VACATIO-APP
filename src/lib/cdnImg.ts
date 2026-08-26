@@ -23,7 +23,7 @@ const proxied = (url: string, w: number) =>
   `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&q=80&output=webp`;
 
 /**
- * Resolve caminhos relativos do CDN Lovable (`/__l5e/...`) ou pointers de asset
+ * Resolve caminhos relativos do CDN App (`/__l5e/...`) ou pointers de asset
  * para uma URL absoluta/local antes de passar por qualquer proxy externo.
  * Sem isso, o wsrv.nl recebia uma URL relativa e devolvia erro (capas somem).
  */

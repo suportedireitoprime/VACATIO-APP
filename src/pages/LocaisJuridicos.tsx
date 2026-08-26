@@ -597,7 +597,7 @@ export default function LocaisJuridicos() {
             const totalRatings = meta?.user_ratings_total ?? null;
             const reviews = meta?.reviews ?? [];
             const gmapsUri = meta?.google_maps_uri ?? googleMapsUrl(selecionado);
-            const browserKey = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined;
+            const browserKey = import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY as string | undefined;
             const embedSrc = browserKey
               ? `https://www.google.com/maps/embed/v1/place?key=${browserKey}&q=${selecionado.lat},${selecionado.lng}&zoom=17`
               : streetViewEmbedUrl(selecionado.lat, selecionado.lng);

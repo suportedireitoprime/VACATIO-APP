@@ -78,11 +78,11 @@ const AdminAtualizacao = () => {
       ],
     },
     {
-      title: '2. Conectar o Lovable ao GitHub',
-      desc: 'No editor Lovable: botão + (canto inferior esquerdo) → GitHub → Connect project → autorize o Lovable App e selecione o repositório. O código sincroniza automaticamente nos dois sentidos.',
+      title: '2. Conectar o App ao GitHub',
+      desc: 'No editor App: botão + (canto inferior esquerdo) → GitHub → Connect project → autorize o App App e selecione o repositório. O código sincroniza automaticamente nos dois sentidos.',
       icon: Github,
       actions: [
-        { label: 'Documentação Lovable + GitHub', href: 'https://docs.lovable.dev/integrations/github' },
+        { label: 'Documentação App + GitHub', href: 'https://docs.App.dev/integrations/github' },
       ],
     },
     {

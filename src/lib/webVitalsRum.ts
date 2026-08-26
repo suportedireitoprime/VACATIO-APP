@@ -8,7 +8,7 @@ function shouldReport(): boolean {
   if (typeof window === 'undefined') return false;
   try { if (window.self !== window.top) return false; } catch { return false; }
   const h = window.location.hostname;
-  if (h === 'localhost' || h.startsWith('127.') || h.includes('id-preview--') || h.includes('lovableproject.com')) return false;
+  if (h === 'localhost' || h.startsWith('127.') || h.includes('id-preview--') || h.includes('vacatio.com.br')) return false;
   return true;
 }
 

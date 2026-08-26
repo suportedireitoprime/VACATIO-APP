@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Lovable Cloud project (separate from the external legislation Supabase used
+// App Cloud project (separate from the external legislation Supabase used
 // by `client.ts`). Tables like `jurisprudencia_prontas`, `artigos_grifos`,
 // `artigos_anotacoes`, `artigo_ai_cache`, etc. live here.
 const CLOUD_URL = 'https://loghkxvzllthmxxxjbby.supabase.co';

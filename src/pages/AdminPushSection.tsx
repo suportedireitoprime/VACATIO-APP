@@ -286,7 +286,7 @@ export default function AdminPushSection() {
         }
 
         if (channel === "horus" || channel === "both") {
-          const linkAbs = url ? (url.startsWith("http") ? url : `https://huggable-calc-89.lovable.app${url}`) : "";
+          const linkAbs = url ? (url.startsWith("http") ? url : `https://app.vacatio.com.br${url}`) : "";
           const mensagemFinal = `*${title}*\n\n${body}${linkAbs ? `\n\n${linkAbs}` : ""}`;
           const { data: hc, error: hcErr } = await supabase
             .from("horus_campaigns")

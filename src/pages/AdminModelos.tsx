@@ -56,7 +56,7 @@ export default function AdminModelos() {
                     <code className="block mt-0.5 px-2 py-1 rounded bg-muted break-all">{m.id}</code>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">ID Lovable AI Gateway</div>
+                    <div className="text-muted-foreground">ID App AI Gateway</div>
                     <code className="block mt-0.5 px-2 py-1 rounded bg-muted break-all">{m.gateway}</code>
                   </div>
                   <a

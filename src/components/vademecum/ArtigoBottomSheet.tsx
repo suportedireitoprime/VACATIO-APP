@@ -1476,8 +1476,6 @@ const ArtigoBottomSheet = ({
 
   const handleTextSelection = useCallback(() => {
     if (!highlightMode) return;
-    // Desktop: mouseup fires this. Mobile uses the selectionchange effect below.
-    if (isMobile) return;
     setTimeout(() => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || !sel.toString().trim()) return;
@@ -1488,8 +1486,9 @@ const ArtigoBottomSheet = ({
         lastCreatedHlRef.current = newId;
         requestAnimationFrame(() => openCreatePrompt(newId));
       }
+      sel.removeAllRanges();
     }, 10);
-  }, [highlightMode, addHighlight, isMobile, openCreatePrompt, containerRef]);
+  }, [highlightMode, addHighlight, openCreatePrompt, containerRef]);
 
   // Mobile: only fire when the user has FINISHED adjusting the selection.
   // Uses `selectionchange` with a debounce so iOS/Android drag-handles don't
@@ -2233,21 +2232,9 @@ const ArtigoBottomSheet = ({
         )}
 
         {/* Scrollable content area: header, tabs and article content scroll up; bottom nav stays fixed */}
-        <motion.div 
+        <div 
           ref={scrollContainerRef as any} 
           className="flex-1 overflow-y-auto min-h-0 relative overscroll-contain"
-          drag={isDesktop ? false : "x"}
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.4}
-          onDragEnd={(_, info) => {
-            if (info.offset.x > 80 && onPrev) {
-              haptic.selection();
-              onPrev();
-            } else if (info.offset.x < -80 && onNext) {
-              haptic.selection();
-              onNext();
-            }
-          }}
         >
 
         {/* Top bar: heart/eye (left) + online count + close (right) */}
@@ -2594,7 +2581,6 @@ const ArtigoBottomSheet = ({
                   const state = (containerRef.current as any)?._paintState;
                   if (state) state.isDragging = false;
                   handleTextSelection();
-                  window.getSelection()?.removeAllRanges();
                 } : undefined}
                 onPointerCancel={highlightMode ? (e) => {
                   const state = (containerRef.current as any)?._paintState;
@@ -2984,7 +2970,7 @@ const ArtigoBottomSheet = ({
         </Tabs>
 
 
-        </motion.div>
+        </div>
 
         {/* Floating FABs — Font size */}
         <div className={`absolute ${activeTab === 'artigo' ? 'bottom-32 sm:bottom-36' : 'bottom-6'} right-4 sm:right-5 z-[60] flex flex-col items-end gap-2`}>

@@ -13,7 +13,7 @@ const SUPABASE_ANON_KEY =
 // abre a rota /desktop-link/:token via deep link (Android App Links + intent
 // filter para vacatio://). Sem o app, abre a mesma rota no navegador e a
 // versão web mostra o mesmo botão "Confirmar login".
-const APP_LINK_BASE = 'https://simply-awesome-calc-80.lovable.app';
+const APP_LINK_BASE = 'https://app.vacatio.com.br';
 
 type Status = 'loading' | 'pending' | 'claimed' | 'expired' | 'error';
 

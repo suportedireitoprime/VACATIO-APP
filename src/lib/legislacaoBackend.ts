@@ -2,7 +2,7 @@
 // artigos, súmulas, narrações e edge functions do Vade Mecum.
 //
 // IMPORTANTE: NÃO usar `import.meta.env.VITE_SUPABASE_URL` como fallback aqui.
-// O `.env` deste projeto (Lovable Cloud) aponta para o backend próprio do app
+// O `.env` deste projeto (App Cloud) aponta para o backend próprio do app
 // (usuários, boards, dicionário...), que NÃO contém as tabelas
 // `vade_mecum_leis` / `vade_mecum_artigos`. Se usarmos o env, as chamadas
 // batem no projeto errado e voltam vazias (Constituição/Códigos sem artigos).
