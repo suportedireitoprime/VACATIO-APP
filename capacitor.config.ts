@@ -11,10 +11,6 @@ const config: CapacitorConfig = {
   // 🔥 Hot-reload durante desenvolvimento. REMOVA o bloco `server` inteiro
   // antes de gerar o AAB de release para que o app rode 100% offline com o
   // `dist/` embutido (o workflow do GitHub Actions faz isso automaticamente).
-  server: {
-    url: 'https://d5fc903c-185c-419c-9fb9-f6e15d31490b.lovableproject.com?forceHideBadge=true',
-    cleartext: true,
-  },
   android: {
     // allowMixedContent removido — hardening. Todas as chamadas usam HTTPS.
     // Debug do WebView desabilitado em release (evita inspeção via chrome://inspect
