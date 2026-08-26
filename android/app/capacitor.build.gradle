@@ -10,7 +10,6 @@ android {
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
     implementation project(':aparajita-capacitor-secure-storage')
-    implementation project(':capacitor-community-background-geolocation')
     implementation project(':capacitor-community-file-opener')
     implementation project(':capacitor-community-in-app-review')
     implementation project(':capacitor-community-keep-awake')
@@ -47,6 +46,7 @@ dependencies {
     implementation project(':capawesome-capacitor-app-update')
     implementation project(':capawesome-capacitor-file-picker')
     implementation project(':capawesome-capacitor-maps-launcher')
+    implementation project(':capgo-background-geolocation')
     implementation project(':capgo-native-purchases')
     implementation project(':codetrix-studio-capacitor-google-auth')
     implementation project(':capacitor-voice-recorder')

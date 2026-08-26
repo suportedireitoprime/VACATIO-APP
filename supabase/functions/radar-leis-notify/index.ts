@@ -25,7 +25,7 @@ function emojiFor(tipo: string): string {
 }
 
 async function gerarHeadlines(atos: Ato[]): Promise<{ push_titulo: string; push_subtitulo: string; preview_headline: string; emoji: string }> {
-  const key = Deno.env.get("LOVABLE_API_KEY");
+  const key = Deno.env.get("OPENAI_API_KEY");
   const emojiBase = emojiFor(atos[0]?.tipo_ato ?? "");
   const fallback = () => {
     const grupos: Record<string, number> = {};
@@ -54,11 +54,11 @@ Normas publicadas hoje:
 ${contexto}`;
 
   try {
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       }),
@@ -81,14 +81,14 @@ ${contexto}`;
 
 async function gerarCapa(supabase: any, atos: Ato[], slug: string): Promise<string | null> {
   try {
-    const key = Deno.env.get("LOVABLE_API_KEY");
+    const key = Deno.env.get("OPENAI_API_KEY");
     if (!key) return null;
     const tipo = atos[0]?.tipo_ato ?? "Diário Oficial";
     const prompt = `Capa vertical minimalista para notificação push jurídica. Tema: "${tipo}". Estilo: gradiente escuro azul-índigo com detalhes dourados, símbolo jurídico central (balança, martelo ou brasão), sem texto. Cinemático, alto contraste, 1024x1024.`;
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+    const resp = await fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
-      body: JSON.stringify({ model: "google/gemini-2.5-flash-image", prompt, size: "1024x1024", n: 1 }),
+      body: JSON.stringify({ model: "dall-e-3", prompt, size: "1024x1024", n: 1 }),
     });
     if (!resp.ok) { console.error("capa gen fail", resp.status); return null; }
     const j = await resp.json();

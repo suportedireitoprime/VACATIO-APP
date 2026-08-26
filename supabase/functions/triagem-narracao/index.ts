@@ -5,18 +5,20 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 type SceneIn = { id: string; text: string };
 type Body = { voice?: string; scenes: SceneIn[]; model?: string };
 
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
 async function speakOne(text: string, voice: string, model: string): Promise<string> {
   const prompt = `Fale em português brasileiro, com tom acolhedor, ritmo natural e sem pressa: ${text}`;
-  const res = await fetch('https://ai.gateway.lovable.dev/v1/audio/speech', {
+  const modelName = model.replace('google/', '').replace('-tts', '');
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+  
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      'x-goog-api-key': GEMINI_API_KEY || '',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model,
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         responseModalities: ['AUDIO'],
@@ -33,27 +35,28 @@ async function speakOne(text: string, voice: string, model: string): Promise<str
       { status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
-  const buf = new Uint8Array(await res.arrayBuffer());
-  let bin = '';
-  const CHUNK = 0x8000;
-  for (let i = 0; i < buf.length; i += CHUNK) {
-    bin += String.fromCharCode(...buf.subarray(i, i + CHUNK));
+
+  const j = await res.json();
+  const inlineData = j?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+  if (!inlineData || !inlineData.data) {
+    throw new Error('TTS failed: no audio returned from Gemini');
   }
-  return btoa(bin);
+  return inlineData.data; // Base64 audio
+
 }
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY missing' }), {
+    if (!GEMINI_API_KEY) {
+      return new Response(JSON.stringify({ error: 'GEMINI_API_KEY missing' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
     const body = (await req.json()) as Body;
     const voice = (body.voice || 'Kore').toString();
-    const model = (body.model || 'google/gemini-2.5-flash-tts').toString();
+    const model = (body.model || 'gemini-2.5-flash').toString();
     const scenes = Array.isArray(body.scenes) ? body.scenes.slice(0, 30) : [];
     if (!scenes.length) {
       return new Response(JSON.stringify({ error: 'no scenes' }), {

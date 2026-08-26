@@ -5,9 +5,6 @@ project(':capacitor-android').projectDir = new File('../node_modules/.pnpm/@capa
 include ':aparajita-capacitor-secure-storage'
 project(':aparajita-capacitor-secure-storage').projectDir = new File('../node_modules/.pnpm/@aparajita+capacitor-secure-storage@8.0.0/node_modules/@aparajita/capacitor-secure-storage/android')
 
-include ':capacitor-community-background-geolocation'
-project(':capacitor-community-background-geolocation').projectDir = new File('../node_modules/.pnpm/@capacitor-community+backgr_c8a1372dece1c484c43824db82ad99be/node_modules/@capacitor-community/background-geolocation/android')
-
 include ':capacitor-community-file-opener'
 project(':capacitor-community-file-opener').projectDir = new File('../node_modules/.pnpm/@capacitor-community+file-opener@8.0.1_@capacitor+core@8.5.0/node_modules/@capacitor-community/file-opener/android')
 
@@ -115,6 +112,9 @@ project(':capawesome-capacitor-file-picker').projectDir = new File('../node_modu
 
 include ':capawesome-capacitor-maps-launcher'
 project(':capawesome-capacitor-maps-launcher').projectDir = new File('../node_modules/.pnpm/@capawesome+capacitor-maps-_477df0c65a159aa2ca07f2bc0e02e194/node_modules/@capawesome/capacitor-maps-launcher/android')
+
+include ':capgo-background-geolocation'
+project(':capgo-background-geolocation').projectDir = new File('../node_modules/.pnpm/@capgo+background-geolocation@8.4.3_@capacitor+core@8.5.0/node_modules/@capgo/background-geolocation/android')
 
 include ':capgo-native-purchases'
 project(':capgo-native-purchases').projectDir = new File('../node_modules/.pnpm/@capgo+native-purchases@8.6.6_@capacitor+core@8.5.0/node_modules/@capgo/native-purchases/android')

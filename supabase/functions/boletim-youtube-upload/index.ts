@@ -7,7 +7,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY")!;
 const CLIENT_ID = Deno.env.get("YOUTUBE_CLIENT_ID")!;
 const CLIENT_SECRET = Deno.env.get("YOUTUBE_CLIENT_SECRET")!;
 const REFRESH_TOKEN = Deno.env.get("YOUTUBE_REFRESH_TOKEN")!;
@@ -34,18 +34,20 @@ async function getAccessToken(): Promise<string> {
 }
 
 async function gerarThumbnail(titulo: string, tipoLabel: string, dataBr: string): Promise<Uint8Array | null> {
-  if (!LOVABLE_API_KEY) return null;
+  if (!OPENAI_API_KEY) return null;
   const prompt = `Thumbnail estilo jornal jurídico brasileiro, fundo escuro elegante com detalhes dourados, palavra grande '${tipoLabel}' no topo, título '${titulo}' abaixo em tipografia bold, data '${dataBr}' no canto, logo Vacatio discreto. Alto contraste, sem pessoas, 1280x720.`;
-  const resp = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+  const resp = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash-image",
-      messages: [{ role: "user", content: prompt }],
-      modalities: ["image", "text"],
+      model: "dall-e-3",
+      prompt: prompt,
+      size: "1792x1024",
+      response_format: "b64_json",
+      n: 1,
     }),
   });
   if (!resp.ok) {

@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 import viteCompression from "vite-plugin-compression";
 
 // https://vitejs.dev/config/
@@ -23,7 +22,6 @@ export default defineConfig(({ mode }) => ({
     // O plugin gerava um segundo build + polyfills (~40–60 KB no bundle
     // inicial) que ninguém usava. Se algum dia precisar suportar navegador
     // antigo, reintroduza aqui.
-    mode === "development" && componentTagger(),
     // Emit precompressed .gz and .br artifacts alongside each JS/CSS/HTML/SVG.
     // Static hosts (Netlify, Cloudflare Pages, Nginx) will serve these
     // directly when the client sends Accept-Encoding: br/gzip, cutting

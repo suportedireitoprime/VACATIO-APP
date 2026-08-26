@@ -20,9 +20,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const apiKey = Deno.env.get('LOVABLE_API_KEY');
+    const apiKey = Deno.env.get('OPENAI_API_KEY');
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), {
+      return new Response(JSON.stringify({ error: 'OPENAI_API_KEY not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -31,44 +31,40 @@ Deno.serve(async (req) => {
     const fullPrompt = `${prompt}. The image should be suitable as a background for an Instagram carousel slide with text overlay. Dark wine/burgundy tones, elegant legal theme, 4:5 aspect ratio. No text in the image.`;
 
     const _t0 = Date.now();
-    const resp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const resp = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image',
-        messages: [
-          { role: 'user', content: fullPrompt },
-        ],
-        modalities: ['image', 'text'],
+        model: 'dall-e-3',
+        prompt: fullPrompt,
+        size: '1024x1024',
+        n: 1,
       }),
     });
 
     if (!resp.ok) {
       const errText = await resp.text();
       console.error('AI Gateway error:', resp.status, errText);
-      await logAiCall({ functionName: 'gerar-imagem-slide', kind: 'image', model: 'gemini-2.5-flash-image', triggerType: detectTrigger(body, req), success: false, error: errText.slice(0, 200), durationMs: Date.now() - _t0 });
+      await logAiCall({ functionName: 'gerar-imagem-slide', kind: 'image', model: 'dall-e-3', triggerType: detectTrigger(body, req), success: false, error: errText.slice(0, 200), durationMs: Date.now() - _t0 });
       return new Response(JSON.stringify({ error: 'Image generation failed', detail: errText }), {
         status: resp.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    await logAiCall({ functionName: 'gerar-imagem-slide', kind: 'image', model: 'gemini-2.5-flash-image', triggerType: detectTrigger(body, req), outputUnits: 1, durationMs: Date.now() - _t0 });
+    await logAiCall({ functionName: 'gerar-imagem-slide', kind: 'image', model: 'dall-e-3', triggerType: detectTrigger(body, req), outputUnits: 1, durationMs: Date.now() - _t0 });
 
     const data = await resp.json();
-    const message = data?.choices?.[0]?.message;
-    const images = message?.images;
+    const imageUrl = data?.data?.[0]?.url;
 
-    if (!images || images.length === 0) {
-      return new Response(JSON.stringify({ error: 'No image generated', text: message?.content }), {
+    if (!imageUrl) {
+      return new Response(JSON.stringify({ error: 'No image generated', text: JSON.stringify(data) }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const imageUrl = images[0]?.image_url?.url;
 
     return new Response(JSON.stringify({ imageUrl }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

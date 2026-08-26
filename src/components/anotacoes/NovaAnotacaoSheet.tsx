@@ -7,7 +7,7 @@ import { db } from '@/services/offlineDb';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
-import { v4 as uuidv4 } from 'uuid';
+
 
 interface NovaAnotacaoSheetProps {
   open: boolean;
@@ -70,7 +70,7 @@ export default function NovaAnotacaoSheet({ open, onClose, onSaved }: NovaAnotac
 
     try {
       await db.highlights.add({
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         artigoId,
         data: JSON.stringify(payload)
       });
@@ -83,6 +83,7 @@ export default function NovaAnotacaoSheet({ open, onClose, onSaved }: NovaAnotac
           .upsert({
             tabela_codigo: lei.tabela_nome,
             numero_artigo: artigoNumero,
+            artigo_id: artigoId,
             anotacao: texto.trim(),
             user_id: sessionData.session.user.id
           }, {
