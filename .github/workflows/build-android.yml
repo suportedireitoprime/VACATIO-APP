@@ -3010,6 +3010,10 @@ jobs:
 
 
 
+      - name: Increase Gradle Memory
+        working-directory: android
+        run: echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
+
       - name: Build .aab (bundleRelease)
         working-directory: android
         env:
