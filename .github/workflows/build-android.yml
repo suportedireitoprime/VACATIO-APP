@@ -147,38 +147,7 @@ jobs:
           PY
 
       - name: Patch @capgo/background-geolocation getPackage() NPE
-        run: |
-          node -e "
-            const fs = require('fs');
-            const path = require('path');
-            
-            function patchFile(filePath) {
-              if (!fs.existsSync(filePath)) {
-                console.log('Arquivo não encontrado: ' + filePath);
-                return;
-              }
-              let content = fs.readFileSync(filePath, 'utf8');
-              const orig = content;
-              content = content.replace(/BackgroundGeolocationService\.class\.getPackage\(\)\.getName\(\)/g, '\"com.capgo.capacitor_background_geolocation\"');
-              content = content.replace(/GeofenceStore\.class\.getPackage\(\)\.getName\(\)/g, '\"com.capgo.capacitor_background_geolocation\"');
-              
-              if (content !== orig) {
-                // Break hardlink/read-only by unlinking first
-                fs.unlinkSync(filePath);
-                fs.writeFileSync(filePath, content, 'utf8');
-                console.log('✅ Patched: ' + filePath);
-              } else {
-                console.log('⚠️ Padrão não encontrado ou já patcheado: ' + filePath);
-              }
-            }
-
-            const pkgPath = require.resolve('@capgo/background-geolocation/package.json');
-            const pkgDir = path.dirname(pkgPath);
-            const baseDir = path.join(pkgDir, 'android/src/main/java/com/capgo/capacitor_background_geolocation');
-            patchFile(path.join(baseDir, 'BackgroundGeolocationService.java'));
-            patchFile(path.join(baseDir, 'BackgroundGeolocation.java'));
-            patchFile(path.join(baseDir, 'GeofenceStore.java'));
-          "
+        run: node scripts/patch-capgo-background-geolocation.mjs
 
       - name: Bump AGP + Gradle wrapper + force modern Android deps
         run: |
@@ -3011,6 +2980,9 @@ jobs:
 
 
 
+
+      - name: Verify background geolocation crash patch
+        run: node scripts/patch-capgo-background-geolocation.mjs --check
 
       - name: Increase Gradle Memory
         working-directory: android
