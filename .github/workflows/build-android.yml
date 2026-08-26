@@ -2981,8 +2981,10 @@ jobs:
 
 
 
-      - name: Verify background geolocation crash patch
-        run: node scripts/patch-capgo-background-geolocation.mjs --check
+      - name: Reapply and verify background geolocation crash patch
+        run: |
+          node scripts/patch-capgo-background-geolocation.mjs
+          node scripts/patch-capgo-background-geolocation.mjs --check
 
       - name: Increase Gradle Memory
         working-directory: android
