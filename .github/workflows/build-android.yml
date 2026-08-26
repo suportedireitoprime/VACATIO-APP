@@ -172,7 +172,9 @@ jobs:
               }
             }
 
-            const baseDir = 'node_modules/@capgo/background-geolocation/android/src/main/java/com/capgo/capacitor_background_geolocation';
+            const pkgPath = require.resolve('@capgo/background-geolocation/package.json');
+            const pkgDir = path.dirname(pkgPath);
+            const baseDir = path.join(pkgDir, 'android/src/main/java/com/capgo/capacitor_background_geolocation');
             patchFile(path.join(baseDir, 'BackgroundGeolocationService.java'));
             patchFile(path.join(baseDir, 'BackgroundGeolocation.java'));
             patchFile(path.join(baseDir, 'GeofenceStore.java'));
