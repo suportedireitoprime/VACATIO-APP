@@ -1357,7 +1357,7 @@ export default function Landing() {
       <StatsTicker />
       <FeatureVadeMecum />
       <FeatureIA />
-      <FeatureBiblioteca />
+      {/* <FeatureBiblioteca /> */}
       <FeatureVideoaulas />
       <FeatureRadar />
       

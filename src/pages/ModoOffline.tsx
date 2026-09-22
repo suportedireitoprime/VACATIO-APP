@@ -48,15 +48,6 @@ export default function ModoOffline() {
       meta: `${LEIS_CATALOG.length} leis · ${audioStats.count} áudio${audioStats.count !== 1 ? 's' : ''} baixado${audioStats.count !== 1 ? 's' : ''}`,
       to: '/modo-offline/leis',
     },
-    {
-      id: 'livros',
-      icon: BookOpen,
-      color: '#3b82f6',
-      title: 'Livros e PDFs',
-      desc: 'Escolha os livros da biblioteca para ler sem internet',
-      meta: pdfs.length > 0 ? `${pdfs.length} baixado${pdfs.length !== 1 ? 's' : ''} · ${formatBytes(pdfBytes)}` : 'Nenhum livro baixado ainda',
-      to: '/modo-offline/livros',
-    },
   ];
 
   const handleClearAudios = async () => {

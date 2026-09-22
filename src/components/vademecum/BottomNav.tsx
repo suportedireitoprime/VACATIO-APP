@@ -155,14 +155,12 @@ const BottomNav = () => {
     { id: 'boletins', label: 'Boletins Jurídicos', desc: 'Vídeo diário com as normas quentes de hoje', icon: Video, action: () => navigate('/boletins'), prefetch: 'boletins' },
     { id: 'noticias', label: 'Notícias', desc: 'Notícias jurídicas e atualizações', icon: Newspaper, action: () => navigate('/noticias'), prefetch: 'noticias' },
     { id: 'newsletter', label: 'Newsletter', desc: 'Receba um resumo jurídico diário no e-mail', icon: Send, action: () => navigate('/newsletter'), prefetch: 'newsletter' },
-    { id: 'biblioteca', label: 'Biblioteca', desc: 'Livros e materiais de estudo para leitura', icon: Library, action: () => navigate('/biblioteca'), prefetch: 'biblioteca' },
     { id: 'aprender', label: 'Aprender', desc: 'Artigos educacionais e conteúdos complementares', icon: BookOpen, action: () => navigate('/aprender'), prefetch: 'aprender' },
     { id: 'modo-offline', label: 'Modo Offline', desc: 'Baixe leis para consultar sem internet', icon: WifiOff, action: () => navigate('/modo-offline'), prefetch: 'modoOffline' },
   ];
 
   const ESTUDOS_ITENS: Array<{ id: string; label: string; desc: string; icon: any; action: () => void; prefetch?: PrefetchKey }> = [
     { id: 'resumos', label: 'Resumos Jurídicos', desc: 'Biblioteca por área, tema e subtema', icon: FileText, action: () => navigate('/resumos-juridicos'), prefetch: 'resumosJuridicos' },
-    { id: 'biblioteca', label: 'Biblioteca', desc: 'Ebooks jurídicos com leitor Kindle', icon: Library, action: () => navigate('/biblioteca'), prefetch: 'biblioteca' },
     { id: 'videoaulas', label: 'Videoaulas', desc: 'Aulas em vídeo com transcrição', icon: Video, action: () => navigate('/estudos'), prefetch: 'estudos' },
   ];
 
@@ -243,23 +241,6 @@ const BottomNav = () => {
                 <Gavel className="w-11 h-11 sm:w-12 sm:h-12 text-primary-foreground relative z-[2]" strokeWidth={1.75} />
               </span>
               <span className="font-body text-[11px] sm:text-[12px] font-semibold text-primary leading-tight">Ferramentas</span>
-            </span>
-
-          </button>
-
-          {/* Biblioteca */}
-          <button
-            onPointerDown={() => prefetchRoute('biblioteca')}
-            onMouseEnter={() => prefetchRoute('biblioteca')}
-            onClick={() => { haptic.selection(); navigate('/biblioteca'); }}
-            data-track="bottom_nav_click"
-            data-track-destino="biblioteca"
-            className="flex flex-col items-center justify-end py-1.5 text-foreground hover:text-primary transition-colors"
-            aria-label="Biblioteca"
-          >
-            <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <Library className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
-              <span className="font-body text-[11px] sm:text-[12px] leading-tight">Biblioteca</span>
             </span>
           </button>
 

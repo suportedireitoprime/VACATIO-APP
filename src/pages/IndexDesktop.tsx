@@ -46,7 +46,6 @@ type Tab = 'legislacao' | 'noticias' | 'ferramentas';
 
 const DESKTOP_TABS: { id: string; label: string; icon: typeof Scale }[] = [
   { id: 'legislacao', label: 'Legislação', icon: Scale },
-  { id: 'biblioteca', label: 'Biblioteca', icon: Library },
   { id: 'ferramentas', label: 'Ferramentas', icon: Gavel },
 ];
 
@@ -150,7 +149,6 @@ const IndexDesktop = () => {
                         const routes: Record<string, string> = {
                           noticias: '/noticias',
                           ferramentas: '/ferramentas',
-                          biblioteca: '/bibliotecas',
                         };
                         if (routes[tab.id]) { navigate(routes[tab.id]); return; }
                         setActiveTab(tab.id as Tab);
