@@ -181,16 +181,7 @@ const CATEGORIES: Category[] = [
       { id: 'monitor-apis', label: 'APIs', icon: Activity, desc: 'Funções que usam IA (custo, manual/auto)', route: '/admin-monitor-apis' },
     ],
   },
-  {
-    id: 'passo-a-passo-lojas',
-    title: 'Passo a Passo Lojas',
-    desc: 'Apple App Store e Google Play — publicação do Vacatio',
-    icon: Store,
-    route: '/admin-passo-a-passo-lojas',
-    items: [
-      { id: 'admin-passo-a-passo-lojas', label: 'Passo a Passo Lojas', icon: Store, desc: 'Guia com 25 passos para publicar no Google Play e App Store', route: '/admin-passo-a-passo-lojas' },
-    ],
-  },
+
 
 
   {
@@ -279,15 +270,7 @@ const CATEGORIES: Category[] = [
       { id: 'admin-buscador-leis', label: 'Buscador de Leis', icon: Search, desc: 'IA busca na web leis faltantes e sugere para adicionar à Biblioteca', route: '/admin-buscador-leis' },
     ],
   },
-  {
-    id: 'concorrentes-analise',
-    title: 'Concorrentes',
-    desc: 'Extrai reviews do Google Play e analisa dores/pedidos com IA',
-    icon: Target,
-    items: [
-      { id: 'admin-concorrentes', label: 'Concorrentes', icon: Target, desc: 'Cadastro de apps, extração de reviews (Browserless) e análise IA', route: '/admin-concorrentes' },
-    ],
-  },
+
   {
     id: 'locais-juridicos',
     title: 'Locais Jurídicos',
