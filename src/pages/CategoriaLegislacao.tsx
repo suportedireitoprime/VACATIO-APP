@@ -1760,7 +1760,7 @@ const CategoriaLegislacao = () => {
             return (
               <div>
                 <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                  {filteredArtigos.map(a => (
+                  {filteredArtigos.filter(a => /\d/.test(a.numero)).map(a => (
                     <button
                       key={a.id}
                       onClick={() => openArtigoWithRecent(a)}
@@ -1793,7 +1793,7 @@ const CategoriaLegislacao = () => {
                       </p>
                     )}
                     <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                      {cap.artigos.map(a => (
+                      {cap.artigos.filter(a => /\d/.test(a.numero)).map(a => (
                         <button
                           key={a.id}
                           onClick={() => openArtigoWithRecent(a)}
@@ -2206,7 +2206,7 @@ const CategoriaLegislacao = () => {
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
-                  className="absolute top-0 bottom-0 -right-6 md:-right-12 h-full w-auto max-w-none object-cover object-right select-none"
+                  className="absolute top-0 bottom-0 -right-20 md:-right-32 h-full w-auto max-w-none object-cover object-right select-none"
                 />
               </div>
 
