@@ -9,7 +9,7 @@ import {
   Globe, GraduationCap, HandCoins, Handshake, HeartPulse, Hospital, House, IdCard,
   Landmark, LandPlot, LayoutGrid, Leaf, List, Map, Mic, MicOff, Network, NotebookPen,
   PiggyBank, Plane, PocketKnife, RadioTower, ReceiptText, Scale, Scroll, ScrollText, Search,
-  Shield, ShieldAlert, ShieldCheck, ShieldX, Ship, ShoppingCart, Sprout, Stamp, Store,
+  Shield, ShieldAlert, ShieldCheck, ShieldX, Ship, ShoppingCart, Siren, Sprout, Stamp, Store,
   Tractor, TreePine, Users, Vote, Wallet, Wifi, X, MessageCircle, BookOpen, type LucideIcon,
 } from 'lucide-react';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
@@ -52,12 +52,12 @@ const EM_ALTA_LEIS: Array<{
   icon: LucideIcon;
   color: string;
 }> = [
-  { id: 'emalta-cf88', leiId: 'cf88', label: 'CONSTITUIÇÃO', sublabel: 'CF/88', icon: Landmark, color: '#FACC15' },
-  { id: 'emalta-clt', leiId: 'clt', label: 'CLT', sublabel: 'Leis Trabalhistas', icon: Briefcase, color: '#8B5CF6' },
-  { id: 'emalta-cc', leiId: 'cc', label: 'CÓDIGO CIVIL', sublabel: 'Lei 10.406/02', icon: Scale, color: '#3B82F6' },
-  { id: 'emalta-cpc', leiId: 'cpc', label: 'CÓD. PROCESSO CIVIL', sublabel: 'Lei 13.105/15', icon: FileText, color: '#06B6D4' },
-  { id: 'emalta-cp', leiId: 'cp', label: 'CÓDIGO PENAL', sublabel: 'Decreto-Lei 2.848/40', icon: ShieldAlert, color: '#EF4444' },
-  { id: 'emalta-cpp', leiId: 'cpp', label: 'CÓD. PROCESSO PENAL', sublabel: 'Decreto-Lei 3.689/41', icon: ShieldCheck, color: '#EC4899' },
+  { id: 'emalta-cf88', leiId: 'cf88', label: 'CF/88', sublabel: 'Constituição Federal', icon: Landmark, color: '#FACC15' },
+  { id: 'emalta-clt', leiId: 'clt', label: 'CLT', sublabel: 'Consolidação das Leis do Trabalho', icon: Briefcase, color: '#8B5CF6' },
+  { id: 'emalta-cc', leiId: 'cc', label: 'CC', sublabel: 'Código Civil', icon: Scale, color: '#3B82F6' },
+  { id: 'emalta-cpc', leiId: 'cpc', label: 'CPC', sublabel: 'Código de Processo Civil', icon: FileText, color: '#06B6D4' },
+  { id: 'emalta-cp', leiId: 'cp', label: 'CP', sublabel: 'Código Penal', icon: Siren, color: '#EF4444' },
+  { id: 'emalta-cpp', leiId: 'cpp', label: 'CPP', sublabel: 'Código de Processo Penal', icon: ShieldCheck, color: '#EC4899' },
   { id: 'emalta-eoab', leiId: 'eoab', label: 'ESTATUTO DA OAB', sublabel: 'Lei 8.906/94', icon: Gavel, color: '#F59E0B' },
   { id: 'emalta-eca', leiId: 'eca', label: 'ESTATUTO DA CRIANÇA', sublabel: 'ECA · Lei 8.069/90', icon: Baby, color: '#10B981' },
 ];
@@ -457,6 +457,7 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                   label={c.label}
                   sublabel={c.sublabel}
                   color={c.color}
+                  inlineTitle={true}
                   delay={i * 0.03}
                   onClick={() => handleOpenLei(c.leiId)}
                   data-track="home_card_click"

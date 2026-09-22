@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock, Shield } from 'lucide-react';
+import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, BookMarked, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import MentorOverlay from './MentorOverlay';
 // PessoalSheet removido — Meu Espaço agora é rota dedicada (/meu-espaco).
@@ -191,7 +191,7 @@ const BottomNav = () => {
             aria-label="Códigos"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <BookOpen className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
+              <Gavel className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
               <span className="font-body text-[11px] sm:text-[12px] leading-tight">Códigos</span>
             </span>
           </button>
@@ -208,7 +208,7 @@ const BottomNav = () => {
             aria-label="Estatutos"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <Shield className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
+              <BookMarked className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
               <span className="font-body text-[11px] sm:text-[12px] leading-tight">Estatutos</span>
             </span>
           </button>
