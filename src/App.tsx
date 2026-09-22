@@ -72,6 +72,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Lazy loaded
 const CategoriaLegislacao = lazy(() => import("./pages/CategoriaLegislacao.tsx"));
+const PaginaLegislacaoHub = lazy(() => import("./pages/PaginaLegislacaoHub.tsx"));
 const Noticias = lazy(routePrefetch.noticias);
 const Novidades = lazy(() => import("./pages/Novidades.tsx"));
 const Anotacoes = lazy(() => import("./pages/Anotacoes.tsx"));
@@ -547,6 +548,8 @@ function AnimatedRoutes() {
           <Route path="/onboarding" element={<ProtectedRoute requireOnboarding={false}><Onboarding /></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><HomeGate /></ProtectedRoute>} />
 
+          <Route path="/legislacao/codigos" element={<ProtectedRoute><PageTransition><PaginaLegislacaoHub tipo="codigo" /></PageTransition></ProtectedRoute>} />
+          <Route path="/legislacao/estatutos" element={<ProtectedRoute><PageTransition><PaginaLegislacaoHub tipo="estatuto" /></PageTransition></ProtectedRoute>} />
           <Route path="/legislacao/:tipo" element={<ProtectedRoute><PageTransition><CategoriaLegislacao /></PageTransition></ProtectedRoute>} />
           <Route path="/legislacao/:tipo/:leiSlug" element={<ProtectedRoute><PageTransition><CategoriaLegislacao /></PageTransition></ProtectedRoute>} />
           <Route path="/legislacao/:tipo/:leiSlug/:artigoNumero" element={<ProtectedRoute><PageTransition><CategoriaLegislacao /></PageTransition></ProtectedRoute>} />

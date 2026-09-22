@@ -2727,6 +2727,13 @@ const CategoriaLegislacao = () => {
     );
   }
 
+  if (!leiSlugParam && (tipo === 'codigo' || rawTipo === 'codigos')) {
+    return <Navigate to="/legislacao/codigos" replace />;
+  }
+  if (!leiSlugParam && (tipo === 'estatuto' || rawTipo === 'estatutos')) {
+    return <Navigate to="/legislacao/estatutos" replace />;
+  }
+
   return <Navigate to="/" replace />;
   };
 

@@ -43,8 +43,8 @@ const GRID_CATS: Cat[] = [
   { id: 'lei-especial',    label: 'PENAL ESPECIAL',  sublabel: 'Leis penais extravagantes', icon: Scale,      color: '#FB923C' },
 ];
 
-/** As 8 leis mais consultadas exibidas diretamente na aba Em Alta */
-const EM_ALTA_LEIS: Array<{
+/** As 6 leis / códigos mais consultados exibidos diretamente no topo da aba Em Alta */
+const EM_ALTA_CODIGOS: Array<{
   id: string;
   leiId: string;
   label: string;
@@ -58,8 +58,19 @@ const EM_ALTA_LEIS: Array<{
   { id: 'emalta-cpc', leiId: 'cpc', label: 'CPC', sublabel: 'Código de Processo Civil', icon: FileText, color: '#06B6D4' },
   { id: 'emalta-cp', leiId: 'cp', label: 'CP', sublabel: 'Código Penal', icon: Siren, color: '#EF4444' },
   { id: 'emalta-cpp', leiId: 'cpp', label: 'CPP', sublabel: 'Código de Processo Penal', icon: ShieldCheck, color: '#EC4899' },
-  { id: 'emalta-eoab', leiId: 'eoab', label: 'ESTATUTO DA OAB', sublabel: 'Lei 8.906/94', icon: Gavel, color: '#F59E0B' },
-  { id: 'emalta-eca', leiId: 'eca', label: 'ESTATUTO DA CRIANÇA', sublabel: 'ECA · Lei 8.069/90', icon: Baby, color: '#10B981' },
+];
+
+/** Estatutos em alta */
+const EM_ALTA_ESTATUTOS: Array<{
+  id: string;
+  leiId: string;
+  label: string;
+  sublabel: string;
+  icon: LucideIcon;
+  color: string;
+}> = [
+  { id: 'emalta-eoab', leiId: 'eoab', label: 'OAB', sublabel: 'Lei 8.906/94', icon: Gavel, color: '#F59E0B' },
+  { id: 'emalta-eca', leiId: 'eca', label: 'CRIANÇA E ADOLESCENTE', sublabel: 'ECA · Lei 8.069/90', icon: Baby, color: '#10B981' },
 ];
 
 // Cards de "Outras normas" que apontam para o Radar 360 com filtro pré-selecionado
@@ -448,9 +459,9 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
             transition={{ duration: 0.24, ease: [0.22, 0.61, 0.36, 1] }}
             className="space-y-6"
           >
-            {/* Em Alta — 8 principais leis em alta */}
+            {/* Em Alta — 6 principais códigos em alta */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-              {EM_ALTA_LEIS.map((c, i) => (
+              {EM_ALTA_CODIGOS.map((c, i) => (
                 <HomeCard
                   key={c.id}
                   icon={c.icon}
@@ -465,6 +476,33 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                   data-track-section="emalta"
                 />
               ))}
+            </div>
+
+            {/* Seção Estatutos com risquinho amarelo */}
+            <div className="space-y-3">
+              <div className="px-1">
+                <h3 className="font-display text-foreground text-[18px] font-bold flex items-center gap-2">
+                  <span className="w-1 h-5 rounded-full bg-primary" />
+                  ESTATUTOS
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                {EM_ALTA_ESTATUTOS.map((c, i) => (
+                  <HomeCard
+                    key={c.id}
+                    icon={c.icon}
+                    label={c.label}
+                    sublabel={c.sublabel}
+                    color={c.color}
+                    inlineTitle={true}
+                    delay={i * 0.03}
+                    onClick={() => handleOpenLei(c.leiId)}
+                    data-track="home_card_click"
+                    data-track-name={c.label}
+                    data-track-section="emalta-estatutos"
+                  />
+                ))}
+              </div>
             </div>
 
             <div className="px-1">
