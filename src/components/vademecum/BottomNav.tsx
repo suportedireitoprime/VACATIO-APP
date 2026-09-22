@@ -176,7 +176,7 @@ const BottomNav = () => {
         Desktop (lg+) usa a sidebar lateral. */}
     <nav aria-label="Navegação principal" role="navigation" className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden transition-all duration-300 ease-out md:bottom-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-auto ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
 
-      <div className="bg-gradient-to-r from-yellow-400 to-amber-500 rounded-t-3xl shadow-[0_-8px_30px_rgba(245,158,11,0.2)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] md:rounded-full md:shadow-2xl md:shadow-yellow-500/30 md:pb-0">
+      <div className="bg-gradient-to-t from-amber-500 to-[#EFE039] rounded-t-3xl shadow-[0_-8px_30px_rgba(245,158,11,0.2)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] md:rounded-full md:shadow-2xl md:shadow-yellow-500/30 md:pb-0">
 
         <div className="relative grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto md:gap-2 md:px-4 md:py-2">
           {/* Códigos */}
@@ -187,7 +187,7 @@ const BottomNav = () => {
             }}
             data-track="bottom_nav_click"
             data-track-destino="codigos"
-            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/legislacao/codigos') ? 'text-black drop-shadow-sm' : 'text-yellow-950/70 hover:text-black'}`}
+            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/legislacao/codigos') ? 'text-black drop-shadow-sm' : 'text-zinc-600 hover:text-black'}`}
             aria-label="Códigos"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
@@ -204,7 +204,7 @@ const BottomNav = () => {
             }}
             data-track="bottom_nav_click"
             data-track-destino="estatutos"
-            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/legislacao/estatutos') ? 'text-black drop-shadow-sm' : 'text-yellow-950/70 hover:text-black'}`}
+            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/legislacao/estatutos') ? 'text-black drop-shadow-sm' : 'text-zinc-600 hover:text-black'}`}
             aria-label="Estatutos"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
@@ -237,7 +237,7 @@ const BottomNav = () => {
             onClick={() => { haptic.selection(); navigate('/ferramentas'); }}
             data-track="bottom_nav_click"
             data-track-destino="ferramentas"
-            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/ferramentas') ? 'text-black drop-shadow-sm' : 'text-yellow-950/70 hover:text-black'}`}
+            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/ferramentas') ? 'text-black drop-shadow-sm' : 'text-zinc-600 hover:text-black'}`}
             aria-label="Ferramentas"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
@@ -254,7 +254,7 @@ const BottomNav = () => {
             onTouchStart={() => prefetchRoute('radar360')}
             data-track="bottom_nav_click"
             data-track-destino="radares"
-            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/radares') || path.startsWith('/radar-360') ? 'text-black drop-shadow-sm' : 'text-yellow-950/70 hover:text-black'}`}
+            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/radares') || path.startsWith('/radar-360') ? 'text-black drop-shadow-sm' : 'text-zinc-600 hover:text-black'}`}
             aria-label="Radares"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">

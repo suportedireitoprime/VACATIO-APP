@@ -1007,8 +1007,8 @@ const MeExplique = () => {
           </div>
         )}
 
-        {/* Campo de envio de pergunta por texto no Modo Livre (quando não conectado ou para dialogar) */}
-        {modo === 'livre' && !ativo && (
+        {/* Campo de envio de pergunta por texto no Modo Livre */}
+        {modo === 'livre' && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
