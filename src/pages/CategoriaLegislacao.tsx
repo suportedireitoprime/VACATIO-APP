@@ -2111,8 +2111,32 @@ const CategoriaLegislacao = () => {
       radar: radarContent,
     };
 
-    // Barra de ações agora está dentro do painel hero (acima). Mantemos apenas os overlay panels.
-    const footerBottomNav = null;
+    // Menu de alternância no rodapé
+    const footerBottomNav = !focusMode ? (
+      <div className="fixed bottom-0 left-0 right-0 z-[60] bg-[#0f0f0f]/95 backdrop-blur-md border-t border-white/5 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] px-3 pt-3">
+        <div className={`mx-auto grid grid-cols-3 gap-2 ${isDesktop ? 'max-w-xl' : 'w-full'}`}>
+          {[
+            { key: 'art' as const, icon: FileText, label: 'Artigos' },
+            { key: 'cap' as const, icon: BookOpen, label: 'Capítulos' },
+            { key: 'lot' as const, icon: LayoutGrid, label: 'Lotes' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              disabled={loadingArtigos}
+              className={`flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-2xl transition-all ${
+                activeTab === tab.key
+                  ? 'bg-[#EFE039] text-black shadow-sm shadow-[#EFE039]/20'
+                  : 'bg-white/5 text-white/80 hover:bg-white/10 hover:text-white'
+              } ${loadingArtigos ? 'opacity-70' : ''}`}
+            >
+              <tab.icon className="w-5 h-5 shrink-0" strokeWidth={2.5} />
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    ) : null;
 
     const footerOverlayPanels = (
       <AnimatePresence>
@@ -2366,97 +2390,7 @@ const CategoriaLegislacao = () => {
                 </div>
               </div>
 
-              {/* Barra de Pesquisa dentro do hero panel */}
-              <div className="relative z-10 px-3 sm:px-5 w-full pb-5">
-                <div ref={searchBarRef} className={`mx-auto ${isDesktop ? 'max-w-xl w-full' : 'w-full'}`}>
-                  <form
-                    className="flex items-center gap-2.5 min-w-0"
-                    onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
-                  >
-                    <div className="relative flex-1 min-w-0">
-                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground" />
-                      <Input
-                        value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Pesquisar artigo..."
-                        className="h-12 rounded-2xl bg-[#141416]/90 text-white placeholder:text-white/50 border-white/10 shadow-xl pl-10 pr-20 text-sm font-medium backdrop-blur-md transition-colors focus:bg-[#1C1C20] focus-visible:ring-1 focus-visible:ring-[#EFE039]/50"
-                        onFocus={() => setShowSearchRecents(true)}
-                        onBlur={() => setTimeout(() => setShowSearchRecents(false), 200)}
-                      />
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                        {searchQuery && !voiceSearch.listening && (
-                          <button
-                            type="button"
-                            onClick={() => { setSearchQuery(''); handleSearch(''); }}
-                            className="p-1.5 rounded-full hover:bg-white/10 text-white/50 transition-colors"
-                            aria-label="Limpar busca"
-                          >
-                            <XIcon className="w-4 h-4" />
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => setOcrOpen(true)}
-                          aria-label="Fotografar artigo (OCR)"
-                          className="w-8 h-8 rounded-full flex items-center justify-center bg-[#EFE039]/20 text-[#EFE039] hover:bg-[#EFE039]/30 transition-colors shrink-0"
-                        >
-                          <Camera className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => voiceSearch.toggle()}
-                      aria-label={voiceSearch.listening ? 'Parar gravação' : 'Buscar por voz'}
-                      className={`relative overflow-hidden shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-xl active:scale-[0.95] transition ${
-                        voiceSearch.listening
-                          ? 'bg-red-500 text-white animate-pulse shadow-red-500/40'
-                          : 'bg-[#EFE039] text-black hover:bg-[#EFE039]/90 shadow-[#EFE039]/30'
-                      }`}
-                    >
-                      {voiceSearch.listening && <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}
-                      {voiceSearch.listening
-                        ? <MicOff className="w-5 h-5 relative z-[2]" strokeWidth={2.5} />
-                        : <Mic className="w-5 h-5 relative z-[2]" strokeWidth={2.5} />}
-                    </button>
-                  </form>
-
-                  {/* Dropdown de recentes (Pesquisas) */}
-                  <AnimatePresence>
-                    {showSearchRecents && recentIds.length > 0 && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute top-[110%] left-0 right-0 bg-[#141416]/95 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-50 flex flex-col"
-                      >
-                        <div className="p-2 max-h-64 overflow-y-auto flex flex-col no-scrollbar">
-                          <p className="text-[10px] font-bold text-white/50 uppercase px-3 py-2 tracking-wider">Artigos Recentes</p>
-                          {(() => {
-                            const map = new Map(artigos.map(a => [String(a.id), a]));
-                            const recents = recentIds.map(id => map.get(id)).filter(Boolean) as ArtigoLei[];
-                            return recents.slice(0, 10).map((artigo) => (
-                              <button
-                                key={artigo.id}
-                                type="button"
-                                onClick={() => openArtigoWithRecent(artigo)}
-                                className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/10 transition-colors text-left rounded-xl active:scale-[0.98]"
-                              >
-                                <History className="w-4 h-4 shrink-0 text-white/50" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-[13px] font-bold text-white truncate">{artigo.numero}</p>
-                                  <p className="text-[11px] text-white/60 truncate">{artigo.caput}</p>
-                                </div>
-                              </button>
-                            ));
-                          })()}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
+              {/* Barra de Pesquisa movida para baixo do histórico */}
             </div>
           );
         })()}
@@ -2476,7 +2410,7 @@ const CategoriaLegislacao = () => {
         </Dialog>
 
 
-        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-7xl' : 'max-w-5xl'}`}>
+        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-28 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-7xl' : 'max-w-5xl'}`}>
 
           {/* Mini-Sumário Flutuante removido */}
 
@@ -2503,28 +2437,100 @@ const CategoriaLegislacao = () => {
               onViewAll={() => setOverlayPanel('novidades')}
             />
 
-            {/* Tabs: Artigos / Capítulos / Lotes — sempre renderizadas para evitar layout shift */}
-            <div className={`mx-auto flex flex-col gap-3 ${isDesktop ? 'max-w-xl w-full' : 'w-full'}`}>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { key: 'art' as const, icon: FileText, label: 'Artigos' },
-                  { key: 'cap' as const, icon: BookOpen, label: 'Capítulos' },
-                  { key: 'lot' as const, icon: LayoutGrid, label: 'Lotes' },
-                ].map(tab => (
+            {/* Linha divisória fina */}
+            <div className="mx-4 sm:mx-0 py-1">
+              <div className="h-px bg-white/5 w-full rounded-full" />
+            </div>
+
+            {/* Nova Barra de Pesquisa Amarela (No lugar das Tabs) */}
+            <div className="relative z-10 px-0 sm:px-5 w-full pb-4">
+              <div ref={searchBarRef} className={`mx-auto ${isDesktop ? 'max-w-xl w-full' : 'w-full'}`}>
+                <form
+                  className="flex items-center gap-2.5 min-w-0"
+                  onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
+                >
+                  <div className="relative flex-1 min-w-0">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-black/60" />
+                    <Input
+                      value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Pesquisar artigo..."
+                      className="h-12 rounded-2xl bg-[#EFE039] text-black placeholder:text-black/60 border-transparent shadow-xl pl-10 pr-20 text-[13px] font-bold transition-colors focus:bg-[#EFE039] focus-visible:ring-2 focus-visible:ring-black/20"
+                      onFocus={() => setShowSearchRecents(true)}
+                      onBlur={() => setTimeout(() => setShowSearchRecents(false), 200)}
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                      {searchQuery && !voiceSearch.listening && (
+                        <button
+                          type="button"
+                          onClick={() => { setSearchQuery(''); handleSearch(''); }}
+                          className="p-1.5 rounded-full hover:bg-black/10 text-black/60 transition-colors"
+                          aria-label="Limpar busca"
+                        >
+                          <XIcon className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setOcrOpen(true)}
+                        aria-label="Fotografar artigo (OCR)"
+                        className="w-8 h-8 rounded-full flex items-center justify-center bg-black/10 text-black hover:bg-black/20 transition-colors shrink-0"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                   <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    disabled={loadingArtigos}
-                    className={`flex items-center justify-center gap-1.5 px-1.5 py-3 md:py-3.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
-                      activeTab === tab.key
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-foreground hover:text-foreground'
-                    } ${loadingArtigos ? 'opacity-70' : ''}`}
+                    type="button"
+                    onClick={() => voiceSearch.toggle()}
+                    aria-label={voiceSearch.listening ? 'Parar gravação' : 'Buscar por voz'}
+                    className={`relative overflow-hidden shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-xl active:scale-[0.95] transition ${
+                      voiceSearch.listening
+                        ? 'bg-red-500 text-white animate-pulse shadow-red-500/40'
+                        : 'bg-black text-[#EFE039] hover:bg-black/90 shadow-black/30'
+                    }`}
                   >
-                    <tab.icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
+                    {voiceSearch.listening && <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}
+                    {voiceSearch.listening
+                      ? <MicOff className="w-5 h-5 relative z-[2]" strokeWidth={2.5} />
+                      : <Mic className="w-5 h-5 relative z-[2]" strokeWidth={2.5} />}
                   </button>
-                ))}
+                </form>
+
+                {/* Dropdown de recentes (Pesquisas) */}
+                <AnimatePresence>
+                  {showSearchRecents && recentIds.length > 0 && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute left-0 right-0 top-[110%] bg-[#EFE039] border border-black/10 rounded-2xl overflow-hidden shadow-2xl z-50 flex flex-col"
+                    >
+                      <div className="p-2 max-h-64 overflow-y-auto flex flex-col no-scrollbar">
+                        <p className="text-[10px] font-bold text-black/50 uppercase px-3 py-2 tracking-wider">Artigos Recentes</p>
+                        {(() => {
+                          const map = new Map(artigos.map(a => [String(a.id), a]));
+                          const recents = recentIds.map(id => map.get(id)).filter(Boolean) as ArtigoLei[];
+                          return recents.slice(0, 10).map((artigo) => (
+                            <button
+                              key={artigo.id}
+                              type="button"
+                              onClick={() => openArtigoWithRecent(artigo)}
+                              className="flex items-center gap-3 px-3 py-2.5 hover:bg-black/10 transition-colors text-left rounded-xl active:scale-[0.98]"
+                            >
+                              <History className="w-4 h-4 shrink-0 text-black/50" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-bold text-black truncate">{artigo.numero}</p>
+                                <p className="text-[11px] text-black/60 truncate">{artigo.caput}</p>
+                              </div>
+                            </button>
+                          ));
+                        })()}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </motion.div>
