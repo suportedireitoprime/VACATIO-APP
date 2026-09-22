@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, useCallback, memo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, ArrowUpRight, Newspaper } from 'lucide-react';
+import { Clock, ArrowUpRight, Newspaper, ChevronRight } from 'lucide-react';
 import { getNoticiasCache, prefetchNoticias, subscribeNoticias, type Noticia } from '@/services/noticiasService';
 import { newsImg } from '@/lib/cdnImg';
 import NoticiaViewerSheet from '@/components/vademecum/NoticiaViewerSheet';
+import { prefetchRoute } from '@/lib/routePrefetch';
 
 const AUTOPLAY_MS = 8000;
 const MAX_NEWS = 12;
@@ -29,6 +31,7 @@ interface Props {
 }
 
 export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
+  const navigate = useNavigate();
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const autoplayRef = useRef<number | null>(null);
   const userInteractingRef = useRef(false);
@@ -101,18 +104,38 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
     }, 4000);
   };
 
+  const renderHeader = () => (
+    <div className="px-5 min-h-[54px] flex items-center justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <h3 className="font-display text-foreground text-[18px] font-bold mb-1 flex items-center gap-2">
+          <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
+          <span className="truncate">Notícias Jurídicas</span>
+        </h3>
+        <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3 truncate">
+          notícias do mundo jurídico em tempo real
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => navigate('/noticias')}
+        onPointerDown={() => {
+          prefetchRoute('noticias');
+          prefetchNoticias().catch(() => {});
+        }}
+        aria-label="Ver todas as notícias jurídicas"
+        className="shrink-0 inline-flex items-center gap-1 rounded-full border border-white/10 bg-card hover:bg-muted/80 px-3 py-1.5 text-[12px] font-semibold text-foreground active:scale-[0.96] transition-all shadow-sm"
+      >
+        <span>Ver todas</span>
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+      </button>
+    </div>
+  );
+
   if (noticias.length === 0) {
     return (
       <div className="space-y-2.5">
-        <div className="px-5">
-          <h3 className="font-display text-foreground text-[18px] font-bold mb-1 flex items-center gap-2">
-            <span className="w-1 h-5 rounded-full bg-primary" />
-            Notícias Jurídicas
-          </h3>
-          <p className="font-body text-muted-foreground text-[12.5px] leading-snug mb-3 ml-3 truncate">
-            notícias do mundo jurídico em tempo real
-          </p>
-        </div>
+        {renderHeader()}
         <div className="flex gap-3 overflow-hidden px-4">
           <div className="shrink-0 w-full h-[140px] rounded-2xl bg-card animate-pulse" />
         </div>
@@ -122,15 +145,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
 
   return (
     <div className="space-y-2.5">
-      <div className="px-5 min-h-[54px]">
-        <h3 className="font-display text-foreground text-[18px] font-bold mb-1 flex items-center gap-2">
-          <span className="w-1 h-5 rounded-full bg-primary" />
-          Notícias Jurídicas
-        </h3>
-        <p className="font-body text-muted-foreground text-[12.5px] leading-snug mb-3 ml-3 truncate">
-          notícias do mundo jurídico em tempo real
-        </p>
-      </div>
+      {renderHeader()}
 
       <div
         ref={scrollerRef}
