@@ -91,16 +91,18 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
           aria-hidden="true"
         />
 
-        {/* Imagem de Capa do Painel do Início (lado direito) */}
-        <img
-          src={heroEstudanteImg}
-          alt=""
-          aria-hidden="true"
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
-          className="absolute inset-0 w-full h-full object-cover object-[55%_center] md:object-center z-0 pointer-events-none translate-x-[8%] md:translate-x-[5%]"
-        />
+        {/* Imagem de Capa do Painel do Início (lado direito) — Altura total original sem corte */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <img
+            src={heroEstudanteImg}
+            alt=""
+            aria-hidden="true"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            className="absolute top-0 bottom-0 right-0 h-full w-auto max-w-none object-contain object-right select-none"
+          />
+        </div>
 
         {/* Overlay amarelo com gradiente e sombra diagonal dupla (mesmo formato da divisória do painel de referência) */}
         <div
