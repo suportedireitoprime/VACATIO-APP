@@ -14,7 +14,7 @@ const HomeBrandBanner = ({ perfilLabel }: HomeBrandBannerProps) => {
     <div className="flex flex-col items-center text-center gap-1 z-[10] relative w-[42%] max-w-[160px] ml-2 sm:ml-4">
       {/* Selo / Brasão Dourado Circular */}
       <div className="relative h-[75px] mb-1 flex items-center justify-center">
-        <div className="relative w-[70px] h-[70px] rounded-full border-2 border-white/90 bg-primary flex items-center justify-center overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.5)] logo-shine">
+        <div className="relative w-[70px] h-[70px] rounded-full border-2 border-white/90 bg-[#EFE039] flex items-center justify-center overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.5)] logo-shine">
           <img
             src={logoVacatio}
             alt="Vade Mecum"

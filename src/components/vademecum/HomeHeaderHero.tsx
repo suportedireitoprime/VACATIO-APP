@@ -110,10 +110,15 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
             className="absolute inset-0 overflow-hidden"
             style={{ clipPath: 'polygon(0 0, 47% 0, 36% 100%, 0% 100%)' }}
           >
-            <div className="absolute inset-0 bg-hero-panel-yellow" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.28),transparent_60%)]" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.45),transparent_65%)]" />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(135deg, #EFE039 0%, #EFE039 55%, #EFE039 100%)',
+              }}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.16),transparent_65%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
             {/* Motifs jurídicos clássicos */}
             <HeroMotifs />
