@@ -147,7 +147,7 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  currentTheme: DARK_PALETTE.id,
+  currentTheme: LIMAO_MEIANOITE.id,
   setTheme: () => {},
   palettes: PALETTES,
 });
@@ -173,11 +173,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved && PALETTES.find((p) => p.id === saved)) return saved;
     } catch {}
-    return DARK_PALETTE.id;
+    return LIMAO_MEIANOITE.id;
   });
 
   useEffect(() => {
-    const palette = PALETTES.find((p) => p.id === currentTheme) || DARK_PALETTE;
+    const palette = PALETTES.find((p) => p.id === currentTheme) || LIMAO_MEIANOITE;
     applyTheme(palette);
     try {
       localStorage.setItem(STORAGE_KEY, palette.id);
