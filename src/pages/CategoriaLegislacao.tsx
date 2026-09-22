@@ -2450,12 +2450,12 @@ const CategoriaLegislacao = () => {
                   onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
                 >
                   <div className="relative flex-1 min-w-0">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-black/60" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-white/50" />
                     <Input
                       value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Pesquisar artigo..."
-                      className="h-12 rounded-2xl bg-[#EFE039] text-black placeholder:text-black/60 border-transparent shadow-xl pl-10 pr-20 text-[13px] font-bold transition-colors focus:bg-[#EFE039] focus-visible:ring-2 focus-visible:ring-black/20"
+                      className="h-12 rounded-2xl bg-[#1C1C1E] text-white placeholder:text-white/50 border-transparent shadow-xl pl-10 pr-20 text-[13px] font-bold transition-colors focus:bg-[#1C1C1E] focus-visible:ring-2 focus-visible:ring-white/20"
                       onFocus={() => setShowSearchRecents(true)}
                       onBlur={() => setTimeout(() => setShowSearchRecents(false), 200)}
                     />
@@ -2464,7 +2464,7 @@ const CategoriaLegislacao = () => {
                         <button
                           type="button"
                           onClick={() => { setSearchQuery(''); handleSearch(''); }}
-                          className="p-1.5 rounded-full hover:bg-black/10 text-black/60 transition-colors"
+                          className="p-1.5 rounded-full hover:bg-white/10 text-white/50 transition-colors"
                           aria-label="Limpar busca"
                         >
                           <XIcon className="w-4 h-4" />
@@ -2474,7 +2474,7 @@ const CategoriaLegislacao = () => {
                         type="button"
                         onClick={() => setOcrOpen(true)}
                         aria-label="Fotografar artigo (OCR)"
-                        className="w-8 h-8 rounded-full flex items-center justify-center bg-black/10 text-black hover:bg-black/20 transition-colors shrink-0"
+                        className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 text-white hover:bg-white/10 transition-colors shrink-0"
                       >
                         <Camera className="w-4 h-4" />
                       </button>
@@ -2487,7 +2487,7 @@ const CategoriaLegislacao = () => {
                     className={`relative overflow-hidden shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-xl active:scale-[0.95] transition ${
                       voiceSearch.listening
                         ? 'bg-red-500 text-white animate-pulse shadow-red-500/40'
-                        : 'bg-black text-[#EFE039] hover:bg-black/90 shadow-black/30'
+                        : 'bg-[#EFE039] text-black hover:bg-[#EFE039]/90 shadow-[#EFE039]/30'
                     }`}
                   >
                     {voiceSearch.listening && <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}
@@ -2505,10 +2505,10 @@ const CategoriaLegislacao = () => {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute left-0 right-0 top-[110%] bg-[#EFE039] border border-black/10 rounded-2xl overflow-hidden shadow-2xl z-50 flex flex-col"
+                      className="absolute left-0 right-0 top-[110%] bg-[#1C1C1E] border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-50 flex flex-col"
                     >
                       <div className="p-2 max-h-64 overflow-y-auto flex flex-col no-scrollbar">
-                        <p className="text-[10px] font-bold text-black/50 uppercase px-3 py-2 tracking-wider">Artigos Recentes</p>
+                        <p className="text-[10px] font-bold text-white/50 uppercase px-3 py-2 tracking-wider">Artigos Recentes</p>
                         {(() => {
                           const map = new Map(artigos.map(a => [String(a.id), a]));
                           const recents = recentIds.map(id => map.get(id)).filter(Boolean) as ArtigoLei[];
@@ -2517,12 +2517,12 @@ const CategoriaLegislacao = () => {
                               key={artigo.id}
                               type="button"
                               onClick={() => openArtigoWithRecent(artigo)}
-                              className="flex items-center gap-3 px-3 py-2.5 hover:bg-black/10 transition-colors text-left rounded-xl active:scale-[0.98]"
+                              className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 transition-colors text-left rounded-xl active:scale-[0.98]"
                             >
-                              <History className="w-4 h-4 shrink-0 text-black/50" />
+                              <History className="w-4 h-4 shrink-0 text-white/50" />
                               <div className="flex-1 min-w-0">
-                                <p className="text-[13px] font-bold text-black truncate">{artigo.numero}</p>
-                                <p className="text-[11px] text-black/60 truncate">{artigo.caput}</p>
+                                <p className="text-[13px] font-bold text-white truncate">{artigo.numero}</p>
+                                <p className="text-[11px] text-white/60 truncate">{artigo.caput}</p>
                               </div>
                             </button>
                           ));
