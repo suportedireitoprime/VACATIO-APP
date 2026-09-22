@@ -176,7 +176,7 @@ const BottomNav = () => {
         Desktop (lg+) usa a sidebar lateral. */}
     <nav aria-label="Navegação principal" role="navigation" className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden transition-all duration-300 ease-out md:bottom-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-auto ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
 
-      <div className="bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] md:border md:rounded-full md:shadow-2xl md:shadow-black/30 md:pb-0">
+      <div className="bg-[#1C1C1E] border-t border-white/[0.08] rounded-t-3xl shadow-lg shadow-black/40 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] md:border md:rounded-full md:shadow-2xl md:shadow-black/30 md:pb-0">
 
         <div className="relative grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto md:gap-2 md:px-4 md:py-2">
           {/* Códigos */}

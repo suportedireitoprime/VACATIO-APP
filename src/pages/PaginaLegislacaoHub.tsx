@@ -7,7 +7,6 @@ import heroEstudanteImg from '@/assets/covers/hero-justice.jpg';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import HomeCard from '@/components/vademecum/HomeCard';
 import ShapeGrid from '@/components/ui/ShapeGrid';
-import BottomNav from '@/components/vademecum/BottomNav';
 import NotificationsSheet, { useUnreadNotifCount } from '@/components/vademecum/NotificationsSheet';
 import { pushRecente } from '@/lib/leisRecentes';
 import { leiPath, slugToTipo } from '@/lib/legislacaoSlugs';
@@ -91,7 +90,7 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
   };
 
   return (
-    <div className="min-h-dvh bg-[#050505] text-foreground pb-24 relative overflow-x-hidden">
+    <div className="min-h-dvh bg-[#050505] text-foreground pb-12 relative overflow-x-hidden">
       {/* Background Animated ShapeGrid */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <ShapeGrid
@@ -321,9 +320,6 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
           )}
         </main>
       </div>
-
-      {/* Barra de Navegação Inferior (BottomNav) */}
-      <BottomNav />
 
       {/* SideMenu e Notificações em Suspense */}
       <Suspense fallback={null}>
