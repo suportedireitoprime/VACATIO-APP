@@ -196,14 +196,8 @@ jobs:
                       force 'androidx.camera:camera-camera2:1.5.0'
                       force 'androidx.camera:camera-lifecycle:1.5.0'
                       force 'androidx.camera:camera-view:1.5.0'
-                      // ML Kit barcode + code scanner (pull transitivo do plugin
-                      // @capacitor-mlkit/barcode-scanning). Versões mais novas
-                      // migram para APIs modernas de janela.
                       force 'com.google.mlkit:barcode-scanning:17.3.0'
                       force 'com.google.android.gms:play-services-code-scanner:16.1.0'
-                      // Play Services base — origem de zza.onStart deprecado.
-                      force 'com.google.android.gms:play-services-base:18.5.0'
-                      force 'com.google.android.gms:play-services-basement:18.4.0'
                   }
               }
           }
@@ -1750,20 +1744,22 @@ jobs:
           -keep class * extends com.getcapacitor.Plugin { *; }
 
           # Firebase Messaging + GMS (Google Sign-In) — invoked via reflection.
-          # allowobfuscation/allowshrinking permite R8 renomear/remover classes
-          # não usadas, elevando as taxas de otimização/ofuscação/redução
-          # (recomendação Play #4).
+          # Cannot use allowobfuscation/allowshrinking for core GMS/Firebase packages
+          # as they use internal reflection, JNI, and IPC which breaks when repackaged.
           -keep class * extends com.google.firebase.messaging.FirebaseMessagingService { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.iid.** { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.android.gms.** { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.** { *; }
+          -keep class com.google.firebase.iid.** { *; }
+          -keep class com.google.android.gms.** { *; }
+          -keep class com.google.firebase.** { *; }
 
           # Firebase Kotlin extensions (ktx) — required for Firebase Installations
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.ktx.** { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.installations.ktx.** { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.messaging.ktx.** { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.common.ktx.** { *; }
+          -keep class com.google.firebase.ktx.** { *; }
+          -keep class com.google.firebase.installations.ktx.** { *; }
+          -keep class com.google.firebase.messaging.ktx.** { *; }
+          -keep class com.google.firebase.common.ktx.** { *; }
 
+          # Facebook SDK
+          -keep class com.facebook.** { *; }
+          -keepclassmembers class com.facebook.** { *; }
 
           # WebView JS bridge
           -keepclassmembers class * { @android.webkit.JavascriptInterface <methods>; }
@@ -1771,10 +1767,6 @@ jobs:
           # Symbolication attributes for Play Console / Crashlytics
           -keepattributes SourceFile,LineNumberTable,*Annotation*,Signature,InnerClasses,EnclosingMethod
           -renamesourcefileattribute SourceFile
-
-          # Aggressive optimizations
-          -allowaccessmodification
-          -repackageclasses ''
 
           # Silence warnings from optional transitive deps
           -dontwarn org.slf4j.**
