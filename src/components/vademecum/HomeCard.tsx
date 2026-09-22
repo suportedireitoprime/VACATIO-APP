@@ -41,19 +41,19 @@ const HomeCardImpl = ({
     data-track={dataTrack}
     data-track-name={dataTrackName}
     data-track-section={dataTrackSection}
-    className={`group relative flex flex-col justify-between w-full min-h-[104px] h-full p-3.5 rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm hover:shadow-md active:scale-[0.97] transition-all text-left overflow-hidden ${className}`}
+    className={`group relative flex flex-col justify-between w-full min-h-[82px] sm:min-h-[86px] h-full p-3 rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm hover:shadow-md active:scale-[0.97] transition-all text-left overflow-hidden ${className}`}
   >
     {inlineTitle ? (
       <>
-        <div className="flex items-center justify-between w-full gap-1.5">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div className="flex items-center justify-between w-full gap-2">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <Icon
-              className="w-6 h-6 relative shrink-0 transition-transform duration-300 group-hover:scale-105"
+              className="w-7 h-7 sm:w-[30px] sm:h-[30px] relative shrink-0 transition-transform duration-300 group-hover:scale-105"
               style={{
                 color,
-                filter: 'saturate(1.2) drop-shadow(0 1px 4px rgba(0,0,0,0.4))',
+                filter: 'saturate(1.25) drop-shadow(0 2px 6px rgba(0,0,0,0.5))',
               }}
-              strokeWidth={1.5}
+              strokeWidth={1.75}
             />
             <p
               className={`font-display text-white font-bold uppercase leading-tight line-clamp-2 ${
@@ -65,9 +65,9 @@ const HomeCardImpl = ({
               {label}
             </p>
           </div>
-          <ChevronRight className="w-4 h-4 text-white/35 shrink-0 group-hover:text-white/70 group-hover:translate-x-0.5 transition-all" />
+          <ChevronRight className="w-4 h-4 text-white/30 shrink-0 group-hover:text-white/70 group-hover:translate-x-0.5 transition-all" />
         </div>
-        <div className="w-full min-w-0 mt-auto pt-2">
+        <div className="w-full min-w-0 mt-auto pt-1">
           {sublabel && (
             <p className="font-body text-zinc-400 text-[11px] sm:text-[11.5px] leading-snug line-clamp-2">
               {sublabel}
