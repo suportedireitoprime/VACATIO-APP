@@ -176,7 +176,7 @@ const BottomNav = () => {
         Desktop (lg+) usa a sidebar lateral. */}
     <nav aria-label="Navegação principal" role="navigation" className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden transition-all duration-300 ease-out md:bottom-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-auto ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
 
-      <div className="bg-gradient-to-t from-amber-500 to-[#EFE039] rounded-t-3xl shadow-[0_-8px_30px_rgba(245,158,11,0.2)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] md:rounded-full md:shadow-2xl md:shadow-yellow-500/30 md:pb-0">
+      <div className="bg-gradient-to-t from-amber-500 to-[#EFE039] rounded-t-3xl shadow-[0_-8px_30px_rgba(245,158,11,0.2)] md:rounded-full md:shadow-2xl md:shadow-yellow-500/30">
         {/* Sombra escura leve acima do rodapé */}
         <div className="absolute inset-x-0 bottom-full h-16 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.5), transparent)' }} />
 
@@ -266,6 +266,8 @@ const BottomNav = () => {
           </button>
         </div>
       </div>
+      {/* Container escuro para o safe-area-inset-bottom do celular, garantindo que a barra de navegação do sistema fique escura */}
+      <div className="h-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] bg-background w-full md:hidden" />
     </nav>
 
     {/* Tablet agora usa a mesma bottom bar do celular (acima). */}
