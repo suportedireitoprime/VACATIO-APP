@@ -12,6 +12,7 @@ const camaraHero = camaraHeroAsset;
 import senadoHeroAsset from '@/assets/radar/senado-hero.webp';
 const senadoHero = senadoHeroAsset;
 import BottomNav from '@/components/vademecum/BottomNav';
+import ShapeGrid from '@/components/ui/ShapeGrid';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { leiPath, tipoToSlug, leiToSlug } from '@/lib/legislacaoSlugs';
 // Heavy overlays are only rendered when opened — lazy-load their chunks so
@@ -90,12 +91,25 @@ const IndexMobile = () => {
   void leiPath;
 
   return (
-    <div className="min-h-dvh bg-background pb-20">
-      <HomeHeaderHero onSearchOpenChange={setHeroSearchOpen} />
-      <main ref={contentRef} className="max-w-5xl lg:max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-2">
-        <img src={vacatioLogo} alt="" aria-hidden="true" loading="eager" decoding="sync" fetchPriority="high" className="absolute w-0 h-0 opacity-0 pointer-events-none" />
-        <MobileHomeSections onTabChange={setHomeTab} onNewsOpenChange={setNewsOpen} />
-      </main>
+    <div className="min-h-dvh bg-background pb-20 relative overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <ShapeGrid 
+          speed={0.5} 
+          squareSize={40}
+          direction='diagonal'
+          borderColor='rgba(255, 255, 255, 0.05)'
+          hoverFillColor='rgba(255, 255, 255, 0.1)'
+          shape='square'
+          hoverTrailAmount={5}
+        />
+      </div>
+      <div className="relative z-10">
+        <HomeHeaderHero onSearchOpenChange={setHeroSearchOpen} />
+        <main ref={contentRef} className="max-w-5xl lg:max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-2">
+          <img src={vacatioLogo} alt="" aria-hidden="true" loading="eager" decoding="sync" fetchPriority="high" className="absolute w-0 h-0 opacity-0 pointer-events-none" />
+          <MobileHomeSections onTabChange={setHomeTab} onNewsOpenChange={setNewsOpen} />
+        </main>
+      </div>
       {!personalizarOpen && !searchOpen && !heroSearchOpen && !newsOpen && !bottomNavHidden && <BottomNav />}
       <Suspense fallback={null}>
         {menuOpen && (

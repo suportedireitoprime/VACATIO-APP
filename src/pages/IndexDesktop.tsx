@@ -23,6 +23,7 @@ import AtalhosCarousel from '@/components/vademecum/AtalhosCarousel';
 import HomeNoticiasCarousel from '@/components/vademecum/HomeNoticiasCarousel';
 import DesktopFunctionRow from '@/components/vademecum/DesktopFunctionRow';
 import ContinueBanner from '@/components/desktop/ContinueBanner';
+import ShapeGrid from '@/components/ui/ShapeGrid';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { leiPath, tipoToSlug, leiToSlug } from '@/lib/legislacaoSlugs';
 // Overlays only mount when opened — lazy so they don't inflate the initial
@@ -118,109 +119,122 @@ const IndexDesktop = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col">
-      <DesktopOnboardingOverlay />
-      <DesktopTopHeader onAssistenteClick={() => setAssistenteOpen(true)} />
-      <DesktopBreadcrumb />
-      <div className="flex flex-1 min-h-0">
-        <DesktopSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        <div className="flex-1 min-w-0 overflow-y-auto">
-          <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border">
-            <div className="flex items-center gap-1 px-8 h-12">
-              {DESKTOP_TABS.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => {
-                      const routes: Record<string, string> = {
-                        noticias: '/noticias',
-                        ferramentas: '/ferramentas',
-                        biblioteca: '/bibliotecas',
-                      };
-                      if (routes[tab.id]) { navigate(routes[tab.id]); return; }
-                      setActiveTab(tab.id as Tab);
-                    }}
-                    className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-body font-medium transition-colors ${
-                      isActive
-                        ? 'text-primary bg-primary/10'
-                        : 'text-foreground/60 hover:text-foreground hover:bg-secondary/60'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
-                    {isActive && <div className="absolute bottom-0 left-3 right-3 h-0.5 bg-primary rounded-full" />}
-                  </button>
-                );
-              })}
+    <div className="min-h-dvh bg-background flex flex-col relative overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <ShapeGrid 
+          speed={0.5} 
+          squareSize={40}
+          direction='diagonal'
+          borderColor='rgba(255, 255, 255, 0.05)'
+          hoverFillColor='rgba(255, 255, 255, 0.1)'
+          shape='square'
+          hoverTrailAmount={5}
+        />
+      </div>
+      <div className="relative z-10 flex flex-col flex-1 min-h-0 w-full">
+        <DesktopOnboardingOverlay />
+        <DesktopTopHeader onAssistenteClick={() => setAssistenteOpen(true)} />
+        <DesktopBreadcrumb />
+        <div className="flex flex-1 min-h-0">
+          <DesktopSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+          <div className="flex-1 min-w-0 overflow-y-auto">
+            <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border">
+              <div className="flex items-center gap-1 px-8 h-12">
+                {DESKTOP_TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        const routes: Record<string, string> = {
+                          noticias: '/noticias',
+                          ferramentas: '/ferramentas',
+                          biblioteca: '/bibliotecas',
+                        };
+                        if (routes[tab.id]) { navigate(routes[tab.id]); return; }
+                        setActiveTab(tab.id as Tab);
+                      }}
+                      className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-body font-medium transition-colors ${
+                        isActive
+                          ? 'text-primary bg-primary/10'
+                          : 'text-foreground/60 hover:text-foreground hover:bg-secondary/60'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{tab.label}</span>
+                      {isActive && <div className="absolute bottom-0 left-3 right-3 h-0.5 bg-primary rounded-full" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="px-8 py-6">
+              <div key={activeTab} className="animate-fade-in">
+                {activeTab === 'legislacao' && (
+                  <>
+                    <div className="mb-6 -mx-8 -mt-6">
+                      <DesktopHeroBanner typingHint={typingHint} onSearchClick={() => setSearchOpen(true)} />
+                    </div>
+                    <div className="mb-8">
+                      <DesktopFunctionRow
+                        items={[
+                          { id: 'ferramentas', label: 'Ferramentas', description: 'Recursos de estudo', icon: Wrench, onClick: () => setActiveTab('ferramentas') },
+                          { id: 'chat', label: 'Chat', description: 'Assistente IA', icon: MessageSquare, onClick: () => setAssistenteOpen(true) },
+                          { id: 'blog', label: 'Blog', description: 'Artigos jurídicos', icon: Newspaper, onClick: () => navigate('/blog') },
+                          { id: 'pessoal', label: 'Pessoal', description: 'Anotações e grifos', icon: UserFn, onClick: () => navigate('/pessoal/artigos') },
+                        ]}
+                      />
+                    </div>
+                    <div className="mb-6"><ContinueBanner /></div>
+                    <div className="mb-10 -mx-8"><HomeNoticiasCarousel /></div>
+                    <div className="mb-8"><AtalhosCarousel /></div>
+                  </>
+                )}
+                {activeTab === 'noticias' && <AtualizacaoTab searchQuery={searchQuery} />}
+                {activeTab === 'ferramentas' && (
+                  <div>
+                    <h2 className="font-display text-xl text-foreground mb-1">Ferramentas</h2>
+                    <p className="text-muted-foreground text-sm font-body mb-6">Recursos para potencializar seus estudos</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {DESKTOP_TOOLS.map((tool) => {
+                        const Icon = tool.icon;
+                        return (
+                          <button
+                            key={tool.id}
+                            onClick={() => {
+                              if (tool.id === 'assistente') setAssistenteOpen(true);
+                              else if (tool.id === 'radar360') navigate('/radar-360');
+                              else if (tool.id === 'estudar') navigate('/estudos');
+                            }}
+                            className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/10 hover:bg-card/80 active:translate-y-0 transition-all text-center group cursor-pointer"
+                          >
+                            <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center shadow-md`}>
+                              <Icon className="w-5 h-5 text-primary-foreground" />
+                            </div>
+                            <div>
+                              <p className="font-display text-[13px] font-bold text-foreground group-hover:text-primary transition-colors">{tool.label}</p>
+                              <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight line-clamp-1">{tool.desc}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <div className="px-8 py-6">
-            <div key={activeTab} className="animate-fade-in">
-              {activeTab === 'legislacao' && (
-                <>
-                  <div className="mb-6 -mx-8 -mt-6">
-                    <DesktopHeroBanner typingHint={typingHint} onSearchClick={() => setSearchOpen(true)} />
-                  </div>
-                  <div className="mb-8">
-                    <DesktopFunctionRow
-                      items={[
-                        { id: 'ferramentas', label: 'Ferramentas', description: 'Recursos de estudo', icon: Wrench, onClick: () => setActiveTab('ferramentas') },
-                        { id: 'chat', label: 'Chat', description: 'Assistente IA', icon: MessageSquare, onClick: () => setAssistenteOpen(true) },
-                        { id: 'blog', label: 'Blog', description: 'Artigos jurídicos', icon: Newspaper, onClick: () => navigate('/blog') },
-                        { id: 'pessoal', label: 'Pessoal', description: 'Anotações e grifos', icon: UserFn, onClick: () => navigate('/pessoal/artigos') },
-                      ]}
-                    />
-                  </div>
-                  <div className="mb-6"><ContinueBanner /></div>
-                  <div className="mb-10 -mx-8"><HomeNoticiasCarousel /></div>
-                  <div className="mb-8"><AtalhosCarousel /></div>
-                </>
-              )}
-              {activeTab === 'noticias' && <AtualizacaoTab searchQuery={searchQuery} />}
-              {activeTab === 'ferramentas' && (
-                <div>
-                  <h2 className="font-display text-xl text-foreground mb-1">Ferramentas</h2>
-                  <p className="text-muted-foreground text-sm font-body mb-6">Recursos para potencializar seus estudos</p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {DESKTOP_TOOLS.map((tool) => {
-                      const Icon = tool.icon;
-                      return (
-                        <button
-                          key={tool.id}
-                          onClick={() => {
-                            if (tool.id === 'assistente') setAssistenteOpen(true);
-                            else if (tool.id === 'radar360') navigate('/radar-360');
-                            else if (tool.id === 'estudar') navigate('/estudos');
-                          }}
-                          className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/10 hover:bg-card/80 active:translate-y-0 transition-all text-center group cursor-pointer"
-                        >
-                          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center shadow-md`}>
-                            <Icon className="w-5 h-5 text-primary-foreground" />
-                          </div>
-                          <div>
-                            <p className="font-display text-[13px] font-bold text-foreground group-hover:text-primary transition-colors">{tool.label}</p>
-                            <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight line-clamp-1">{tool.desc}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <DesktopNewsSidebar />
+          <Suspense fallback={null}>
+            {searchOpen && (
+              <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} onSelectLei={handleSearchSelectLei} />
+            )}
+            {assistenteOpen && (
+              <AssistenteOverlay open={assistenteOpen} onClose={() => setAssistenteOpen(false)} />
+            )}
+          </Suspense>
         </div>
-        <DesktopNewsSidebar />
-        <Suspense fallback={null}>
-          {searchOpen && (
-            <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} onSelectLei={handleSearchSelectLei} />
-          )}
-          {assistenteOpen && (
-            <AssistenteOverlay open={assistenteOpen} onClose={() => setAssistenteOpen(false)} />
-          )}
-        </Suspense>
       </div>
     </div>
   );
