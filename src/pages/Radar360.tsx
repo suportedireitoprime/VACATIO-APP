@@ -234,6 +234,15 @@ export default function Radar360() {
           rightAction={
             <div className="flex items-center gap-2">
               <button
+                onClick={doRefresh}
+                disabled={refreshing || loading}
+                className="min-w-[44px] min-h-[44px] rounded-full bg-muted flex items-center justify-center text-muted-foreground disabled:opacity-50"
+                aria-label="Buscar novas leis"
+                title="Buscar novas leis"
+              >
+                {refreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              </button>
+              <button
                 onClick={() => reextrairFaltantes(false)}
                 disabled={reextracting || loading}
                 className="min-w-[44px] min-h-[44px] rounded-full bg-muted flex items-center justify-center text-muted-foreground disabled:opacity-50"
@@ -242,7 +251,6 @@ export default function Radar360() {
               >
                 {reextracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
               </button>
-
             </div>
           }
         />
