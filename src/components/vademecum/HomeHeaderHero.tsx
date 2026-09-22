@@ -81,13 +81,13 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
         className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 pt-[var(--sai-top)] flex flex-col z-20"
         style={{
           transform: 'translateZ(0)',
-          backgroundColor: '#050505',
+          backgroundColor: '#1C1C1E',
         }}
       >
         {/* Blindagem de overscroll superior contra vazamento do fundo */}
         <div
           className="pointer-events-none absolute -top-[1200px] left-0 right-0 h-[1200px] z-0"
-          style={{ backgroundColor: '#050505' }}
+          style={{ backgroundColor: '#1C1C1E' }}
           aria-hidden="true"
         />
 
@@ -466,7 +466,7 @@ export const RotatingStatCard = ({ wide = false }: { wide?: boolean } = {}) => {
     return (
       <div
         key={keyed ? i : undefined}
-        className={`relative ${wide ? 'min-h-[160px]' : 'w-[220px] sm:w-[245px] md:w-[280px] lg:w-[300px] aspect-[4/3.6]'} rounded-2xl bg-[#212121]/95 border border-white/10 p-3.5 sm:p-4 md:p-5 backdrop-blur-md overflow-hidden shadow-xl shadow-black/40`}
+        className={`relative ${wide ? 'min-h-[160px]' : 'w-[220px] sm:w-[245px] md:w-[280px] lg:w-[300px] aspect-[4/3.6]'} rounded-2xl bg-card border border-white/10 p-3.5 sm:p-4 md:p-5 backdrop-blur-md overflow-hidden shadow-xl shadow-black/40`}
         style={isDbCur ? { borderColor: `${accent}55` } : undefined}
       >
         <div

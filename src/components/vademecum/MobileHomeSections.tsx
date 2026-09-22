@@ -364,7 +364,7 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
 
       {/* Segmented toggle */}
       <div>
-        <div className="relative flex items-center gap-1.5 p-1 rounded-full bg-[#141416] border border-white/[0.06]">
+        <div className="relative flex items-center gap-1.5 p-1 rounded-full bg-background border border-white/[0.06]">
           {TABS.map(t => {
             const Icon = t.icon;
             const isActive = tab === t.id;
@@ -377,7 +377,7 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                 className={`relative flex-1 flex items-center justify-center gap-2 h-10 rounded-full font-display text-[12px] sm:text-[13px] font-bold uppercase tracking-wider transition-all ${
                   isActive
                     ? 'bg-primary text-black font-extrabold shadow-[0_0_20px_rgba(250,204,21,0.35)]'
-                    : 'bg-[#1C1C1E] text-zinc-300 hover:text-white hover:bg-[#242426] border border-white/[0.08]'
+                    : 'bg-card text-zinc-300 hover:text-white hover:bg-secondary border border-white/[0.08]'
                 }`}
               >
                 <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
