@@ -2282,17 +2282,13 @@ const CategoriaLegislacao = () => {
 
               {/* Conteúdo: Título da lei no lado esquerdo (sobre o amarelo) */}
               <div className="relative z-10 pt-16 sm:pt-20 flex-1 flex flex-col justify-end px-5 sm:px-6 pb-2 max-w-[55%]">
-                <p
-                  className="text-[10px] font-semibold tracking-[0.35em] uppercase mb-1.5 text-black/70"
-                >
-                  {config?.label || 'Legislação'}
-                </p>
+
                 {selectedLei && (selectedLei as any).sigla ? (
                   <>
                     <h1 className="font-display text-black text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-widest leading-none drop-shadow-sm mb-1.5">
                       {(selectedLei as any).sigla}
                     </h1>
-                    <p className="text-black/90 text-sm sm:text-base font-light leading-snug uppercase tracking-wide">
+                    <p className="text-black/90 text-sm sm:text-base font-medium leading-snug uppercase tracking-wide">
                       {selectedLeiNome}
                     </p>
                   </>
