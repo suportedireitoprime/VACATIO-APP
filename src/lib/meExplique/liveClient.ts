@@ -7,17 +7,16 @@
  */
 
 const WS_HOST = "wss://generativelanguage.googleapis.com/ws";
+const WS_URLS = [
+  `${WS_HOST}/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained`,
+  `${WS_HOST}/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained`,
+  `${WS_HOST}/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent`,
+];
 
-/**
- * Endpoints ordenados por prioridade:
- * 1. v1beta BidiGenerateContent — endpoint atual recomendado (API Key via ?key=)
- * 2. v1beta BidiGenerateContentConstrained — para ephemeral tokens (via ?access_token=)
- */
-const WS_URL_APIKEY = `${WS_HOST}/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent`;
-const WS_URL_EPHEMERAL = `${WS_HOST}/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent`;
-
+/** Primeira instrução falada: faz o professor comentar o que está vendo. */
 const ABERTURA =
-  "Aja como um professor particular ao vivo por chamada de voz. Estou apontando a câmera agora para o meu material de estudo. Olhe a imagem e fale em português do Brasil. REGRA ESTRITA: Se você não enxergar NENHUM texto legível ou material claro, diga apenas: 'Ainda não estou vendo o material. Por favor, aponte a câmera para o livro ou tela.' MAS, se você vir um material de estudo, identifique o tema e comece a explicar de forma natural e conversacional. Estarei falando com você pelo microfone a qualquer momento para tirar dúvidas, responda às minhas perguntas com clareza e interaja de volta.";
+  "Estou apontando a câmera agora. Olhe a imagem e comece falando em português do Brasil: diga em uma frase o que você está vendo (se for uma pessoa, um rosto ou algo que não seja material de estudo, diga isso com bom humor e peça para apontar para o livro, slide, caderno ou tela). Se for material de estudo, diga o tema e comece a explicar. Fale sempre em voz alta.";
+
 
 export type StatusLive =
   | "inativo"
@@ -35,17 +34,14 @@ export interface FalaTranscrita {
 export interface OpcoesLive {
   token: string;
   modelo: string;
-  /** true quando o token é um ephemeral token gerado pelo backend. */
-  ephemeral?: boolean;
   /** Setup completo quando o token não trava a configuração no servidor. */
   setup?: Record<string, unknown> | null;
-  video?: HTMLVideoElement;
+  video: HTMLVideoElement;
   /** Stream de vídeo já aberto pelo preview (evita reabrir a câmera). */
   streamVideo?: MediaStream | null;
 
   onStatus: (status: StatusLive) => void;
   onTranscricao: (fala: FalaTranscrita) => void;
-  onTranscricaoParcial?: (fala: FalaTranscrita) => void;
   onErro: (mensagem: string) => void;
   /** Frames por segundo enviados ao modelo (limite recomendado: 1). */
   fps?: number;
@@ -116,7 +112,7 @@ export class SessaoMeExplique {
     // Nativo (Android/iOS): garante RECORD_AUDIO (e CAMERA, se o preview ainda
     // não abriu) antes do getUserMedia, senão a WebView devolve NotAllowedError.
     const precisaCamera = !this.opcoes.streamVideo;
-    const { garantirPermissoesMidia } = await import("@/lib/nativeMediaPermissions");
+    const { garantirPermissoesMidia } = await import("@/lib/nativo/permissoesMidia");
     const permissoes = await garantirPermissoesMidia(precisaCamera, true);
     if ((precisaCamera && !permissoes.camera) || !permissoes.microfone) {
       throw new Error(permissoes.motivo ?? "Precisamos da câmera e do microfone para explicar o conteúdo.");
@@ -126,31 +122,23 @@ export class SessaoMeExplique {
       // Preview já está no ar: só abrimos o microfone.
       this.streamProprio = false;
       this.stream = await this.abrirMicrofone();
-    } else if (this.opcoes.video) {
+    } else {
       this.streamProprio = true;
       this.stream = await this.abrirCamera();
       this.opcoes.video.srcObject = this.stream;
       this.opcoes.video.muted = true;
       this.opcoes.video.playsInline = true;
       await this.opcoes.video.play().catch(() => undefined);
-    } else {
-      // Sessão apenas com áudio, sem vídeo/câmera.
-      this.streamProprio = true;
-      this.stream = await this.abrirMicrofone();
     }
 
     await this.conectar();
     // Libera o áudio de saída ainda dentro do gesto do usuário (autoplay iOS).
     this.garantirSaida();
     this.iniciarAudio();
-    if (this.opcoes.video) this.iniciarFrames();
+    this.iniciarFrames();
 
-    // Depois de 900ms, pede que o professor comente o que está vendo (ou o que recebeu em texto).
-    window.setTimeout(() => {
-      if (this.opcoes.video) {
-        this.enviarTexto(ABERTURA, true);
-      }
-    }, 900);
+    // Depois do primeiro frame, pede que o professor comente o que está vendo.
+    window.setTimeout(() => this.enviarTexto(ABERTURA, true), 900);
   }
 
   private get restricoesAudio() {
@@ -213,30 +201,26 @@ export class SessaoMeExplique {
 
 
 
-  /** Conecta ao endpoint v1beta correto. */
+  /** Tenta os endpoints conhecidos até um aceitar o setup (setupComplete). */
   private async conectar() {
-    // Ephemeral tokens usam access_token; API Keys usam key.
-    const tokenLimpo = this.opcoes.token.replace(/^["'\s]+|["'\s]+$/g, '');
-    const isEphemeral = this.opcoes.ephemeral === true;
-    const isApiKey = tokenLimpo.startsWith('AIza') || tokenLimpo.startsWith('AQ');
-    
-    // Seleciona o endpoint: ephemeral → BidiGenerateContent com access_token
-    // API Key → BidiGenerateContent com key
-    const url = isEphemeral ? WS_URL_EPHEMERAL : WS_URL_APIKEY;
-    const parametro = (isEphemeral && !isApiKey) ? 'access_token' : 'key';
-
-    try {
-      await this.abrirWs(url, parametro, tokenLimpo);
-    } catch (e) {
-      this.ws?.close();
-      this.ws = null;
-      throw e;
+    let ultimo = "";
+    for (const url of WS_URLS) {
+      try {
+        await this.abrirWs(url);
+        return;
+      } catch (e) {
+        ultimo = e instanceof Error ? e.message : String(e);
+        this.ws?.close();
+        this.ws = null;
+        if (this.encerrada) throw e;
+      }
     }
+    throw new Error(ultimo || "Não foi possível conectar ao professor ao vivo.");
   }
 
-  private abrirWs(url: string, parametro: string, tokenLimpo: string) {
+  private abrirWs(url: string) {
     return new Promise<void>((resolve, reject) => {
-      const ws = new WebSocket(`${url}?${parametro}=${encodeURIComponent(tokenLimpo)}`);
+      const ws = new WebSocket(`${url}?access_token=${encodeURIComponent(this.opcoes.token)}`);
       this.ws = ws;
       let resolvido = false;
 
@@ -317,11 +301,9 @@ export class SessaoMeExplique {
 
     if (conteudo.inputTranscription?.text) {
       this.bufferAluno += conteudo.inputTranscription.text;
-      this.opcoes.onTranscricaoParcial?.({ quem: "aluno", texto: this.bufferAluno });
     }
     if (conteudo.outputTranscription?.text) {
       this.bufferProfessor += conteudo.outputTranscription.text;
-      this.opcoes.onTranscricaoParcial?.({ quem: "professor", texto: this.bufferProfessor });
     }
 
     if (conteudo.interrupted) {
@@ -427,12 +409,11 @@ export class SessaoMeExplique {
   /** Captura o quadro atual em alta definição e envia ao modelo. */
   enviarFrame() {
     const video = this.opcoes.video;
-    if (!video) return;
     if (!this.pronto || this.ws?.readyState !== WebSocket.OPEN) return;
     if (!video.videoWidth || !video.videoHeight) return;
 
-    // Até 1024px no lado maior: resolução boa o suficiente para leitura sem travar a rede.
-    const MAIOR = 1024;
+    // Até 1280px no lado maior: legível para texto de livro sem estourar a Live API.
+    const MAIOR = 1280;
     const escala = Math.min(1, MAIOR / Math.max(video.videoWidth, video.videoHeight));
     const largura = Math.round(video.videoWidth * escala);
     const altura = Math.round(video.videoHeight * escala);
@@ -442,8 +423,7 @@ export class SessaoMeExplique {
     if (!ctx) return;
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(video, 0, 0, largura, altura);
-    // Qualidade 0.8 para reduzir lag de áudio/vídeo
-    const dataUrl = this.canvas.toDataURL("image/jpeg", 0.8);
+    const dataUrl = this.canvas.toDataURL("image/jpeg", 0.85);
     const base64 = dataUrl.split(",")[1];
     if (!base64) return;
 
@@ -492,8 +472,8 @@ export class SessaoMeExplique {
     this.pararFala();
     this.stream?.getTracks().forEach((t) => t.stop());
     this.stream = null;
-    // Só desligamos o preview quando a câmera foi aberta por esta sessão e há um elemento de vídeo.
-    if (this.streamProprio && this.opcoes.video?.srcObject) this.opcoes.video.srcObject = null;
+    // Só desligamos o preview quando a câmera foi aberta por esta sessão.
+    if (this.streamProprio && this.opcoes.video.srcObject) this.opcoes.video.srcObject = null;
 
     this.ws?.close();
     this.ws = null;

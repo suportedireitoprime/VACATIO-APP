@@ -7,6 +7,7 @@ import {
   Clapperboard,
   MapPin,
   Radar,
+  Camera,
   Mic,
   Mail,
   CloudDownload,
@@ -66,6 +67,14 @@ export const DESKTOP_TOOL_GROUPS: DesktopToolGroup[] = [
     hint: 'Escreva, grave e organize seu material',
     tools: [
       { id: 'tematica', label: 'Temática Jurídica', desc: 'Filmes, séries e documentários', icon: Film, route: '/tematica-juridica', color: '#0891B2' },
+    ],
+  },
+  {
+    id: 'inteligencia-artificial',
+    label: 'Inteligência Artificial',
+    hint: 'Ferramentas guiadas por IA Generativa',
+    tools: [
+      { id: 'me-explique', label: 'Me Explique', desc: 'Aponte a câmera para o livro e ouça a explicação ao vivo', icon: Camera, route: '/me-explique', color: '#10B981' },
     ],
   },
   {
