@@ -2146,50 +2146,8 @@ const CategoriaLegislacao = () => {
       radar: radarContent,
     };
 
-    const footerBottomNav = (
-      <motion.nav
-        initial={{ opacity: 0, y: 14 }}
-        animate={showFooter && !focusMode ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
-        transition={{ duration: 0.26, ease: [0.22, 0.61, 0.36, 1] }}
-        style={{ willChange: 'transform, opacity', pointerEvents: showFooter && !focusMode ? 'auto' : 'none' }}
-        className="fixed bottom-0 left-0 right-0 z-[58] lg:hidden"
-      >
-        <div className="bg-secondary/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.45)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]">
-          <div className="grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
-            {[
-              { key: 'novidades' as const, icon: History, label: 'Histórico' },
-              { key: 'playlist' as const, icon: ListMusic, label: 'Playlist' },
-              { key: 'anotacoes' as const, icon: StickyNote, label: 'Anotações' },
-              { key: 'radar' as const, icon: Radar, label: 'Radar' },
-              { key: 'fav' as const, icon: Heart, label: 'Favoritos' },
-            ].map((tab) => {
-              const active = overlayPanel === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => {
-                    if (!isPremium && tab.key === 'radar') {
-                      setPremiumGateFeature('radar');
-                      setPremiumGateDesc('O Radar Legislativo é exclusivo para assinantes.');
-                      setShowPremiumGate(true);
-                      return;
-                    }
-                    setOverlayPanel(tab.key);
-                  }}
-                  type="button"
-                  className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors ${
-                    active ? 'text-primary' : 'text-foreground hover:text-primary'
-                  }`}
-                >
-                  <tab.icon className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={2} fill="none" />
-                  <span className="font-body text-[11px] sm:text-[12px] leading-tight">{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </motion.nav>
-    );
+    // Barra de ações agora está dentro do painel hero (acima). Mantemos apenas os overlay panels.
+    const footerBottomNav = null;
 
     const footerOverlayPanels = (
       <AnimatePresence>
@@ -2262,121 +2220,163 @@ const CategoriaLegislacao = () => {
     );
 
     return (
-      <div className={`min-h-dvh bg-background lg:pb-0 ${focusMode ? 'pb-8' : 'pb-28'}`}>
-        {/* Cinematic hero cover — sem cabeçalho; botão flutuante em vidro sobre a capa */}
+      <div className={`min-h-dvh bg-background lg:pb-0 ${focusMode ? 'pb-8' : 'pb-8'}`}>
+        {/* Painel hero estilo Home — corte diagonal amarelo + imagem da lei */}
         {!focusMode && (() => {
-          const leiColor = getLeiColor(selectedLeiId, tipo);
           const cover = getLeiCover(selectedLeiId, tipo);
           const selectedLei = leis.find(l => l.id === selectedLeiId);
           const planaltoUrl = (selectedLei as any)?.url_planalto;
           return (
             <div
-              className="relative overflow-hidden w-full pt-[var(--sai-top,env(safe-area-inset-top,0px))]"
-              style={{ aspectRatio: isDesktop ? '21 / 7' : '16 / 10' }}
+              className="relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 flex flex-col z-20 pt-[var(--sai-top,env(safe-area-inset-top,0px))]"
+              style={{
+                transform: 'translateZ(0)',
+                backgroundColor: '#050505',
+                minHeight: isDesktop ? '280px' : '300px',
+              }}
             >
-              <img
-                src={cover}
-                alt={`Capa — ${selectedLeiNome}`}
-                loading="eager"
-                decoding="async"
-                fetchPriority="high"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              {/* Suave tint colorido — deixa os desenhos laterais aparecerem */}
+              {/* Imagem de capa da lei (lado direito) */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                <img
+                  src={cover}
+                  alt={`Capa — ${selectedLeiNome}`}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  className="absolute top-0 bottom-0 right-0 h-full w-auto max-w-none object-cover object-right select-none"
+                />
+              </div>
+
+              {/* Overlay amarelo com corte diagonal (mesmo estilo da Home) */}
               <div
-                className="absolute inset-0 mix-blend-multiply"
-                style={{ background: `linear-gradient(135deg, ${leiColor}80 0%, ${shade(leiColor, -0.4)}60 100%)` }}
-              />
-              {/* Brasão watermark centralizado atrás do título */}
-              <img
-                src={brasaoImg}
-                alt=""
-                aria-hidden
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none w-[180px] md:w-[240px] opacity-[0.14] mix-blend-luminosity"
-              />
-              {/* Degradê inferior — funde com o fundo preto da página */}
-              <div
-                className="absolute inset-x-0 bottom-0 h-2/3"
-                style={{ background: `linear-gradient(180deg, transparent 0%, hsl(var(--background) / 0.55) 55%, hsl(var(--background)) 100%)` }}
-              />
-              {/* Botão flutuante em vidro — voltar para a rota anterior */}
+                className="absolute inset-0 z-[1] pointer-events-none"
+                style={{ filter: 'drop-shadow(25px 0 25px rgba(0,0,0,0.8)) drop-shadow(8px 0 10px rgba(0,0,0,0.95))' }}
+              >
+                <div
+                  className="absolute inset-0 overflow-hidden"
+                  style={{ clipPath: 'polygon(0 0, 47% 0, 36% 100%, 0% 100%)' }}
+                >
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: 'linear-gradient(135deg, #EFE039 0%, #EFE039 55%, #EFE039 100%)',
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.16),transparent_65%)]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+
+                  {/* Grid Pattern */}
+                  <div
+                    className="absolute inset-0 opacity-10"
+                    style={{
+                      backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px)',
+                      backgroundSize: '24px 24px',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Botão flutuante — Voltar */}
               <button
                 type="button"
                 onClick={goBack}
                 aria-label="Voltar"
-                className="absolute left-4 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
+                className="absolute left-4 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
               >
                 <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
               </button>
-              {/* Botão de favoritar a lei — mesma linha do voltar, à direita */}
+
+              {/* Botão flutuante — Favoritar */}
               {(() => {
-                const selectedLei = leis.find((l) => l.id === selectedLeiId);
-                if (!selectedLei) return null;
-                const fav = isLeiFavorita(selectedLei.id);
-                void leiFavToggle; // força re-render em mudanças externas
+                const sl = leis.find((l) => l.id === selectedLeiId);
+                if (!sl) return null;
+                const fav = isLeiFavorita(sl.id);
+                void leiFavToggle;
                 return (
                   <button
                     type="button"
                     onClick={() => {
                       toggleLeiFavorito({
-                        tipo: selectedLei.tipo,
-                        leiId: selectedLei.id,
-                        nome: selectedLei.nome,
-                        descricao: selectedLei.descricao,
-                        tabela_nome: selectedLei.tabela_nome,
+                        tipo: sl.tipo,
+                        leiId: sl.id,
+                        nome: sl.nome,
+                        descricao: sl.descricao,
+                        tabela_nome: sl.tabela_nome,
                       });
                       setLeiFavToggle((n) => n + 1);
                     }}
                     aria-label={fav ? 'Remover dos favoritos' : 'Favoritar lei'}
-                    className={`absolute right-4 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none ${fav ? 'bg-rose-500/25 border-rose-300/50' : 'bg-white/10 border-white/25'}`}
+                    className={`absolute right-4 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none ${fav ? 'bg-rose-500/25 border-rose-300/50' : 'bg-black/40 border-white/25'}`}
                   >
                     <Heart className={`w-6 h-6 drop-shadow ${fav ? 'text-rose-400 fill-rose-400' : 'text-white'}`} />
                   </button>
                 );
               })()}
-              {/* Texto */}
-              <div className="absolute inset-0 flex flex-col items-center justify-end text-center px-6 pb-5">
+
+              {/* Conteúdo: Título da lei no lado esquerdo (sobre o amarelo) */}
+              <div className="relative z-10 pt-16 sm:pt-20 flex-1 flex flex-col justify-end px-5 sm:px-6 pb-3 max-w-[55%]">
                 <p
-                  className="text-[10px] font-semibold tracking-[0.35em] uppercase mb-2 opacity-80"
-                  style={{ color: '#ffffff' }}
+                  className="text-[10px] font-semibold tracking-[0.35em] uppercase mb-1.5 text-black/70"
                 >
                   {config?.label || 'Legislação'}
                 </p>
-                <h1 className="font-display text-white text-2xl md:text-4xl font-bold uppercase tracking-wide leading-tight drop-shadow-lg">
+                <h1 className="font-display text-black text-xl sm:text-2xl md:text-3xl font-bold uppercase tracking-wide leading-tight drop-shadow-sm">
                   {selectedLeiNome}
                 </h1>
                 {selectedLeiDescricao && (
-                  <p className="text-white/85 text-xs md:text-sm mt-2 max-w-2xl leading-snug">
+                  <p className="text-black/75 text-[11px] sm:text-xs mt-1.5 leading-snug line-clamp-2">
                     {selectedLeiDescricao}
                   </p>
                 )}
-                <div
-                  className="mt-3 h-0.5 w-16 rounded-full"
-                  style={{ background: `linear-gradient(90deg, transparent, #ffffff, transparent)` }}
-                />
-                <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
-                  {planaltoUrl && (
-                    <a
-                      href={planaltoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-1.5 w-32 h-9 text-[11px] text-white/90 hover:text-white transition-colors font-medium bg-black/30 backdrop-blur-sm rounded-full border border-white/20 shrink-0"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      <span>{/^(estadual|municipal)_/.test(tipo || '') ? 'Ver legislação' : 'Ver no Planalto'}</span>
-                    </a>
-                  )}
+                {planaltoUrl && (
+                  <a
+                    href={planaltoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 mt-2.5 text-[11px] text-black/80 hover:text-black font-medium bg-black/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-black/15 w-fit"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    <span>{/^(estadual|municipal)_/.test(tipo || '') ? 'Ver legislação' : 'Ver no Planalto'}</span>
+                  </a>
+                )}
+              </div>
 
-                  {selectedLeiEmenta && (
-                    <button
-                      type="button"
-                      onClick={() => setShowEmentaDialog(true)}
-                      className="inline-flex items-center justify-center gap-1.5 w-32 h-9 text-[11px] text-red-100 hover:text-white transition-colors font-medium bg-red-950/40 hover:bg-red-900/50 backdrop-blur-sm rounded-full border border-red-400/40 shrink-0"
-                    >
-                      <ScrollText className="w-3 h-3" />
-                      <span>Ver ementa</span>
-                    </button>
-                  )}
+              {/* Barra de ações (antes no rodapé) — agora dentro do painel hero */}
+              <div className="relative z-10 px-3 sm:px-5 pb-4 pt-2">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  {[
+                    { key: 'novidades' as const, icon: History, label: 'Histórico' },
+                    { key: 'playlist' as const, icon: ListMusic, label: 'Playlist' },
+                    { key: 'anotacoes' as const, icon: StickyNote, label: 'Anotações' },
+                    { key: 'radar' as const, icon: Radar, label: 'Radar' },
+                    { key: 'fav' as const, icon: Heart, label: 'Favoritos' },
+                  ].map((tab) => {
+                    const active = overlayPanel === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        onClick={() => {
+                          if (!isPremium && tab.key === 'radar') {
+                            setPremiumGateFeature('radar');
+                            setPremiumGateDesc('O Radar Legislativo é exclusivo para assinantes.');
+                            setShowPremiumGate(true);
+                            return;
+                          }
+                          setOverlayPanel(tab.key);
+                        }}
+                        type="button"
+                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] sm:text-xs font-medium whitespace-nowrap shrink-0 transition-all border ${
+                          active
+                            ? 'bg-black text-white border-black shadow-lg'
+                            : 'bg-black/20 text-white/90 border-white/15 backdrop-blur-sm hover:bg-black/30'
+                        }`}
+                      >
+                        <tab.icon className="w-4 h-4" strokeWidth={2} />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
