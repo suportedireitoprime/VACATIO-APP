@@ -238,9 +238,9 @@ const BottomNav = () => {
           >
             <span className="relative flex flex-col items-center gap-1.5 pt-1 pb-1 px-2 rounded-2xl">
               <span className="relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 ring-4 ring-background btn-attention-shine overflow-hidden">
-                <Gavel className="w-11 h-11 sm:w-12 sm:h-12 text-primary-foreground relative z-[2]" strokeWidth={1.75} />
+                <Gavel className="w-11 h-11 sm:w-12 sm:h-12 text-gray-900 relative z-[2]" strokeWidth={1.75} />
               </span>
-              <span className="font-body text-[11px] sm:text-[12px] font-semibold text-primary leading-tight">Ferramentas</span>
+              <span className="font-body text-[11px] sm:text-[12px] font-semibold text-gray-900 leading-tight">Ferramentas</span>
             </span>
           </button>
 

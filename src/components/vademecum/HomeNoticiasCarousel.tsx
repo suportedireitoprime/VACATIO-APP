@@ -124,10 +124,10 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
           prefetchNoticias().catch(() => {});
         }}
         aria-label="Ver todas as notícias jurídicas"
-        className="shrink-0 inline-flex items-center gap-1 rounded-full border border-white/10 bg-card hover:bg-muted/80 px-3 py-1.5 text-[12px] font-semibold text-foreground active:scale-[0.96] transition-all shadow-sm"
+        className="shrink-0 inline-flex items-center gap-1 rounded-full bg-primary hover:brightness-95 px-3 py-1.5 text-[12px] font-semibold text-gray-900 active:scale-[0.96] transition-all shadow-sm"
       >
         <span>Ver todas</span>
-        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+        <ChevronRight className="w-3.5 h-3.5 text-gray-900" />
       </button>
     </div>
   );
