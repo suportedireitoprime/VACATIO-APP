@@ -169,9 +169,11 @@ export function useSubscription(options: Options = {}): SubscriptionState {
       // 3) Fallback: assinaturas Asaas
       const { data: asaas } = await supabase
         .from('assinaturas' as any)
-        .select('plano, status')
+        .select('plano, status, expires_at')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['ACTIVE', 'active'])
+        .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+        .order('expires_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -181,10 +183,10 @@ export function useSubscription(options: Options = {}): SubscriptionState {
           isPremium: true,
           loading: false,
           plano: (asaas as any).plano ?? null,
-          expiresAt: null,
+          expiresAt: (asaas as any).expires_at ?? null,
           startedAt: null,
           source: 'asaas',
-          status: 'active',
+          status: (asaas as any).status,
           isAdminOverride: false,
         });
         return true;

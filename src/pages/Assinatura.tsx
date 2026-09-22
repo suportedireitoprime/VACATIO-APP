@@ -196,14 +196,12 @@ export default function Assinatura() {
     return () => clearInterval(interval);
   }, [pixPaymentId, pixConfirmed]);
 
-  // ── Get remote IP ──
-  const getRemoteIp = useCallback(async () => {
-    try {
-      const r = await fetch('https://api.ipify.org?format=json');
-      const d = await r.json();
-      return d.ip;
-    } catch { return '0.0.0.0'; }
-  }, []);
+  // ── Is Promo 24h ──
+  const isPromo = useMemo(() => {
+    if (!session?.user?.created_at) return false;
+    const diff = Date.now() - new Date(session.user.created_at).getTime();
+    return diff < 24 * 60 * 60 * 1000;
+  }, [session]);
 
   // ── Handle select plan ──
   const handleSelectPlan = (plano: Plano) => {
@@ -222,37 +220,40 @@ export default function Assinatura() {
     setProcessing(true);
     try {
       const [month, year] = cardExpiry.split('/');
-      const remoteIp = await getRemoteIp();
-
-      const { data, error } = await supabase.functions.invoke("processar-pagamento", {
+      
+      const { data, error } = await supabase.functions.invoke("asaas-checkout", {
         body: {
-          plano: selectedPlano,
-          metodo: 'cartao',
-          cpf,
-          cep,
-          numero_endereco: addressNumber || 'S/N',
-          telefone: phone,
-          remoteIp,
-          installments: selectedPlano === 'anual' ? parseInt(installments) : 1,
+          plan: selectedPlano, // Asaas checkout expects 'mensal' ou 'anual'
+          email: session?.user?.email,
+          cpfCnpj: cpf,
+          phone: phone,
+          installmentCount: selectedPlano === 'anual' ? parseInt(installments) : 1,
           creditCard: {
             holderName: cardName,
-            number: cardNumber,
+            number: cardNumber.replace(/\s/g, ''),
             expiryMonth: month,
-            expiryYear: `20${year}`,
+            expiryYear: year.length === 2 ? `20${year}` : year,
             ccv: cardCvv,
           },
+          creditCardHolderInfo: {
+            name: cardName,
+            email: session?.user?.email,
+            cpfCnpj: cpf,
+            postalCode: cep,
+            addressNumber: addressNumber || 'S/N',
+            phone: phone,
+          }
         },
       });
+      
       if (error) throw error;
-      if (data?.success) {
-        track('subscription_completed', { plano: selectedPlano, metodo: 'cartao', valor });
-        toast.success("Pagamento processado com sucesso! 🎉");
-        refreshSubscription();
-        navigate("/assinatura?welcome=1", { replace: true });
-      } else {
-        track('subscription_payment_failed', { plano: selectedPlano, metodo: 'cartao', erro: data?.error ?? 'unknown' });
-        toast.error(data?.error || "Erro no pagamento");
-      }
+      if (data?.error) throw new Error(data.error);
+
+      track('subscription_completed', { plano: selectedPlano, metodo: 'cartao', valor: selectedPlano === 'mensal' ? 19.90 : 149.90 });
+      toast.success("Pagamento processado com sucesso! 🎉");
+      refreshSubscription();
+      navigate("/assinatura?welcome=1", { replace: true });
+      
     } catch (err: any) {
       console.error(err);
       track('subscription_payment_failed', { plano: selectedPlano, metodo: 'cartao', erro: err?.message ?? 'exception' });
@@ -266,26 +267,41 @@ export default function Assinatura() {
   // ── Handle PIX ──
   const handlePixPayment = async () => {
     if (!cpf || !cep) { toast.error("Preencha CPF e CEP"); return; }
-    track('subscription_payment_started', { plano: 'anual', metodo: 'pix' });
+    
+    // Promocao PIX 24h apenas no plano anual
+    const isAnualPixPromo = isPromo && selectedPlano === 'anual';
+    const planId = isAnualPixPromo ? 'anual_pix' : selectedPlano;
+    
+    track('subscription_payment_started', { plano: planId, metodo: 'pix' });
     setProcessing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("processar-pagamento", {
-        body: { plano: 'anual', metodo: 'pix', cpf, cep, numero_endereco: addressNumber || 'S/N', telefone: phone },
+      const { data, error } = await supabase.functions.invoke("asaas-checkout", {
+        body: { 
+          plan: planId, 
+          email: session?.user?.email,
+          cpfCnpj: cpf, 
+          phone: phone 
+        },
       });
+      
       if (error) throw error;
-      if (data?.success) {
-        track('subscription_payment_initiated', { plano: 'anual', metodo: 'pix', payment_id: data.paymentId });
-        setPixQrImage(data.qrCodeImage);
-        setPixPayload(data.qrCodePayload);
-        setPixPaymentId(data.paymentId);
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.pixQrCode && data?.pixCopyPaste) {
+        track('subscription_payment_initiated', { plano: planId, metodo: 'pix', payment_id: data.invoiceUrl });
+        setPixQrImage(`data:image/png;base64,${data.pixQrCode}`);
+        setPixPayload(data.pixCopyPaste);
+        // Assas invoice check via webhook is asynchronous, the user will be updated once confirmed
+      } else if (data?.invoiceUrl) {
+         window.open(data.invoiceUrl, '_blank');
+         toast.success("Boleto/Pix gerado em nova aba!");
       } else {
-        track('subscription_payment_failed', { plano: 'anual', metodo: 'pix', erro: data?.error ?? 'unknown' });
-        toast.error(data?.error || "Erro ao gerar PIX");
+        throw new Error("Erro ao gerar PIX");
       }
     } catch (err: any) {
       console.error(err);
-      track('subscription_payment_failed', { plano: 'anual', metodo: 'pix', erro: err?.message ?? 'exception' });
-      toast.error("Erro ao gerar PIX");
+      track('subscription_payment_failed', { plano: selectedPlano, metodo: 'pix', erro: err?.message ?? 'exception' });
+      toast.error(err?.message || "Erro ao gerar PIX");
     } finally {
       setProcessing(false);
     }
@@ -300,8 +316,8 @@ export default function Assinatura() {
     }
   };
 
-  const valor = selectedPlano === 'mensal' ? 25.99 : 189.90;
-  const valorParcela = selectedPlano === 'anual' ? (189.90 / parseInt(installments)).toFixed(2) : null;
+  const valor = selectedPlano === 'mensal' ? 19.90 : (isPromo && view === 'checkout' ? 99.90 : 149.90);
+  const valorParcela = selectedPlano === 'anual' ? (149.90 / parseInt(installments)).toFixed(2) : null;
 
   // ── PLANS VIEW (tabbed: Mensal / Anual) ──
   type PlanoTab = 'mensal' | 'anual' | 'anual_parcelado';
@@ -446,62 +462,28 @@ export default function Assinatura() {
             className="flex sm:grid sm:grid-cols-2 gap-3 overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none"
             style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
           >
-            {([
-              isIOS
-              ? {
-                  id: 'mensal' as const,
-                  label: 'Mensal',
-                  price: 'R$ 29,90',
-                  priceSuffix: '/mês',
-                  subtitle: 'Cobrado mensalmente',
-                  trial: '3 dias grátis',
-                  highlights: ['Acesso total ao Vade Mecum', 'Acesso ao desktop', 'Uso offline', 'Horus 24h no WhatsApp'],
-                  badge: null,
-                }
-              : {
-                  id: 'mensal' as const,
-                  label: 'Mensal',
-                  price: 'R$ 25,99',
-                  priceSuffix: '/mês',
-                  subtitle: 'Cobrado mensalmente',
-                  trial: '3 dias grátis',
-                  highlights: ['Acesso total ao Vade Mecum', 'Acesso ao desktop', 'Uso offline', 'Horus 24h no WhatsApp'],
-                  badge: null,
-                },
-              ...(isIOS ? [
-                {
-                  id: 'anual' as const,
-                  label: 'Anual',
-                  price: 'R$ 249,90',
-                  priceSuffix: '/ano',
-                  subtitle: 'Pagamento anual à vista · 7 dias grátis',
-                  trial: '7 dias grátis',
-                  highlights: ['Acesso total ao Vade Mecum', 'Acesso ao desktop', 'Uso offline', 'Horus 24h no WhatsApp'],
-                  badge: 'MAIS POPULAR',
-                },
-                {
-                  id: 'anual_parcelado' as const,
-                  label: 'Anual 12x',
-                  price: 'R$ 24,90',
-                  priceSuffix: '/mês',
-                  subtitle: '12 meses de compromisso · 7 dias grátis',
-                  trial: '7 dias grátis',
-                  highlights: ['Acesso total ao Vade Mecum', 'Acesso ao desktop', 'Uso offline', 'Horus 24h no WhatsApp'],
-                  badge: null,
-                },
-              ] : [
-                {
-                  id: 'anual_parcelado' as const,
-                  label: 'Anual',
-                  price: 'R$ 15,83',
-                  priceSuffix: '/mês',
-                  subtitle: '12x sem juros · R$ 189,90/ano · economize 39%',
-                  trial: '7 dias grátis',
-                  highlights: ['Acesso total ao Vade Mecum', 'Acesso ao desktop', 'Uso offline', 'Horus 24h no WhatsApp'],
-                  badge: '-39%',
-                },
-              ]),
-            ]).map((plan) => {
+            {[
+              {
+                id: 'mensal' as const,
+                label: 'Mensal',
+                price: 'R$ 19,90',
+                priceSuffix: '/mês',
+                subtitle: 'Cobrado mensalmente',
+                trial: 'Cancele quando quiser',
+                highlights: ['Acesso total ao Vade Mecum', 'Acesso ao desktop', 'Uso offline', 'Horus 24h no WhatsApp'],
+                badge: null,
+              },
+              {
+                id: 'anual' as const,
+                label: isPromo ? 'Anual Promo 24h' : 'Anual',
+                price: isPromo ? 'R$ 99,90' : 'R$ 149,90',
+                priceSuffix: '/ano',
+                subtitle: isPromo ? 'PIX promocional p/ novos usuários' : '12x de R$ 12,49 ou à vista',
+                trial: 'Cancele quando quiser',
+                highlights: ['Acesso total ao Vade Mecum', 'Acesso ao desktop', 'Uso offline', 'Horus 24h no WhatsApp'],
+                badge: isPromo ? 'SÓ HOJE' : '-37%',
+              }
+            ].map((plan) => {
               const isActive = tab === plan.id;
               return (
                 <div

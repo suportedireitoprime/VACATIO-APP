@@ -26,7 +26,7 @@ export interface PlayProduct {
 }
 
 export function isBillingAvailable() {
-  return Capacitor.isNativePlatform();
+  return false; // CONGELADO - Usando Asaas
 }
 
 let listenerRegistered = false;
