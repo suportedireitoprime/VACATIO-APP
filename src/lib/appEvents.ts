@@ -47,6 +47,23 @@ async function logDb(event_name: string, metadata: Record<string, unknown> = {})
   }
 }
 
+/**
+ * Registra a entrada em uma área do app em `app_events`.
+ * Deduplicamos por sessão para não inflar a tabela com remontagens de componente.
+ */
+export function logAreaEvent(event_name: string, metadata: Record<string, unknown> = {}) {
+  try {
+    const chave = `vacatio:area-ev:${event_name}`;
+    if (typeof window !== "undefined") {
+      if (window.sessionStorage.getItem(chave)) return;
+      window.sessionStorage.setItem(chave, "1");
+    }
+  } catch {
+    /* storage bloqueado: registra mesmo assim */
+  }
+  void logDb(event_name, metadata);
+}
+
 type Fanout = {
   /** nome GA4 (recomendado quando existir) */
   ga: string;
