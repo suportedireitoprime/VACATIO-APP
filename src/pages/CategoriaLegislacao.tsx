@@ -22,6 +22,7 @@ import ArtigoBottomSheet from '@/components/vademecum/ArtigoBottomSheet';
 import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
+import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import type { ArtigoLei } from '@/data/mockData';
 import brasaoImgAsset from '@/assets/brasao-republica.webp';
 const brasaoImg = brasaoImgAsset;
@@ -2214,7 +2215,8 @@ const CategoriaLegislacao = () => {
               style={{
                 transform: 'translateZ(0)',
                 backgroundColor: '#050505',
-                minHeight: isDesktop ? '280px' : '300px',
+                height: isDesktop ? '440px' : '480px',
+                minHeight: isDesktop ? '340px' : '360px',
               }}
             >
               {/* Imagem de capa da lei (lado direito) - movida levemente para a direita */}
@@ -2247,6 +2249,9 @@ const CategoriaLegislacao = () => {
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.16),transparent_65%)]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+
+                  {/* Motifs jurídicos clássicos */}
+                  <HeroMotifs />
 
                   {/* Grid Pattern */}
                   <div
@@ -2303,9 +2308,20 @@ const CategoriaLegislacao = () => {
                 >
                   {config?.label || 'Legislação'}
                 </p>
-                <h1 className="font-display text-black text-xl sm:text-2xl md:text-3xl font-bold uppercase tracking-wide leading-tight drop-shadow-sm">
-                  {selectedLeiNome}
-                </h1>
+                {selectedLei && (selectedLei as any).sigla ? (
+                  <>
+                    <h1 className="font-display text-black text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-widest leading-none drop-shadow-sm mb-1.5">
+                      {(selectedLei as any).sigla}
+                    </h1>
+                    <p className="text-black/90 text-sm sm:text-base font-light leading-snug uppercase tracking-wide">
+                      {selectedLeiNome}
+                    </p>
+                  </>
+                ) : (
+                  <h1 className="font-display text-black text-xl sm:text-2xl md:text-3xl font-bold uppercase tracking-wide leading-tight drop-shadow-sm">
+                    {selectedLeiNome}
+                  </h1>
+                )}
                 {selectedLeiDescricao && (
                   <p className="text-black/75 text-[11px] sm:text-xs mt-1.5 leading-snug line-clamp-2">
                     {selectedLeiDescricao}
@@ -2371,6 +2387,77 @@ const CategoriaLegislacao = () => {
                   })}
                 </div>
               </div>
+
+              {/* Barra de Pesquisa dentro do hero panel */}
+              <div className="relative z-10 px-3 sm:px-5 w-full pb-5">
+                <div ref={searchBarRef} className={`mx-auto ${isDesktop ? 'max-w-xl w-full' : 'w-full'}`}>
+                  <form
+                    className="flex items-center gap-2.5 min-w-0"
+                    onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
+                  >
+                    <div className="relative flex-1 min-w-0">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground" />
+                      <Input
+                        value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Pesquisar artigo..."
+                        className="h-12 rounded-2xl bg-[#141416]/90 text-white placeholder:text-white/50 border-white/10 shadow-xl pl-10 pr-20 text-sm font-medium backdrop-blur-md transition-colors focus:bg-[#1C1C20] focus-visible:ring-1 focus-visible:ring-[#EFE039]/50"
+                      />
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        {searchQuery && !voiceSearch.listening && (
+                          <button
+                            type="button"
+                            onClick={() => { setSearchQuery(''); handleSearch(''); }}
+                            className="p-1.5 rounded-full hover:bg-white/10 text-white/50 transition-colors"
+                            aria-label="Limpar busca"
+                          >
+                            <XIcon className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setOcrOpen(true)}
+                          aria-label="Fotografar artigo (OCR)"
+                          className="w-8 h-8 rounded-full flex items-center justify-center bg-[#EFE039]/20 text-[#EFE039] hover:bg-[#EFE039]/30 transition-colors shrink-0"
+                        >
+                          <Camera className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const numStr = window.prompt('Ir para artigo (número):');
+                            if (!numStr) return;
+                            const num = parseInt(numStr.replace(/\D/g, ''), 10);
+                            if (!num) return;
+                            const idx = visibleArtigos.findIndex(a => parseInt(a.numero.replace(/\D/g, ''), 10) === num);
+                            if (idx >= 0) artigosVirtualizer.scrollToIndex(idx, { align: 'center' });
+                          }}
+                          aria-label="Ir para o artigo número"
+                          title="Ir para o artigo específico"
+                          className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white transition-colors shrink-0 font-bold"
+                        >
+                          #
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => voiceSearch.toggle()}
+                      aria-label={voiceSearch.listening ? 'Parar gravação' : 'Buscar por voz'}
+                      className={`relative overflow-hidden shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-xl active:scale-[0.95] transition ${
+                        voiceSearch.listening
+                          ? 'bg-red-500 text-white animate-pulse shadow-red-500/40'
+                          : 'bg-[#EFE039] text-black hover:bg-[#EFE039]/90 shadow-[#EFE039]/30'
+                      }`}
+                    >
+                      {voiceSearch.listening && <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}
+                      {voiceSearch.listening
+                        ? <MicOff className="w-5 h-5 relative z-[2]" strokeWidth={2.5} />
+                        : <Mic className="w-5 h-5 relative z-[2]" strokeWidth={2.5} />}
+                    </button>
+                  </form>
+                </div>
+              </div>
             </div>
           );
         })()}
@@ -2402,73 +2489,7 @@ const CategoriaLegislacao = () => {
             transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1], delay: 0.06 }}
             className="space-y-4"
           >
-            <div ref={searchBarRef} className={`mx-auto ${isDesktop ? 'max-w-xl w-full' : 'w-full'}`}>
-              <form
-                className="flex items-center gap-2.5 min-w-0"
-                onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
-              >
-                <div className="relative flex-1 min-w-0">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground" />
-                  <Input
-                    value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Pesquisar artigo..."
-                    className="h-12 rounded-2xl bg-secondary border-border pl-10 pr-20 text-sm font-medium"
-                  />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    {searchQuery && !voiceSearch.listening && (
-                      <button
-                        type="button"
-                        onClick={() => { setSearchQuery(''); handleSearch(''); }}
-                        className="p-1.5 rounded-full hover:bg-background/40 text-muted-foreground"
-                        aria-label="Limpar busca"
-                      >
-                        <XIcon className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setOcrOpen(true)}
-                      aria-label="Fotografar artigo (OCR)"
-                      className="w-8 h-8 rounded-full flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/15 transition-colors shrink-0"
-                    >
-                      <Camera className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const numStr = window.prompt('Ir para artigo (número):');
-                        if (!numStr) return;
-                        const num = parseInt(numStr.replace(/\D/g, ''), 10);
-                        if (!num) return;
-                        const idx = visibleArtigos.findIndex(a => parseInt(a.numero.replace(/\D/g, ''), 10) === num);
-                        if (idx >= 0) artigosVirtualizer.scrollToIndex(idx, { align: 'center' });
-                      }}
-                      aria-label="Ir para o artigo número"
-                      title="Ir para o artigo específico"
-                      className="w-8 h-8 rounded-full flex items-center justify-center bg-secondary hover:bg-secondary/80 text-foreground transition-colors shrink-0 font-bold"
-                    >
-                      #
-                    </button>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => voiceSearch.toggle()}
-                  aria-label={voiceSearch.listening ? 'Parar gravação' : 'Buscar por voz'}
-                  className={`relative overflow-hidden shrink-0 w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-[0.95] transition ${
-                    voiceSearch.listening
-                      ? 'bg-red-500 text-white animate-pulse shadow-red-500/40'
-                      : 'bg-primary text-primary-foreground shadow-primary/30'
-                  }`}
-                >
-                  {voiceSearch.listening && <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}
-                  {voiceSearch.listening
-                    ? <MicOff className="w-6 h-6 relative z-[2]" strokeWidth={2.5} />
-                    : <Mic className="w-6 h-6 relative z-[2]" strokeWidth={2.5} />}
-                </button>
-              </form>
-            </div>
+            {/* Search bar agora fica dentro do hero panel */}
 
             {/* Tabs: Artigos / Capítulos / Recentes / Lotes — sempre renderizadas para evitar layout shift */}
             <div className={`mx-auto flex flex-col gap-3 ${isDesktop ? 'max-w-xl w-full' : 'w-full'}`}>
