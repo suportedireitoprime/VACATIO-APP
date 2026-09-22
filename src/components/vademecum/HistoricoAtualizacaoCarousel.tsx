@@ -1,5 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { ChevronRight } from 'lucide-react';
 import { ArtigoLei } from '@/data/mockData';
 
 interface HistoricoAtualizacaoCarouselProps {
@@ -7,6 +8,7 @@ interface HistoricoAtualizacaoCarouselProps {
   dbAlteracoes: Record<string, any>[];
   leiAccent: string;
   onOpenArtigo: (artigo: ArtigoLei) => void;
+  onViewAll?: () => void;
 }
 
 export type ModItem = { 
@@ -20,7 +22,7 @@ export type ModItem = {
   fromMonitor?: boolean;
 };
 
-export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, leiAccent, onOpenArtigo }: HistoricoAtualizacaoCarouselProps) {
+export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, leiAccent, onOpenArtigo, onViewAll }: HistoricoAtualizacaoCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const historicoAlteracoes = useMemo(() => {
@@ -100,8 +102,7 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
         fromMonitor: true
       });
     }
-    // Retornamos os primeiros 10 pra não pesar o DOM
-    return items.slice(0, 10);
+    return items;
   }, [artigos, dbAlteracoes]);
 
   if (historicoAlteracoes.length === 0) return null;
@@ -109,15 +110,26 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
   return (
     <div className="space-y-3 pt-6 pb-2">
       <div className="px-5 flex items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0 flex-1">
           <h3 className="font-display text-foreground text-[16px] sm:text-[18px] font-bold mb-0.5 flex items-center gap-2">
             <span className="w-1 h-5 rounded-full shrink-0" style={{ backgroundColor: leiAccent }} />
-            <span>Histórico de Atualização</span>
+            <span className="truncate">Histórico de Atualização</span>
           </h3>
-          <p className="font-body text-muted-foreground text-[12px] leading-snug ml-[14px]">
+          <p className="font-body text-muted-foreground text-[12px] leading-snug ml-[14px] truncate">
             Últimos artigos atualizados nesta legislação
           </p>
         </div>
+        
+        {onViewAll && (
+          <button
+            type="button"
+            onClick={onViewAll}
+            className="shrink-0 inline-flex items-center gap-1 rounded-full border border-white/10 bg-card hover:bg-muted/80 px-3 py-1.5 text-[12px] font-semibold text-foreground active:scale-[0.96] transition-all shadow-sm"
+          >
+            <span>Ver tudo</span>
+            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+          </button>
+        )}
       </div>
 
       <div

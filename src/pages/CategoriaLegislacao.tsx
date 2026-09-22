@@ -2498,9 +2498,9 @@ const CategoriaLegislacao = () => {
               onOpenArtigo={(a) => {
                 const sheetTrigger = document.createElement('div');
                 sheetTrigger.dataset.artigo = JSON.stringify(a);
-                // The openArtigo logic here can just be a function call, but we have access to openArtigo
                 openArtigo(a);
               }} 
+              onViewAll={() => setOverlayPanel('novidades')}
             />
 
             {/* Tabs: Artigos / Capítulos / Lotes — sempre renderizadas para evitar layout shift */}
