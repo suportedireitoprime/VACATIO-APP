@@ -2221,7 +2221,7 @@ const ArtigoBottomSheet = ({
           className={
             isDesktop
               ? "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border-l border-white/5 bg-[#0f0f0f] p-0 shadow-2xl [&>button:last-child]:hidden top-0 right-0 h-full w-[460px] max-w-[90vw]"
-              : "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-t-3xl border-t border-white/5 bg-[#0f0f0f] p-0 [&>button:last-child]:hidden top-auto bottom-0 h-[90dvh] max-h-[90dvh]"
+              : "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-t-3xl border-t border-white/5 bg-[#0f0f0f] p-0 [&>button:last-child]:hidden top-auto bottom-0 h-[96dvh] max-h-[96dvh]"
           }
 
         >
