@@ -954,25 +954,7 @@ const CategoriaLegislacao = () => {
   const virtualItems = artigosVirtualizer.getVirtualItems();
   const firstVisibleIndex = virtualItems.length > 0 ? virtualItems[0].index : 0;
 
-  const computedSumario = useMemo(() => {
-    if (visibleArtigos.length === 0 || focusMode) return null; // No sumário se focusMode ativo ou vazio
-    let titulo = null;
-    let capitulo = null;
-    for (let i = firstVisibleIndex; i >= 0; i--) {
-      const art = visibleArtigos[i];
-      if (!art || !art.caput) continue;
-      const text = art.caput;
-      if (!titulo && /^(PARTE|LIVRO|T[ÍI]TULO)\b/i.test(text)) {
-        titulo = text.split('\n')[0].trim();
-      }
-      if (!capitulo && /^(CAP[ÍI]TULO)\b/i.test(text)) {
-        capitulo = text.split('\n')[0].trim();
-      }
-      if (titulo && capitulo) break;
-    }
-    if (!titulo && !capitulo) return null;
-    return [titulo, capitulo].filter(Boolean).join(' › ');
-  }, [firstVisibleIndex, visibleArtigos, focusMode]);
+  // Mini-sumário flutuante (PARTE GERAL, etc.) foi removido a pedido do usuário.
 
   // Handle cross references internally
   const handleCrossReferenceClick = (artigoNum: string) => {
@@ -2307,9 +2289,9 @@ const CategoriaLegislacao = () => {
                       setLeiFavToggle((n) => n + 1);
                     }}
                     aria-label={fav ? 'Remover dos favoritos' : 'Favoritar lei'}
-                    className={`absolute right-4 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none ${fav ? 'bg-rose-500/25 border-rose-300/50' : 'bg-black/40 border-white/25'}`}
+                    className={`absolute right-4 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none ${fav ? 'bg-[#EFE039]/20 border-[#EFE039]/40' : 'bg-black/40 border-white/25'}`}
                   >
-                    <Heart className={`w-6 h-6 drop-shadow ${fav ? 'text-rose-400 fill-rose-400' : 'text-white'}`} />
+                    <Star className={`w-6 h-6 drop-shadow ${fav ? 'text-[#EFE039] fill-[#EFE039]' : 'text-white'}`} />
                   </button>
                 );
               })()}
@@ -2410,23 +2392,7 @@ const CategoriaLegislacao = () => {
 
         <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-7xl' : 'max-w-5xl'}`}>
 
-          {/* Mini-Sumário Flutuante */}
-          <AnimatePresence>
-            {computedSumario && !focusMode && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="fixed top-[max(var(--sai-top,env(safe-area-inset-top,0px)),12px)] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
-              >
-                <div className="bg-background/80 backdrop-blur-md border border-border/50 shadow-lg px-4 py-1.5 rounded-full whitespace-nowrap overflow-hidden text-ellipsis max-w-[90vw] sm:max-w-md">
-                  <span className="text-[11px] font-bold tracking-wide text-primary-light uppercase">
-                    {computedSumario}
-                  </span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Mini-Sumário Flutuante removido */}
 
           {/* Search bar + Tabs — entram juntos com fade sutil (evita "pop") */}
           {!focusMode && (
