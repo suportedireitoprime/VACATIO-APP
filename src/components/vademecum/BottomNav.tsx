@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, BookMarked, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock, Shield } from 'lucide-react';
+import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, BookMarked, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock, Shield, Camera, Wrench } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import MentorOverlay from './MentorOverlay';
 // PessoalSheet removido — Meu Espaço agora é rota dedicada (/meu-espaco).
@@ -213,25 +213,36 @@ const BottomNav = () => {
             </span>
           </button>
 
-
-          {/* Ferramentas (FAB centralizado — coluna do meio) */}
+          {/* Me Explique (FAB centralizado — coluna do meio) */}
           <button
-            onPointerDown={() => {
-              // Pré-carrega em lote as rotas mais pesadas do menu para
-              // clique instantâneo no mobile (onde hover não existe).
-              for (const f of FERRAMENTAS) if (f.prefetch) prefetchRoute(f.prefetch);
-            }}
-            onClick={() => { haptic.light(); navigate('/ferramentas'); }}
+            onClick={() => { haptic.light(); navigate('/me-explique'); }}
             data-track="bottom_nav_click"
-            data-track-destino="ferramentas"
+            data-track-destino="me-explique"
             className="flex flex-col items-center justify-end -mt-11"
-            aria-label="Ferramentas"
+            aria-label="Me Explique"
           >
             <span className="relative flex flex-col items-center gap-1.5 pt-1 pb-1 px-2 rounded-2xl">
               <span className="relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 ring-4 ring-background btn-attention-shine overflow-hidden">
-                <Gavel className="w-11 h-11 sm:w-12 sm:h-12 text-primary-foreground relative z-[2]" strokeWidth={1.75} />
+                <Camera className="w-10 h-10 sm:w-11 sm:h-11 text-primary-foreground relative z-[2]" strokeWidth={1.75} />
               </span>
-              <span className="font-body text-[11px] sm:text-[12px] font-semibold text-primary leading-tight">Ferramentas</span>
+              <span className="font-body text-[11px] sm:text-[12px] font-semibold text-primary leading-tight">Me Explique</span>
+            </span>
+          </button>
+
+          {/* Ferramentas */}
+          <button
+            onPointerDown={() => {
+              for (const f of FERRAMENTAS) if (f.prefetch) prefetchRoute(f.prefetch);
+            }}
+            onClick={() => { haptic.selection(); navigate('/ferramentas'); }}
+            data-track="bottom_nav_click"
+            data-track-destino="ferramentas"
+            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/ferramentas') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+            aria-label="Ferramentas"
+          >
+            <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
+              <Wrench className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
+              <span className="font-body text-[11px] sm:text-[12px] leading-tight">Ferramentas</span>
             </span>
           </button>
 
@@ -243,7 +254,8 @@ const BottomNav = () => {
             onTouchStart={() => prefetchRoute('radar360')}
             data-track="bottom_nav_click"
             data-track-destino="radares"
-            className="flex flex-col items-center justify-end py-1.5 text-foreground hover:text-primary transition-colors"
+            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/radares') || path.startsWith('/radar-360') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+            aria-label="Radares"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
               <ScanEye className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />

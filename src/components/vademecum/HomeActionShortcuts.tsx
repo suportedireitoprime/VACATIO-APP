@@ -1,14 +1,14 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, ScrollText, Feather, Heart } from 'lucide-react';
+import { MessageCircle, ScrollText, Feather, Heart } from 'lucide-react';
 import { useShortcutBadges } from '@/hooks/useShortcutBadges';
 import { prefetchRoute, type PrefetchKey } from '@/lib/routePrefetch';
 
 const SHORTCUT_ITEMS = [
-  { label: 'Favoritos',   icon: Heart,       to: '/pessoal/favoritos', color: '#F87171', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-  { label: 'Anotações',   icon: ScrollText,  to: '/pessoal/anotacoes', color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-  { label: 'Grifos',      icon: Feather,     to: '/pessoal/grifos',    color: '#34D399', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-  { label: 'Me Explique', icon: Camera,      to: '/me-explique',       color: '#FACC15', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+  { label: 'Favoritos', icon: Heart, to: '/pessoal/favoritos' as string | null, action: null as (() => void) | null, color: '#F87171', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+  { label: 'Anotações', icon: ScrollText, to: '/pessoal/anotacoes' as string | null, action: null as (() => void) | null, color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+  { label: 'Grifos', icon: Feather, to: '/pessoal/grifos' as string | null, action: null as (() => void) | null, color: '#34D399', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+  { label: 'Chat', icon: MessageCircle, to: null as string | null, action: () => window.dispatchEvent(new CustomEvent('vacatio:open-chat')), color: '#FACC15', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
 ];
 
 const HomeActionShortcuts = () => {
@@ -33,7 +33,11 @@ const HomeActionShortcuts = () => {
               } catch (err) {
                 console.warn('[HomeActionShortcuts] Feedback error:', err);
               }
-              navigate(item.to);
+              if (item.action) {
+                item.action();
+              } else if (item.to) {
+                navigate(item.to);
+              }
             }}
             style={{ '--shimmer-delay': `${index * 150}ms` } as React.CSSProperties}
             className="group flex flex-col items-center justify-center py-3 px-1 rounded-2xl bg-[#141416]/90 hover:bg-[#1C1C20] backdrop-blur-md border border-white/10 shadow-xl transition-all active:scale-95 gap-2 text-center min-h-[48px] select-none cursor-pointer overflow-hidden"
