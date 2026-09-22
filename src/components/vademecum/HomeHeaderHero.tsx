@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, Menu as MenuIcon, Layers, Clock, Eye, Lightbulb, ScrollText, Quote } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfileSummary } from '@/hooks/useProfileSummary';
-import heroEstudanteImg from '@/assets/covers/hero-justice.png';
+import heroEstudanteImg from '@/assets/covers/hero-justice.jpg';
 import HeroMotifs from './HeroMotifs';
 import HomeBrandBanner from './HomeBrandBanner';
 import HomeActionShortcuts from './HomeActionShortcuts';
@@ -36,18 +36,19 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
   const unreadCount = useUnreadNotifCount();
 
   const perfilLabel = useMemo(() => {
-    if (profileSummary?.perfilContexto) return String(profileSummary.perfilContexto);
-    if (Array.isArray(profileSummary?.perfilTipos) && profileSummary.perfilTipos.length > 0) {
+    const summary = profileSummary as any;
+    if (summary?.perfilContexto) return String(summary.perfilContexto);
+    if (Array.isArray(summary?.perfilTipos) && summary.perfilTipos.length > 0) {
       const mapa: Record<string, string> = {
         faculdade: 'Estudante de Direito',
         oab: 'Concurseiro OAB',
         concurso: 'Concurseiro',
         advogado: 'Advogado(a)',
       };
-      return mapa[profileSummary.perfilTipos[0]] || 'Estudante de Direito';
+      return mapa[summary.perfilTipos[0]] || 'Estudante de Direito';
     }
     return '';
-  }, [profileSummary?.perfilContexto, profileSummary?.perfilTipos]);
+  }, [profileSummary]);
 
   useEffect(() => {
     prefetchHeroRoutesIdle();
@@ -98,7 +99,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
           loading="eager"
           decoding="async"
           fetchPriority="high"
-          className="absolute inset-0 w-full h-full object-cover object-[32%_center] md:object-center z-0 pointer-events-none translate-x-[12%] md:translate-x-[8%]"
+          className="absolute inset-0 w-full h-full object-cover object-[55%_center] md:object-center z-0 pointer-events-none translate-x-[8%] md:translate-x-[5%]"
         />
 
         {/* Overlay amarelo com gradiente e sombra diagonal dupla (mesmo formato da divisória do painel de referência) */}

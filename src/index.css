@@ -85,25 +85,25 @@ body {
 
 @layer base {
   :root {
-    /* Vacatio v2 — Preto + Amarelo Hazard + Cinza Neutro */
-    --background: 230 20% 12%;          /* Cinza Escuro (Fundo) */
-    --foreground: 230 20% 96%;
+    /* Vacatio v2 — Cinza Escuro Neutro (APP.PRIME) + Amarelo Hazard */
+    --background: 0 0% 7%;              /* #121212 - cinza escuro neutro */
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 11%;                      /* #1C1C1C - card sutilmente mais claro */
+    --card: 0 0% 11%;                   /* #1C1C1E - card sutilmente mais claro */
     --card-foreground: 0 0% 98%;
 
-    --popover: 230 20% 18%;
-    --popover-foreground: 230 20% 96%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 98%;
 
     --primary: 51 100% 50%;             /* #FFD500 hazard yellow */
     --primary-foreground: 0 0% 4%;
     --primary-light: 51 100% 62%;
 
-    --secondary: 230 20% 24%;
-    --secondary-foreground: 230 20% 96%;
+    --secondary: 0 0% 14%;              /* #242424 */
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 230 20% 16%;
-    --muted-foreground: 230 10% 65%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 65%;
 
     --accent: 51 100% 50%;
     --accent-foreground: 0 0% 4%;
@@ -111,19 +111,19 @@ body {
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 20% 26%;
-    --input: 230 20% 26%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
     --ring: 51 100% 50%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 230 20% 14%;
-    --sidebar-foreground: 230 20% 96%;
+    --sidebar-background: 0 0% 9%;
+    --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 51 100% 50%;
-    --sidebar-primary-foreground: 230 20% 12%;
-    --sidebar-accent: 230 20% 20%;
-    --sidebar-accent-foreground: 230 20% 96%;
-    --sidebar-border: 230 20% 24%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 18%;
     --sidebar-ring: 51 100% 50%;
 
     /* Legacy aliases still referenced in code — mapped to yellow */

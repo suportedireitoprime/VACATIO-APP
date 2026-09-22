@@ -23,34 +23,33 @@ const HomeCardImpl = ({ icon: Icon, label, sublabel, color, delay = 0, onClick, 
   <motion.button
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+    transition={{ delay, duration: 0.22, ease: [0.22, 0.61, 0.36, 1] }}
     onClick={onClick}
     data-track={dataTrack}
     data-track-name={dataTrackName}
     data-track-section={dataTrackSection}
-    className={`group relative flex flex-col items-start justify-between w-full aspect-[1/0.50] p-4 rounded-2xl bg-card border border-border/60 shadow-sm active:scale-[0.97] transition text-left ${className}`}
+    className={`group relative flex flex-col justify-between w-full h-[104px] min-h-[104px] p-3.5 rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm hover:shadow-md active:scale-[0.97] transition-all text-left overflow-hidden ${className}`}
   >
-    <div className="absolute top-2.5 right-2.5">
-      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-    </div>
-    <div className="relative overflow-hidden rounded-xl">
+    <div className="flex items-center justify-between w-full">
       <Icon
-        className="w-8 h-8 relative"
+        className="w-7 h-7 relative shrink-0 transition-transform duration-300 group-hover:scale-105"
         style={{
           color,
-          filter: 'saturate(1.35) brightness(1.15) drop-shadow(0 2px 10px rgba(0,0,0,0.55))',
+          filter: 'saturate(1.2) drop-shadow(0 1px 4px rgba(0,0,0,0.4))',
         }}
-        strokeWidth={1.15}
+        strokeWidth={1.5}
       />
-      <span aria-hidden className="pointer-events-none absolute inset-0 icon-shine" />
+      <ChevronRight className="w-4 h-4 text-white/35 group-hover:text-white/70 group-hover:translate-x-0.5 transition-all" />
     </div>
-    <div className="w-full mt-3">
-      <p className="font-display text-foreground text-[17px] font-bold leading-tight tracking-tight">
+    <div className="w-full min-w-0 mt-auto">
+      <p className="font-display text-white text-[14.5px] sm:text-[15.5px] font-bold uppercase tracking-tight leading-tight truncate">
         {label}
       </p>
-      <p className="font-body text-muted-foreground text-[11.5px] leading-snug mt-0.5 line-clamp-2">
-        {sublabel}
-      </p>
+      {sublabel && (
+        <p className="font-body text-zinc-400 text-[11px] sm:text-[11.5px] leading-snug mt-0.5 truncate">
+          {sublabel}
+        </p>
+      )}
     </div>
   </motion.button>
 );

@@ -34,12 +34,12 @@ interface Cat {
 }
 
 const GRID_CATS: Cat[] = [
-  { id: 'constituicao',    label: 'Constituição',    sublabel: 'CF/88',                     icon: Landmark,   color: '#FACC15' },
-  { id: 'codigo',          label: 'Códigos',         sublabel: 'Civil, Penal, Processo…',   icon: Gavel,      color: '#F87171' },
-  { id: 'estatuto',        label: 'Estatutos',       sublabel: 'ECA, Idoso, OAB…',          icon: BookMarked, color: '#3B82F6' },
-  { id: 'jurisprudencia',  label: 'Jurisprudência',  sublabel: 'STF, STJ, Vinculantes',     icon: ScrollText, color: '#EC4899' },
-  { id: 'lei-ordinaria',   label: 'Leis Ordinárias', sublabel: 'Federais complementares',   icon: Columns3,   color: '#38BDF8' },
-  { id: 'lei-especial',    label: 'Penal Especial',  sublabel: 'Leis penais extravagantes', icon: Scale,      color: '#FB923C' },
+  { id: 'constituicao',    label: 'CONSTITUIÇÃO',    sublabel: 'CF/88',                     icon: Landmark,   color: '#FACC15' },
+  { id: 'codigo',          label: 'CÓDIGOS',         sublabel: 'Civil, Penal, Processo…',   icon: Gavel,      color: '#F87171' },
+  { id: 'estatuto',        label: 'ESTATUTOS',       sublabel: 'ECA, Idoso, OAB…',          icon: BookMarked, color: '#3B82F6' },
+  { id: 'jurisprudencia',  label: 'JURISPRUDÊNCIA',  sublabel: 'STF, STJ, Vinculantes',     icon: ScrollText, color: '#EC4899' },
+  { id: 'lei-ordinaria',   label: 'LEIS ORDINÁRIAS', sublabel: 'Federais complementares',   icon: Columns3,   color: '#38BDF8' },
+  { id: 'lei-especial',    label: 'PENAL ESPECIAL',  sublabel: 'Leis penais extravagantes', icon: Scale,      color: '#FB923C' },
 ];
 
 // Cards de "Outras normas" que apontam para o Radar 360 com filtro pré-selecionado
@@ -97,9 +97,9 @@ const JURI_OPCOES = [
 type Tab = 'categorias' | 'emalta' | 'areas';
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
-  { id: 'categorias', label: 'Categorias', icon: LayoutGrid },
-  { id: 'emalta',     label: 'Em Alta',    icon: Flame },
-  { id: 'areas',      label: 'Áreas',      icon: List },
+  { id: 'categorias', label: 'CATEGORIAS', icon: LayoutGrid },
+  { id: 'emalta',     label: 'EM ALTA',    icon: Flame },
+  { id: 'areas',      label: 'ÁREAS',      icon: List },
 ];
 
 const LAW_ICON_MAP: Record<string, LucideIcon> = {
@@ -320,7 +320,7 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
 
       {/* Segmented toggle */}
       <div>
-        <div className="relative flex items-center gap-1 p-1 rounded-full bg-secondary/60 border border-border/60">
+        <div className="relative flex items-center gap-1 p-1 rounded-full bg-[#18181B]/80 border border-white/10 backdrop-blur-md">
           {TABS.map(t => {
             const Icon = t.icon;
             const isActive = tab === t.id;
@@ -330,15 +330,15 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                 onClick={() => setTab(t.id)}
                 data-track="home_tab_switch"
                 data-track-tab={t.id}
-                className="relative flex-1 flex items-center justify-center gap-2 h-10 rounded-full font-display text-[13px] font-bold uppercase tracking-wide transition-colors"
+                className="relative flex-1 flex items-center justify-center gap-2 h-10 rounded-full font-display text-[12px] sm:text-[13px] font-bold uppercase tracking-wider transition-all"
               >
                 {isActive && (
                   <span
-                    className="absolute inset-0 rounded-full bg-primary shadow-lg shadow-primary/20"
+                    className="absolute inset-0 rounded-full bg-primary shadow-[0_0_20px_rgba(250,204,21,0.35)]"
                   />
                 )}
-                <span className={`relative flex items-center gap-2 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                  <Icon className="w-5 h-5" />
+                <span className={`relative flex items-center gap-2 transition-colors ${isActive ? 'text-black font-extrabold' : 'text-zinc-400 hover:text-white'}`}>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                   {t.label}
                 </span>
               </button>
