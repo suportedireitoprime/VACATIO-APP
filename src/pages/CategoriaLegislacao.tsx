@@ -151,12 +151,13 @@ const CategoriaLegislacao = () => {
   const [openFromNovidades, setOpenFromNovidades] = useState(false);
   const [subcat, setSubcat] = useState('todas');
   const [openModInfo, setOpenModInfo] = useState<import('@/components/vademecum/ArtigoBottomSheet').ModificationInfo | null>(null);
-  const [activeTab, setActiveTab] = useState<'art' | 'cap' | 'rec' | 'lot'>('art');
+  const [activeTab, setActiveTab] = useState<'art' | 'cap' | 'lot'>('art');
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [overlayPanel, setOverlayPanel] = useState<'fav' | 'playlist' | 'novidades' | 'anotacoes' | 'radar' | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [stickySearch, setStickySearch] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
+  const [showSearchRecents, setShowSearchRecents] = useState(false);
   
   const { focusMode } = useLeituraStore();
   
@@ -1743,26 +1744,6 @@ const CategoriaLegislacao = () => {
           });
         })()}
       </div>
-    ) : activeTab === 'rec' ? (
-      <div className="space-y-2 pb-8">
-        {(() => {
-          const map = new Map(artigos.map(a => [String(a.id), a]));
-          const recents = recentIds.map(id => map.get(id)).filter(Boolean) as ArtigoLei[];
-          if (recents.length === 0) {
-            return <p className="text-center text-muted-foreground py-8">Nenhum artigo visualizado ainda.</p>;
-          }
-          return recents.map((artigo, i) => (
-            <ArtigoCard
-              key={artigo.id}
-              artigo={artigo}
-              index={i}
-              onClick={() => openArtigoWithRecent(artigo)}
-              accentColor={leiAccent}
-              tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }}
-            />
-          ));
-        })()}
-      </div>
     ) : activeTab === 'lot' ? (
       <div className="space-y-5 pb-8">
         {(() => {
@@ -2402,6 +2383,8 @@ const CategoriaLegislacao = () => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Pesquisar artigo..."
                         className="h-12 rounded-2xl bg-[#141416]/90 text-white placeholder:text-white/50 border-white/10 shadow-xl pl-10 pr-20 text-sm font-medium backdrop-blur-md transition-colors focus:bg-[#1C1C20] focus-visible:ring-1 focus-visible:ring-[#EFE039]/50"
+                        onFocus={() => setShowSearchRecents(true)}
+                        onBlur={() => setTimeout(() => setShowSearchRecents(false), 200)}
                       />
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                         {searchQuery && !voiceSearch.listening && (
@@ -2456,6 +2439,41 @@ const CategoriaLegislacao = () => {
                         : <Mic className="w-5 h-5 relative z-[2]" strokeWidth={2.5} />}
                     </button>
                   </form>
+
+                  {/* Dropdown de recentes (Pesquisas) */}
+                  <AnimatePresence>
+                    {showSearchRecents && recentIds.length > 0 && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-[110%] left-0 right-0 bg-[#141416]/95 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-50 flex flex-col"
+                      >
+                        <div className="p-2 max-h-64 overflow-y-auto flex flex-col no-scrollbar">
+                          <p className="text-[10px] font-bold text-white/50 uppercase px-3 py-2 tracking-wider">Artigos Recentes</p>
+                          {(() => {
+                            const map = new Map(artigos.map(a => [String(a.id), a]));
+                            const recents = recentIds.map(id => map.get(id)).filter(Boolean) as ArtigoLei[];
+                            return recents.slice(0, 10).map((artigo) => (
+                              <button
+                                key={artigo.id}
+                                type="button"
+                                onClick={() => openArtigoWithRecent(artigo)}
+                                className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/10 transition-colors text-left rounded-xl active:scale-[0.98]"
+                              >
+                                <History className="w-4 h-4 shrink-0 text-white/50" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[13px] font-bold text-white truncate">{artigo.numero}</p>
+                                  <p className="text-[11px] text-white/60 truncate">{artigo.caput}</p>
+                                </div>
+                              </button>
+                            ));
+                          })()}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </div>
@@ -2491,14 +2509,13 @@ const CategoriaLegislacao = () => {
           >
             {/* Search bar agora fica dentro do hero panel */}
 
-            {/* Tabs: Artigos / Capítulos / Recentes / Lotes — sempre renderizadas para evitar layout shift */}
+            {/* Tabs: Artigos / Capítulos / Lotes — sempre renderizadas para evitar layout shift */}
             <div className={`mx-auto flex flex-col gap-3 ${isDesktop ? 'max-w-xl w-full' : 'w-full'}`}>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {[
                   { key: 'art' as const, icon: FileText, label: 'Artigos' },
                   { key: 'cap' as const, icon: BookOpen, label: 'Capítulos' },
                   { key: 'lot' as const, icon: LayoutGrid, label: 'Lotes' },
-                  { key: 'rec' as const, icon: History, label: 'Recentes' },
                 ].map(tab => (
                   <button
                     key={tab.key}
