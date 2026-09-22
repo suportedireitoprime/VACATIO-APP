@@ -2220,13 +2220,13 @@ const ArtigoBottomSheet = ({
           side={isDesktop ? "right" : "bottom"}
           className={
             isDesktop
-              ? "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border-l border-white/5 bg-[#0f0f0f] p-0 shadow-2xl [&>button:last-child]:hidden top-0 right-0 h-full w-[460px] max-w-[90vw]"
-              : "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-t-3xl border-t border-white/5 bg-[#0f0f0f] p-0 [&>button:last-child]:hidden top-auto bottom-0 h-[96dvh] max-h-[96dvh]"
+              ? "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border-l border-white/5 bg-background p-0 shadow-2xl [&>button:last-child]:hidden top-0 right-0 h-full w-[460px] max-w-[90vw]"
+              : "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-t-3xl border-t border-white/5 bg-background p-0 [&>button:last-child]:hidden top-auto bottom-0 h-[96dvh] max-h-[96dvh]"
           }
 
         >
         {!isDesktop && (
-          <div className="shrink-0 flex justify-center pt-3 pb-1 bg-[#0f0f0f]">
+          <div className="shrink-0 flex justify-center pt-3 pb-1 bg-background">
             <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
           </div>
         )}
@@ -2464,7 +2464,7 @@ const ArtigoBottomSheet = ({
           <TabsContent value="artigo" className="px-5 pb-[calc(9rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4 relative">
             {/* Barra de progresso da narração (sticky no topo) */}
             {narracaoPlaying && (
-              <div className="sticky top-0 z-30 -mx-5 -mt-4 mb-3 bg-[#0f0f0f]/95 backdrop-blur-md border-b border-white/5 px-5 py-2.5">
+              <div className="sticky top-0 z-30 -mx-5 -mt-4 mb-3 bg-background/95 backdrop-blur-md border-b border-white/5 px-5 py-2.5">
                 <div className="flex items-center gap-2.5">
                   <button
                     onClick={handleNarrarButtonPress}

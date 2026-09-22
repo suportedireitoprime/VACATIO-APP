@@ -56,7 +56,7 @@ export default function LeiFavoritaArtigosSheet({ lei, onClose }: Props) {
     <Sheet open={!!lei} onOpenChange={(open) => { if (!open) onClose(); }}>
       <SheetContent
         side="bottom"
-        className="z-[9999] flex flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-white/5 bg-[#0f0f0f] p-0 [&>button:last-child]:hidden h-[90dvh]"
+        className="z-[9999] flex flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-white/5 bg-background p-0 [&>button:last-child]:hidden h-[90dvh]"
       >
         <div className="shrink-0 flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />

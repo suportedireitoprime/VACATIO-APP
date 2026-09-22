@@ -86,20 +86,20 @@ body {
 @layer base {
   :root {
     /* Vacatio v2 — Cinza Escuro Neutro (APP.PRIME) + Amarelo Hazard */
-    --background: 0 0% 7%;              /* #121212 - cinza escuro neutro */
+    --background: 240 3% 11%;           /* #1C1C1E - cinza escuro neutro */
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 11%;                   /* #1C1C1E - card sutilmente mais claro */
+    --card: 240 2% 18%;                 /* #2C2C2E - cinza claro para listas */
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 9%;
+    --popover: 240 3% 11%;              /* #1C1C1E */
     --popover-foreground: 0 0% 98%;
 
     --primary: 51 100% 50%;             /* #FFD500 hazard yellow */
     --primary-foreground: 0 0% 4%;
     --primary-light: 51 100% 62%;
 
-    --secondary: 0 0% 14%;              /* #242424 */
+    --secondary: 240 2% 18%;            /* #2C2C2E - igual ao card */
     --secondary-foreground: 0 0% 98%;
 
     --muted: 0 0% 14%;

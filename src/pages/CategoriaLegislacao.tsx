@@ -2113,7 +2113,7 @@ const CategoriaLegislacao = () => {
 
     // Menu de alternância no rodapé
     const footerBottomNav = !focusMode ? (
-      <div className="fixed bottom-0 left-0 right-0 z-[60] bg-[#0f0f0f]/95 backdrop-blur-md border-t border-white/5 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] px-3 pt-3">
+      <div className="fixed bottom-0 left-0 right-0 z-[60] bg-background/95 backdrop-blur-md border-t border-white/5 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] px-3 pt-3">
         <div className={`mx-auto grid grid-cols-3 gap-2 ${isDesktop ? 'max-w-xl' : 'w-full'}`}>
           {[
             { key: 'art' as const, icon: FileText, label: 'Artigos' },
@@ -2157,7 +2157,7 @@ const CategoriaLegislacao = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 320 }}
-              className="fixed inset-x-0 bottom-0 z-[60] h-[80vh] bg-[#0f0f0f] border-t border-white/10 rounded-t-3xl flex flex-col shadow-2xl lg:max-w-[720px] lg:mx-auto"
+              className="fixed inset-x-0 bottom-0 z-[60] h-[80vh] bg-background border-t border-white/10 rounded-t-3xl flex flex-col shadow-2xl lg:max-w-[720px] lg:mx-auto"
               style={{ willChange: 'transform' }}
             >
               {/* Drag handle */}
