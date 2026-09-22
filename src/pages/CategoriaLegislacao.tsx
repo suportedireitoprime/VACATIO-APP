@@ -2196,8 +2196,8 @@ const CategoriaLegislacao = () => {
               style={{
                 transform: 'translateZ(0)',
                 backgroundColor: '#050505',
-                height: isDesktop ? '440px' : '480px',
-                minHeight: isDesktop ? '340px' : '360px',
+                height: isDesktop ? '380px' : '420px',
+                minHeight: isDesktop ? '280px' : '300px',
               }}
             >
               {/* Imagem de capa da lei (lado direito) - movida levemente para a direita */}
