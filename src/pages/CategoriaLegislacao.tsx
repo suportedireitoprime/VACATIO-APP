@@ -23,6 +23,7 @@ import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
+import HistoricoAtualizacaoCarousel from '@/components/vademecum/HistoricoAtualizacaoCarousel';
 import type { ArtigoLei } from '@/data/mockData';
 import brasaoImgAsset from '@/assets/brasao-republica.webp';
 const brasaoImg = brasaoImgAsset;
@@ -2488,6 +2489,19 @@ const CategoriaLegislacao = () => {
             className="space-y-4"
           >
             {/* Search bar agora fica dentro do hero panel */}
+
+            {/* NOVO CARROSSEL DE HISTÓRICO DE ATUALIZAÇÃO */}
+            <HistoricoAtualizacaoCarousel 
+              artigos={artigos} 
+              dbAlteracoes={dbAlteracoes} 
+              leiAccent={leiAccent} 
+              onOpenArtigo={(a) => {
+                const sheetTrigger = document.createElement('div');
+                sheetTrigger.dataset.artigo = JSON.stringify(a);
+                // The openArtigo logic here can just be a function call, but we have access to openArtigo
+                openArtigo(a);
+              }} 
+            />
 
             {/* Tabs: Artigos / Capítulos / Lotes — sempre renderizadas para evitar layout shift */}
             <div className={`mx-auto flex flex-col gap-3 ${isDesktop ? 'max-w-xl w-full' : 'w-full'}`}>
