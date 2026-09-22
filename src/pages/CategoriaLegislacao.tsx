@@ -2235,7 +2235,7 @@ const CategoriaLegislacao = () => {
                 minHeight: isDesktop ? '280px' : '300px',
               }}
             >
-              {/* Imagem de capa da lei (lado direito) */}
+              {/* Imagem de capa da lei (lado direito) - movida levemente para a direita */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                 <img
                   src={cover}
@@ -2243,7 +2243,7 @@ const CategoriaLegislacao = () => {
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
-                  className="absolute top-0 bottom-0 right-0 h-full w-auto max-w-none object-cover object-right select-none"
+                  className="absolute top-0 bottom-0 -right-6 md:-right-12 h-full w-auto max-w-none object-cover object-right select-none"
                 />
               </div>
 
@@ -2315,7 +2315,7 @@ const CategoriaLegislacao = () => {
               })()}
 
               {/* Conteúdo: Título da lei no lado esquerdo (sobre o amarelo) */}
-              <div className="relative z-10 pt-16 sm:pt-20 flex-1 flex flex-col justify-end px-5 sm:px-6 pb-3 max-w-[55%]">
+              <div className="relative z-10 pt-16 sm:pt-20 flex-1 flex flex-col justify-end px-5 sm:px-6 pb-2 max-w-[55%]">
                 <p
                   className="text-[10px] font-semibold tracking-[0.35em] uppercase mb-1.5 text-black/70"
                 >
@@ -2342,16 +2342,15 @@ const CategoriaLegislacao = () => {
                 )}
               </div>
 
-              {/* Barra de ações (antes no rodapé) — agora dentro do painel hero */}
-              <div className="relative z-10 px-3 sm:px-5 pb-4 pt-2">
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              {/* Barra de ações (quadradinhos tipo Home) */}
+              <div className="relative z-10 px-3 sm:px-5 pb-4 pt-3">
+                <div className="grid grid-cols-4 gap-2">
                   {[
-                    { key: 'novidades' as const, icon: History, label: 'Histórico' },
-                    { key: 'playlist' as const, icon: ListMusic, label: 'Playlist' },
-                    { key: 'anotacoes' as const, icon: StickyNote, label: 'Anotações' },
-                    { key: 'radar' as const, icon: Radar, label: 'Radar' },
-                    { key: 'fav' as const, icon: Heart, label: 'Favoritos' },
-                  ].map((tab) => {
+                    { key: 'fav' as const, icon: Heart, label: 'Favoritos', color: '#F87171' },
+                    { key: 'anotacoes' as const, icon: StickyNote, label: 'Anotações', color: '#38BDF8' },
+                    { key: 'playlist' as const, icon: ListMusic, label: 'Playlist', color: '#34D399' },
+                    { key: 'radar' as const, icon: Radar, label: 'Radar', color: '#FACC15' },
+                  ].map((tab, index) => {
                     const active = overlayPanel === tab.key;
                     return (
                       <button
@@ -2366,14 +2365,25 @@ const CategoriaLegislacao = () => {
                           setOverlayPanel(tab.key);
                         }}
                         type="button"
-                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] sm:text-xs font-medium whitespace-nowrap shrink-0 transition-all border ${
+                        style={{ '--shimmer-delay': `${index * 150}ms` } as React.CSSProperties}
+                        className={`group flex flex-col items-center justify-center py-3 px-1 rounded-2xl backdrop-blur-md border border-white/10 shadow-xl transition-all active:scale-95 gap-2 text-center min-h-[48px] select-none cursor-pointer overflow-hidden ${
                           active
-                            ? 'bg-black text-white border-black shadow-lg'
-                            : 'bg-black/20 text-white/90 border-white/15 backdrop-blur-sm hover:bg-black/30'
+                            ? 'bg-[#EFE039] text-black border-[#EFE039]'
+                            : 'bg-[#141416]/90 hover:bg-[#1C1C20]'
                         }`}
                       >
-                        <tab.icon className="w-4 h-4" strokeWidth={2} />
-                        {tab.label}
+                        <tab.icon
+                          className="w-5 h-5 shrink-0 transition-all group-hover:scale-110"
+                          style={{ color: active ? '#000000' : tab.color }}
+                          strokeWidth={2}
+                        />
+                        <span
+                          className={`text-[9px] font-extrabold leading-tight uppercase tracking-wider ${
+                            active ? 'text-black' : 'text-white/90'
+                          }`}
+                        >
+                          {tab.label}
+                        </span>
                       </button>
                     );
                   })}
