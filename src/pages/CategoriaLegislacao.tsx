@@ -2405,22 +2405,6 @@ const CategoriaLegislacao = () => {
                         >
                           <Camera className="w-4 h-4" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const numStr = window.prompt('Ir para artigo (número):');
-                            if (!numStr) return;
-                            const num = parseInt(numStr.replace(/\D/g, ''), 10);
-                            if (!num) return;
-                            const idx = visibleArtigos.findIndex(a => parseInt(a.numero.replace(/\D/g, ''), 10) === num);
-                            if (idx >= 0) artigosVirtualizer.scrollToIndex(idx, { align: 'center' });
-                          }}
-                          aria-label="Ir para o artigo número"
-                          title="Ir para o artigo específico"
-                          className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white transition-colors shrink-0 font-bold"
-                        >
-                          #
-                        </button>
                       </div>
                     </div>
                     <button
