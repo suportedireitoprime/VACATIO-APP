@@ -28,7 +28,7 @@ const HomeCardImpl = ({ icon: Icon, label, sublabel, color, delay = 0, onClick, 
     data-track={dataTrack}
     data-track-name={dataTrackName}
     data-track-section={dataTrackSection}
-    className={`group relative flex flex-col justify-between w-full h-[104px] min-h-[104px] p-3.5 rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm hover:shadow-md active:scale-[0.97] transition-all text-left overflow-hidden ${className}`}
+    className={`group relative flex flex-col justify-between w-full min-h-[104px] h-full p-3.5 rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm hover:shadow-md active:scale-[0.97] transition-all text-left overflow-hidden ${className}`}
   >
     <div className="flex items-center justify-between w-full">
       <Icon
@@ -42,7 +42,7 @@ const HomeCardImpl = ({ icon: Icon, label, sublabel, color, delay = 0, onClick, 
       <ChevronRight className="w-4 h-4 text-white/35 group-hover:text-white/70 group-hover:translate-x-0.5 transition-all" />
     </div>
     <div className="w-full min-w-0 mt-auto">
-      <p className="font-display text-white text-[14.5px] sm:text-[15.5px] font-bold uppercase tracking-tight leading-tight truncate">
+      <p className="font-display text-white text-[14.5px] sm:text-[15.5px] font-bold uppercase tracking-tight leading-tight line-clamp-2">
         {label}
       </p>
       {sublabel && (

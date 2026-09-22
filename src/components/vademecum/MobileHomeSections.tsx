@@ -17,6 +17,7 @@ import { ESTADOS } from '@/pages/LegislacaoEstadual';
 
 import { PillarIcon } from '@/components/icons/PillarIcon';
 import { leiPath, tipoToSlug } from '@/lib/legislacaoSlugs';
+import { pushRecente } from '@/lib/leisRecentes';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import VoiceCaptureOverlay from './VoiceCaptureOverlay';
 import HomeNoticiasCarousel from './HomeNoticiasCarousel';
@@ -40,6 +41,25 @@ const GRID_CATS: Cat[] = [
   { id: 'jurisprudencia',  label: 'JURISPRUDÊNCIA',  sublabel: 'STF, STJ, Vinculantes',     icon: ScrollText, color: '#EC4899' },
   { id: 'lei-ordinaria',   label: 'LEIS ORDINÁRIAS', sublabel: 'Federais complementares',   icon: Columns3,   color: '#38BDF8' },
   { id: 'lei-especial',    label: 'PENAL ESPECIAL',  sublabel: 'Leis penais extravagantes', icon: Scale,      color: '#FB923C' },
+];
+
+/** As 8 leis mais consultadas exibidas diretamente na aba Em Alta */
+const EM_ALTA_LEIS: Array<{
+  id: string;
+  leiId: string;
+  label: string;
+  sublabel: string;
+  icon: LucideIcon;
+  color: string;
+}> = [
+  { id: 'emalta-cf88', leiId: 'cf88', label: 'CONSTITUIÇÃO', sublabel: 'CF/88', icon: Landmark, color: '#FACC15' },
+  { id: 'emalta-clt', leiId: 'clt', label: 'CLT', sublabel: 'Leis Trabalhistas', icon: Briefcase, color: '#8B5CF6' },
+  { id: 'emalta-cc', leiId: 'cc', label: 'CÓDIGO CIVIL', sublabel: 'Lei 10.406/02', icon: Scale, color: '#3B82F6' },
+  { id: 'emalta-cpc', leiId: 'cpc', label: 'CÓD. PROCESSO CIVIL', sublabel: 'Lei 13.105/15', icon: FileText, color: '#06B6D4' },
+  { id: 'emalta-cp', leiId: 'cp', label: 'CÓDIGO PENAL', sublabel: 'Decreto-Lei 2.848/40', icon: ShieldAlert, color: '#EF4444' },
+  { id: 'emalta-cpp', leiId: 'cpp', label: 'CÓD. PROCESSO PENAL', sublabel: 'Decreto-Lei 3.689/41', icon: ShieldCheck, color: '#EC4899' },
+  { id: 'emalta-eoab', leiId: 'eoab', label: 'ESTATUTO DA OAB', sublabel: 'Lei 8.906/94', icon: Gavel, color: '#F59E0B' },
+  { id: 'emalta-eca', leiId: 'eca', label: 'ESTATUTO DA CRIANÇA', sublabel: 'ECA · Lei 8.069/90', icon: Baby, color: '#10B981' },
 ];
 
 // Cards de "Outras normas" que apontam para o Radar 360 com filtro pré-selecionado
@@ -275,6 +295,19 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
     navigate(`/legislacao/${tipoToSlug(id)}`);
   }, [navigate]);
 
+  const handleOpenLei = useCallback((leiId: string) => {
+    const lei = LEIS_CATALOG.find(l => l.id === leiId);
+    if (!lei) return;
+    pushRecente({
+      tipo: lei.tipo,
+      leiId: lei.id,
+      nome: lei.nome,
+      descricao: lei.descricao,
+      tabela_nome: lei.tabela_nome,
+    });
+    navigate(leiPath(lei));
+  }, [navigate]);
+
   // Memoize the derived lei lists so voice-input keystrokes and unrelated
   // parent re-renders don't reshape/refilter the entire catalog every tick.
   const categoryItems = useMemo(() => {
@@ -415,18 +448,17 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
             transition={{ duration: 0.24, ease: [0.22, 0.61, 0.36, 1] }}
             className="space-y-6"
           >
-            {/* Em Alta — 2 columns mobile, 3 columns tablet+ */}
+            {/* Em Alta — 8 principais leis em alta */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-
-              {GRID_CATS.map((c, i) => (
+              {EM_ALTA_LEIS.map((c, i) => (
                 <HomeCard
                   key={c.id}
                   icon={c.icon}
                   label={c.label}
                   sublabel={c.sublabel}
                   color={c.color}
-                  delay={i * 0.05}
-                  onClick={() => handle(c.id)}
+                  delay={i * 0.03}
+                  onClick={() => handleOpenLei(c.leiId)}
                   data-track="home_card_click"
                   data-track-name={c.label}
                   data-track-section="emalta"

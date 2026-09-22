@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock } from 'lucide-react';
+import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import MentorOverlay from './MentorOverlay';
 // PessoalSheet removido — Meu Espaço agora é rota dedicada (/meu-espaco).
@@ -179,46 +179,37 @@ const BottomNav = () => {
       <div className="bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] md:border md:rounded-full md:shadow-2xl md:shadow-black/30 md:pb-0">
 
         <div className="relative grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto md:gap-2 md:px-4 md:py-2">
-          {/* Notícias */}
+          {/* Códigos */}
           <button
-            onPointerDown={() => prefetchRoute('noticias')}
-            onMouseEnter={() => prefetchRoute('noticias')}
             onClick={() => {
               haptic.selection();
-              localStorage.setItem('noticias_last_seen', String(Date.now()));
-              setNoticiasCount(0);
-              navigate('/noticias');
+              navigate('/legislacao/codigos');
             }}
             data-track="bottom_nav_click"
-            data-track-destino="noticias"
-            className="flex flex-col items-center justify-end py-1.5 text-foreground hover:text-primary transition-colors"
-            aria-label="Notícias"
+            data-track-destino="codigos"
+            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/legislacao/codigos') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+            aria-label="Códigos"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <span className="relative">
-                <Newspaper className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
-                {noticiasCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-black text-[10px] font-bold leading-none ring-2 ring-card flex items-center justify-center" aria-label={`${noticiasCount} novas notícias`}>
-                    {noticiasCount > 9 ? '9+' : noticiasCount}
-                  </span>
-                )}
-              </span>
-              <span className="font-body text-[11px] sm:text-[12px] leading-tight">Notícias</span>
+              <BookOpen className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
+              <span className="font-body text-[11px] sm:text-[12px] leading-tight">Códigos</span>
             </span>
-
           </button>
 
-          {/* Lembretes */}
+          {/* Estatutos */}
           <button
-            onClick={() => { haptic.selection(); navigate('/meus-lembretes'); }}
+            onClick={() => {
+              haptic.selection();
+              navigate('/legislacao/estatutos');
+            }}
             data-track="bottom_nav_click"
-            data-track-destino="lembretes"
-            className="flex flex-col items-center justify-end py-1.5 text-foreground hover:text-primary transition-colors"
-            aria-label="Lembretes"
+            data-track-destino="estatutos"
+            className={`flex flex-col items-center justify-end py-1.5 transition-colors ${path.startsWith('/legislacao/estatutos') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+            aria-label="Estatutos"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <AlarmClock className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
-              <span className="font-body text-[11px] sm:text-[12px] leading-tight">Lembretes</span>
+              <Shield className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.5} />
+              <span className="font-body text-[11px] sm:text-[12px] leading-tight">Estatutos</span>
             </span>
           </button>
 
