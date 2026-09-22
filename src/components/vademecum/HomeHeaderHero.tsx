@@ -1,691 +1,209 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { pickAsset, assetUrl } from '@/lib/assetUrl';
-import { Menu as MenuIcon, Search, Scale, BookOpen, Clock, Layers, Eye, Feather, Lightbulb, ScrollText, History, ChevronLeft, User as UserIcon, Mic, Radar, MapPin, Monitor, Library, Bell, GraduationCap, Target, CloudOff, Newspaper, Heart, Bot, Camera } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Bell, Menu as MenuIcon, Layers, Clock, Eye, Lightbulb, ScrollText, Quote } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfileSummary } from '@/hooks/useProfileSummary';
-import { supabase } from '@/integrations/supabase/client';
-import cover2Asset from '@/assets/covers/cover-2.png.asset.json';
-import cover2Bundled from '@/assets/covers/cover-2.webp';
-import cover3Asset from '@/assets/covers/cover-3.png.asset.json';
-import cover3Bundled from '@/assets/covers/cover-3.webp';
-import cover4Asset from '@/assets/covers/cover-4.png.asset.json';
-import cover4Bundled from '@/assets/covers/cover-4.webp';
-import cover5Asset from '@/assets/covers/cover-5.png.asset.json';
-import cover5Bundled from '@/assets/covers/cover-5.webp';
-import cover6Asset from '@/assets/covers/cover-6.png.asset.json';
-import cover6Bundled from '@/assets/covers/cover-6.webp';
-import cover7Asset from '@/assets/covers/cover-7.png.asset.json';
-import cover7Bundled from '@/assets/covers/cover-7.webp';
-import cover8Asset from '@/assets/covers/cover-8.png.asset.json';
-import cover8Bundled from '@/assets/covers/cover-8.webp';
-import cover9Asset from '@/assets/covers/cover-9.png.asset.json';
-import cover9Bundled from '@/assets/covers/cover-9.webp';
-import cover10Asset from '@/assets/covers/cover-10.png.asset.json';
-import cover10Bundled from '@/assets/covers/cover-10.webp';
-import { useHeroHomeImages } from '@/hooks/useHeroHomeImages';
-import { useHomeCuriosidades } from '@/hooks/useHomeCuriosidades';
-import { useHeroMotifsConfig } from '@/hooks/useHeroMotifsConfig';
-import { HERO_ANIMATIONS } from '@/lib/heroAnimations';
-const COVER_POSITIONS = ['right', 'left', 'center', 'right', 'left'] as const;
-const FALLBACK_COVERS = [
-  { url: pickAsset(cover2Bundled, cover2Asset.url), preset: 'ken-burns' },
-  { url: pickAsset(cover3Bundled, cover3Asset.url), preset: 'ken-burns' },
-  { url: pickAsset(cover4Bundled, cover4Asset.url), preset: 'ken-burns' },
-  { url: pickAsset(cover5Bundled, cover5Asset.url), preset: 'ken-burns' },
-  { url: pickAsset(cover6Bundled, cover6Asset.url), preset: 'ken-burns' },
-  { url: pickAsset(cover7Bundled, cover7Asset.url), preset: 'ken-burns' },
-  { url: pickAsset(cover8Bundled, cover8Asset.url), preset: 'ken-burns' },
-  { url: pickAsset(cover9Bundled, cover9Asset.url), preset: 'ken-burns' },
-  { url: pickAsset(cover10Bundled, cover10Asset.url), preset: 'ken-burns' },
-];
-const SUBTITLES = [
-  'Uso Profissional',
-  'Para Estudantes',
-  'Para Advogados',
-  'Para Concurseiros',
-  'Para Professores',
-  'Para Servidores',
-  'Para Magistrados',
-];
-import logoVacatioAsset from '@/assets/logo-vacatio-v2.png.asset.json';
-import logoVacatioBundled from '@/assets/bundled/logo-vacatio-v2.webp';
-const logoVacatio = pickAsset(logoVacatioBundled, logoVacatioAsset.url);
-import { LEIS_CATALOG } from '@/data/leisCatalog';
-import { leiPath, tipoToSlug, leiToSlug } from '@/lib/legislacaoSlugs';
-const SideMenu = lazy(() => import('./SideMenu'));
+import heroEstudanteImg from '@/assets/covers/hero-estudante-v3.jpg';
+import HeroMotifs from './HeroMotifs';
+import HomeBrandBanner from './HomeBrandBanner';
+import HomeActionShortcuts from './HomeActionShortcuts';
+import HomeSearchButton from './HomeSearchButton';
+import NotificationsSheet, { useUnreadNotifCount } from './NotificationsSheet';
 import SearchOverlay from './SearchOverlay';
 import RecentesOverlay from './RecentesOverlay';
-import NotificationsSheet, { useUnreadNotifCount } from './NotificationsSheet';
 import { pushRecente } from '@/lib/leisRecentes';
-import { useShortcutBadges } from '@/hooks/useShortcutBadges';
-import { prefetchHeroRoutesIdle, prefetchRoute, type PrefetchKey } from '@/lib/routePrefetch';
+import { leiToSlug, tipoToSlug } from '@/lib/legislacaoSlugs';
+import { prefetchHeroRoutesIdle } from '@/lib/routePrefetch';
+import { LEIS_CATALOG } from '@/data/leisCatalog';
+import { useHomeCuriosidades } from '@/hooks/useHomeCuriosidades';
 
-const TIME_KEY = 'tempo_no_app_segundos';
-const DAILY_GOAL_SECONDS = 60 * 60; // 1h/dia para o anel de progresso
+const SideMenu = lazy(() => import('./SideMenu'));
 
-const HomeHeaderHero = ({ onSearchOpenChange }: { onSearchOpenChange?: (open: boolean) => void } = {}) => {
+interface HomeHeaderHeroProps {
+  onSearchOpenChange?: (open: boolean) => void;
+  onOpenMenu?: () => void;
+  onOpenSearch?: () => void;
+}
+
+const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHeaderHeroProps = {}) => {
   const navigate = useNavigate();
-  const shortcutBadges = useShortcutBadges();
   const { user } = useAuth();
   const { data: profileSummary } = useProfileSummary();
-  const { images: dbImages } = useHeroHomeImages();
-  const { config: motifsConfig } = useHeroMotifsConfig();
-  // Serve Supabase-hosted images via the image transform endpoint so the
-  // browser gets a compressed WebP (with long-lived Cache-Control) instead of
-  // the original PNG upload. Non-Supabase URLs and bundled assets pass through.
-  const toOptimized = (url: string): string => {
-    try {
-      if (!url) return url;
-      if (url.includes('/storage/v1/object/public/')) {
-        const opt = url.replace('/object/public/', '/render/image/public/');
-        const sep = opt.includes('?') ? '&' : '?';
-        return `${opt}${sep}width=1024&quality=78&format=origin`;
-      }
-      return url;
-    } catch { return url; }
-  };
-  const HERO_COVERS = dbImages.length > 0
-    ? dbImages.map((i) => ({ url: toOptimized(i.imagem_url), preset: i.animation_preset }))
-    : FALLBACK_COVERS;
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [recentesOpen, setRecentesOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = useUnreadNotifCount();
-  const [coverIndex, setCoverIndex] = useState(() => Math.floor(Math.random() * Math.max(1, HERO_COVERS.length)));
-  const [subtitleIndex, setSubtitleIndex] = useState(0);
-  const [motifTick, setMotifTick] = useState(0);
-  const [perfilLabel, setPerfilLabel] = useState<string>('');
 
-  // Prefetch dos 4 chunks das rotas dos atalhos em idle (Radares, Boletim, Blog, Biblioteca)
-  useEffect(() => { prefetchHeroRoutesIdle(); }, []);
-
-  // Warm the browser cache for the *next* hero cover in idle time so the
-  // crossfade is instant. Uses `<link rel="preload">` when possible and falls
-  // back to `new Image()`.
-  useEffect(() => {
-    if (HERO_COVERS.length <= 1) return;
-    const next = HERO_COVERS[(coverIndex + 1) % HERO_COVERS.length];
-    if (!next?.url) return;
-    const w: any = window;
-    const idle = w.requestIdleCallback || ((cb: any) => setTimeout(cb, 400));
-    const cancel = w.cancelIdleCallback || clearTimeout;
-    const handle = idle(() => {
-      const img = new Image();
-      img.decoding = 'async';
-      img.src = next.url;
-    });
-    return () => cancel(handle);
-  }, [coverIndex, HERO_COVERS]);
-
-
+  const perfilLabel = useMemo(() => {
+    if (profileSummary?.perfilContexto) return String(profileSummary.perfilContexto);
+    if (Array.isArray(profileSummary?.perfilTipos) && profileSummary.perfilTipos.length > 0) {
+      const mapa: Record<string, string> = {
+        faculdade: 'Estudante de Direito',
+        oab: 'Concurseiro OAB',
+        concurso: 'Concurseiro',
+        advogado: 'Advogado(a)',
+      };
+      return mapa[profileSummary.perfilTipos[0]] || 'Estudante de Direito';
+    }
+    return '';
+  }, [profileSummary?.perfilContexto, profileSummary?.perfilTipos]);
 
   useEffect(() => {
-    if (HERO_COVERS.length <= 1) return;
-    let id: ReturnType<typeof setInterval> | null = null;
-    const start = () => {
-      if (id) return;
-      id = setInterval(() => setCoverIndex((i) => (i + 1) % HERO_COVERS.length), 9000);
-    };
-    const stop = () => { if (id) { clearInterval(id); id = null; } };
-    if (!document.hidden) start();
-    const onVis = () => (document.hidden ? stop() : start());
-    document.addEventListener('visibilitychange', onVis);
-    return () => { stop(); document.removeEventListener('visibilitychange', onVis); };
-  }, [HERO_COVERS.length]);
-
-  // Rotação suave dos ícones jurídicos: a cada ~6s a constelação muda de
-  // preset (topo → meio ao redor do logo → laterais → base) com transição
-  // elegante de transform+opacity via CSS.
-  useEffect(() => {
-    let id: ReturnType<typeof setInterval> | null = null;
-    const start = () => {
-      if (id) return;
-      id = setInterval(() => setMotifTick((t) => t + 1), 6000);
-    };
-    const stop = () => { if (id) { clearInterval(id); id = null; } };
-    if (!document.hidden) start();
-    const onVis = () => (document.hidden ? stop() : start());
-    document.addEventListener('visibilitychange', onVis);
-    return () => { stop(); document.removeEventListener('visibilitychange', onVis); };
+    prefetchHeroRoutesIdle();
   }, []);
-
-
-  useEffect(() => {
-    if (!user?.id) return;
-    (async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('perfil_contexto, perfil_tipos')
-        .eq('id', user.id)
-        .maybeSingle();
-      if (data?.perfil_contexto) setPerfilLabel(String(data.perfil_contexto));
-      else if (Array.isArray(data?.perfil_tipos) && data.perfil_tipos.length > 0) {
-        const mapa: Record<string, string> = {
-          faculdade: 'Estudante de Direito',
-          oab: 'Concurseiro OAB',
-          concurso: 'Concurseiro',
-          advogado: 'Advogado(a)',
-        };
-        setPerfilLabel(mapa[data.perfil_tipos[0] as string] || 'Estudante de Direito');
-      }
-    })();
-  }, [user?.id]);
 
   useEffect(() => {
     onSearchOpenChange?.(searchOpen);
   }, [searchOpen, onSearchOpenChange]);
 
+  const handleOpenMenu = () => {
+    if (onOpenMenu) {
+      onOpenMenu();
+    } else {
+      setMenuOpen(true);
+    }
+  };
 
-  const nome =
-    (user?.user_metadata?.display_name as string | undefined) ||
-    (user?.user_metadata?.full_name as string | undefined) ||
-    (user?.email ? user.email.split('@')[0] : 'Bem-vindo');
-  const avatarUrl =
-    (profileSummary?.avatarUrl || undefined) ||
-    (user?.user_metadata?.avatar_url as string | undefined) ||
-    (user?.user_metadata?.picture as string | undefined);
-  const iniciais = nome
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((n) => n[0]?.toUpperCase())
-    .join('');
+  const handleOpenSearch = () => {
+    if (onOpenSearch) {
+      onOpenSearch();
+    } else {
+      setSearchOpen(true);
+    }
+  };
 
   return (
     <>
-      {/* Unified yellow shell — hero cover as full background; gray profile card floats inset with side margins */}
+      {/* Shell sólido, opaco e com blindagem contra culling e overscroll — amarelo ouro elegante */}
       <div
-        className="relative overflow-hidden rounded-b-[36px] border-b border-primary/30 shadow-2xl shadow-black/50 pt-[var(--sai-top,env(safe-area-inset-top,0px))]"
+        className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 pt-[var(--sai-top)] flex flex-col z-20"
         style={{
-          background:
-            'linear-gradient(135deg, #EFE039 0%, #EFE039 55%, #EFE039 100%)',
-          // Força layer de composição próprio no Android WebView. Sem isso, ao
-          // sair/voltar da viewport o WebView descarta o raster do conteúdo
-          // filho (profile + logo + Vade Mecum) e só o fundo amarelo permanece
-          // até um novo repaint. transform:translateZ(0) + isolation:isolate
-          // dá stacking-context + camada GPU dedicada, evitando o bug.
           transform: 'translateZ(0)',
-          isolation: 'isolate',
-          contain: 'paint',
+          backgroundColor: '#050505',
         }}
       >
-        {/* Subtle radial warmth */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.35),transparent_65%)]" />
+        {/* Blindagem de overscroll superior contra vazamento do fundo */}
+        <div
+          className="pointer-events-none absolute -top-[1200px] left-0 right-0 h-[1200px] z-0"
+          style={{ backgroundColor: '#050505' }}
+          aria-hidden="true"
+        />
 
-        {/* Decorative legal motifs — apenas ao redor das bordas, com float + shimmer */}
-        <svg
-          className="pointer-events-none absolute inset-0 w-full h-full opacity-[0.32]"
-          viewBox="0 0 400 300"
-          preserveAspectRatio="xMidYMid slice"
-          aria-hidden
+        {/* Imagem de Capa do Painel do Início (lado direito) */}
+        <img
+          src={heroEstudanteImg}
+          alt=""
+          aria-hidden="true"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+          className="absolute inset-0 w-full h-full object-cover object-[32%_center] md:object-center z-0 pointer-events-none translate-x-[12%] md:translate-x-[8%]"
+        />
+
+        {/* Overlay amarelo com gradiente e sombra diagonal dupla (mesmo formato da divisória do painel de referência) */}
+        <div
+          className="absolute inset-0 z-[1] pointer-events-none"
+          style={{ filter: 'drop-shadow(25px 0 25px rgba(0,0,0,0.8)) drop-shadow(8px 0 10px rgba(0,0,0,0.95))' }}
         >
-          <defs>
-            {/*
-              Família unificada — monoline gravado a buril, traço 2.0,
-              desenhados dentro de uma caixa de ~56x56 centrada na origem,
-              para leitura clara e proporção idêntica entre símbolos.
-            */}
-            {/* Balança da justiça — coluna, viga, pratos e base evidentes */}
-            <g id="legal-scales" stroke="rgba(0,0,0,0.95)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="0" cy="-26" r="2.4" fill="rgba(0,0,0,0.95)" stroke="none" />
-              <line x1="0" y1="-24" x2="0" y2="18" />
-              {/* Viga */}
-              <line x1="-22" y1="-18" x2="22" y2="-18" />
-              {/* Correntes */}
-              <line x1="-22" y1="-18" x2="-22" y2="-10" />
-              <line x1="22" y1="-18" x2="22" y2="-10" />
-              {/* Prato esquerdo */}
-              <path d="M -30 -10 Q -22 -2 -14 -10" />
-              <line x1="-30" y1="-10" x2="-14" y2="-10" />
-              {/* Prato direito */}
-              <path d="M 14 -10 Q 22 -2 30 -10" />
-              <line x1="14" y1="-10" x2="30" y2="-10" />
-              {/* Base */}
-              <path d="M -12 18 L 12 18 L 9 22 L -9 22 Z" />
-              <line x1="-14" y1="22" x2="14" y2="22" />
-            </g>
-            {/* Martelo do juiz (gavel) — cabeça + sound block visíveis */}
-            <g id="legal-gavel" stroke="rgba(0,0,0,0.95)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <g transform="rotate(-30)">
-                {/* Cabeça */}
-                <rect x="-16" y="-9" width="32" height="14" rx="2.5" />
-                <line x1="-10" y1="-9" x2="-10" y2="5" />
-                <line x1="10" y1="-9" x2="10" y2="5" />
-                {/* Cabo */}
-                <line x1="6" y1="5" x2="22" y2="21" strokeWidth="2.6" />
-                <circle cx="22" cy="21" r="1.8" fill="rgba(0,0,0,0.95)" stroke="none" />
-              </g>
-              {/* Sound block */}
-              <rect x="-18" y="16" width="36" height="5" rx="1.2" />
-              <line x1="-16" y1="21" x2="16" y2="21" />
-            </g>
-            {/* Livro aberto — páginas com linhas de texto claras */}
-            <g id="legal-book" stroke="rgba(0,0,0,0.95)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              {/* Lombada */}
-              <line x1="0" y1="-14" x2="0" y2="16" />
-              {/* Página esquerda */}
-              <path d="M 0 -12 Q -12 -16 -22 -14 L -22 14 Q -12 12 0 16 Z" />
-              {/* Página direita */}
-              <path d="M 0 -12 Q 12 -16 22 -14 L 22 14 Q 12 12 0 16 Z" />
-              {/* Linhas de texto */}
-              <line x1="-18" y1="-8" x2="-4" y2="-6" />
-              <line x1="-18" y1="-2" x2="-4" y2="0" />
-              <line x1="-18" y1="4"  x2="-4" y2="6" />
-              <line x1="4" y1="-6"  x2="18" y2="-8" />
-              <line x1="4" y1="0"   x2="18" y2="-2" />
-              <line x1="4" y1="6"   x2="18" y2="4" />
-            </g>
-            {/* Espada — mesma família, ~56 de altura */}
-            <g id="legal-sword" stroke="rgba(0,0,0,0.95)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="0" y1="-26" x2="0" y2="14" />
-              <path d="M -3 -26 Q 0 -30 3 -26" />
-              <line x1="-12" y1="14" x2="12" y2="14" />
-              <line x1="0" y1="14" x2="0" y2="24" />
-              <path d="M -5 24 Q 0 28 5 24" />
-            </g>
-          </defs>
+          <div
+            className="absolute inset-0 overflow-hidden"
+            style={{ clipPath: 'polygon(0 0, 47% 0, 36% 100%, 0% 100%)' }}
+          >
+            <div className="absolute inset-0 bg-hero-panel-yellow" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.28),transparent_60%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.45),transparent_65%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
 
-          {/*
-            Distribuição organizada: grade simétrica ao longo das bordas
-            (topo, laterais e base), com rotações discretas para não competir
-            com o personagem. Icons ficam estáticos — visíveis, ordenados,
-            sem shuffle contínuo que polui a leitura.
-          */}
-          {(() => {
-            type Spot = { x: number; y: number; r: number; s: number };
-            // Quatro constelações — a cada tick a mesma <g> vai para a
-            // posição correspondente na próxima constelação, criando a
-            // sensação de que os símbolos "flutuam" pelo painel, inclusive
-            // orbitando o logo/personagem no centro.
-            const LAYOUTS: Spot[][] = [
-              // 0) Topo + laterais altas
-              [
-                { x:  70, y:  46, r: -8, s: 1.0  },
-                { x: 200, y:  36, r:  0, s: 1.15 },
-                { x: 330, y:  46, r:  8, s: 1.0  },
-                { x:  34, y: 118, r: -14, s: 0.95 },
-                { x: 366, y: 118, r:  14, s: 0.95 },
-                { x:  30, y: 210, r:  10, s: 0.9  },
-                { x: 370, y: 210, r: -10, s: 0.9  },
-                { x: 110, y: 268, r:   6, s: 0.9  },
-                { x: 200, y: 276, r:   0, s: 1.0  },
-                { x: 290, y: 268, r:  -6, s: 0.9  },
-              ],
-              // 1) Orbitando o logo/personagem (constelação central)
-              [
-                { x: 200, y:  56, r:   0, s: 1.05 },
-                { x: 110, y:  96, r: -18, s: 0.95 },
-                { x: 290, y:  96, r:  18, s: 0.95 },
-                { x:  56, y: 160, r: -10, s: 0.9  },
-                { x: 344, y: 160, r:  10, s: 0.9  },
-                { x: 110, y: 220, r:  12, s: 0.95 },
-                { x: 290, y: 220, r: -12, s: 0.95 },
-                { x: 200, y: 250, r:   0, s: 1.1  },
-                { x:  30, y:  90, r: -30, s: 0.85 },
-                { x: 370, y:  90, r:  30, s: 0.85 },
-              ],
-              // 2) Diagonal — cascata elegante do canto sup-esq ao inf-dir
-              [
-                { x:  40, y:  50, r: -12, s: 0.95 },
-                { x: 108, y:  86, r:  -6, s: 1.0  },
-                { x: 178, y: 122, r:   0, s: 1.05 },
-                { x: 248, y: 158, r:   6, s: 1.0  },
-                { x: 318, y: 194, r:  12, s: 0.95 },
-                { x:  60, y: 232, r:  18, s: 0.9  },
-                { x: 360, y:  72, r: -18, s: 0.9  },
-                { x: 200, y:  36, r:   0, s: 0.95 },
-                { x: 130, y: 270, r:  10, s: 0.9  },
-                { x: 290, y: 270, r: -10, s: 0.9  },
-              ],
-              // 3) Base + laterais baixas (espelha o preset 0)
-              [
-                { x:  70, y: 264, r:   8, s: 1.0  },
-                { x: 200, y: 274, r:   0, s: 1.15 },
-                { x: 330, y: 264, r:  -8, s: 1.0  },
-                { x:  34, y: 200, r:  14, s: 0.95 },
-                { x: 366, y: 200, r: -14, s: 0.95 },
-                { x:  30, y: 110, r: -10, s: 0.9  },
-                { x: 370, y: 110, r:  10, s: 0.9  },
-                { x: 110, y:  48, r:  -6, s: 0.9  },
-                { x: 200, y:  40, r:   0, s: 1.0  },
-                { x: 290, y:  48, r:   6, s: 0.9  },
-              ],
-            ];
-            const ICONS = [
-              'legal-scales',
-              'legal-gavel',
-              'legal-book',
-              'legal-scales',
-              'legal-gavel',
-              'legal-book',
-              'legal-scales',
-              'legal-gavel',
-              'legal-book',
-              'legal-scales',
-            ];
-            const preset = LAYOUTS[motifTick % LAYOUTS.length];
-            return ICONS.map((id, i) => {
-              const slot = preset[i];
-              return (
-                <g
-                  key={i}
-                  className="hero-legal-icon"
-                  style={{
-                    transform: `translate(${slot.x}px, ${slot.y}px) rotate(${slot.r}deg) scale(${slot.s})`,
-                    transition:
-                      'transform 1400ms cubic-bezier(0.22, 1, 0.36, 1), opacity 900ms ease',
-                  }}
-                >
-                  <use href={`#${id}`} />
-                </g>
-              );
-            });
-          })()}
-        </svg>
+            {/* Motifs jurídicos clássicos */}
+            <HeroMotifs />
 
-
-
-        {/* Reflexo horizontal passando sobre os ícones esmaecidos */}
-        
-
-
-        {/* Cover art — cross-fading Ken Burns rotation, alternating positions */}
-        <div className="pointer-events-none absolute inset-0 select-none overflow-hidden">
-          <AnimatePresence initial={false}>
-            {(() => {
-              const current = HERO_COVERS[coverIndex % HERO_COVERS.length];
-              if (!current) return null;
-              const pos = COVER_POSITIONS[coverIndex % COVER_POSITIONS.length];
-              const posClass =
-                pos === 'right'
-                  ? 'right-[4%] left-auto origin-bottom-right'
-                  : pos === 'left'
-                  ? 'left-[4%] right-auto origin-bottom-left'
-                  : 'left-1/2 -translate-x-1/2 origin-bottom';
-              // Fade-in com um leve zoom (entrada suave, sem "seca").
-              // Mantém-se leve em mobile/tablet: sem spring, sem loop.
-              // Crossfade: incoming fades in slowly while outgoing fades out —
-              // exit runs at the same time as enter, giving no dry cuts.
-              const preset = {
-                initial: { opacity: 0 },
-                animate: { opacity: 1 },
-                exit: { opacity: 0 },
-                transition: { duration: 1.6, ease: [0.22, 1, 0.36, 1] as const },
-              };
-              // Continuous Ken Burns pan+zoom while displayed. Alternates
-              // direction per image so it always feels like it's breathing.
-              const kenBurnsAnim = (coverIndex % 2 === 0)
-                ? 'ken-burns-a 12s ease-in-out infinite alternate'
-                : 'ken-burns-b 12s ease-in-out infinite alternate';
-              return (
-                <motion.img
-                  key={coverIndex}
-                  src={current.url}
-                  alt=""
-                  loading="eager"
-                  decoding="async"
-                  // @ts-expect-error non-standard yet-widely-supported hint
-                  fetchpriority="high"
-                  width={1024}
-                  height={1024}
-                  onError={(e) => {
-                    const el = e.currentTarget as HTMLImageElement;
-                    el.style.opacity = '0';
-                  }}
-                  initial={preset.initial}
-                  animate={preset.animate}
-                  exit={preset.exit}
-                  transition={preset.transition}
-                  style={{ animation: kenBurnsAnim, willChange: 'transform' }}
-                  className={`absolute bottom-0 h-[88%] w-auto max-w-[70%] object-contain object-bottom drop-shadow-[0_10px_28px_rgba(0,0,0,0.35)] ${posClass}`}
-                />
-              );
-            })()}
-          </AnimatePresence>
+            {/* Grid Pattern Background */}
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px)',
+                backgroundSize: '24px 24px',
+              }}
+            />
+          </div>
         </div>
 
-        {/* Bottom-up gradient for text legibility */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
-
-        {/* Floating gray profile card — inset with lateral margins */}
-        <header className="relative px-3 pt-3 md:px-6 md:pt-6 lg:px-8 lg:pt-8 flex items-center gap-2 md:gap-4">
-          <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1 pr-3 pl-1">
-            <div className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full overflow-hidden border-2 border-white bg-black/40 flex items-center justify-center shrink-0 shadow-lg shadow-black/50">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={nome}
-                  referrerPolicy="no-referrer"
-                  crossOrigin="anonymous"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                  className="w-full h-full object-cover"
-                />
-              ) : iniciais ? (
-                <span className="font-display text-white text-[14px] md:text-[16px] lg:text-[18px] font-bold">{iniciais}</span>
-              ) : (
-                <UserIcon className="w-5 h-5 md:w-6 md:h-6 text-white/80" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-display text-white text-[17px] md:text-[19px] lg:text-[21px] font-bold leading-[1.15] truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
-                {nome}
-              </p>
-              {perfilLabel && (
-                <p className="font-body text-white/95 text-[13.5px] md:text-[15px] lg:text-[16px] font-medium leading-tight truncate mt-0.5 md:mt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
-                  {perfilLabel}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 md:gap-3 shrink-0">
+        {/* Botões de Notificação e Menu flutuantes no topo direito */}
+        <header className="absolute top-0 right-0 left-0 z-20 pt-[calc(0.75rem+var(--sai-top,env(safe-area-inset-top,0px)))] md:pt-[calc(1rem+var(--sai-top,env(safe-area-inset-top,0px)))] lg:pt-[calc(1.5rem+var(--sai-top,env(safe-area-inset-top,0px)))] pointer-events-none">
+          <div className="pointer-events-auto px-4 pb-2 pt-2 flex items-center justify-end gap-2 sm:gap-3">
             <button
               onClick={() => setNotifOpen(true)}
               aria-label={`Abrir notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
-              className="relative w-11 h-11 md:w-12 md:h-12 lg:w-13 lg:h-13 rounded-full bg-neutral-900/85 border border-white/15 backdrop-blur-md shadow-lg shadow-black/40 flex items-center justify-center active:scale-95 transition"
+              className="grid w-12 h-12 sm:w-[52px] sm:h-[52px] shrink-0 place-items-center rounded-full bg-black/40 border border-white/10 text-white backdrop-blur-md transition-colors hover:bg-black/60 active:scale-95 relative"
             >
-              <Bell className="w-5 h-5 md:w-[22px] md:h-[22px] text-white" />
+              <Bell className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.4} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] md:min-w-[20px] md:h-[20px] px-1 rounded-full bg-red-500 text-gray-900 text-[10px] md:text-[11px] font-bold leading-none flex items-center justify-center border border-neutral-900 shadow">
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-black text-[10px] font-bold leading-none flex items-center justify-center border border-neutral-900 shadow">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
             </button>
             <button
-              onClick={() => setMenuOpen(true)}
+              onClick={handleOpenMenu}
               aria-label="Abrir menu"
-              className="w-11 h-11 md:w-12 md:h-12 lg:w-13 lg:h-13 rounded-full bg-neutral-900/85 border border-white/15 backdrop-blur-md shadow-lg shadow-black/40 flex items-center justify-center active:scale-95 transition"
+              className="grid w-12 h-12 sm:w-[52px] sm:h-[52px] shrink-0 place-items-center rounded-full bg-black/40 border border-white/10 text-white backdrop-blur-md transition-colors hover:bg-black/60 active:scale-95"
             >
-              <MenuIcon className="w-5 h-5 md:w-[22px] md:h-[22px] text-white" />
+              <MenuIcon className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.4} />
             </button>
           </div>
         </header>
 
-        <div className="relative px-4 pt-5 pb-5 min-h-[240px] flex flex-col gap-4">
-          {/* Centered brand block */}
-          <div className="flex flex-col items-center text-center gap-2 pt-1">
-            <div className="relative w-20 h-20 rounded-full border border-white/90 bg-primary flex items-center justify-center overflow-hidden shadow-[0_6px_18px_rgba(0,0,0,0.45)] logo-shine">
-              <img
-                src={logoVacatio}
-                alt="OAB na Risca"
-                width={80}
-                height={80}
-                loading="eager"
-                decoding="sync"
-                {...({ fetchpriority: 'high' } as any)}
-                className="w-full h-full rounded-full object-cover scale-[1.06]"
-              />
+        {/* Conteúdo: Logo e Marca à esquerda — posicionado na área amarela */}
+        <div className="relative z-10 pt-8 sm:pt-10 flex-1 flex flex-col justify-start min-h-[100px]">
+          <HomeBrandBanner perfilLabel={perfilLabel} />
+        </div>
 
-            </div>
-            <h1 className="font-display text-white text-[28px] leading-none font-black tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]">
-              Vade Mecum
-            </h1>
-            <div className="relative h-[16px] overflow-hidden">
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={subtitleIndex}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.5, ease: 'easeOut' }}
-                  className="font-body text-white/85 text-[12.5px] font-medium tracking-wide uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)] whitespace-nowrap"
-                >
-                  {SUBTITLES[subtitleIndex]}
-                </motion.p>
-              </AnimatePresence>
-            </div>
-          </div>
+        {/* Atalhos Rápidos: Me Explique, Anotações, Grifos, Favoritos */}
+        <div className="relative z-10 px-3 sm:px-5 pt-2 pb-2">
+          <HomeActionShortcuts />
+        </div>
 
-          {/* Search bar */}
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            aria-label="Pesquisar artigos e leis"
-            className="mt-auto relative w-full flex items-center h-16 pl-14 pr-[112px] rounded-2xl bg-black/45 backdrop-blur-md border border-primary/40 shadow-lg shadow-black/30 active:scale-[0.99] transition search-bar-shine"
-          >
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-primary shrink-0" strokeWidth={2.2} />
-            <span className="relative z-[2] font-body text-white/70 text-[15px] font-medium truncate text-left">
-              <TypingHint />
-            </span>
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 h-12 px-5 rounded-xl bg-primary text-primary-foreground font-display text-[13px] font-bold tracking-wider flex items-center justify-center shadow-md">
-              PESQUISAR
-            </div>
-          </button>
-
-
-          {/* Atalhos rápidos — abaixo da barra de pesquisa */}
-          <div className="grid grid-cols-4 gap-2 mt-1">
-            {[
-              { label: 'Me Explique', icon: Camera,     to: '/me-explique',       color: '#EFE039', bg: 'bg-black/75', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-              { label: 'Anotações',  icon: ScrollText,  to: '/pessoal/anotacoes', color: '#38BDF8', bg: 'bg-black/65', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-              { label: 'Grifos',     icon: Feather,       to: '/pessoal/grifos',    color: '#34D399', bg: 'bg-black/55', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-              { label: 'Favoritos',  icon: Heart,    to: '/pessoal/favoritos', color: '#F87171', bg: 'bg-black/45', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-            ].map((item) => {
-              const Icon = item.icon;
-              const badgeCount = item.badgeKey ? shortcutBadges.counts[item.badgeKey] : 0;
-              return (
-                <button
-                  key={item.label}
-                  onPointerDown={() => item.prefetch && prefetchRoute(item.prefetch)}
-                  onMouseEnter={() => item.prefetch && prefetchRoute(item.prefetch)}
-                  onFocus={() => item.prefetch && prefetchRoute(item.prefetch)}
-                  onClick={() => {
-                    if (item.badgeKey) shortcutBadges.markSeen(item.badgeKey);
-                    navigate(item.to);
-                  }}
-                  className={`group relative flex flex-col items-center justify-center gap-1 h-[72px] rounded-2xl ${item.bg} backdrop-blur-md border border-white/15 shadow-lg shadow-black/30 active:scale-[0.96] transition`}
-                >
-                  {badgeCount > 0 && item.badgeColor && (
-                    <span
-                      className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] font-bold leading-none flex items-center justify-center border border-white/20 shadow z-10"
-                      style={{ backgroundColor: item.badgeColor }}
-                    >
-                      {badgeCount > 99 ? '99+' : badgeCount}
-                    </span>
-                  )}
-
-                  <Icon
-                    className="w-6 h-6"
-                    style={{ color: item.color, filter: 'saturate(1.3) drop-shadow(0 2px 6px rgba(0,0,0,0.6))' }}
-                    strokeWidth={1.6}
-                  />
-                  <span className="font-display text-white text-[12px] font-bold tracking-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
+        {/* Barra de Pesquisa */}
+        <div className="relative z-10 px-4 sm:px-6 w-full pb-5">
+          <HomeSearchButton onOpenSearch={handleOpenSearch} />
         </div>
       </div>
 
-
-
-
-
-
-
-      <Suspense fallback={null}>{menuOpen && <SideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />}</Suspense>
-      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
-      <SearchOverlay
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onSelectLei={(lei) => {
-          setSearchOpen(false);
-          pushRecente({ tipo: lei.tipo, leiId: lei.leiId, nome: lei.nome, descricao: lei.descricao, tabela_nome: lei.tabela_nome });
-          const slug = leiToSlug({ id: lei.leiId, nome: lei.nome });
-          const base = `/legislacao/${tipoToSlug(lei.tipo)}/${slug}`;
-          navigate(lei.artigoNumero ? `${base}/${encodeURIComponent(lei.artigoNumero)}` : base);
-        }}
-      />
-      <RecentesOverlay
-        open={recentesOpen}
-        onClose={() => setRecentesOpen(false)}
-        onSelectLei={(lei) => {
-          setRecentesOpen(false);
-          pushRecente(lei);
-          navigate(`/legislacao/${tipoToSlug(lei.tipo)}/${leiToSlug({ id: lei.leiId, nome: lei.nome })}`);
-        }}
-      />
+      <Suspense fallback={null}>
+        {!onOpenMenu && menuOpen && <SideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />}
+        {notifOpen && <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />}
+        {!onOpenSearch && (
+          <SearchOverlay
+            open={searchOpen}
+            onClose={() => setSearchOpen(false)}
+            onSelectLei={(lei) => {
+              setSearchOpen(false);
+              pushRecente({ tipo: lei.tipo, leiId: lei.leiId, nome: lei.nome, descricao: lei.descricao, tabela_nome: lei.tabela_nome });
+              const slug = leiToSlug({ id: lei.leiId, nome: lei.nome });
+              const base = `/legislacao/${tipoToSlug(lei.tipo)}/${slug}`;
+              navigate(lei.artigoNumero ? `${base}/${encodeURIComponent(lei.artigoNumero)}` : base);
+            }}
+          />
+        )}
+        <RecentesOverlay
+          open={recentesOpen}
+          onClose={() => setRecentesOpen(false)}
+          onSelectLei={(lei) => {
+            setRecentesOpen(false);
+            pushRecente(lei);
+            navigate(`/legislacao/${tipoToSlug(lei.tipo)}/${leiToSlug({ id: lei.leiId, nome: lei.nome })}`);
+          }}
+        />
+      </Suspense>
     </>
   );
 };
 
-const HINTS = [
-  'Pesquise o artigo...',
-  'Pesquise a lei...',
-  'Pesquise o número da lei...',
-  'Pesquise trechos...',
-  'Pesquise normas...',
-  'Pesquise jurisprudência...',
-  'Pesquise súmulas...',
-  'Pesquise por voz...',
-];
+export const TIME_KEY = 'tempo_no_app_segundos';
+export const DAILY_GOAL_SECONDS = 60 * 60;
 
-const TypingHint = () => {
-  const [text, setText] = useState('');
-  const [hintIndex, setHintIndex] = useState(0);
-  const [phase, setPhase] = useState<'typing' | 'paused' | 'erasing'>('typing');
-
-  useEffect(() => {
-    const current = HINTS[hintIndex];
-    let timer: ReturnType<typeof setTimeout>;
-
-    if (phase === 'typing') {
-      if (text.length < current.length) {
-        timer = setTimeout(() => setText(current.slice(0, text.length + 1)), 90);
-      } else {
-        timer = setTimeout(() => setPhase('paused'), 1500);
-      }
-    } else if (phase === 'paused') {
-      timer = setTimeout(() => setPhase('erasing'), 100);
-    } else if (phase === 'erasing') {
-      if (text.length > 0) {
-        timer = setTimeout(() => setText(text.slice(0, text.length - 1)), 50);
-      } else {
-        setHintIndex((i) => (i + 1) % HINTS.length);
-        setPhase('typing');
-      }
-    }
-
-    return () => clearTimeout(timer);
-  }, [text, hintIndex, phase]);
-
-  return (
-    <span className="inline-flex items-center">
-      {text}
-      <span className="ml-0.5 inline-block w-[2px] h-[14px] bg-white/80 animate-pulse" />
-    </span>
-  );
-};
-
-
-type CardItem =
+export type CardItem =
   | {
       type: 'stat';
       icon: React.ElementType;
@@ -722,7 +240,7 @@ type CardItem =
       imagem_url: string | null;
     };
 
-const PHILOSOPHER_QUOTES = [
+export const PHILOSOPHER_QUOTES = [
   { frase: 'Onde não há lei, não há liberdade.', autor: 'Aristóteles' },
   { frase: 'A justiça é a alma da sociedade.', autor: 'Platão' },
   { frase: 'A justiça é a constante vontade de dar a cada um o que lhe é devido.', autor: 'Ulpiano' },
@@ -745,7 +263,7 @@ const PHILOSOPHER_QUOTES = [
   { frase: 'A propriedade é um roubo.', autor: 'Proudhon' },
 ];
 
-const LEGAL_CURIOSITIES = [
+export const LEGAL_CURIOSITIES = [
   { texto: 'A Constituição Federal de 1988 é a 7ª da história do Brasil.' },
   { texto: 'O Código Civil brasileiro atual tem 2.046 artigos e entrou em vigor em 2003.' },
   { texto: 'A OAB foi criada em 1930, meses antes da Revolução.' },
@@ -773,7 +291,7 @@ const LEGAL_CURIOSITIES = [
   { texto: 'A Constituição de 1824 foi outorgada por Dom Pedro I e durou 65 anos.' },
 ];
 
-const TERMOS_JURIDICOS = [
+export const TERMOS_JURIDICOS = [
   { termo: 'Ab initio', significado: 'Desde o início.' },
   { termo: 'Ad hoc', significado: 'Para uma finalidade específica.' },
   { termo: 'Data venia', significado: 'Com o devido respeito.' },
@@ -914,7 +432,6 @@ export const RotatingStatCard = ({ wide = false }: { wide?: boolean } = {}) => {
 
   const items = baseItems;
 
-  // Persist rotation so user sees a different card each visit; loops after seeing all.
   const IDX_KEY = 'home_stat_card_idx';
   const [idx, setIdx] = useState(() => {
     if (typeof window === 'undefined') return 0;
@@ -931,7 +448,6 @@ export const RotatingStatCard = ({ wide = false }: { wide?: boolean } = {}) => {
     }), 10000);
     return () => clearInterval(it);
   }, [items.length]);
-
 
   const renderCard = (item: CardItem, i: number, keyed = false) => {
     const Icon = item.icon;
@@ -1057,7 +573,6 @@ export const RotatingStatCard = ({ wide = false }: { wide?: boolean } = {}) => {
   };
 
   if (wide) {
-    // Duplicamos os itens para dar sensação de carrossel infinito (loop visual).
     const looped = [...items, ...items];
     return (
       <div
@@ -1065,10 +580,7 @@ export const RotatingStatCard = ({ wide = false }: { wide?: boolean } = {}) => {
         style={{ scrollPaddingLeft: '2.5rem', scrollPaddingRight: '1rem' }}
       >
         {looped.map((item, i) => (
-          <div
-            key={i}
-            className="snap-start shrink-0 w-[82%]"
-          >
+          <div key={i} className="snap-start shrink-0 w-[82%]">
             {renderCard(item, i)}
           </div>
         ))}
@@ -1076,33 +588,10 @@ export const RotatingStatCard = ({ wide = false }: { wide?: boolean } = {}) => {
     );
   }
 
-
   const current = items[idx];
   return (
     <div key={idx} className="animate-in fade-in slide-in-from-right-3 duration-500">
       {renderCard(current, idx)}
-    </div>
-  );
-};
-
-/* Avatar with graceful fallback (Google photo often 403s without no-referrer) */
-const AvatarWithFallback = ({ src, nome, iniciais }: { src?: string; nome: string; iniciais: string }) => {
-  const [errored, setErrored] = useState(false);
-  const show = src && !errored;
-  return show ? (
-    <img
-      src={src}
-      alt={nome}
-      referrerPolicy="no-referrer"
-      crossOrigin="anonymous"
-      loading="eager"
-      decoding="async"
-      onError={() => setErrored(true)}
-      className="w-12 h-12 rounded-full object-cover border-[2.5px] border-primary/70 shadow-lg shadow-black/40 shrink-0 bg-primary/20"
-    />
-  ) : (
-    <div className="w-12 h-12 rounded-full bg-primary/20 border-[2.5px] border-primary/70 flex items-center justify-center shadow-lg shadow-black/40 shrink-0">
-      <span className="font-display text-primary text-base font-bold">{iniciais || 'V'}</span>
     </div>
   );
 };
