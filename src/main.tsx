@@ -36,12 +36,6 @@ if (Capacitor.isNativePlatform()) {
   void import("@capacitor-community/safe-area").then(({ SafeArea, SystemBarsStyle }) => {
     void SafeArea.setSystemBarsStyle({ style: SystemBarsStyle.Dark }).catch(() => {});
   });
-  // Fecha imediatamente qualquer splash do plugin (o splash do sistema
-  // Android 12+ é gerenciado pelo tema; esta chamada garante que nada
-  // do plugin fique visível sobre a WebView em OEMs teimosos).
-  void import("@capacitor/splash-screen").then(({ SplashScreen }) => {
-    void SplashScreen.hide({ fadeOutDuration: 0 }).catch(() => {});
-  });
 }
 
 
@@ -71,7 +65,7 @@ const scheduleBoot = () => {
   import('./services/blogAssetsPrefetch').then(m => void m.prefetchBlogCovers());
 };
 if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-  (window as any).requestIdleCallback(scheduleBoot, { timeout: 3000 });
+  (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => void }).requestIdleCallback(scheduleBoot, { timeout: 3000 });
 } else {
   setTimeout(scheduleBoot, 1200);
 }

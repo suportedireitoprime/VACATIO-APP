@@ -759,6 +759,40 @@ jobs:
           #  - displayCutoutMode = ALWAYS (substitui SHORT_EDGES deprecado no Android 15).
           PKG_DIR="android/app/src/main/java/br/com/vacatio/app"
           mkdir -p "$PKG_DIR"
+          cat > "$PKG_DIR/CrashActivity.java" <<'JAVA'
+          package br.com.vacatio.app;
+
+          import android.app.Activity;
+          import android.content.Intent;
+          import android.os.Bundle;
+          import android.widget.ScrollView;
+          import android.widget.TextView;
+
+          public class CrashActivity extends Activity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  String stackTrace = getIntent().getStringExtra("STACK_TRACE");
+                  if (stackTrace == null) {
+                      stackTrace = "No stack trace provided.";
+                  }
+
+                  ScrollView scrollView = new ScrollView(this);
+                  TextView textView = new TextView(this);
+                  textView.setText("O aplicativo encontrou um erro:\n\nPor favor tire um print desta tela e envie ao desenvolvedor:\n\n" + stackTrace);
+                  textView.setPadding(32, 32, 32, 32);
+                  textView.setTextSize(14);
+                  textView.setTextColor(0xFF000000);
+                  scrollView.setBackgroundColor(0xFFFFFFFF);
+                  scrollView.addView(textView);
+
+                  setContentView(scrollView);
+              }
+          }
+          JAVA
+          echo "✅ CrashActivity.java escrita"
+
           cat > "$PKG_DIR/MainActivity.java" <<'JAVA'
           package br.com.vacatio.app;
 
@@ -787,11 +821,28 @@ jobs:
 
               @Override
               public void onCreate(Bundle savedInstanceState) {
-                  // Tem que vir ANTES do super.onCreate(): se a Activity nasce com
-                  // AppTheme.NoActionBarLaunch antigo/compat, o Android pode desenhar
-                  // uma ActionBar preta com o label "Vacatio" antes da WebView.
-                  setTheme(R.style.AppTheme_NoActionBar);
-                  getApplication().setTheme(R.style.AppTheme_NoActionBar);
+                  final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
+                  Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
+                      try {
+                          android.util.Log.e("FATAL_CRASH", "Crash fatal capturado", ex);
+                          java.io.StringWriter sw = new java.io.StringWriter();
+                          ex.printStackTrace(new java.io.PrintWriter(sw));
+
+                          android.content.Intent intent = new android.content.Intent(this, CrashActivity.class);
+                          intent.putExtra("STACK_TRACE", sw.toString());
+                          intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                          startActivity(intent);
+
+                          android.os.Process.killProcess(android.os.Process.myPid());
+                          System.exit(10);
+                      } catch (Throwable ignored) {}
+                      if (defaultHandler != null) {
+                          defaultHandler.uncaughtException(thread, ex);
+                      }
+                  });
+
+                  // O AndroidX SplashScreen gerencia a transição de tema via postSplashScreenTheme.
+                  // Chamar setTheme aqui antes do super.onCreate quebra o plugin SplashScreen no Android 12+.
 
                   // Antes do super.onCreate por causa do BridgeActivity/ComponentActivity.
                   EdgeToEdge.enable(this);
@@ -968,6 +1019,15 @@ jobs:
                   count=1,
               )
               print('configChanges/resizeable aplicados à MainActivity')
+
+          # 6) Registra CrashActivity caso ocorra crash nativo
+          if 'CrashActivity' not in s:
+              crash_tag = (
+                  '        <activity android:name=".CrashActivity" android:exported="false" android:theme="@style/AppTheme" />\n'
+                  '    </application>'
+              )
+              s = s.replace('</application>', crash_tag, 1)
+              print('CrashActivity adicionada ao AndroidManifest')
 
           p.write_text(s)
           PY

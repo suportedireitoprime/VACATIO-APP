@@ -36,9 +36,13 @@ export interface OpcoesLive {
   modelo: string;
   /** Setup completo quando o token não trava a configuração no servidor. */
   setup?: Record<string, unknown> | null;
-  video: HTMLVideoElement;
+  video?: HTMLVideoElement | null;
   /** Stream de vídeo já aberto pelo preview (evita reabrir a câmera). */
   streamVideo?: MediaStream | null;
+  /** Se true, não usa câmera nem envia vídeo (somente microfone + áudio do professor). */
+  somenteAudio?: boolean;
+  /** Instrução falada inicial enviada ao professor ao iniciar. */
+  instrucaoInicial?: string;
 
   onStatus: (status: StatusLive) => void;
   onTranscricao: (fala: FalaTranscrita) => void;
@@ -109,20 +113,23 @@ export class SessaoMeExplique {
   async iniciar() {
     this.opcoes.onStatus("conectando");
 
-    // Nativo (Android/iOS): garante RECORD_AUDIO (e CAMERA, se o preview ainda
-    // não abriu) antes do getUserMedia, senão a WebView devolve NotAllowedError.
-    const precisaCamera = !this.opcoes.streamVideo;
+    // Nativo (Android/iOS): garante RECORD_AUDIO (e CAMERA se não for somente áudio)
+    // antes do getUserMedia, senão a WebView devolve NotAllowedError.
+    const precisaCamera = !this.opcoes.somenteAudio && !this.opcoes.streamVideo;
     const { garantirPermissoesMidia } = await import("@/lib/nativo/permissoesMidia");
     const permissoes = await garantirPermissoesMidia(precisaCamera, true);
     if ((precisaCamera && !permissoes.camera) || !permissoes.microfone) {
-      throw new Error(permissoes.motivo ?? "Precisamos da câmera e do microfone para explicar o conteúdo.");
+      throw new Error(permissoes.motivo ?? "Precisamos de permissão para explicar o conteúdo.");
     }
 
-    if (this.opcoes.streamVideo) {
+    if (this.opcoes.somenteAudio) {
+      this.streamProprio = false;
+      this.stream = await this.abrirMicrofone();
+    } else if (this.opcoes.streamVideo) {
       // Preview já está no ar: só abrimos o microfone.
       this.streamProprio = false;
       this.stream = await this.abrirMicrofone();
-    } else {
+    } else if (this.opcoes.video) {
       this.streamProprio = true;
       this.stream = await this.abrirCamera();
       this.opcoes.video.srcObject = this.stream;
@@ -135,10 +142,12 @@ export class SessaoMeExplique {
     // Libera o áudio de saída ainda dentro do gesto do usuário (autoplay iOS).
     this.garantirSaida();
     this.iniciarAudio();
-    this.iniciarFrames();
+    if (!this.opcoes.somenteAudio && this.opcoes.video) {
+      this.iniciarFrames();
+    }
 
-    // Depois do primeiro frame, pede que o professor comente o que está vendo.
-    window.setTimeout(() => this.enviarTexto(ABERTURA, true), 900);
+    const abertura = this.opcoes.instrucaoInicial || ABERTURA;
+    window.setTimeout(() => this.enviarTexto(abertura, true), 900);
   }
 
   private get restricoesAudio() {
@@ -409,7 +418,7 @@ export class SessaoMeExplique {
   /** Captura o quadro atual em alta definição e envia ao modelo. */
   enviarFrame() {
     const video = this.opcoes.video;
-    if (!this.pronto || this.ws?.readyState !== WebSocket.OPEN) return;
+    if (!this.pronto || !video || this.ws?.readyState !== WebSocket.OPEN) return;
     if (!video.videoWidth || !video.videoHeight) return;
 
     // Até 1280px no lado maior: legível para texto de livro sem estourar a Live API.

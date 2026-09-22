@@ -66,13 +66,29 @@ export function useNativePermissions() {
         }).data;
       } catch (e) { console.warn('PushNotifications setup skipped', e); }
 
-      // 4. Android back button → history.back / exit at root
+      // 4. Android back button → history.back / exit at root (com proteção contra saída acidental no boot)
       try {
+        let lastBackPress = 0;
+        const bootTime = Date.now();
         backListener = await CapApp.addListener('backButton', ({ canGoBack }) => {
-          if (canGoBack) {
+          const now = Date.now();
+          // Ignora eventos de voltar nos primeiros 3 segundos de inicialização (evita fechar por eventos espúrios de boot)
+          if (now - bootTime < 3000) return;
+
+          const isRootPath = window.location.pathname === '/' || window.location.pathname === '/auth';
+
+          if (canGoBack && !isRootPath) {
             window.history.back();
           } else {
-            CapApp.exitApp();
+            // No root ou se não houver histórico, exige toque duplo em até 2 segundos para sair
+            if (now - lastBackPress < 2000) {
+              CapApp.exitApp();
+            } else {
+              lastBackPress = now;
+              import('@/lib/nativeToast').then(({ toastNative }) => {
+                toastNative.info('Pressione voltar novamente para sair');
+              }).catch(() => {});
+            }
           }
         });
       } catch {}
