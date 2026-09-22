@@ -467,6 +467,7 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                   color={c.color}
                   inlineTitle={true}
                   delay={i * 0.03}
+                  className="min-h-[108px] sm:min-h-[116px] py-4 px-3.5"
                   onClick={() => handleOpenLei(c.leiId)}
                   data-track="home_card_click"
                   data-track-name={c.label}
@@ -493,6 +494,7 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                     color={c.color}
                     inlineTitle={true}
                     delay={i * 0.03}
+                    className="min-h-[108px] sm:min-h-[116px] py-4 px-3.5"
                     onClick={() => handleOpenLei(c.leiId)}
                     data-track="home_card_click"
                     data-track-name={c.label}

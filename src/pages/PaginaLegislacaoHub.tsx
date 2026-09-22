@@ -6,6 +6,7 @@ import { LAW_ICON_MAP, CODIGO_DISPLAY_NAMES, ESTATUTO_DISPLAY_NAMES } from '@/da
 import heroEstudanteImg from '@/assets/covers/hero-justice.jpg';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import HomeCard from '@/components/vademecum/HomeCard';
+import HomeActionShortcuts from '@/components/vademecum/HomeActionShortcuts';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 import NotificationsSheet, { useUnreadNotifCount } from '@/components/vademecum/NotificationsSheet';
 import { pushRecente } from '@/lib/leisRecentes';
@@ -234,9 +235,19 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
             </div>
           </div>
 
-          {/* Barra de Pesquisa Integrada no Hero */}
-          <div className="relative z-10 px-4 sm:px-6 w-full pb-5 pt-3">
-            <div className="relative w-full">
+          {/* Atalhos Rápidos: Favoritos, Anotações, Grifos, Chat */}
+          <div className="relative z-10 px-3 sm:px-5 pt-3 pb-2">
+            <HomeActionShortcuts />
+          </div>
+
+          {/* Barra de Pesquisa Integrada no Hero (estilo idêntico ao Início) */}
+          <div className="relative z-10 px-4 sm:px-6 w-full pb-5 pt-1">
+            <div className="relative w-full flex items-center h-16 pl-14 pr-[116px] rounded-2xl bg-black/65 backdrop-blur-md border border-white/15 shadow-lg shadow-black/30 search-bar-shine">
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0 pointer-events-none"
+                strokeWidth={2.2}
+              />
+
               <input
                 type="text"
                 value={searchQuery}
@@ -246,18 +257,25 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
                     ? 'Buscar códigos (ex: Penal, Civil, CLT, CPC)...'
                     : 'Buscar estatutos (ex: OAB, Criança, Idoso)...'
                 }
-                className="w-full h-12 sm:h-13 pl-11 pr-10 rounded-2xl bg-[#141416]/90 border border-white/15 text-white placeholder-white/50 text-[14px] sm:text-[15px] shadow-lg backdrop-blur-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-body"
+                className="w-full bg-transparent text-white placeholder-white/50 text-[14px] sm:text-[15px] font-body focus:outline-none"
               />
-              <Search className="w-5 h-5 text-white/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
                   aria-label="Limpar busca"
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white"
+                  className="absolute right-[112px] top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white active:scale-95 transition-all"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
+
+              <div
+                aria-hidden="true"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-12 px-5 rounded-xl bg-primary text-black font-display text-[13px] font-extrabold tracking-wider flex items-center justify-center pointer-events-none select-none uppercase shadow-md shadow-black/30"
+              >
+                PESQUISAR
+              </div>
             </div>
           </div>
         </div>
@@ -293,6 +311,7 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
                     color={lei.iconColor || (isCodigo ? '#F59E0B' : '#3B82F6')}
                     inlineTitle={true}
                     delay={Math.min(i * 0.02, 0.25)}
+                    className="min-h-[108px] sm:min-h-[116px] py-4 px-3.5"
                     onClick={() => handleOpenLei(lei)}
                     data-track="hub_card_click"
                     data-track-name={cardLabel}

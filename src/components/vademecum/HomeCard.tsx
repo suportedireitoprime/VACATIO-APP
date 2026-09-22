@@ -41,7 +41,7 @@ const HomeCardImpl = ({
     data-track={dataTrack}
     data-track-name={dataTrackName}
     data-track-section={dataTrackSection}
-    className={`group relative flex flex-col justify-between w-full min-h-[82px] sm:min-h-[86px] h-full p-3 rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm hover:shadow-md active:scale-[0.97] transition-all text-left overflow-hidden ${className}`}
+    className={`group relative flex flex-col justify-between w-full min-h-[98px] sm:min-h-[106px] h-full p-3.5 sm:p-4 rounded-2xl bg-[#2A2A2C] hover:bg-[#323234] border border-white/[0.08] shadow-sm hover:shadow-md active:scale-[0.97] transition-all text-left overflow-hidden ${className}`}
   >
     {inlineTitle ? (
       <>
