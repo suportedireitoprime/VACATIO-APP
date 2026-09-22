@@ -2306,18 +2306,20 @@ const CategoriaLegislacao = () => {
                     {selectedLeiDescricao}
                   </p>
                 )}
-                {planaltoUrl && (
-                  <a
-                    href={planaltoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 mt-2.5 text-[11px] text-black/80 hover:text-black font-medium bg-black/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-black/15 w-fit"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    <span>{/^(estadual|municipal)_/.test(tipo || '') ? 'Ver legislação' : 'Ver no Planalto'}</span>
-                  </a>
-                )}
               </div>
+
+              {/* Botão Ver no Planalto movido para o lado direito (sobre a imagem escura) */}
+              {planaltoUrl && (
+                <a
+                  href={planaltoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute z-20 right-4 sm:right-6 bottom-[150px] inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] text-white/90 hover:text-white font-medium bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10 shadow-lg transition-colors active:scale-95"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>{/^(estadual|municipal)_/.test(tipo || '') ? 'Ver legislação' : 'Ver no Planalto'}</span>
+                </a>
+              )}
 
               {/* Barra de ações (quadradinhos tipo Home) */}
               <div className="relative z-10 px-3 sm:px-5 pb-4 pt-3">
