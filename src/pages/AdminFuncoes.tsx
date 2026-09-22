@@ -266,6 +266,7 @@ const CATEGORIES: Category[] = [
     icon: Rss,
     items: [
       { id: 'admin-radares-leis', label: 'Radar de Leis (Editar)', icon: Rss, desc: 'Cron 10h e 20h, histórico das raspagens, reenvio de push', route: '/admin-radares-leis' },
+      { id: 'admin-legislacao-editar', label: 'Legislação Editar', icon: BookOpen, desc: 'Gestão detalhada, Raspagem, Histórico de Atualização', route: '/admin-legislacao-editar' },
       { id: 'admin-biblioteca-leis', label: 'Biblioteca de Leis', icon: BookOpen, desc: 'Auditoria, verificação de atualização e sugestões do Radar', route: '/admin-biblioteca-leis' },
       { id: 'admin-buscador-leis', label: 'Buscador de Leis', icon: Search, desc: 'IA busca na web leis faltantes e sugere para adicionar à Biblioteca', route: '/admin-buscador-leis' },
     ],

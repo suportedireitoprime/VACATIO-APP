@@ -197,6 +197,7 @@ const AdminRadaresLeis = lazy(() => import("./pages/AdminRadaresLeis.tsx"));
 const AdminBibliotecaLeis = lazy(() => import("./pages/AdminBibliotecaLeis.tsx"));
 const AdminBibliotecaLeisEstaduais = lazy(() => import("./pages/AdminBibliotecaLeisEstaduais.tsx"));
 const AdminBibliotecaLeisGeral = lazy(() => import("./pages/AdminBibliotecaLeisGeral.tsx"));
+const AdminLegislacaoEditar = lazy(() => import("./pages/AdminLegislacaoEditar.tsx"));
 const AdminBuscadorLeis = lazy(() => import("./pages/AdminBuscadorLeis.tsx"));
 import NovidadesRadarOverlay from "./components/NovidadesRadarOverlay";
 import GlobalDesktopHeader from "./components/layout/GlobalDesktopHeader";
@@ -684,6 +685,7 @@ function AnimatedRoutes() {
           <Route path="/admin-biblioteca-leis/estadual" element={<ProtectedRoute><PageTransition><AdminBibliotecaLeisEstaduais /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-biblioteca-leis/estadual/:uf" element={<ProtectedRoute><PageTransition><AdminBibliotecaLeisEstaduais /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-biblioteca-leis/geral" element={<ProtectedRoute><PageTransition><AdminBibliotecaLeisGeral /></PageTransition></ProtectedRoute>} />
+          <Route path="/admin-legislacao-editar" element={<ProtectedRoute><PageTransition><AdminLegislacaoEditar /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-buscador-leis" element={<ProtectedRoute><PageTransition><AdminBuscadorLeis /></PageTransition></ProtectedRoute>} />
 
 
