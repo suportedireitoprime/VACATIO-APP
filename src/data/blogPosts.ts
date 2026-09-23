@@ -11,16 +11,16 @@ import leiOrdComplImg from '@/assets/blog/leis/lei-ordinaria-complementar.webp';
 import leiRevogacaoImg from '@/assets/blog/leis/revogacao-leis.webp';
 import leiLegalidadeImg from '@/assets/blog/leis/principio-legalidade.webp';
 import oQueEDireitoImg from '@/assets/blog/o-que-e-direito.webp';
-import juris01Img from '@/assets/blog/jurisprudencia/juris-01.jpg';
-import juris02Img from '@/assets/blog/jurisprudencia/juris-02.jpg';
-import juris03Img from '@/assets/blog/jurisprudencia/juris-03.jpg';
-import juris04Img from '@/assets/blog/jurisprudencia/juris-04.jpg';
-import juris05Img from '@/assets/blog/jurisprudencia/juris-05.jpg';
-import juris06Img from '@/assets/blog/jurisprudencia/juris-06.jpg';
-import juris07Img from '@/assets/blog/jurisprudencia/juris-07.jpg';
-import juris08Img from '@/assets/blog/jurisprudencia/juris-08.jpg';
-import juris09Img from '@/assets/blog/jurisprudencia/juris-09.jpg';
-import juris10Img from '@/assets/blog/jurisprudencia/juris-10.jpg';
+import juris01Img from '@/assets/blog/jurisprudencia/juris-01.webp';
+import juris02Img from '@/assets/blog/jurisprudencia/juris-02.webp';
+import juris03Img from '@/assets/blog/jurisprudencia/juris-03.webp';
+import juris04Img from '@/assets/blog/jurisprudencia/juris-04.webp';
+import juris05Img from '@/assets/blog/jurisprudencia/juris-05.webp';
+import juris06Img from '@/assets/blog/jurisprudencia/juris-06.webp';
+import juris07Img from '@/assets/blog/jurisprudencia/juris-07.webp';
+import juris08Img from '@/assets/blog/jurisprudencia/juris-08.webp';
+import juris09Img from '@/assets/blog/jurisprudencia/juris-09.webp';
+import juris10Img from '@/assets/blog/jurisprudencia/juris-10.webp';
 
 export type BlogTema =
   | 'Filosofia'

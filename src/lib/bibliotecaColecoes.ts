@@ -14,7 +14,7 @@ import capaPesquisaBundled from '@/assets/biblioteca/capa-pesquisa.webp';
 import capaLiderancaAsset from '@/assets/biblioteca/capa-lideranca.webp.asset.json';
 import capaLiderancaBundled from '@/assets/biblioteca/capa-lideranca.webp';
 import capaOratoriaAsset from '@/assets/biblioteca/capa-oratoria.jpg.asset.json';
-import capaOratoriaBundled from '@/assets/biblioteca/capa-oratoria.jpg';
+import capaOratoriaBundled from '@/assets/biblioteca/capa-oratoria.webp';
 
 const capaAreas = pickAsset(capaAreasBundled, capaAreasAsset.url);
 const capaClassicos = pickAsset(capaClassicosBundled, capaClassicosAsset.url);

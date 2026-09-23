@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
-import brasaoUrl from '@/assets/juris-brasao.png';
-import coverArtUrl from '@/assets/juris-cover-art.png';
+import brasaoUrl from '@/assets/juris-brasao.webp';
+import coverArtUrl from '@/assets/juris-cover-art.webp';
 
 const YELLOW: [number, number, number] = [239, 224, 57];
 const YELLOW_DARK: [number, number, number] = [212, 184, 0];
@@ -19,11 +19,33 @@ async function urlToDataUrl(url: string): Promise<string | null> {
   try {
     const res = await fetch(url);
     const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
     return await new Promise((resolve) => {
-      const r = new FileReader();
-      r.onloadend = () => resolve(r.result as string);
-      r.onerror = () => resolve(null);
-      r.readAsDataURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            URL.revokeObjectURL(blobUrl);
+            return resolve(null);
+          }
+          ctx.drawImage(img, 0, 0);
+          const dataUrl = canvas.toDataURL('image/png');
+          URL.revokeObjectURL(blobUrl);
+          resolve(dataUrl);
+        } catch {
+          URL.revokeObjectURL(blobUrl);
+          resolve(null);
+        }
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(blobUrl);
+        resolve(null);
+      };
+      img.src = blobUrl;
     });
   } catch {
     return null;

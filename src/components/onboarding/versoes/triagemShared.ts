@@ -1,8 +1,8 @@
 import { GraduationCap, Scale, Landmark, Briefcase, BookOpen, Video, ScrollText, Search, Compass, FileWarning, Gavel, MessageSquareQuote, FileText, ListChecks, Newspaper, Highlighter, FileSignature } from 'lucide-react';
 import personaEstudante from '@/assets/onboarding/persona-estudante.webp';
-import personaOAB from '@/assets/onboarding/persona-oab-homem.jpg';
+import personaOAB from '@/assets/onboarding/persona-oab-homem.webp';
 import personaConcurseiro from '@/assets/onboarding/persona-concurseiro.webp';
-import personaAdvogado from '@/assets/onboarding/persona-advogado.jpg';
+import personaAdvogado from '@/assets/onboarding/persona-advogado.webp';
 
 // Filósofos silhuetados — usados na abertura cinematográfica
 import filKant from '@/assets/filosofos/kant.webp';

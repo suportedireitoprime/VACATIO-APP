@@ -11,10 +11,10 @@ import type { LeiOrdinaria } from '@/services/legislacaoService';
 import { getListSnapshot, setListSnapshot } from '@/services/offlineDb';
 import { withOnlineGuard } from '@/lib/onlineGuard';
 import brasaoImgAsset from '@/assets/brasao-republica.webp';
-import coverLei from '@/assets/norma-cover-lei.jpg';
-import coverLC from '@/assets/norma-cover-lc.jpg';
+import coverLei from '@/assets/norma-cover-lei.webp';
+import coverLC from '@/assets/norma-cover-lc.webp';
 import coverDecreto from '@/assets/norma-cover-decreto.webp';
-import coverMP from '@/assets/norma-cover-mp.jpg';
+import coverMP from '@/assets/norma-cover-mp.webp';
 
 type SlugKey = 'leis' | 'leis-complementares' | 'decretos' | 'medidas-provisorias';
 

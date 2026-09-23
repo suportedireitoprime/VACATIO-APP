@@ -37,7 +37,12 @@ const bundledMap: Record<string, string> = (() => {
   const byName: Record<string, string> = {};
   for (const [path, url] of Object.entries(modules)) {
     const name = path.split('/').pop();
-    if (name) byName[name] = url;
+    if (name) {
+      byName[name] = url;
+      // Indexa também pelo nome base sem extensão para tolerar transição de formatos
+      const base = name.replace(/\.[^.]+$/, '');
+      if (!byName[base]) byName[base] = url;
+    }
   }
   return byName;
 })();
@@ -48,7 +53,16 @@ type AssetJson = { url?: string; original_filename?: string };
 function resolveBundled(nameOrUrl: string | undefined | null): string | undefined {
   if (!nameOrUrl) return undefined;
   const name = nameOrUrl.split('/').pop();
-  return name ? bundledMap[name] : undefined;
+  if (!name) return undefined;
+  if (bundledMap[name]) return bundledMap[name];
+
+  // Se buscou por .png, .jpg ou .jpeg, tenta a versão .webp correspondente
+  const webpName = name.replace(/\.(png|jpe?g)$/i, '.webp');
+  if (bundledMap[webpName]) return bundledMap[webpName];
+
+  // Fallback pelo nome base sem extensão
+  const base = name.replace(/\.[^.]+$/, '');
+  return bundledMap[base];
 }
 
 export function assetUrl(url: string | undefined | null): string {

@@ -5,7 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import { Crown, Zap, Check, Shield, BookOpen, Brain, CreditCard, Copy, CheckCircle2, Loader2, Smartphone, RotateCw, Monitor, TrendingUp, Sparkles, Star, MessageCircle, Headphones, FileText, Library, Scale, Briefcase } from "lucide-react";
 import { AppHeader } from '@/components/layout/AppHeader';
 import { PageHeader } from '@/components/vademecum/PageHeader';
-import logoVacatio from '@/assets/logo-vacatio-v2.png';
+import logoVacatio from '@/assets/logo-vacatio-v2.webp';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";

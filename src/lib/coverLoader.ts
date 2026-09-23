@@ -18,13 +18,13 @@ import clt from '@/assets/lei-cover-clt.webp';
 import cdc from '@/assets/lei-cover-cdc.webp';
 import defaultCover from '@/assets/lei-cover-default.webp';
 // Thematic covers per estatuto/lei — mantêm o brasão da República ao fundo.
-import eca from '@/assets/lei-cover-eca.jpg';
+import eca from '@/assets/lei-cover-eca.webp';
 import ei from '@/assets/lei-cover-ei.webp';
-import epd from '@/assets/lei-cover-epd.jpg';
-import eir from '@/assets/lei-cover-eir.jpg';
-import ec from '@/assets/lei-cover-ec.jpg';
-import ed from '@/assets/lei-cover-ed.jpg';
-import eoab from '@/assets/lei-cover-eoab.jpg';
+import epd from '@/assets/lei-cover-epd.webp';
+import eir from '@/assets/lei-cover-eir.webp';
+import ec from '@/assets/lei-cover-ec.webp';
+import ed from '@/assets/lei-cover-ed.webp';
+import eoab from '@/assets/lei-cover-eoab.webp';
 import ctn from '@/assets/lei-cover-ctn.webp';
 
 const isNative =

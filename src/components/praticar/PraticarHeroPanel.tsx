@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Target, Flame, Award } from 'lucide-react';
-import miraArma from '@/assets/praticar/mira-arma.png';
+import miraArma from '@/assets/praticar/mira-arma.webp';
 
 type Props = {
   totalLeis: number;

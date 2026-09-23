@@ -35,7 +35,7 @@ import LeisSelectorModal, { type SelecaoLeiArtigo } from '@/components/meExpliqu
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 import { fetchArtigosInstant } from '@/services/legislacaoService';
 import { useTrackArea } from '@/hooks/useTrackArea';
-import heroEstudanteImg from '@/assets/covers/hero-justice.jpg';
+import heroEstudanteImg from '@/assets/covers/hero-justice.webp';
 import ladyJusticeAvatar from '@/assets/lady-justice-avatar.webp';
 
 const SUGESTOES_CAMERA = [

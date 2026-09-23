@@ -12,9 +12,9 @@ import {
   toggleFavorito,
   LEIS_FAVORITOS_EVENT,
 } from '@/lib/leisFavoritos';
-import miraArco from '@/assets/praticar/mira-arco.png';
-import miraArma from '@/assets/praticar/mira-arma.png';
-import miraErro from '@/assets/praticar/mira-erro.png';
+import miraArco from '@/assets/praticar/mira-arco.webp';
+import miraArma from '@/assets/praticar/mira-arma.webp';
+import miraErro from '@/assets/praticar/mira-erro.webp';
 
 type Tier = 'ruim' | 'medio' | 'bom';
 

@@ -20,7 +20,7 @@ import landingRadarBundled from '@/assets/bundled/landing-radar.webp';
 import landingVideoaulasAsset from '@/assets/landing-videoaulas.webp.asset.json';
 import landingVideoaulasBundled from '@/assets/bundled/landing-videoaulas.webp';
 import authCourtroomScene from '@/assets/auth-courtroom-scene.webp';
-import direitoDoTrabalhoImg from '@/assets/biblioteca/areas/direito-do-trabalho.jpg';
+import direitoDoTrabalhoImg from '@/assets/biblioteca/areas/direito-do-trabalho.webp';
 import brasaoRepublica from '@/assets/brasao-republica.webp';
 
 import cargoPP from '@/assets/cargos/policia-penal-rs.webp';

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Bell, Menu as MenuIcon, Search, X, Gavel, BookMarked, type LucideIcon } from 'lucide-react';
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 import { LAW_ICON_MAP, CODIGO_DISPLAY_NAMES, ESTATUTO_DISPLAY_NAMES } from '@/data/lawDisplay';
-import heroEstudanteImg from '@/assets/covers/hero-justice.jpg';
+import heroEstudanteImg from '@/assets/covers/hero-justice.webp';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import HomeCard from '@/components/vademecum/HomeCard';
 import HomeActionShortcuts from '@/components/vademecum/HomeActionShortcuts';
