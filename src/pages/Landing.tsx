@@ -425,7 +425,7 @@ function Hero() {
             alt="Tribunal brasileiro — Direito Penal"
             className="absolute inset-0 w-full h-full object-cover"
             loading="eager"
-            fetchPriority="high"
+            {...({ fetchpriority: 'high' } as Record<string, string>)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/60" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/70 to-black" />
@@ -556,7 +556,7 @@ function Hero() {
             alt="Tribunal brasileiro"
             className="absolute inset-0 w-full h-full object-cover"
             loading="eager"
-            fetchPriority="high"
+            {...({ fetchpriority: 'high' } as Record<string, string>)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/25" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black" />
