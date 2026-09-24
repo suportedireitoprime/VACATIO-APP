@@ -143,7 +143,7 @@ const TranscricaoSheet = ({ open, onClose, falas }: Props) => {
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3 pb-[max(0.75rem,var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
           <button
             onClick={() => void baixarPdf()}
             disabled={!falas.length || gerando !== null}

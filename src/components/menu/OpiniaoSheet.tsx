@@ -221,7 +221,7 @@ export default function OpiniaoSheet({ open, onClose }: Props) {
               </div>
             </div>
 
-            <div className="p-4 border-t border-border pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            <div className="p-4 border-t border-border pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
               <button
                 onClick={handleSubmit}
                 disabled={sending || comentario.trim().length < 5}

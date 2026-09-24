@@ -419,7 +419,7 @@ const PessoalSheet = ({ open, onClose }: PessoalSheetProps) => {
           </div>
 
           {/* Feed */}
-          <div className="px-5 mt-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
+          <div className="px-5 mt-6 pb-[calc(4rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2 px-1">Minha atividade</p>
             {feed.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -463,7 +463,7 @@ const PessoalSheet = ({ open, onClose }: PessoalSheetProps) => {
                 <motion.div
                   initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                   transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-                  className="fixed bottom-0 left-0 right-0 z-[100] bg-card rounded-t-3xl border-t border-border p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]"
+                  className="fixed bottom-0 left-0 right-0 z-[100] bg-card rounded-t-3xl border-t border-border p-5 pb-[calc(1.25rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]"
                 >
                   <div className="w-12 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
                   <h3 className="font-display text-lg font-bold text-foreground mb-3">Escolha uma capa</h3>

@@ -202,7 +202,7 @@ export default function PesquisasProntasTema() {
   const trib = (tribunal || '').toUpperCase();
 
   return (
-    <div className="min-h-dvh bg-background pb-16">
+    <div className="min-h-dvh bg-background pb-[calc(4rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
       <div
         className="relative overflow-hidden rounded-b-[32px] border-b border-emerald-500/30 shadow-xl shadow-black/40"
         style={{
@@ -210,7 +210,7 @@ export default function PesquisasProntasTema() {
             'linear-gradient(160deg, hsl(158 72% 32%) 0%, hsl(150 65% 22%) 55%, hsl(148 55% 14%) 100%)',
         }}
       >
-        <div className="relative flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top,0px)+12px)] pb-2">
+        <div className="relative flex items-center justify-between px-4 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] pb-2">
           <button
             onClick={() => navigate(-1)}
             aria-label="Voltar"

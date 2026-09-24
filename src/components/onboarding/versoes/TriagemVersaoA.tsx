@@ -96,7 +96,7 @@ export default function TriagemVersaoA({ open, onFinished, previewMode }: Props)
       {/* Top bar */}
       <div
         className="relative z-10 flex items-center justify-between px-5 pt-4"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 12px)' }}
+        style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 12px)' }}
       >
         <div className="flex items-center gap-2">
           <button
@@ -147,7 +147,7 @@ export default function TriagemVersaoA({ open, onFinished, previewMode }: Props)
       </div>
 
       {/* Content area */}
-      <div className="relative z-10 flex-1 overflow-y-auto px-5 pb-8">
+      <div className="relative z-10 flex-1 overflow-y-auto px-5 pb-[calc(2rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
         <AnimatePresence mode="wait">
           {step === 'persona' && (
             <motion.div

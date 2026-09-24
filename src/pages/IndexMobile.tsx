@@ -91,7 +91,7 @@ const IndexMobile = () => {
   void leiPath;
 
   return (
-    <div className="min-h-dvh bg-background pb-20 relative overflow-hidden">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] relative overflow-hidden">
       <div className="fixed inset-0 pointer-events-none z-0">
         <ShapeGrid 
           speed={0.5} 

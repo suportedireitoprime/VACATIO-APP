@@ -105,7 +105,7 @@ export default function TriagemVersaoC({ open, onFinished }: Props) {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative z-20 flex items-center justify-between px-6 pt-4"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 28px)' }}
+          style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 28px)' }}
         >
           <div className="flex-1 flex items-center gap-1.5">
             {CONTENT_STEPS.map((s, i) => (
@@ -126,7 +126,7 @@ export default function TriagemVersaoC({ open, onFinished }: Props) {
       <div
         className="relative flex-1 min-h-0 flex items-stretch justify-center px-3 pt-6 sm:pt-8"
         style={{
-          paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 36px)',
+          paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 36px)',
         }}
       >
         <AnimatePresence mode="wait">
@@ -340,7 +340,7 @@ const listVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 350, damping: 25 } }
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 350, damping: 25 } }
 };
 
 const maskPhone = (v: string) => {
@@ -414,7 +414,7 @@ function CardContent({
   return (
     <div
       className="relative z-10 flex-1 min-h-0 flex flex-col px-6 pt-4 overflow-hidden"
-      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 20px)' }}
+      style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 20px)' }}
     >
       {step === 'persona' && (
         <>

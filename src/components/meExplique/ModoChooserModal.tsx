@@ -30,7 +30,7 @@ export default function ModoChooserModal({ open, onClose, onSelectCamera, onSele
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}
           transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-          className="relative z-10 w-full max-w-lg rounded-t-3xl sm:rounded-3xl bg-zinc-950 border border-zinc-800/80 p-5 sm:p-6 shadow-2xl overflow-hidden"
+          className="relative z-10 w-full max-w-lg rounded-t-3xl sm:rounded-3xl bg-zinc-950 border border-zinc-800/80 p-5 pb-[calc(1.25rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] sm:p-6 sm:pb-6 shadow-2xl overflow-hidden"
         >
           {/* Subtle ambient light */}
           <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-32 bg-primary/20 blur-3xl rounded-full" />

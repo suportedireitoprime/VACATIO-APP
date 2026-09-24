@@ -104,7 +104,7 @@ const PremiumGate = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-            className="fixed inset-x-0 bottom-0 z-[10051] flex items-end justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pointer-events-none"
+            className="fixed inset-x-0 bottom-0 z-[10051] flex items-end justify-center px-4 pb-[max(1rem,var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pointer-events-none"
           >
             <div className="relative w-full max-w-[340px] bg-card border border-border rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 pointer-events-auto">
               {/* Header banner */}
@@ -249,7 +249,7 @@ const PremiumGate = ({
                   })}
                 </div>
 
-                <div className="shrink-0 border-t border-border px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] bg-card max-w-md mx-auto w-full">
+                <div className="shrink-0 border-t border-border px-5 pt-3 pb-[max(1rem,var(--sai-bottom,env(safe-area-inset-bottom,0px)))] bg-card max-w-md mx-auto w-full">
                   <button
                     onClick={() => { setShowBenefits(false); onClose(); navigate('/assinatura?plano=anual&trial=1'); }}
                     className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary-light transition-all active:scale-[0.98] shadow-lg shadow-primary/20"

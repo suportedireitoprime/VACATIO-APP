@@ -159,7 +159,7 @@ function CadastroFeaturesReelInner({ nome, onDone, playSfx }: Props) {
       {/* Top progress bar */}
       <div
         className="absolute inset-x-0 z-30 flex items-center gap-1.5 px-4"
-        style={{ top: 'calc(env(safe-area-inset-top,0px) + 14px)' }}
+        style={{ top: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 14px)' }}
       >
         {scenes.map((s, idx) => (
           <div key={s.id} className="flex-1 h-1 rounded-full bg-white/15 overflow-hidden">
@@ -186,7 +186,7 @@ function CadastroFeaturesReelInner({ nome, onDone, playSfx }: Props) {
           onDone();
         }}
         className="absolute z-30 right-4 h-9 px-4 rounded-full bg-white/15 backdrop-blur text-white text-xs font-bold tracking-widest active:scale-95"
-        style={{ top: 'calc(env(safe-area-inset-top,0px) + 32px)' }}
+        style={{ top: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 32px)' }}
       >
         PULAR
       </button>
@@ -213,7 +213,7 @@ function CadastroFeaturesReelInner({ nome, onDone, playSfx }: Props) {
           <div
             className="relative flex-1 flex items-end justify-center"
             style={{
-              paddingTop: 'calc(env(safe-area-inset-top,0px) + 80px)',
+              paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 80px)',
               paddingBottom: '20px',
             }}
           >
@@ -237,7 +237,7 @@ function CadastroFeaturesReelInner({ nome, onDone, playSfx }: Props) {
           {/* Text block */}
           <div
             className="relative flex-1 px-7 flex flex-col justify-start"
-            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 32px)' }}
+            style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 32px)' }}
           >
             <motion.div
               initial={{ opacity: 0, y: 12 }}

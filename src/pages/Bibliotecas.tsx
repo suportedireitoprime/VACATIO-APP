@@ -278,7 +278,7 @@ const Bibliotecas = () => {
   }
 
   return (
-    <main className="min-h-dvh bg-background pb-[calc(96px+var(--sai-bottom,0px))]">
+    <main className="min-h-dvh bg-background pb-[calc(96px+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
       <PageHeader
         title="Biblioteca"
         onBack={() => navigate('/')}

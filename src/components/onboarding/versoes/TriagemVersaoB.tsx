@@ -100,7 +100,7 @@ export default function TriagemVersaoB({ open, onFinished }: Props) {
       {/* Header */}
       <div
         className="relative z-10 flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/5"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 12px)' }}
+        style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 12px)' }}
       >
         <button
           onClick={toggleMute}
@@ -175,7 +175,7 @@ export default function TriagemVersaoB({ open, onFinished }: Props) {
       {/* Answer dock */}
       <div
         className="relative z-10 border-t border-white/5 bg-black/40 backdrop-blur-md px-4 pt-3 pb-4"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 16px)' }}
+        style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 16px)' }}
       >
         <AnimatePresence mode="wait">
           {step === 'persona' && (

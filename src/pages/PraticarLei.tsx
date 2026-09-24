@@ -450,7 +450,7 @@ function NoDetalhe({
       </div>
 
       {/* Ação fixa (mínimo 48px – guideline Apple/Google) */}
-      <div className="shrink-0 border-t border-border bg-background/95 backdrop-blur px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="shrink-0 border-t border-border bg-background/95 backdrop-blur px-4 py-3 pb-[max(0.75rem,var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
         <button
           onClick={() => onPraticar(capitulo)}
           className="w-full min-h-[52px] rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg active:scale-[0.99] transition"
@@ -568,7 +568,7 @@ function ArtigoDetalhe({
         )}
       </div>
 
-      <div className="shrink-0 border-t border-border bg-background/95 backdrop-blur px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="shrink-0 border-t border-border bg-background/95 backdrop-blur px-4 py-3 pb-[max(0.75rem,var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
         <button
           onClick={handlePraticar}
           disabled={gerando}

@@ -447,7 +447,7 @@ const AprenderAula = () => {
               else if (info.offset.x > 80) anterior();
             }}
             className="mx-auto h-full w-full max-w-3xl overflow-y-auto px-5 md:px-8 pt-6 md:pt-8"
-            style={{ paddingBottom: 'calc(9rem + env(safe-area-inset-bottom, 0px))' }}
+            style={{ paddingBottom: 'calc(9rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
           >
             <BlocoView
               bloco={atual}
@@ -477,7 +477,7 @@ const AprenderAula = () => {
         style={{
           paddingLeft: 'calc(0.75rem + var(--sai-left, env(safe-area-inset-left, 0px)))',
           paddingRight: 'calc(0.75rem + var(--sai-right, env(safe-area-inset-right, 0px)))',
-          paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'calc(0.75rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
         }}
       >
         <div className="mx-auto flex max-w-3xl items-center gap-2 md:gap-3 py-3">
