@@ -21,6 +21,7 @@ import { pushRecente } from '@/lib/leisRecentes';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import VoiceCaptureOverlay from './VoiceCaptureOverlay';
 import HomeNoticiasCarousel from './HomeNoticiasCarousel';
+import HomeAtalhosLeisCarousel from './HomeAtalhosLeisCarousel';
 import HomeCard from './HomeCard';
 import { useOutrasNormasCounts } from '@/hooks/useOutrasNormasCounts';
 import JurisprudenciaSheet from './JurisprudenciaSheet';
@@ -43,8 +44,8 @@ const GRID_CATS: Cat[] = [
   { id: 'lei-especial',    label: 'PENAL ESPECIAL',  sublabel: 'Leis penais extravagantes', icon: Scale,      color: '#FB923C' },
 ];
 
-/** As 6 leis / códigos mais consultados exibidos diretamente no topo da aba Em Alta */
-const EM_ALTA_CODIGOS: Array<{
+/** Estatutos em destaque */
+const ESTATUTOS_LIST: Array<{
   id: string;
   leiId: string;
   label: string;
@@ -52,25 +53,10 @@ const EM_ALTA_CODIGOS: Array<{
   icon: LucideIcon;
   color: string;
 }> = [
-  { id: 'emalta-cf88', leiId: 'cf88', label: 'CF/88', sublabel: 'Constituição Federal', icon: Landmark, color: '#FACC15' },
-  { id: 'emalta-clt', leiId: 'clt', label: 'CLT', sublabel: 'Consolidação das Leis do Trabalho', icon: Briefcase, color: '#8B5CF6' },
-  { id: 'emalta-cc', leiId: 'cc', label: 'CC', sublabel: 'Código Civil', icon: Scale, color: '#3B82F6' },
-  { id: 'emalta-cpc', leiId: 'cpc', label: 'CPC', sublabel: 'Código de Processo Civil', icon: FileText, color: '#06B6D4' },
-  { id: 'emalta-cp', leiId: 'cp', label: 'CP', sublabel: 'Código Penal', icon: Siren, color: '#EF4444' },
-  { id: 'emalta-cpp', leiId: 'cpp', label: 'CPP', sublabel: 'Código de Processo Penal', icon: ShieldCheck, color: '#EC4899' },
-];
-
-/** Estatutos em alta */
-const EM_ALTA_ESTATUTOS: Array<{
-  id: string;
-  leiId: string;
-  label: string;
-  sublabel: string;
-  icon: LucideIcon;
-  color: string;
-}> = [
-  { id: 'emalta-eoab', leiId: 'eoab', label: 'OAB', sublabel: 'Lei 8.906/94', icon: Gavel, color: '#F59E0B' },
-  { id: 'emalta-eca', leiId: 'eca', label: 'CRIANÇA E ADOLESCENTE', sublabel: 'ECA · Lei 8.069/90', icon: Baby, color: '#10B981' },
+  { id: 'estatuto-eoab', leiId: 'eoab', label: 'OAB', sublabel: 'Estatuto da Advocacia · Lei 8.906/94', icon: Scale, color: '#F59E0B' },
+  { id: 'estatuto-eca', leiId: 'eca', label: 'ECA', sublabel: 'Criança e Adolescente · Lei 8.069/90', icon: Baby, color: '#10B981' },
+  { id: 'estatuto-ei', leiId: 'ei', label: 'IDOSO', sublabel: 'Estatuto da Pessoa Idosa · Lei 10.741/03', icon: HeartPulse, color: '#8B5CF6' },
+  { id: 'estatuto-epd', leiId: 'epd', label: 'PCD', sublabel: 'Pessoa com Deficiência · Lei 13.146/15', icon: Accessibility, color: '#06B6D4' },
 ];
 
 // Cards de "Outras normas" que apontam para o Radar 360 com filtro pré-selecionado
@@ -125,13 +111,7 @@ const JURI_OPCOES = [
   { id: 'STJ',            nome: 'Súmulas do STJ',      desc: 'Superior Tribunal de Justiça' },
 ];
 
-type Tab = 'categorias' | 'emalta' | 'areas';
 
-const TABS: { id: Tab; label: string; icon: any }[] = [
-  { id: 'categorias', label: 'CATEGORIAS', icon: LayoutGrid },
-  { id: 'emalta',     label: 'EM ALTA',    icon: Flame },
-  { id: 'areas',      label: 'ÁREAS',      icon: List },
-];
 
 const LAW_ICON_MAP: Record<string, LucideIcon> = {
   cp: PocketKnife,
@@ -257,23 +237,20 @@ function TypewriterText({ hints }: { hints: string[] }) {
 }
 
 interface Props {
-  onTabChange?: (tab: Tab) => void;
+  onTabChange?: (tab: string) => void;
   onNewsOpenChange?: (open: boolean) => void;
 }
 
-const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
+const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const navigate = useNavigate();
   const [juriOpen, setJuriOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState<Cat | AreaCat | CategoriaFormal | null>(null);
   const [categorySearch, setCategorySearch] = useState('');
-  const [tab, setTab] = useState<Tab>('emalta');
 
   const handleVoiceSearch = useCallback((text: string) => {
     setCategorySearch(text);
   }, []);
   const voiceSearch = useVoiceInput(handleVoiceSearch);
-
-  useEffect(() => { onTabChange?.(tab); }, [tab, onTabChange]);
 
   const { counts: radarCounts } = useOutrasNormasCounts();
 
@@ -355,197 +332,125 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
   }, [categoryOpen, juriOpen]);
 
   return (
-    <div className="space-y-6 pt-4">
+    <div className="space-y-6 pt-2">
+      {/* 1. NO LUGAR DE NOTÍCIAS: CARROSSEL DO EM ALTA (Cards vermelhos com degradê + Personalizar) */}
+      <HomeAtalhosLeisCarousel onOpenLei={handleOpenLei} />
 
-      {/* Carrossel de notícias no topo — full-bleed (sem margens laterais) */}
-      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+      {/* 2. LEGISLAÇÃO BRASILEIRA — ÁREAS DO DIREITO */}
+      <section className="space-y-3 px-1 pt-1">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
+            <h2 className="font-body text-foreground text-2xl sm:text-3xl font-bold tracking-tight">
+              Legislação Brasileira
+            </h2>
+          </div>
+          <p className="font-body text-muted-foreground text-[13px] leading-snug mt-1 ml-3">
+            Áreas do Direito: Penal, Civil, Constitucional, Trabalhista e mais.
+          </p>
+        </div>
+        <div className="h-[1.5px] bg-border/70 w-full mb-2" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          {AREA_CATS.map((c, i) => (
+            <HomeCard
+              key={c.id}
+              icon={c.icon}
+              label={c.label}
+              sublabel={c.sublabel}
+              color={c.color}
+              delay={i * 0.04}
+              onClick={() => {
+                setCategorySearch('');
+                setCategoryOpen(c);
+              }}
+              data-track="home_card_click"
+              data-track-name={c.label}
+              data-track-section="areas"
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* 3. ESTATUTOS */}
+      <section className="space-y-3 px-1 pt-1">
+        <div>
+          <h3 className="font-display text-foreground text-[18px] font-bold flex items-center gap-2">
+            <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
+            <span>Estatutos</span>
+          </h3>
+          <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3">
+            ECA, OAB, Idoso, Deficiência e garantias vigentes.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          {ESTATUTOS_LIST.map((c, i) => (
+            <HomeCard
+              key={c.id}
+              icon={c.icon}
+              label={c.label}
+              sublabel={c.sublabel}
+              color={c.color}
+              inlineTitle={true}
+              delay={i * 0.03}
+              className="min-h-[108px] sm:min-h-[116px] py-4 px-3.5"
+              onClick={() => handleOpenLei(c.leiId)}
+              data-track="home_card_click"
+              data-track-name={c.label}
+              data-track-section="estatutos"
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* 4. CARROSSEL DE NOTÍCIAS JURÍDICAS — POSICIONADO DEPOIS DE ESTATUTOS */}
+      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen my-2">
         <HomeNoticiasCarousel onOpenChange={onNewsOpenChange} />
       </div>
 
-      {/* Segmented toggle */}
-      <div>
-        <div className="relative flex items-center gap-1.5 p-1 rounded-full bg-background border border-white/[0.06]">
-          {TABS.map(t => {
-            const Icon = t.icon;
-            const isActive = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                data-track="home_tab_switch"
-                data-track-tab={t.id}
-                className={`relative flex-1 flex items-center justify-center gap-2 h-10 rounded-full font-display text-[12px] sm:text-[13px] font-bold uppercase tracking-wider transition-all ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground font-extrabold shadow-[0_0_20px_hsl(var(--primary)/0.45)]'
-                    : 'bg-card text-zinc-300 hover:text-white hover:bg-secondary border border-white/[0.08]'
-                }`}
-              >
-                <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                <span>{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
+      {/* 5. CHAT JURÍDICO */}
+      <div className="px-1">
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('vacatio:open-chat'))}
+          data-track="home_chat_juridico_click"
+          className="w-full relative overflow-hidden flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-primary border border-primary/30 shadow-sm active:scale-[0.99] transition cursor-pointer"
+        >
+          <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.15] text-black">
+            <motion.div
+              animate={{ x: [0, 10, 0], y: [0, 5, 0], rotate: [-12, -16, -12] }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute right-12 -top-4"
+            >
+              <Gavel className="w-12 h-12" strokeWidth={1.5} />
+            </motion.div>
+            <motion.div
+              animate={{ x: [0, 5, 0], y: [0, -8, 0], rotate: [6, 10, 6] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -right-2 -bottom-2"
+            >
+              <BookOpen className="w-12 h-12" strokeWidth={1.5} />
+            </motion.div>
+          </div>
+
+          <span aria-hidden className="pointer-events-none absolute inset-0 icon-shine" />
+          <MessageCircle
+            className="relative z-10 w-8 h-8 shrink-0 text-black"
+            style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
+            strokeWidth={1.5}
+          />
+          <div className="relative z-10 flex-1 min-w-0 text-left">
+            <p className="font-display text-black text-[16px] font-bold leading-tight truncate tracking-[0.02em]">
+              Chat Jurídico
+            </p>
+            <p className="font-body text-black/80 text-[12px] sm:text-[12.5px] leading-tight mt-0.5 min-h-[15px]">
+              <TypewriterText hints={CHAT_HINTS} />
+            </p>
+          </div>
+          <ChevronRight className="relative z-10 w-5 h-5 text-black/80 shrink-0" />
+        </button>
       </div>
 
-      <AnimatePresence mode="wait" initial={false}>
-        {tab === 'categorias' && (
-          <motion.div
-            key="categorias"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.24, ease: [0.22, 0.61, 0.36, 1] }}
-            className="space-y-4"
-          >
-            <div className="px-1">
-              <div className="flex items-center gap-2">
-                <span className="w-1 h-5 rounded-full bg-primary" />
-                <h2 className="font-body text-foreground text-2xl sm:text-3xl font-bold tracking-tight">
-                  Categorias
-                </h2>
-              </div>
-              <p className="font-body text-muted-foreground text-[13px] leading-snug mt-1 ml-3">
-                Filtros por natureza jurídica: federais, estaduais, jurisprudência, OAB e decretos.
-              </p>
-            </div>
-            <div className="px-1 h-[1.5px] bg-border/70 w-full -mt-2" />
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 px-1 pb-8">
-              {CATEGORIA_CATS.map((c, i) => (
-                <HomeCard
-                  key={c.id}
-                  icon={c.icon}
-                  label={c.label}
-                  sublabel={c.sublabel}
-                  color={c.color}
-                  delay={i * 0.05}
-                  onClick={() => {
-                    if (c.id === 'cat-jurisprudencia') { navigate('/jurisprudencia'); return; }
-                    if (c.id === 'cat-oab') {
-                      const lei = LEIS_CATALOG.find(l => l.id === 'eoab');
-                      if (lei) navigate(leiPath(lei));
-                      return;
-                    }
-                    if (c.id === 'cat-estadual') {
-                      setCategorySearch('');
-                      setCategoryOpen(c);
-                      return;
-                    }
-                    if (c.leiIds) {
-                      setCategorySearch('');
-                      setCategoryOpen(c);
-                      return;
-                    }
-                    if (c.route) { navigate(c.route); return; }
-                  }}
-                  data-track="home_card_click"
-                  data-track-name={c.label}
-                  data-track-section="categorias"
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {tab === 'emalta' && (
-          <motion.div
-            key="emalta"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.24, ease: [0.22, 0.61, 0.36, 1] }}
-            className="space-y-6"
-          >
-            {/* Em Alta — 6 principais códigos em alta */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-              {EM_ALTA_CODIGOS.map((c, i) => (
-                <HomeCard
-                  key={c.id}
-                  icon={c.icon}
-                  label={c.label}
-                  sublabel={c.sublabel}
-                  color={c.color}
-                  inlineTitle={true}
-                  delay={i * 0.03}
-                  className="min-h-[108px] sm:min-h-[116px] py-4 px-3.5"
-                  onClick={() => handleOpenLei(c.leiId)}
-                  data-track="home_card_click"
-                  data-track-name={c.label}
-                  data-track-section="emalta"
-                />
-              ))}
-            </div>
-
-            {/* Seção Estatutos com risquinho amarelo */}
-            <div className="space-y-3">
-              <div className="px-1">
-                <h3 className="font-display text-foreground text-[18px] font-bold flex items-center gap-2">
-                  <span className="w-1 h-5 rounded-full bg-primary" />
-                  ESTATUTOS
-                </h3>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                {EM_ALTA_ESTATUTOS.map((c, i) => (
-                  <HomeCard
-                    key={c.id}
-                    icon={c.icon}
-                    label={c.label}
-                    sublabel={c.sublabel}
-                    color={c.color}
-                    inlineTitle={true}
-                    delay={i * 0.03}
-                    className="min-h-[108px] sm:min-h-[116px] py-4 px-3.5"
-                    onClick={() => handleOpenLei(c.leiId)}
-                    data-track="home_card_click"
-                    data-track-name={c.label}
-                    data-track-section="emalta-estatutos"
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="px-1">
-              <button
-                onClick={() => window.dispatchEvent(new CustomEvent('vacatio:open-chat'))}
-                data-track="home_chat_juridico_click"
-                className="w-full relative overflow-hidden flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-primary border border-primary/30 shadow-sm active:scale-[0.99] transition"
-              >
-                <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.15] text-black">
-                  <motion.div
-                    animate={{ x: [0, 10, 0], y: [0, 5, 0], rotate: [-12, -16, -12] }}
-                    transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute right-12 -top-4"
-                  >
-                    <Gavel className="w-12 h-12" strokeWidth={1.5} />
-                  </motion.div>
-                  <motion.div
-                    animate={{ x: [0, 5, 0], y: [0, -8, 0], rotate: [6, 10, 6] }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -right-2 -bottom-2"
-                  >
-                    <BookOpen className="w-12 h-12" strokeWidth={1.5} />
-                  </motion.div>
-                </div>
-
-                <span aria-hidden className="pointer-events-none absolute inset-0 icon-shine" />
-                <MessageCircle
-                  className="relative z-10 w-8 h-8 shrink-0 text-black"
-                  style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
-                  strokeWidth={1.5}
-                />
-                <div className="relative z-10 flex-1 min-w-0 text-left">
-                  <p className="font-display text-black text-[16px] font-bold leading-tight truncate tracking-[0.02em]">
-                    Chat Jurídico
-                  </p>
-                  <p className="font-body text-black/80 text-[12px] sm:text-[12.5px] leading-tight mt-0.5 min-h-[15px]">
-                    <TypewriterText hints={CHAT_HINTS} />
-                  </p>
-                </div>
-                <ChevronRight className="relative z-10 w-5 h-5 text-black/80 shrink-0" />
-              </button>
-            </div>
-
-      {/* List — decretos & outras leis */}
+      {/* 6. OUTRAS NORMAS */}
       <div className="px-1 pb-24">
         <h3 className="font-display text-foreground text-[18px] font-bold mb-3 flex items-center gap-2">
           <span className="w-1 h-5 rounded-full bg-primary" />
@@ -564,6 +469,7 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
             return (
               <button
                 key={c.id}
+                type="button"
                 onClick={() => {
                   if (isNew) {
                     const next = { ...seenCounts, [c.id]: n };
@@ -574,7 +480,7 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                 }}
                 data-track="home_outras_normas_click"
                 data-track-name={c.label}
-                className="w-full flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm active:scale-[0.99] transition"
+                className="w-full flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm active:scale-[0.99] transition cursor-pointer"
               >
                 <Icon
                   className="w-8 h-8 shrink-0 text-white"
@@ -605,10 +511,11 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
             return (
               <button
                 key={c.id}
+                type="button"
                 onClick={() => handle(c.id)}
                 data-track="home_outras_normas_click"
                 data-track-name={c.label}
-                className="w-full flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm active:scale-[0.99] transition"
+                className="w-full flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm active:scale-[0.99] transition cursor-pointer"
               >
                 <Icon
                   className="w-8 h-8 shrink-0 text-white"
@@ -631,53 +538,6 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
           })}
         </div>
       </div>
-
-          </motion.div>
-        )}
-
-        {tab === 'areas' && (
-          <motion.div
-            key="areas"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.24, ease: [0.22, 0.61, 0.36, 1] }}
-            className="space-y-3 px-1 pb-8"
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="w-1 h-5 rounded-full bg-primary" />
-                <h2 className="font-body text-foreground text-2xl sm:text-3xl font-bold tracking-tight">
-                  Áreas
-                </h2>
-              </div>
-              <p className="font-body text-muted-foreground text-[13px] leading-snug mt-1 ml-3">
-                Todas as áreas do Direito. Escolha uma para ver as leis daquela área.
-              </p>
-            </div>
-            <div className="h-[1.5px] bg-border/70 w-full mb-2" />
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-              {AREA_CATS.map((c, i) => (
-                <HomeCard
-                  key={c.id}
-                  icon={c.icon}
-                  label={c.label}
-                  sublabel={c.sublabel}
-                  color={c.color}
-                  delay={i * 0.05}
-                  onClick={() => {
-                    setCategorySearch('');
-                    setCategoryOpen(c);
-                  }}
-                  data-track="home_card_click"
-                  data-track-name={c.label}
-                  data-track-section="areas"
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
 
       {/* Category bottom sheet — opens categories from bottom to top */}
