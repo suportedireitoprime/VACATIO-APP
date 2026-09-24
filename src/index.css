@@ -236,18 +236,18 @@ body {
     border: none !important;
   }
 
-  /* Card Vermelho — Em Alta (Mesma cor do Menu de Rodapé / BottomNav, sem bordas claras) */
+  /* Card Vermelho — Em Alta (Mesma cor do Painel Vade Mecum, degradê de baixo para cima) */
   .bg-card-red-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--brand-burgundy-bright)) 55%, hsl(var(--brand-burgundy-mid)) 100%) !important;
+    background: linear-gradient(to top, hsl(350 68% 26%) 0%, hsl(350 72% 38%) 50%, hsl(348 80% 50%) 100%) !important;
     border: none !important;
     box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5) !important;
   }
   .bg-card-red-gradient:hover {
-    background: linear-gradient(135deg, hsl(var(--primary-light)) 0%, hsl(var(--brand-burgundy-bright)) 55%, hsl(var(--brand-burgundy-mid)) 100%) !important;
+    background: linear-gradient(to top, hsl(350 68% 30%) 0%, hsl(350 74% 42%) 50%, hsl(348 84% 54%) 100%) !important;
     border: none !important;
   }
   .bg-card-red-gradient:active {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--brand-burgundy-mid)) 100%) !important;
+    background: linear-gradient(to top, hsl(350 68% 24%) 0%, hsl(350 72% 36%) 50%, hsl(348 80% 48%) 100%) !important;
     border: none !important;
     transform: scale(0.97);
   }
