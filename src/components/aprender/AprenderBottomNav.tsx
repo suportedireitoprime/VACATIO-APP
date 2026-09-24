@@ -84,8 +84,8 @@ const AprenderBottomNav = () => {
                     aria-hidden="true"
                   />
                 )}
-                <Icon className="relative w-7 h-7 sm:w-8 sm:h-8" strokeWidth={active ? 1.9 : 1.5} />
-                <span className={`relative text-[10px] sm:text-[11px] leading-none ${active ? 'font-bold' : 'font-medium'}`}>
+                <Icon className="relative w-7 h-7 sm:w-8 sm:h-8" strokeWidth={active ? 1.4 : 1.2} />
+                <span className={`relative text-[10px] sm:text-[11px] leading-none ${active ? 'font-medium' : 'font-normal'}`}>
                   {tab.label}
                 </span>
               </button>

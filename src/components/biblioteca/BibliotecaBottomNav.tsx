@@ -100,8 +100,8 @@ const BibliotecaBottomNav = ({ hidden = false }: { hidden?: boolean }) => {
                     aria-hidden="true"
                   />
                 )}
-                <Icon className="relative w-7 h-7 sm:w-8 sm:h-8" strokeWidth={isActive ? 1.9 : 1.5} />
-                <span className={`relative text-[10px] sm:text-[11px] leading-none ${isActive ? 'font-bold' : 'font-medium'}`}>
+                <Icon className="relative w-7 h-7 sm:w-8 sm:h-8" strokeWidth={isActive ? 1.4 : 1.2} />
+                <span className={`relative text-[10px] sm:text-[11px] leading-none ${isActive ? 'font-medium' : 'font-normal'}`}>
                   {slot.label}
                 </span>
               </button>

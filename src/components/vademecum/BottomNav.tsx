@@ -193,8 +193,8 @@ const BottomNav = () => {
             aria-label="Códigos"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <Gavel className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={2.2} />
-              <span className="font-body text-[11px] sm:text-[12px] font-bold leading-tight">Códigos</span>
+              <Gavel className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
+              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Códigos</span>
             </span>
           </button>
 
@@ -210,8 +210,8 @@ const BottomNav = () => {
             aria-label="Estatutos"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <BookMarked className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={2.2} />
-              <span className="font-body text-[11px] sm:text-[12px] font-bold leading-tight">Estatutos</span>
+              <BookMarked className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
+              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Estatutos</span>
             </span>
           </button>
 
@@ -225,9 +225,9 @@ const BottomNav = () => {
           >
             <span className="relative flex flex-col items-center gap-1.5 pt-1 pb-1 px-2 rounded-2xl">
               <span className="relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 ring-4 ring-background btn-attention-shine overflow-hidden">
-                <Camera className="w-10 h-10 sm:w-11 sm:h-11 text-white relative z-[2]" strokeWidth={2.2} />
+                <Camera className="w-9 h-9 sm:w-10 sm:h-10 text-white relative z-[2]" strokeWidth={1.3} />
               </span>
-              <span className="font-body text-[11px] sm:text-[12px] font-extrabold text-white leading-tight drop-shadow-sm">Me Explique</span>
+              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white leading-tight">Me Explique</span>
             </span>
           </button>
 
@@ -243,8 +243,8 @@ const BottomNav = () => {
             aria-label="Ferramentas"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <Wrench className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={2.2} />
-              <span className="font-body text-[11px] sm:text-[12px] font-bold leading-tight">Ferramentas</span>
+              <Wrench className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
+              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Ferramentas</span>
             </span>
           </button>
 
@@ -260,8 +260,8 @@ const BottomNav = () => {
             aria-label="Radar"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <ScanEye className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={2.2} />
-              <span className="font-body text-[11px] sm:text-[12px] font-bold leading-tight">Radar</span>
+              <ScanEye className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
+              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Radar</span>
             </span>
           </button>
         </div>
