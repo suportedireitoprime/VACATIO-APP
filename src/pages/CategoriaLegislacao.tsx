@@ -2126,7 +2126,7 @@ const CategoriaLegislacao = () => {
               disabled={loadingArtigos}
               className={`flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-2xl transition-all ${
                 activeTab === tab.key
-                  ? 'bg-[#EFE039] text-black shadow-sm shadow-[#EFE039]/20'
+                  ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
                   : 'bg-[#1C1C1E] text-white/80 hover:bg-[#2C2C2E] hover:text-white'
               } ${loadingArtigos ? 'opacity-70' : ''}`}
             >
@@ -2247,7 +2247,7 @@ const CategoriaLegislacao = () => {
                   <div
                     className="absolute inset-0"
                     style={{
-                      background: 'linear-gradient(135deg, #EFE039 0%, #EFE039 55%, #EFE039 100%)',
+                      background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 55%, hsl(var(--primary)) 100%)',
                     }}
                   />
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
@@ -2298,9 +2298,9 @@ const CategoriaLegislacao = () => {
                       setLeiFavToggle((n) => n + 1);
                     }}
                     aria-label={fav ? 'Remover dos favoritos' : 'Favoritar lei'}
-                    className={`absolute right-4 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none ${fav ? 'bg-[#EFE039]/20 border-[#EFE039]/40' : 'bg-black/40 border-white/25'}`}
+                    className={`absolute right-4 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none ${fav ? 'bg-primary/20 border-primary/40' : 'bg-black/40 border-white/25'}`}
                   >
-                    <Star className={`w-6 h-6 drop-shadow ${fav ? 'text-[#EFE039] fill-[#EFE039]' : 'text-white'}`} />
+                    <Star className={`w-6 h-6 drop-shadow ${fav ? 'text-primary fill-primary' : 'text-white'}`} />
                   </button>
                 );
               })()}
@@ -2368,7 +2368,7 @@ const CategoriaLegislacao = () => {
                         style={{ '--shimmer-delay': `${index * 150}ms` } as React.CSSProperties}
                         className={`group flex flex-col items-center justify-center py-3 px-1 rounded-2xl backdrop-blur-md border border-white/10 shadow-xl transition-all active:scale-95 gap-2 text-center min-h-[48px] select-none cursor-pointer overflow-hidden ${
                           active
-                            ? 'bg-[#EFE039] text-black border-[#EFE039]'
+                            ? 'bg-primary text-primary-foreground border-primary'
                             : 'bg-card hover:bg-secondary'
                         }`}
                       >
@@ -2487,7 +2487,7 @@ const CategoriaLegislacao = () => {
                     className={`relative overflow-hidden shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-xl active:scale-[0.95] transition ${
                       voiceSearch.listening
                         ? 'bg-red-500 text-white animate-pulse shadow-red-500/40'
-                        : 'bg-[#EFE039] text-black hover:bg-[#EFE039]/90 shadow-[#EFE039]/30'
+                        : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/30'
                     }`}
                   >
                     {voiceSearch.listening && <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}

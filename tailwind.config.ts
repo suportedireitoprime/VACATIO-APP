@@ -1,18 +1,18 @@
 import type { Config } from "tailwindcss";
 
-// Escala amarela pivotando em #F7D945 (HSL 50 92% 62%)
+// Escala vermelha pivotando em hsl(348 78% 38%) — painel DIREITO PRIME
 const YELLOW = {
-  50:  "hsl(50 100% 96%)",
-  100: "hsl(50 95% 88%)",
-  200: "hsl(50 95% 80%)",
-  300: "hsl(50 94% 72%)",
-  400: "hsl(50 93% 66%)",
-  500: "hsl(50 92% 62%)",
-  600: "hsl(48 85% 52%)",
-  700: "hsl(45 80% 42%)",
-  800: "hsl(42 75% 32%)",
-  900: "hsl(40 70% 22%)",
-  950: "hsl(38 65% 14%)",
+  50:  "hsl(350 100% 97%)",
+  100: "hsl(350 95% 92%)",
+  200: "hsl(350 90% 85%)",
+  300: "hsl(350 82% 70%)",
+  400: "hsl(349 80% 55%)",
+  500: "hsl(348 78% 38%)",
+  600: "hsl(350 75% 30%)",
+  700: "hsl(350 72% 26%)",
+  800: "hsl(350 70% 22%)",
+  900: "hsl(350 70% 18%)",
+  950: "hsl(350 68% 12%)",
 };
 
 // Escala cinza neutra pivotando em #212121 (HSL 0 0% 13%)
@@ -30,14 +30,46 @@ const GRAY = {
   950: "hsl(0 0% 8%)",
 };
 
+// Escala verde / esmeralda autêntica para sucesso, acertos e etapas concluídas
+const EMERALD = {
+  50:  "#ecfdf5",
+  100: "#d1fae5",
+  200: "#a7f3d0",
+  300: "#6ee7b7",
+  400: "#34d399",
+  500: "#10b981",
+  600: "#059669",
+  700: "#047857",
+  800: "#065f46",
+  900: "#064e3b",
+  950: "#022c22",
+};
+
+const GREEN = {
+  50:  "#f0fdf4",
+  100: "#dcfce7",
+  200: "#bbf7d0",
+  300: "#86efac",
+  400: "#4ade80",
+  500: "#22c55e",
+  600: "#16a34a",
+  700: "#15803d",
+  800: "#166534",
+  900: "#14532d",
+  950: "#052e16",
+};
+
 const MONO_COLOR_ALIASES = {
-  // Quentes -> amarelo
+  // Quentes -> vermelho/bordô
   amber: YELLOW, yellow: YELLOW, orange: YELLOW, rose: YELLOW,
   red: YELLOW, pink: YELLOW, fuchsia: YELLOW, lime: YELLOW,
   // Frios/neutros -> cinza
   sky: GRAY, blue: GRAY, indigo: GRAY, violet: GRAY, purple: GRAY,
-  cyan: GRAY, teal: GRAY, emerald: GRAY, green: GRAY,
+  cyan: GRAY, teal: GRAY,
   stone: GRAY, slate: GRAY, zinc: GRAY, neutral: GRAY, gray: GRAY,
+  // Sucesso, acertos e etapas finais -> Verde autêntico vibrante
+  emerald: EMERALD,
+  green: GREEN,
 };
 
 export default {

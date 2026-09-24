@@ -23,106 +23,104 @@ function p(bg: string, fg: string, card: string, cardFg: string, primary: string
     '--sidebar-accent': muted, '--sidebar-accent-foreground': secondaryFg,
     '--sidebar-border': border, '--sidebar-ring': ring,
     '--copper': copper, '--copper-light': copperLight, '--copper-dark': copperDark,
-    '--gold-accent': '45 65% 62%',
+    '--gold-accent': '348 80% 50%',
   };
 }
 
-// Paleta escura padrão — Limão & Antracite
+// Paleta escura padrão — Rubro & Antracite (Direito Prime)
 const DARK_PALETTE: ThemePalette = {
   id: 'limao-antracite',
-  name: 'Limão & Antracite',
-  description: 'Amarelo limão vibrante com cinza antracite profundo',
-  colors: p('55 8% 5%','55 5% 91%','55 6% 9%','55 5% 91%','55 85% 58%','55 30% 8%','55 85% 58%','55 4% 14%','55 5% 85%','55 4% 11%','55 12% 54%','55 85% 58%','55 30% 8%','55 6% 20%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  name: 'Rubro & Antracite',
+  description: 'Vermelho intenso com cinza antracite profundo',
+  colors: p('0 0% 5%','0 0% 98%','0 0% 12%','0 0% 98%','348 80% 50%','0 0% 100%','348 80% 60%','0 0% 18%','0 0% 96%','0 0% 14%','0 0% 62%','348 80% 50%','0 0% 100%','0 0% 20%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
 
 // Paleta clara — Marfim & Grafite (papel quente, WCAG AA)
 const LIGHT_PALETTE: ThemePalette = {
   id: 'marfim-grafite',
   name: 'Marfim & Grafite',
-  description: 'Papel marfim com grafite elegante e mostarda vibrante',
+  description: 'Papel marfim com grafite elegante e vermelho vibrante',
   colors: p(
-    '40 25% 96%',   // background — off-white marfim
+    '0 15% 96%',    // background — off-white marfim
     '220 15% 15%',  // foreground — grafite
     '0 0% 100%',    // card — branco puro (elevação)
     '220 15% 15%',  // card-foreground
-    '45 90% 42%',   // primary — mostarda AA em fundo claro
+    '348 80% 50%',    // primary — vermelho AA em fundo claro
     '0 0% 100%',    // primary-foreground — branco
-    '48 95% 55%',   // primary-light
-    '40 15% 92%',   // secondary — sand claro
+    '348 80% 60%',    // primary-light
+    '0 12% 92%',    // secondary
     '220 15% 20%',  // secondary-foreground
-    '40 15% 92%',   // muted
+    '0 12% 92%',    // muted
     '220 8% 42%',   // muted-foreground
-    '45 88% 45%',   // accent — mostarda
+    '348 80% 50%',    // accent
     '0 0% 100%',    // accent-foreground
-    '40 10% 86%',   // border
-    '45 90% 42%',   // ring
-    '45 85% 40%',   // copper
-    '48 95% 55%',   // copper-light
-    '45 75% 32%',   // copper-dark
+    '0 8% 86%',     // border
+    '348 80% 50%',    // ring
+    '348 80% 50%',    // copper
+    '348 80% 60%',    // copper-light
+    '350 70% 22%',    // copper-dark
   ),
 };
 
-
-// 1. Limão & Ônix (OLED)
+// 1. Rubro & Ônix (OLED)
 const LIMAO_ONIX: ThemePalette = {
-  id: 'limao-onix', name: 'Limão & Ônix', description: 'Fundo preto puro perfeito para telas OLED',
-  colors: p('0 0% 0%','0 0% 95%','0 0% 4%','0 0% 95%','55 85% 58%','55 30% 8%','55 85% 58%','0 0% 8%','0 0% 85%','0 0% 6%','0 0% 55%','55 85% 58%','55 30% 8%','0 0% 12%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  id: 'limao-onix', name: 'Rubro & Ônix', description: 'Fundo preto puro perfeito para telas OLED',
+  colors: p('0 0% 0%','0 0% 95%','0 0% 4%','0 0% 95%','348 80% 50%','0 0% 100%','348 80% 60%','0 0% 8%','0 0% 85%','0 0% 6%','0 0% 55%','348 80% 50%','0 0% 100%','0 0% 12%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
 
-// 2. Limão & Ardósia (Slate)
+// 2. Rubro & Ardósia (Slate)
 const LIMAO_ARDOSIA: ThemePalette = {
-  id: 'limao-ardosia', name: 'Limão & Ardósia', description: 'Cinza escuro azulado com amarelo limão',
-  colors: p('215 15% 9%','215 10% 91%','215 15% 13%','215 10% 91%','55 85% 58%','55 30% 8%','55 85% 58%','215 15% 18%','215 10% 85%','215 15% 12%','215 10% 55%','55 85% 58%','55 30% 8%','215 15% 24%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  id: 'limao-ardosia', name: 'Rubro & Ardósia', description: 'Cinza escuro azulado com vermelho rubro',
+  colors: p('215 15% 9%','215 10% 91%','215 15% 13%','215 10% 91%','348 80% 50%','0 0% 100%','348 80% 60%','215 15% 18%','215 10% 85%','215 15% 12%','215 10% 55%','348 80% 50%','0 0% 100%','215 15% 24%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
 
-// 3. Limão & Zinco (Zinc)
+// 3. Rubro & Zinco (Zinc)
 const LIMAO_ZINCO: ThemePalette = {
-  id: 'limao-zinco', name: 'Limão & Zinco', description: 'Cinza chumbo industrial clássico',
-  colors: p('240 5% 10%','240 5% 91%','240 5% 14%','240 5% 91%','55 85% 58%','55 30% 8%','55 85% 58%','240 5% 18%','240 5% 85%','240 5% 12%','240 5% 55%','55 85% 58%','55 30% 8%','240 5% 24%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  id: 'limao-zinco', name: 'Rubro & Zinco', description: 'Cinza chumbo industrial clássico',
+  colors: p('240 5% 10%','240 5% 91%','240 5% 14%','240 5% 91%','348 80% 50%','0 0% 100%','348 80% 60%','240 5% 18%','240 5% 85%','240 5% 12%','240 5% 55%','348 80% 50%','0 0% 100%','240 5% 24%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
 
-// 4. Limão & Asfalto (Neutral)
+// 4. Rubro & Asfalto (Neutral)
 const LIMAO_ASFALTO: ThemePalette = {
-  id: 'limao-asfalto', name: 'Limão & Asfalto', description: 'Cinza escuro neutro super limpo',
-  colors: p('0 0% 10%','0 0% 91%','0 0% 14%','0 0% 91%','55 85% 58%','55 30% 8%','55 85% 58%','0 0% 18%','0 0% 85%','0 0% 12%','0 0% 55%','55 85% 58%','55 30% 8%','0 0% 24%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  id: 'limao-asfalto', name: 'Rubro & Asfalto', description: 'Cinza escuro neutro super limpo',
+  colors: p('0 0% 10%','0 0% 91%','0 0% 14%','0 0% 91%','348 80% 50%','0 0% 100%','348 80% 60%','0 0% 18%','0 0% 85%','0 0% 12%','0 0% 55%','348 80% 50%','0 0% 100%','0 0% 24%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
 
-// 5. Limão & Meia-noite (Midnight)
+// 5. Rubro & Meia-noite (Midnight)
 const LIMAO_MEIANOITE: ThemePalette = {
-  id: 'limao-meianoite', name: 'Limão & Meia-noite', description: 'Azul marinho ultra profundo e elegante',
-  colors: p('230 25% 8%','230 15% 91%','230 25% 12%','230 15% 91%','55 85% 58%','55 30% 8%','55 85% 58%','230 25% 16%','230 15% 85%','230 25% 10%','230 15% 55%','55 85% 58%','55 30% 8%','230 25% 22%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  id: 'limao-meianoite', name: 'Rubro & Meia-noite', description: 'Azul marinho ultra profundo e elegante',
+  colors: p('230 25% 8%','230 15% 91%','230 25% 12%','230 15% 91%','348 80% 50%','0 0% 100%','348 80% 60%','230 25% 16%','230 15% 85%','230 25% 10%','230 15% 55%','348 80% 50%','0 0% 100%','230 25% 22%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
 
-// 6. Limão & Obsidiana (Obsidian)
+// 6. Rubro & Obsidiana (Obsidian)
 const LIMAO_OBSIDIANA: ThemePalette = {
-  id: 'limao-obsidiana', name: 'Limão & Obsidiana', description: 'Tons de roxo escuro acinzentado luxuoso',
-  colors: p('270 10% 8%','270 10% 91%','270 10% 12%','270 10% 91%','55 85% 58%','55 30% 8%','55 85% 58%','270 10% 16%','270 10% 85%','270 10% 10%','270 10% 55%','55 85% 58%','55 30% 8%','270 10% 22%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  id: 'limao-obsidiana', name: 'Rubro & Obsidiana', description: 'Tons de roxo escuro acinzentado luxuoso',
+  colors: p('270 10% 8%','270 10% 91%','270 10% 12%','270 10% 91%','348 80% 50%','0 0% 100%','348 80% 60%','270 10% 16%','270 10% 85%','270 10% 10%','270 10% 55%','348 80% 50%','0 0% 100%','270 10% 22%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
 
-// 7. Limão & Café (Coffee)
+// 7. Rubro & Café (Coffee)
 const LIMAO_CAFE: ThemePalette = {
-  id: 'limao-cafe', name: 'Limão & Café', description: 'Marrom escuro intenso e sofisticado',
-  colors: p('20 15% 8%','20 15% 91%','20 15% 12%','20 15% 91%','55 85% 58%','55 30% 8%','55 85% 58%','20 15% 16%','20 15% 85%','20 15% 10%','20 15% 55%','55 85% 58%','55 30% 8%','20 15% 22%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  id: 'limao-cafe', name: 'Rubro & Café', description: 'Marrom escuro intenso e sofisticado',
+  colors: p('20 15% 8%','20 15% 91%','20 15% 12%','20 15% 91%','348 80% 50%','0 0% 100%','348 80% 60%','20 15% 16%','20 15% 85%','20 15% 10%','20 15% 55%','348 80% 50%','0 0% 100%','20 15% 22%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
 
-// 8. Limão & Floresta (Forest)
+// 8. Rubro & Floresta (Forest)
 const LIMAO_FLORESTA: ThemePalette = {
-  id: 'limao-floresta', name: 'Limão & Floresta', description: 'Verde musgo muito escuro quase cinza',
-  colors: p('150 10% 8%','150 10% 91%','150 10% 12%','150 10% 91%','55 85% 58%','55 30% 8%','55 85% 58%','150 10% 16%','150 10% 85%','150 10% 10%','150 10% 55%','55 85% 58%','55 30% 8%','150 10% 22%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  id: 'limao-floresta', name: 'Rubro & Floresta', description: 'Verde musgo muito escuro quase cinza',
+  colors: p('150 10% 8%','150 10% 91%','150 10% 12%','150 10% 91%','348 80% 50%','0 0% 100%','348 80% 60%','150 10% 16%','150 10% 85%','150 10% 10%','150 10% 55%','348 80% 50%','0 0% 100%','150 10% 22%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
 
-// 9. Limão & Chumbo (Cool Gray)
+// 9. Rubro & Chumbo (Cool Gray)
 const LIMAO_CHUMBO: ThemePalette = {
-  id: 'limao-chumbo', name: 'Limão & Chumbo', description: 'Cinza metálico com leve tom azul claro',
-  colors: p('200 10% 12%','200 10% 91%','200 10% 16%','200 10% 91%','55 85% 58%','55 30% 8%','55 85% 58%','200 10% 20%','200 10% 85%','200 10% 14%','200 10% 55%','55 85% 58%','55 30% 8%','200 10% 28%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  id: 'limao-chumbo', name: 'Rubro & Chumbo', description: 'Cinza metálico com leve tom azul claro',
+  colors: p('200 10% 12%','200 10% 91%','200 10% 16%','200 10% 91%','348 80% 50%','0 0% 100%','348 80% 60%','200 10% 20%','200 10% 85%','200 10% 14%','200 10% 55%','348 80% 50%','0 0% 100%','200 10% 28%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
 
-// 10. Limão & Basalto (Stone)
+// 10. Rubro & Basalto (Stone)
 const LIMAO_BASALTO: ThemePalette = {
-  id: 'limao-basalto', name: 'Limão & Basalto', description: 'Cinza quente com toque de natureza e pedra',
-  colors: p('30 5% 10%','30 5% 91%','30 5% 14%','30 5% 91%','55 85% 58%','55 30% 8%','55 85% 58%','30 5% 18%','30 5% 85%','30 5% 12%','30 5% 55%','55 85% 58%','55 30% 8%','30 5% 24%','55 30% 8%','55 85% 58%','55 85% 58%','55 8% 60%'),
+  id: 'limao-basalto', name: 'Rubro & Basalto', description: 'Cinza quente com toque de natureza e pedra',
+  colors: p('30 5% 10%','30 5% 91%','30 5% 14%','30 5% 91%','348 80% 50%','0 0% 100%','348 80% 60%','30 5% 18%','30 5% 85%','30 5% 12%','30 5% 55%','348 80% 50%','0 0% 100%','30 5% 24%','348 80% 50%','348 80% 50%','348 80% 60%','350 70% 22%'),
 };
-
 
 const PALETTES: ThemePalette[] = [
   DARK_PALETTE, 

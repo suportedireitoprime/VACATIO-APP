@@ -146,7 +146,7 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
               <div
                 className="absolute inset-0"
                 style={{
-                  background: 'linear-gradient(135deg, #EFE039 0%, #EFE039 55%, #EFE039 100%)',
+                  background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 55%, hsl(var(--primary)) 100%)',
                 }}
               />
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
@@ -185,7 +185,7 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
               >
                 <Bell className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.4} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-black text-[10px] font-bold leading-none flex items-center justify-center border border-neutral-900 shadow">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none flex items-center justify-center border border-neutral-900 shadow">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
@@ -205,8 +205,8 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
             <div className="flex flex-col items-center text-center gap-1 z-[10] relative w-[42%] max-w-[160px] ml-2 sm:ml-4">
               {/* Selo / Brasão Circular com o ícone da categoria */}
               <div className="relative h-[72px] mb-1 flex items-center justify-center">
-                <div className="relative w-[68px] h-[68px] rounded-full border-2 border-white/90 bg-[#EFE039] flex items-center justify-center overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.5)] logo-shine">
-                  <CategoryIcon className="w-8 h-8 text-black" strokeWidth={2.2} />
+                <div className="relative w-[68px] h-[68px] rounded-full border-2 border-white/90 bg-primary flex items-center justify-center overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.5)] logo-shine">
+                  <CategoryIcon className="w-8 h-8 text-primary-foreground" strokeWidth={2.2} />
                 </div>
               </div>
 

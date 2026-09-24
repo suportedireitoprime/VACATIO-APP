@@ -17,8 +17,7 @@ const TemaRow = ({ numero, titulo, totalAulas, emPreparo, pct, onClick }: Props)
       aria-label={`Tema ${numero}: ${titulo}. ${Math.round(pct)}% concluído.`}
     >
       <div
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[15px] font-black tabular-nums text-black sm:h-12 sm:w-12 sm:text-base"
-        style={{ background: '#EFE039' }}
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[15px] font-black tabular-nums text-white bg-primary shadow-sm sm:h-12 sm:w-12 sm:text-base"
       >
         {String(numero).padStart(2, '0')}
       </div>
@@ -44,8 +43,8 @@ const TemaRow = ({ numero, titulo, totalAulas, emPreparo, pct, onClick }: Props)
         </div>
         <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full transition-all"
-            style={{ width: `${Math.max(0, Math.min(100, pct))}%`, background: '#EFE039' }}
+            className="h-full rounded-full transition-all bg-primary"
+            style={{ width: `${Math.max(0, Math.min(100, pct))}%` }}
           />
         </div>
       </div>

@@ -124,8 +124,8 @@ if (typeof document !== 'undefined' && !document.getElementById(shineStyleId)) {
     .float-slow { animation: floatSlow 6s ease-in-out infinite; }
     .float-slower { animation: floatSlower 8s ease-in-out infinite; }
     @keyframes ringPulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(250,204,21,0.55), 0 0 24px 0 rgba(250,204,21,0.25); }
-      50% { box-shadow: 0 0 0 8px rgba(250,204,21,0), 0 0 32px 4px rgba(250,204,21,0.35); }
+      0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.55), 0 0 24px 0 hsl(var(--primary) / 0.25); }
+      50% { box-shadow: 0 0 0 8px hsl(var(--primary) / 0), 0 0 32px 4px hsl(var(--primary) / 0.35); }
     }
     .ring-pulse { animation: ringPulse 2.6s ease-in-out infinite; }
     @keyframes badgeShine {
@@ -748,7 +748,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             <img
               src={brasaoRepublica}
               alt="Brasão da República"
-              className="w-16 xl:w-20 h-auto opacity-95 drop-shadow-[0_4px_16px_rgba(250,204,21,0.35)]"
+              className="w-16 xl:w-20 h-auto opacity-95 drop-shadow-[0_4px_16px_hsl(var(--primary)/0.45)]"
             />
             <h3 className="mt-3 font-display text-lg xl:text-xl font-bold text-white tracking-wide">
               Toda a <span className="text-primary">legislação brasileira</span>

@@ -31,7 +31,7 @@ export type Variants = {
  * - splash-dark.png: idem com bg escuro (padrão)
  * - notification-icon.png: 96×96 monocromático branco transparente
  */
-export async function generateVariants(source: File, bg = '#EFE039'): Promise<Variants> {
+export async function generateVariants(source: File, bg = '#EF4444'): Promise<Variants> {
   const url = URL.createObjectURL(source);
   try {
     const img = await loadImage(url);

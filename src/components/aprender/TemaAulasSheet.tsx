@@ -35,8 +35,7 @@ const TemaAulasSheet = ({ open, onOpenChange, numero, titulo, aulas, progresso }
         {/* Header */}
         <div className="flex items-center gap-3 px-5 pb-3 pr-14 pt-3 sm:px-6 sm:pr-16">
           <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[15px] font-black tabular-nums text-black"
-            style={{ background: '#EFE039' }}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[15px] font-black tabular-nums text-white bg-primary shadow-sm"
           >
             {String(numero).padStart(2, '0')}
           </div>

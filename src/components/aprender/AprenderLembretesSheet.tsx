@@ -20,7 +20,7 @@ const OPTIONS: {
   icon: typeof Clock;
   tint: string;
 }[] = [
-  { id: 'horario', label: 'Horário fixo', desc: 'Estude no mesmo horário todo dia.', icon: Clock, tint: '#FFD500' },
+  { id: 'horario', label: 'Horário fixo', desc: 'Estude no mesmo horário todo dia.', icon: Clock, tint: '#EF4444' },
   { id: 'localizacao', label: 'Por localização', desc: 'Ao chegar em um lugar (casa, trabalho).', icon: MapPin, tint: '#F9A8A8' },
   { id: 'streak', label: 'Não perder streak', desc: 'Aviso antes do dia acabar.', icon: Flame, tint: '#FB923C' },
   { id: 'semanal', label: 'Resumo semanal', desc: 'Domingo: seu progresso da semana.', icon: CalendarDays, tint: '#93C5FD' },

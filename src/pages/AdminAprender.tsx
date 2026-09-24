@@ -206,10 +206,9 @@ const AdminAprender = () => {
                   className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/50"
                 >
                   <div
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-                    style={{ background: '#EFE039' }}
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm"
                   >
-                    <GraduationCap className="h-5 w-5 text-black" />
+                    <GraduationCap className="h-5 w-5 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-display text-sm font-bold text-foreground truncate">{s.area}</p>

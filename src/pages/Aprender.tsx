@@ -214,7 +214,7 @@ const Aprender = () => {
           aula_id: pendente.id,
           aula_titulo: pendente.titulo,
           area_nome: ar?.nome ?? '',
-          area_cor: ar?.cor ?? '#EFE039',
+          area_cor: ar?.cor ?? '#fb7185',
           pct: areaIds.length ? Math.round((done / areaIds.length) * 100) : 0,
         };
       }
@@ -361,12 +361,12 @@ const Aprender = () => {
             <div
               className="absolute inset-0 opacity-25"
               style={{
-                background: 'linear-gradient(135deg, #EFE039 0%, #F5EA5A 100%)',
+                background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-light)) 100%)',
                 mixBlendMode: 'multiply',
               }}
             />
             {/* Fade suave na borda esquerda pra proteger o texto */}
-            <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#EFE039] via-[#EFE039]/60 to-transparent" />
+            <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-primary via-primary/60 to-transparent" />
           </div>
 
           <div className="relative p-4 sm:p-6">
@@ -472,8 +472,8 @@ const Aprender = () => {
                   </>
                 )}
                 <div className="relative flex items-center gap-3 p-4 sm:gap-4 sm:p-5">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#EFE039] shadow-lg sm:h-14 sm:w-14">
-                    <Play className="h-5 w-5 fill-black text-black sm:h-6 sm:w-6" />
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary shadow-lg sm:h-14 sm:w-14">
+                    <Play className="h-5 w-5 fill-primary-foreground text-primary-foreground sm:h-6 sm:w-6" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[10px] font-bold uppercase tracking-widest text-white/85">
@@ -488,7 +488,7 @@ const Aprender = () => {
                     <div className="mt-2 flex items-center gap-2">
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/20">
                         <div
-                          className="h-full rounded-full bg-[#EFE039] transition-all"
+                          className="h-full rounded-full bg-primary transition-all"
                           style={{ width: `${proxima.pct}%` }}
                         />
                       </div>
@@ -543,7 +543,7 @@ const Aprender = () => {
                         <div
                           className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl sm:h-[72px] sm:w-[72px]"
                           style={{
-                            background: cover?.tint ?? 'linear-gradient(135deg,#EFE039,#c9b83c)',
+                            background: cover?.tint ?? 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--brand-burgundy-mid)))',
                           }}
                         >
                           {cover?.cover ? (
@@ -581,7 +581,7 @@ const Aprender = () => {
                         <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted">
                           <div
                             className="h-full rounded-full transition-all"
-                            style={{ width: `${areaPct}%`, background: '#EFE039' }}
+                            style={{ width: `${areaPct}%`, background: 'hsl(var(--primary))' }}
                           />
                         </div>
                       </div>

@@ -73,10 +73,9 @@ export const HorusContextualSheet = ({ contexto, hideFab, open: openProp, onOpen
         <button
           onClick={() => setOpen(true)}
           aria-label="Perguntar ao Mentor"
-          className="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
-          style={{ background: '#EFE039' }}
+          className="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95 bg-primary text-primary-foreground shadow-primary/30"
         >
-          <MessageCircle className="h-6 w-6 text-black" strokeWidth={2} />
+          <MessageCircle className="h-6 w-6 text-white" strokeWidth={2} />
         </button>
       )}
 
@@ -86,10 +85,9 @@ export const HorusContextualSheet = ({ contexto, hideFab, open: openProp, onOpen
           <SheetHeader className="border-b border-border p-4">
             <SheetTitle className="flex items-center gap-2">
               <div
-                className="flex h-8 w-8 items-center justify-center rounded-full"
-                style={{ background: '#EFE039' }}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
               >
-                <Sparkles className="h-4 w-4 text-black" />
+                <Sparkles className="h-4 w-4 text-white" />
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <p className="text-sm font-bold">Mentor</p>

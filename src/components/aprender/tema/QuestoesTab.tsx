@@ -77,12 +77,11 @@ const QuestoesTab = ({ temaId, questoes, loading, respostas, onRespondida, onIrP
   if (resumo.respondidas === total) {
     const pct = Math.round((resumo.acertos / total) * 100);
     return (
-      <div className="flex flex-col items-center gap-4 rounded-3xl border-2 border-[#EFE039]/40 bg-gradient-to-b from-card to-secondary/40 p-8 text-center">
+      <div className="flex flex-col items-center gap-4 rounded-3xl border-2 border-primary/40 bg-gradient-to-b from-card to-secondary/40 p-8 text-center">
         <div
-          className="flex h-16 w-16 items-center justify-center rounded-full"
-          style={{ background: '#EFE039' }}
+          className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30"
         >
-          <Trophy className="h-8 w-8 text-black" />
+          <Trophy className="h-8 w-8 text-white" />
         </div>
         <h3
           className="text-2xl font-bold text-foreground"
@@ -106,7 +105,7 @@ const QuestoesTab = ({ temaId, questoes, loading, respostas, onRespondida, onIrP
           </button>
           <button
             onClick={onIrProgresso}
-            className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#EFE039] text-[14px] font-bold text-black transition-transform hover:scale-[1.01]"
+            className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-[14px] font-bold text-primary-foreground transition-transform hover:scale-[1.01] shadow-md"
             style={{ fontFamily: "'Barlow', system-ui, sans-serif" }}
           >
             Ver progresso <ChevronRight className="h-4 w-4" />
@@ -187,7 +186,7 @@ const QuestoesTab = ({ temaId, questoes, loading, respostas, onRespondida, onIrP
         <button
           onClick={() => setIdx((i) => Math.min(total - 1, i + 1))}
           disabled={!respAtual}
-          className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-[#EFE039] px-5 text-[14px] font-bold text-black transition-transform hover:scale-[1.01] disabled:opacity-40"
+          className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-primary px-5 text-[14px] font-bold text-primary-foreground transition-transform hover:scale-[1.01] disabled:opacity-40 shadow-md"
           style={{ fontFamily: "'Barlow', system-ui, sans-serif" }}
         >
           Próxima <ChevronRight className="h-4 w-4" />

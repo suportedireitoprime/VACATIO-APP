@@ -113,15 +113,10 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
             className="absolute inset-0 overflow-hidden"
             style={{ clipPath: 'polygon(0 0, 47% 0, 36% 100%, 0% 100%)' }}
           >
-            <div
-              className="absolute inset-0"
-              style={{
-                background: 'linear-gradient(135deg, #EFE039 0%, #EFE039 55%, #EFE039 100%)',
-              }}
-            />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.16),transparent_65%)]" />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-hero-panel" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,180,180,0.22),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.5),transparent_65%)]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
 
             {/* Motifs jurídicos clássicos */}
             <HeroMotifs />
@@ -147,7 +142,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
             >
               <Bell className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.4} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-black text-[10px] font-bold leading-none flex items-center justify-center border border-neutral-900 shadow">
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-white text-[10px] font-bold leading-none flex items-center justify-center border border-neutral-900 shadow">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}

@@ -75,7 +75,7 @@ export const IntroOverlay: React.FC = () => {
             margin: 0,
             padding: 0,
             zIndex: 2147483647,
-            background: "#EFE039",
+            background: "#0D0D0D",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",

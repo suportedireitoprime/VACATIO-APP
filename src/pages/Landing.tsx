@@ -488,7 +488,7 @@ function Hero() {
                     animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
                     exit={{ y: '-100%', opacity: 0, filter: 'blur(6px)' }}
                     transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
-                    className="block text-primary"
+                    className="block text-primary drop-shadow-[0_2px_14px_hsl(var(--primary)/0.7)]"
                   >
                     {ROTATING_WORDS[wordIndex]}
                   </motion.span>
@@ -516,7 +516,7 @@ function Hero() {
               <Link
                 to="/auth"
                 onClick={() => trackStartJourney('hero_desktop')}
-                className="group inline-flex items-center gap-2 bg-primary text-primary-foreground font-display tracking-wide text-lg px-8 py-4 rounded-md hover:bg-primary-light active:scale-95 transition-all shadow-hazard"
+                className="group inline-flex items-center gap-2 bg-gradient-to-r from-[hsl(352,58%,44%)] to-[hsl(348,80%,42%)] text-white font-display tracking-wide text-lg px-8 py-4 rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-hazard lp-sheen lp-sheen-loop"
               >
                 INICIAR JORNADA
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -574,7 +574,7 @@ function Hero() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.15, duration: 0.6 }}
-              className="w-24 h-auto mx-auto mb-3 opacity-40 drop-shadow-[0_4px_18px_rgba(250,204,21,0.35)]"
+              className="w-24 h-auto mx-auto mb-3 opacity-40 drop-shadow-[0_4px_18px_hsl(var(--primary)/0.45)]"
             />
             <span className="inline-block mb-2 font-body text-[10px] uppercase tracking-[0.4em] text-primary/90">
               A Bíblia Jurídica Digital
@@ -590,7 +590,7 @@ function Hero() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: '-100%', opacity: 0 }}
                     transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
-                    className="block text-primary"
+                    className="block text-primary drop-shadow-[0_2px_14px_hsl(var(--primary)/0.7)]"
                   >
                     {ROTATING_WORDS[wordIndex]}
                   </motion.span>
@@ -609,7 +609,7 @@ function Hero() {
           <Link
             to="/auth"
             onClick={() => trackStartJourney('hero_mobile')}
-            className="group relative w-full inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-display tracking-wide text-[19px] px-6 py-4 rounded-2xl active:scale-[0.98] transition-all shadow-[0_10px_30px_-8px_rgba(250,204,21,0.55)] search-bar-shine"
+            className="group relative w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[hsl(352,58%,44%)] to-[hsl(348,80%,42%)] text-white font-display tracking-wide text-[19px] px-6 py-4 rounded-2xl active:scale-[0.98] transition-all shadow-[0_10px_30px_-8px_hsl(var(--primary)/0.65)] lp-sheen lp-sheen-loop"
           >
             INICIAR JORNADA
             <ArrowRight className="w-5 h-5" />

@@ -140,8 +140,7 @@ export function AulaSettingsSheet({
             className="flex w-full items-center gap-4 rounded-xl border border-border p-4 text-left hover:bg-accent min-h-14"
           >
             <span
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-black"
-              style={{ background: '#EFE039' }}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white bg-primary shadow-sm"
             >
               <List className="h-5 w-5" />
             </span>
@@ -155,8 +154,7 @@ export function AulaSettingsSheet({
           <section className="rounded-xl border border-border p-4">
             <div className="flex items-center gap-3 mb-3">
               <span
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-black"
-                style={{ background: '#EFE039' }}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white bg-primary shadow-sm"
               >
                 <Volume2 className="h-5 w-5" />
               </span>

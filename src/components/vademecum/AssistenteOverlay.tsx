@@ -123,7 +123,7 @@ function BrainEmptyState({ suggestions, onSelect }: { suggestions: string[], onS
         </div>
 
         {/* The Brain Icon */}
-        <div className="relative z-10 w-24 h-24 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.15)] backdrop-blur-sm">
+        <div className="relative z-10 w-24 h-24 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shadow-[0_0_30px_hsl(var(--primary)/0.25)] backdrop-blur-sm">
            <Brain className="w-12 h-12 text-accent" strokeWidth={1.5} />
         </div>
         

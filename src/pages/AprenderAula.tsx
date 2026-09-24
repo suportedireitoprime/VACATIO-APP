@@ -282,10 +282,9 @@ const AprenderAula = () => {
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-2xl px-4 py-10 text-center">
           <div
-            className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full"
-            style={{ background: '#EFE039' }}
+            className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30"
           >
-            <Trophy className="h-12 w-12 text-black" />
+            <Trophy className="h-12 w-12 text-white" />
           </div>
           <h1 className="font-display text-3xl font-bold text-foreground">Aula concluída!</h1>
           <p className="mt-2 text-muted-foreground">{aula.titulo}</p>
@@ -355,17 +354,14 @@ const AprenderAula = () => {
           </span>
         </div>
 
-        {/* Timeline horizontal — fundo amarelo degradê (mesma paleta do painel inicial), sem margens laterais */}
+        {/* Timeline horizontal — fundo vermelho degradê (mesma paleta do painel inicial DIREITO PRIME), sem margens laterais */}
         <div
           ref={timelineScrollRef}
-          className="relative overflow-x-auto border-y border-black/10 py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth"
-          style={{
-            background: 'linear-gradient(135deg, #EFE039 0%, #EFE039 55%, #EFE039 100%)',
-          }}
+          className="relative overflow-x-auto border-y border-white/10 py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth bg-hero-panel"
         >
-          {/* Radial warmth overlays — mesmo efeito do painel amarelo */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.35),transparent_65%)]" />
+          {/* Radial warmth overlays — mesmo efeito do painel vermelho */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.2),transparent_60%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.45),transparent_65%)]" />
 
           <div
             className="mx-auto flex max-w-3xl items-center"
@@ -394,32 +390,32 @@ const AprenderAula = () => {
                       <motion.span
                         layoutId="timeline-halo"
                         className="absolute inset-0 rounded-full"
-                        style={{ background: 'rgba(0,0,0,0.18)' }}
+                        style={{ background: 'rgba(255,255,255,0.22)' }}
                         transition={{ type: 'spring', stiffness: 500, damping: 32 }}
                       />
                     )}
                     <Icon
                       className={`relative h-[22px] w-[22px] md:h-6 md:w-6 transition-colors ${
-                        ativo ? 'text-black' : 'text-black/40'
+                        ativo ? 'text-white' : 'text-white/50'
                       }`}
                       strokeWidth={2}
                     />
                     {ok && (
-                      <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-600 ring-2 ring-[#EFE039]">
+                      <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-600 ring-2 ring-primary">
                         <CheckCircle2 className="h-2.5 w-2.5 text-white" strokeWidth={2} />
                       </span>
                     )}
                     {err && (
-                      <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-600 ring-2 ring-[#EFE039]">
+                      <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-600 ring-2 ring-primary">
                         <XCircle className="h-2.5 w-2.5 text-white" strokeWidth={2} />
                       </span>
                     )}
                   </button>
                   {!isLast && (
-                    <div className="relative mx-0.5 h-[3px] w-6 md:w-8 overflow-hidden rounded-full bg-black/20">
+                    <div className="relative mx-0.5 h-[3px] w-6 md:w-8 overflow-hidden rounded-full bg-white/20">
                       <motion.div
                         className="absolute inset-y-0 left-0 rounded-full"
-                        style={{ background: 'black' }}
+                        style={{ background: 'white' }}
                         initial={false}
                         animate={{ width: isFeito ? '100%' : '0%' }}
                         transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -495,11 +491,10 @@ const AprenderAula = () => {
           <button
             onClick={() => setMentorOpen(true)}
             aria-label="Mentor"
-            className="relative flex h-12 w-12 md:h-14 md:w-14 shrink-0 items-center justify-center overflow-hidden rounded-full text-black shadow-md active:scale-95 transition-transform"
-            style={{ background: 'linear-gradient(135deg, #EFE039 0%, #EFE039 55%, #EFE039 100%)' }}
+            className="relative flex h-12 w-12 md:h-14 md:w-14 shrink-0 items-center justify-center overflow-hidden rounded-full text-white shadow-md active:scale-95 transition-transform bg-hero-panel border border-white/10"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.35),transparent_65%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.2),transparent_60%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.45),transparent_65%)]" />
             <MessageCircle className="relative h-[22px] w-[22px] md:h-6 md:w-6" strokeWidth={2} />
           </button>
           <div className="flex-1" />
@@ -512,11 +507,10 @@ const AprenderAula = () => {
           </button>
           <button
             onClick={proximo}
-            className="relative inline-flex items-center gap-1.5 overflow-hidden rounded-full px-6 md:px-7 h-12 md:h-14 text-sm md:text-base font-semibold text-black hover:opacity-90 active:scale-95 transition-transform shadow-md"
-            style={{ background: 'linear-gradient(135deg, #EFE039 0%, #EFE039 55%, #EFE039 100%)' }}
+            className="relative inline-flex items-center gap-1.5 overflow-hidden rounded-full px-6 md:px-7 h-12 md:h-14 text-sm md:text-base font-semibold text-white hover:opacity-95 active:scale-95 transition-transform shadow-md bg-hero-panel border border-white/10"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.35),transparent_65%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.2),transparent_60%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.45),transparent_65%)]" />
             <span className="relative">{idx === total - 1 ? 'Concluir' : 'Próximo'}</span>
             <ArrowRight className="relative h-4 w-4 md:h-5 md:w-5" strokeWidth={2} />
           </button>
@@ -547,8 +541,7 @@ const AprenderAula = () => {
                   }`}
                 >
                   <span
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-black"
-                    style={{ background: '#EFE039' }}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white bg-primary shadow-sm"
                   >
                     <Icon className="h-4 w-4" />
                   </span>

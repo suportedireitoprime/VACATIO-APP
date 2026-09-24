@@ -204,7 +204,7 @@ export default function PeticaoInicialEditor() {
             <div
               key={s.n}
               className={`h-1.5 flex-1 rounded-full transition ${
-                s.n <= etapa ? 'bg-gradient-to-r from-[#EFE039] to-[#D4B800]' : 'bg-muted'
+                s.n <= etapa ? 'bg-gradient-to-r from-[hsl(0_72%_52%)] to-[hsl(0_70%_40%)]' : 'bg-muted'
               }`}
             />
           ))}
@@ -298,7 +298,7 @@ function StepFatos({ pet, onNext }: { pet: Peticao; onNext: (v: Partial<Peticao>
             <button
               type="button"
               onClick={start}
-              className="w-11 h-11 rounded-full grid place-items-center shadow bg-gradient-to-br from-[#EFE039] to-[#D4B800] text-gray-900"
+              className="w-11 h-11 rounded-full grid place-items-center shadow bg-gradient-to-br from-[hsl(0_72%_52%)] to-[hsl(0_70%_40%)] text-primary-foreground"
               aria-label="Gravar áudio"
             >
               <Mic className="w-5 h-5" />
@@ -329,7 +329,7 @@ function StepFatos({ pet, onNext }: { pet: Peticao; onNext: (v: Partial<Peticao>
               <button
                 type="button"
                 onClick={resume}
-                className="w-11 h-11 rounded-full grid place-items-center shadow bg-gradient-to-br from-[#EFE039] to-[#D4B800] text-gray-900"
+                className="w-11 h-11 rounded-full grid place-items-center shadow bg-gradient-to-br from-[hsl(0_72%_52%)] to-[hsl(0_70%_40%)] text-primary-foreground"
                 aria-label="Continuar gravação"
               >
                 <Play className="w-5 h-5" />
@@ -524,7 +524,7 @@ function StepResumo({
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {tags.map((t) => (
-              <Badge key={t} className="bg-[#EFE039] text-gray-900 hover:bg-[#EFE039]">
+              <Badge key={t} className="bg-primary text-primary-foreground hover:bg-primary">
                 {t}
               </Badge>
             ))}
@@ -623,7 +623,7 @@ function StepPartes({
             <button
               key={c.key}
               onClick={() => openSheet(c.key)}
-              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-card border border-border hover:border-[#EFE039] transition text-left"
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-card border border-border hover:border-primary transition text-left"
             >
               <div
                 className={`w-9 h-9 rounded-lg grid place-items-center shrink-0 ${
@@ -1044,14 +1044,14 @@ function StepElaboracao({
               i < current
                 ? 'bg-green-500/5 border-green-500/30'
                 : i === current
-                  ? 'bg-[#EFE039]/10 border-[#EFE039]'
+                  ? 'bg-primary/10 border-primary'
                   : 'bg-card border-border opacity-60'
             }`}
           >
             {i < current ? (
               <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
             ) : i === current ? (
-              <Loader2 className="w-5 h-5 animate-spin text-[#D4B800] shrink-0" />
+              <Loader2 className="w-5 h-5 animate-spin text-primary shrink-0" />
             ) : (
               <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30 shrink-0" />
             )}
@@ -1147,7 +1147,7 @@ function StepFinal({
       <Button
         onClick={exportar}
         disabled={exporting}
-        className="w-full h-14 rounded-xl font-bold bg-gradient-to-br from-[#EFE039] to-[#D4B800] text-gray-900 hover:opacity-90"
+        className="w-full h-14 rounded-xl font-bold bg-gradient-to-br from-[hsl(0_72%_52%)] to-[hsl(0_70%_40%)] text-primary-foreground hover:opacity-90"
       >
         {exporting ? (
           <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -1273,7 +1273,7 @@ function renderInline(s: string): React.ReactNode {
       nodes.push(
         <span
           key={key++}
-          className="inline-block px-2 py-0.5 mx-0.5 rounded-md bg-[#EFE039]/70 text-gray-900 text-xs font-semibold border border-[#D4B800]"
+          className="inline-block px-2 py-0.5 mx-0.5 rounded-md bg-primary/20 text-primary text-xs font-semibold border border-primary/40"
         >
           {m[1].replace(/_/g, ' ').toLowerCase()}
         </span>,

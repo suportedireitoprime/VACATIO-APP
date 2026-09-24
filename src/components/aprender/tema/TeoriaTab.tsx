@@ -41,10 +41,9 @@ const TeoriaTab = ({ aulas, progresso, onNavigate }: Props) => {
               style={{ minHeight: 72 }}
             >
               <div
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-                style={{ background: '#EFE039' }}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm"
               >
-                <GraduationCap className="h-5 w-5 text-black" strokeWidth={1.8} />
+                <GraduationCap className="h-5 w-5 text-white" strokeWidth={1.8} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -80,8 +79,8 @@ const TeoriaTab = ({ aulas, progresso, onNavigate }: Props) => {
                 {p && (
                   <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted">
                     <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${p.concluida ? 100 : p.pct}%`, background: '#EFE039' }}
+                      className="h-full rounded-full transition-all bg-primary"
+                      style={{ width: `${p.concluida ? 100 : p.pct}%` }}
                     />
                   </div>
                 )}

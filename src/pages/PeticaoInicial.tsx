@@ -87,7 +87,7 @@ export default function PeticaoInicial() {
       mobileHeader={mobileHeader}
     >
       <div className="px-4 sm:px-6 py-4 space-y-4">
-        <div className="rounded-2xl bg-gradient-to-br from-[#EFE039] to-[#D4B800] p-5 text-gray-900 shadow-lg">
+        <div className="rounded-2xl bg-gradient-to-br from-[hsl(0_72%_52%)] to-[hsl(0_70%_40%)] p-5 text-primary-foreground shadow-lg">
           <div className="flex items-start gap-3">
             <div className="w-11 h-11 rounded-xl bg-black/10 grid place-items-center shrink-0">
               <FileSignature className="w-6 h-6" strokeWidth={1.8} />

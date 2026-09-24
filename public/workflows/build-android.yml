@@ -305,7 +305,7 @@ jobs:
             if [ -d node_modules/@capacitor/assets/node_modules/sharp ]; then
               (cd node_modules/@capacitor/assets/node_modules/sharp && npm install --platform=linux --arch=x64 --no-save)
             fi
-            npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#EFE039' --iconBackgroundColorDark '#EFE039' --splashBackgroundColor '#FFD500' --splashBackgroundColorDark '#FFD500'
+            npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#8C1220' --iconBackgroundColorDark '#8C1220' --splashBackgroundColor '#8C1220' --splashBackgroundColorDark '#8C1220'
           else
             echo "No native image assets found; skipping capacitor-assets."
           fi
@@ -328,7 +328,7 @@ jobs:
               p.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n')
           s = p.read_text()
           if 'name="splash_bg"' not in s:
-              s = s.replace('</resources>', '    <color name="splash_bg">#FFD500</color>\n</resources>')
+              s = s.replace('</resources>', '    <color name="splash_bg">#8C1220</color>\n</resources>')
               print('splash_bg color added')
           else:
               print('splash_bg color already present')
@@ -2483,14 +2483,14 @@ jobs:
                   print(f'✅ <monochrome> injetado em {xml}')
           PY
 
-      - name: FCM default notification icon + color (yellow #FFD500)
+      - name: FCM default notification icon + color (red #8C1220)
         run: |
           # Instala o ícone monocromático da status bar (V branco em canvas
           # transparente) como res/drawable/notification_icon.png e registra
-          # ele + a cor de accent amarela (#FFD500) como padrão do FCM via
+          # ele + a cor de accent vermelha (#8C1220) como padrão do FCM via
           # meta-data no AndroidManifest. Assim, quando o payload FCM manda
           # `notification.icon = "notification_icon"` e `notification.color`,
-          # o Android usa esses recursos e tinge o ícone pequeno de amarelo.
+          # o Android usa esses recursos e tinge o ícone pequeno de vermelho.
           # Ref: https://firebase.google.com/docs/cloud-messaging/android/client
           python3 - <<'PY'
           from pathlib import Path
@@ -2509,15 +2509,15 @@ jobs:
           shutil.copy(src, dst)
           print(f'✅ notification_icon copiado -> {dst}')
 
-          # colors.xml — adiciona notification_color=#FFD500 (idempotente)
+          # colors.xml — adiciona notification_color=#8C1220 (idempotente)
           colors = Path('android/app/src/main/res/values/colors.xml')
           if not colors.exists():
               colors.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n')
           c = colors.read_text()
           if 'name="notification_color"' not in c:
-              c = c.replace('</resources>', '    <color name="notification_color">#FFD500</color>\n</resources>')
+              c = c.replace('</resources>', '    <color name="notification_color">#8C1220</color>\n</resources>')
               colors.write_text(c)
-              print('✅ notification_color=#FFD500 adicionado a colors.xml')
+              print('✅ notification_color=#8C1220 adicionado a colors.xml')
           else:
               print('notification_color já presente')
 

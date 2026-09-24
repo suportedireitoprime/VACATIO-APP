@@ -376,7 +376,7 @@ const MobileHomeSections = ({ onTabChange, onNewsOpenChange }: Props = {}) => {
                 data-track-tab={t.id}
                 className={`relative flex-1 flex items-center justify-center gap-2 h-10 rounded-full font-display text-[12px] sm:text-[13px] font-bold uppercase tracking-wider transition-all ${
                   isActive
-                    ? 'bg-primary text-black font-extrabold shadow-[0_0_20px_rgba(250,204,21,0.35)]'
+                    ? 'bg-primary text-primary-foreground font-extrabold shadow-[0_0_20px_hsl(var(--primary)/0.45)]'
                     : 'bg-card text-zinc-300 hover:text-white hover:bg-secondary border border-white/[0.08]'
                 }`}
               >

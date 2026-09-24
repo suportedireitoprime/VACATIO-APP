@@ -203,7 +203,7 @@ const FlashcardsTab = ({ flashcards, loading }: Props) => {
         <button
           onClick={() => go(1)}
           disabled={idx >= total - 1}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#EFE039] text-[14px] font-bold text-black transition-transform hover:scale-[1.01] disabled:opacity-40"
+          className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-[14px] font-bold text-primary-foreground transition-transform hover:scale-[1.01] disabled:opacity-40 shadow-md"
           style={{ fontFamily: "'Barlow', system-ui, sans-serif" }}
         >
           Próximo <ChevronRight className="h-4 w-4" />

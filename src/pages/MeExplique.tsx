@@ -342,9 +342,10 @@ const MeExplique = () => {
           const arts = await fetchArtigosInstant(lei.tabela_nome, 40);
           const limpo = artNum.replace(/[^0-9]/g, '');
           const achado = arts.find((a) => a.numero.replace(/[^0-9]/g, '') === limpo);
-          if (achado?.texto) {
-            artTxt = achado.texto;
-            setArtigoAtivo((prev) => ({ ...prev, texto: achado.texto }));
+          const txt = achado?.caput || (achado as any)?.texto;
+          if (txt) {
+            artTxt = txt;
+            setArtigoAtivo((prev) => ({ ...prev, texto: txt }));
           }
         } catch {
           /* segue com o que tiver */
@@ -510,7 +511,7 @@ const MeExplique = () => {
           />
           {/* Overlay escurecido suave e vinheta para contraste perfeito */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/75" />
-          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-80 h-80 bg-[#EFE039]/12 blur-[90px] rounded-full pointer-events-none" />
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-80 h-80 bg-primary/15 blur-[90px] rounded-full pointer-events-none" />
         </div>
 
         {/* Header da Tela de Escolha */}
@@ -529,7 +530,7 @@ const MeExplique = () => {
           <div className="text-center">
             <h1 className="font-display text-base font-bold tracking-wide uppercase text-white flex items-center justify-center gap-1.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               <span>Me Explique</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-[#EFE039] inline-block shadow-sm shadow-[#EFE039]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-primary inline-block shadow-sm shadow-primary" />
             </h1>
             <p className="text-[11px] text-white/70 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
               Escolha como deseja aprender
@@ -549,13 +550,13 @@ const MeExplique = () => {
               void haptic.medium();
               handleSelectCamera();
             }}
-            className="w-full text-center rounded-2xl border-2 border-dashed border-white/35 hover:border-[#EFE039] p-4 sm:p-4.5 backdrop-blur-md bg-black/60 hover:bg-black/75 shadow-2xl transition-all group relative overflow-hidden"
+            className="w-full text-center rounded-2xl border-2 border-dashed border-white/35 hover:border-primary p-4 sm:p-4.5 backdrop-blur-md bg-black/60 hover:bg-black/75 shadow-2xl transition-all group relative overflow-hidden"
           >
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-[#EFE039]/15 border border-[#EFE039]/30 text-[#EFE039] group-hover:scale-105 transition-transform">
-              <Camera className="h-6 w-6 text-[#EFE039]" />
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 border border-primary/30 text-primary group-hover:scale-105 transition-transform">
+              <Camera className="h-6 w-6 text-primary" />
             </div>
 
-            <h3 className="mt-2.5 font-display text-[14px] sm:text-[15px] font-bold text-white group-hover:text-[#EFE039] transition-colors leading-snug">
+            <h3 className="mt-2.5 font-display text-[14px] sm:text-[15px] font-bold text-white group-hover:text-primary transition-colors leading-snug">
               Aponte para o livro, slide ou caderno
             </h3>
 
@@ -563,7 +564,7 @@ const MeExplique = () => {
               Toque na tela para focar. Depois toque no botão abaixo para o professor explicar ao vivo.
             </p>
 
-            <div className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#EFE039]/20 border border-[#EFE039]/40 text-[#EFE039] text-[11px] font-bold group-hover:bg-[#EFE039] group-hover:text-black transition-all">
+            <div className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-primary/20 border border-primary/40 text-primary text-[11px] font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-all">
               <Camera className="h-3 w-3" />
               <span>Usar Câmera ao Vivo</span>
               <ArrowRight className="h-3 w-3 ml-0.5" />
@@ -578,10 +579,10 @@ const MeExplique = () => {
               void haptic.medium();
               handleSelectLivre();
             }}
-            className="w-full text-center rounded-2xl border border-white/20 hover:border-[#EFE039]/80 p-4 sm:p-4.5 backdrop-blur-md bg-black/60 hover:bg-black/75 shadow-2xl transition-all group relative overflow-hidden"
+            className="w-full text-center rounded-2xl border border-white/20 hover:border-primary/80 p-4 sm:p-4.5 backdrop-blur-md bg-black/60 hover:bg-black/75 shadow-2xl transition-all group relative overflow-hidden"
           >
             {/* Avatar da Professora Thêmis com anel dourado */}
-            <div className="relative mx-auto w-12 h-12 rounded-full p-0.5 ring-2 ring-[#EFE039]/80 shadow-md shadow-[#EFE039]/20 group-hover:scale-105 transition-transform overflow-hidden bg-black">
+            <div className="relative mx-auto w-12 h-12 rounded-full p-0.5 ring-2 ring-primary/80 shadow-md shadow-primary/20 group-hover:scale-105 transition-transform overflow-hidden bg-black">
               <img
                 src={ladyJusticeAvatar}
                 alt="Professor IA"
@@ -589,7 +590,7 @@ const MeExplique = () => {
               />
             </div>
 
-            <h3 className="mt-2.5 font-display text-[14px] sm:text-[15px] font-bold text-white group-hover:text-[#EFE039] transition-colors leading-snug">
+            <h3 className="mt-2.5 font-display text-[14px] sm:text-[15px] font-bold text-white group-hover:text-primary transition-colors leading-snug">
               Modo Livre (Dialogar)
             </h3>
 
@@ -611,7 +612,7 @@ const MeExplique = () => {
                 void haptic.light();
                 handleSelectLeis();
               }}
-              className="text-[11.5px] text-white/60 hover:text-[#EFE039] transition-colors underline-offset-4 hover:underline inline-flex items-center gap-1.5"
+              className="text-[11.5px] text-white/60 hover:text-primary transition-colors underline-offset-4 hover:underline inline-flex items-center gap-1.5"
             >
               <Scale className="h-3 w-3" />
               <span>Ou escolha um artigo de lei específico do Vade Mecum</span>
@@ -687,7 +688,7 @@ const MeExplique = () => {
             className="w-full h-full object-cover object-center opacity-15 filter brightness-[0.25] blur-[4px]"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/75 to-black/95" />
-          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#EFE039]/10 blur-3xl rounded-full" />
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/10 blur-3xl rounded-full" />
           <div className="absolute bottom-0 right-0 w-80 h-80 bg-primary/5 blur-3xl rounded-full" />
         </div>
       )}
@@ -834,14 +835,14 @@ const MeExplique = () => {
             <div className="relative mb-5">
               {aoVivo && (
                 <>
-                  <span className="absolute inset-0 rounded-full animate-ping bg-[#EFE039]/30 -m-3" />
+                  <span className="absolute inset-0 rounded-full animate-ping bg-primary/30 -m-3" />
                   <span className="absolute inset-0 rounded-full animate-pulse bg-primary/20 -m-1.5" />
                 </>
               )}
               <div
                 className={`relative w-28 h-28 sm:w-32 sm:h-32 rounded-full p-1 ring-4 ${
                   status === 'falando'
-                    ? 'ring-[#EFE039] shadow-2xl shadow-[#EFE039]/50 animate-pulse'
+                    ? 'ring-primary shadow-2xl shadow-primary/50 animate-pulse'
                     : status === 'ouvindo'
                     ? 'ring-emerald-400 shadow-xl shadow-emerald-400/40'
                     : 'ring-white/20 shadow-xl shadow-black/80'
@@ -862,7 +863,7 @@ const MeExplique = () => {
               </h2>
               <p className="text-xs sm:text-sm text-zinc-300 font-medium">
                 {status === 'falando' ? (
-                  <span className="text-[#EFE039] font-bold flex items-center justify-center gap-1.5">
+                  <span className="text-primary font-bold flex items-center justify-center gap-1.5">
                     <Volume2 className="h-4 w-4 animate-bounce" />
                     Explicando em voz alta…
                   </span>
@@ -887,11 +888,11 @@ const MeExplique = () => {
             {/* Onda sonora animada durante fala/escuta */}
             {aoVivo && (
               <div className="flex items-center gap-1.5 py-1">
-                <span className="h-3 w-1.5 bg-[#EFE039] rounded-full animate-pulse" />
-                <span className="h-6 w-1.5 bg-[#EFE039] rounded-full animate-pulse delay-75" />
-                <span className="h-8 w-1.5 bg-[#EFE039] rounded-full animate-pulse delay-150" />
-                <span className="h-5 w-1.5 bg-[#EFE039] rounded-full animate-pulse delay-100" />
-                <span className="h-3 w-1.5 bg-[#EFE039] rounded-full animate-pulse delay-200" />
+                <span className="h-3 w-1.5 bg-primary rounded-full animate-pulse" />
+                <span className="h-6 w-1.5 bg-primary rounded-full animate-pulse delay-75" />
+                <span className="h-8 w-1.5 bg-primary rounded-full animate-pulse delay-150" />
+                <span className="h-5 w-1.5 bg-primary rounded-full animate-pulse delay-100" />
+                <span className="h-3 w-1.5 bg-primary rounded-full animate-pulse delay-200" />
               </div>
             )}
           </div>

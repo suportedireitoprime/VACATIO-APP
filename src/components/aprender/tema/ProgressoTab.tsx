@@ -43,7 +43,7 @@ const ProgressoTab = ({ totalQuestoes, totalFlashcards, respondidas, acertos, on
             </span>
           </div>
           <div
-            className="inline-flex w-fit items-center gap-1.5 rounded-full bg-black/85 px-3 py-1.5 text-[12px] font-bold uppercase tracking-wider text-[#EFE039]"
+            className="inline-flex w-fit items-center gap-1.5 rounded-full bg-black/85 px-3 py-1.5 text-[12px] font-bold uppercase tracking-wider text-primary"
             style={{ fontFamily: "'Barlow', system-ui, sans-serif" }}
           >
             <TrendingUp className="h-3.5 w-3.5" />
@@ -87,8 +87,8 @@ const ProgressoTab = ({ totalQuestoes, totalFlashcards, respondidas, acertos, on
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full transition-all"
-            style={{ width: `${pct}%`, background: '#EFE039' }}
+            className="h-full rounded-full transition-all bg-primary"
+            style={{ width: `${pct}%` }}
           />
         </div>
         <p

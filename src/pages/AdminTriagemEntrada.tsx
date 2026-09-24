@@ -37,7 +37,7 @@ function VersionCard({
   return (
     <div className={`rounded-2xl border overflow-hidden bg-card ${active ? 'border-primary ring-2 ring-primary/30' : 'border-border'}`}>
       <div
-        className="relative bg-[#EFE039] mx-auto flex items-center justify-center w-full"
+        className="relative bg-primary mx-auto flex items-center justify-center w-full"
         style={{ aspectRatio: '9 / 16', maxHeight: 'min(56vh, 480px)' }}
       >
         <video

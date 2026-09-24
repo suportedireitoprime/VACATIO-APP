@@ -88,7 +88,7 @@ export default function TrilhaArtigos({ blocos, onSelectArtigo }: Props) {
                       ].join(' ')}
                       style={{
                         boxShadow: dominado
-                          ? '0 10px 24px rgba(250,204,21,0.45), 0 4px 8px rgba(0,0,0,0.3), inset 0 -4px 0 rgba(0,0,0,0.22), inset 0 2px 0 rgba(255,255,255,0.35)'
+                          ? '0 10px 24px hsl(var(--primary) / 0.55), 0 4px 8px rgba(0,0,0,0.3), inset 0 -4px 0 rgba(0,0,0,0.22), inset 0 2px 0 rgba(255,255,255,0.35)'
                           : '0 10px 22px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.25), inset 0 -4px 0 rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.18)',
                       }}
                     >

@@ -79,7 +79,7 @@ const AprenderBottomNav = () => {
                 {active && (
                   <motion.span
                     layoutId="aprender-nav-active-pill"
-                    className="absolute inset-0 rounded-2xl bg-[#EFE039]/15 ring-1 ring-[#EFE039]/30"
+                    className="absolute inset-0 rounded-2xl bg-primary/15 ring-1 ring-primary/30"
                     transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                     aria-hidden="true"
                   />

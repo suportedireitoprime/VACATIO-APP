@@ -74,7 +74,7 @@ const DesktopQrLogin = () => {
       const dataUrl = await QRCode.toDataURL(url, {
         margin: 1,
         width: 320,
-        color: { dark: '#0b0b0f', light: '#FFD500' },
+        color: { dark: '#0b0b0f', light: '#ffffff' },
         errorCorrectionLevel: 'H',
       });
       setToken(r.token);
@@ -191,7 +191,7 @@ const DesktopQrLogin = () => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-        className="relative mt-4 p-4 rounded-3xl bg-neutral-900/80 border border-primary/25 shadow-[0_25px_80px_-20px_rgba(250,204,21,0.35)]"
+        className="relative mt-4 p-4 rounded-3xl bg-neutral-900/80 border border-primary/25 shadow-[0_25px_80px_-20px_hsl(var(--primary)/0.45)]"
       >
         <div className="relative w-[min(240px,24vh)] h-[min(240px,24vh)] flex items-center justify-center rounded-2xl bg-primary/95 overflow-hidden">
           {status === 'loading' && (

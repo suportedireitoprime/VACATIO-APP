@@ -92,7 +92,7 @@ const HomeSearchButton = ({ onOpenSearch }: HomeSearchButtonProps) => {
 
       <div
         aria-hidden="true"
-        className="absolute right-1.5 top-1/2 -translate-y-1/2 h-12 px-5 rounded-xl bg-primary text-black font-display text-[13px] font-extrabold tracking-wider flex items-center justify-center pointer-events-none select-none uppercase shadow-md shadow-black/30"
+        className="absolute right-1.5 top-1/2 -translate-y-1/2 h-12 px-5 rounded-xl bg-brand-gradient text-white font-display text-[13px] font-bold tracking-wider flex items-center justify-center pointer-events-none select-none uppercase shadow-md"
       >
         PESQUISAR
       </div>

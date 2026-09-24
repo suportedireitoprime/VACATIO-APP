@@ -85,53 +85,63 @@ body {
 
 @layer base {
   :root {
-    /* Vacatio v2 — Limão & Meia-noite (Azul marinho ultra profundo) */
-    --background: 230 25% 8%;
-    --foreground: 230 15% 91%;
+    /* Direito Prime / Vacatio — Cinza Escuro + Vermelho + Cinza Neutro */
+    --background: 216 19% 6%;
+    --foreground: 0 0% 98%;
 
-    --card: 230 25% 12%;
-    --card-foreground: 230 15% 91%;
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 230 25% 12%;
-    --popover-foreground: 230 15% 91%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 55 85% 58%;
-    --primary-foreground: 55 30% 8%;
-    --primary-light: 55 85% 58%;
+    --primary: 348 80% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 348 80% 60%;
 
-    --secondary: 230 25% 16%;
-    --secondary-foreground: 230 15% 85%;
+    /* Brand tokens — bordô (cards de livro/clássicos) */
+    --brand-burgundy-deep: 350 70% 18%;
+    --brand-burgundy-mid: 350 68% 26%;
+    --brand-burgundy-bright: 350 72% 34%;
+    --brand-burgundy-surface: 350 76% 42%;
 
-    --muted: 230 25% 10%;
-    --muted-foreground: 230 15% 55%;
+    /* Acento do módulo Aprender */
+    --aprender-accent: 348 80% 50%;
+    --aprender-accent-foreground: 0 0% 100%;
 
-    --accent: 55 85% 58%;
-    --accent-foreground: 55 30% 8%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 98%;
 
-    --destructive: 0 75% 55%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 62%;
+
+    --accent: 348 80% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 348 80% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 25% 22%;
-    --input: 230 25% 22%;
-    --ring: 55 30% 8%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 348 80% 50%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 230 25% 8%;
-    --sidebar-foreground: 230 15% 85%;
-    --sidebar-primary: 55 85% 58%;
-    --sidebar-primary-foreground: 55 30% 8%;
-    --sidebar-accent: 230 25% 10%;
-    --sidebar-accent-foreground: 230 15% 85%;
-    --sidebar-border: 230 25% 22%;
-    --sidebar-ring: 55 30% 8%;
+    --sidebar-background: 216 19% 6%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 348 80% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 348 80% 50%;
 
-    /* Legacy aliases still referenced in code — mapped to yellow */
-    --copper: 51 100% 50%;
-    --copper-light: 51 100% 68%;
-    --copper-dark: 48 90% 42%;
-    --signature: 51 100% 50%;
-    --gold-accent: 51 100% 50%;
+    /* Legacy aliases mapped to red */
+    --copper: 348 80% 50%;
+    --copper-light: 348 80% 60%;
+    --copper-dark: 350 70% 22%;
+    --signature: 348 80% 50%;
+    --gold-accent: 348 80% 50%;
 
     /* Cores reais para ícones de ferramentas (não afetadas pelo mono mapping) */
     --tool-cyan: 180 80% 45%;
@@ -139,12 +149,12 @@ body {
     --tool-rose: 340 75% 60%;
     --tool-emerald: 150 70% 45%;
     --tool-violet: 260 70% 65%;
-    --tool-yellow: 51 100% 50%;
+    --tool-yellow: 348 80% 50%;
     --tool-pink: 330 80% 65%;
     --tool-orange: 25 90% 55%;
-    --tool-amber: 40 90% 55%;
+    --tool-amber: 348 80% 50%;
     --tool-fuchsia: 300 80% 60%;
-    --tool-red: 0 75% 55%;
+    --tool-red: 348 80% 50%;
 
     /* Cores dos provedores de autenticação (tags admin) */
     --provider-google: 217 89% 60%;
@@ -155,17 +165,17 @@ body {
     --provider-apple-foreground: 0 0% 4%;
 
     /* Novos tokens de motion/superfície */
-    --shadow-hazard: 0 12px 40px -12px hsl(51 100% 50% / 0.45);
+    --shadow-hazard: 0 12px 40px -12px hsl(348 80% 50% / 0.45);
     --stripe-tape: repeating-linear-gradient(
       45deg,
-      hsl(51 100% 50%) 0 14px,
+      hsl(348 80% 50%) 0 14px,
       hsl(0 0% 4%) 14px 28px
     );
   }
 
-  /* Painel amarelo oficial do app (#EFE039) */
+  /* Painel vermelho oficial do app (#EFE039 -> Vermelho Direito Prime) */
   .bg-hero-panel-yellow {
-    background: linear-gradient(135deg, #EFE039 0%, #EFE039 55%, #EFE039 100%);
+    background: linear-gradient(135deg, hsl(352 58% 44%) 0%, hsl(348 80% 50%) 55%, hsl(345 55% 30%) 100%);
   }
 }
 
@@ -208,18 +218,39 @@ body {
     background-clip: text;
   }
 
-  /* Amarelo padrão do app (mesmo do painel amarelo da home) */
+  /* Vermelho padrão do app (mesmo do painel vermelho da home) */
+  /* Painel principal Aprender — Dourado elegante */
   .bg-hero-yellow {
-    background: linear-gradient(135deg, #EFE039 0%, #F5EA5A 50%, #EFE039 100%);
-    color: #000;
+    background: linear-gradient(135deg, hsl(46 65% 22%) 0%, hsl(46 65% 34%) 50%, hsl(46 65% 46%) 100%);
+    color: #fff;
   }
   .bg-hero-yellow-soft {
-    background: linear-gradient(135deg, rgba(239,224,57,0.9) 0%, rgba(245,234,90,0.9) 50%, rgba(239,224,57,0.9) 100%);
-    color: #000;
+    background: linear-gradient(135deg, hsl(46 65% 22% / 0.9) 0%, hsl(46 65% 34% / 0.9) 50%, hsl(46 65% 46% / 0.9) 100%);
+    color: #fff;
   }
   .tab-hero-yellow[data-state="active"] {
-    background: linear-gradient(135deg, #EFE039 0%, #F5EA5A 50%, #EFE039 100%) !important;
-    color: #000 !important;
+    background: linear-gradient(135deg, hsl(46 65% 32%) 0%, hsl(46 65% 44%) 50%, hsl(46 65% 52%) 100%) !important;
+    color: #1a1a1a !important;
+  }
+
+  /* Painel vermelho / tab ativa / rodapé — gradiente compartilhado (DIREITO PRIME) */
+  .bg-hero-panel {
+    background: linear-gradient(135deg, hsl(350 68% 32%) 0%, hsl(350 74% 42%) 50%, hsl(348 80% 50%) 100%);
+  }
+
+  /* Painel de navegação inferior (simétrico, luz no centro) */
+  .bg-nav-panel {
+    background: linear-gradient(90deg, hsl(350 68% 32%) 0%, hsl(350 74% 42%) 25%, hsl(348 80% 50%) 50%, hsl(350 74% 42%) 75%, hsl(350 68% 32%) 100%);
+  }
+
+  /* Degradê simétrico do menu de rodapé (BottomNav) */
+  .bg-bottomnav-gradient {
+    background-image: linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--brand-burgundy-bright)) 30%, hsl(var(--brand-burgundy-bright)) 70%, hsl(var(--primary)) 100%);
+  }
+
+  /* Vermelho do rodapé/painel em cor sólida — mais vivo e vibrante nos ícones do menu */
+  .text-hero-panel {
+    color: #ff2d55;
   }
 
 
@@ -1062,4 +1093,107 @@ html.light .bg-\[\#212121\]\/95 { background-color: hsl(var(--card) / 0.95) !imp
 @keyframes slide-swap-prev {
   from { opacity: 0; transform: translateX(-28px) scale(0.97); }
   to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* ── Landing hero animations (APP.PRIME) ── */
+@keyframes lp-fall {
+  0% { transform: translate3d(0, -12vh, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translate3d(50px, 112vh, 0) rotate(720deg); opacity: 0; }
+}
+@keyframes lp-float {
+  0%, 100% { transform: translate(0, 0) rotate(-8deg); }
+  25% { transform: translate(24px, -18px) rotate(6deg); }
+  50% { transform: translate(46px, 8px) rotate(-4deg); }
+  75% { transform: translate(16px, 24px) rotate(8deg); }
+}
+@keyframes lp-pop {
+  0% { transform: scale(0.7) translateY(34px); opacity: 0; }
+  70% { transform: scale(1.04) translateY(-4px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes lp-title {
+  0% { transform: scale(0.55) rotate(-4deg); opacity: 0; }
+  60% { transform: scale(1.08) rotate(1deg); opacity: 1; }
+  80% { transform: scale(0.97); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes lp-glow {
+  0%, 100% { filter: drop-shadow(0 0 18px hsl(var(--primary) / 0.45)); }
+  50% { filter: drop-shadow(0 0 44px hsl(var(--primary) / 0.85)); }
+}
+.lp-fall { animation: lp-fall linear infinite; }
+.lp-float { animation: lp-float 9s ease-in-out infinite; }
+.lp-pop { animation: lp-pop 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.lp-title { animation: lp-title 1.3s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.lp-glow { animation: lp-glow 3.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .lp-fall, .lp-float, .lp-glow { animation: none; }
+}
+
+.lp-fall, .lp-float {
+  contain: layout paint;
+  will-change: transform;
+}
+
+/* ── Reflexo único (landing hero): passa uma vez no título, depois no botão ── */
+@keyframes lpSheenSweep {
+  0%   { transform: translateX(-130%) skewX(-18deg); opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { transform: translateX(130%) skewX(-18deg); opacity: 0; }
+}
+.lp-sheen { position: relative; overflow: hidden; }
+.lp-sheen::after {
+  content: ''; position: absolute; top: -20%; bottom: -20%; left: 0; width: 55%;
+  pointer-events: none; border-radius: inherit;
+  background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.10) 35%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0.10) 65%, transparent 100%);
+  mix-blend-mode: screen;
+  transform: translateX(-130%) skewX(-18deg);
+  animation: lpSheenSweep 1.5s cubic-bezier(0.22, 0.61, 0.36, 1) 1 both;
+  animation-delay: var(--lp-sheen-delay, 0.9s);
+}
+.lp-sheen-loop::after {
+  animation: lpSheenSweep 2.6s cubic-bezier(0.22, 0.61, 0.36, 1) infinite both;
+  animation-delay: var(--lp-sheen-delay, 1.2s);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-sheen::after { animation: none; opacity: 0; }
+}
+
+/* Zoom suave (ken burns) na cena de fundo da landing */
+@keyframes lpHeroZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.12); }
+}
+.lp-hero-zoom {
+  transform-origin: center center;
+  animation: lpHeroZoom 24s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-hero-zoom { animation: none; }
+}
+
+/* === Reflexo contínuo no CTA de assinatura === */
+.btn-shine-loop {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-shine-loop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(0, 0%, 100%, 0.28) 45%,
+    hsla(0, 0%, 100%, 0.65) 50%,
+    hsla(0, 0%, 100%, 0.28) 55%,
+    transparent 70%
+  );
+  transform: translateX(-150%) skewX(-18deg);
+  animation: lpSheenSweep 3s infinite;
 }

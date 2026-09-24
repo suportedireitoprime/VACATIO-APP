@@ -337,10 +337,9 @@ export default function AdminJurisprudencia() {
                 >
                   <div className="flex items-start gap-3">
                     <div
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-                      style={{ background: '#EFE039' }}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm"
                     >
-                      <Scale className="h-5 w-5 text-black" />
+                      <Scale className="h-5 w-5 text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-display text-sm font-bold text-foreground truncate">

@@ -479,7 +479,7 @@ export default function JurisprudenciaArtigo() {
                   value={voice.listening && voice.partial ? voice.partial : busca}
                   onChange={(e) => setBusca(e.target.value)}
                   placeholder="Buscar por ementa, processo…"
-                  className="w-full h-11 pl-10 pr-3 rounded-full bg-muted/60 border border-border/60 text-sm outline-none focus:ring-2 focus:ring-[#EFE039]/50 focus:border-transparent placeholder:text-muted-foreground/70"
+                  className="w-full h-11 pl-10 pr-3 rounded-full bg-muted/60 border border-border/60 text-sm outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent placeholder:text-muted-foreground/70"
                   aria-label="Buscar jurisprudência"
                 />
               </div>
