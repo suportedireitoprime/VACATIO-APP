@@ -215,19 +215,19 @@ const BottomNav = () => {
             </span>
           </button>
 
-          {/* Me Explique (FAB centralizado — coluna do meio) */}
+          {/* Professor (FAB centralizado — coluna do meio) */}
           <button
             onClick={() => { haptic.light(); navigate('/me-explique'); }}
             data-track="bottom_nav_click"
-            data-track-destino="me-explique"
+            data-track-destino="professor"
             className="flex flex-col items-center justify-end -mt-11"
-            aria-label="Me Explique"
+            aria-label="Professor"
           >
             <span className="relative flex flex-col items-center gap-1.5 pt-1 pb-1 px-2 rounded-2xl">
               <span className="relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 ring-4 ring-background btn-attention-shine overflow-hidden">
-                <Camera className="w-9 h-9 sm:w-10 sm:h-10 text-white relative z-[2]" strokeWidth={1.3} />
+                <GraduationCap className="w-9 h-9 sm:w-10 sm:h-10 text-white relative z-[2]" strokeWidth={1.3} />
               </span>
-              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white leading-tight">Me Explique</span>
+              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white leading-tight">Professor</span>
             </span>
           </button>
 

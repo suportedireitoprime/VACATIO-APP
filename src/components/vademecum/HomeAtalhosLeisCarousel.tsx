@@ -276,12 +276,12 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
         </button>
       </div>
 
-      {/* Carrossel Horizontal de Cards Vermelhos Bordô (Design APP.PRIME) */}
-      <div className="relative w-full overflow-hidden">
+      {/* Carrossel Horizontal de Cards Vermelhos Bordô (Design APP.PRIME) — Sem margem lateral à direita */}
+      <div className="relative -mr-4 sm:-mr-6 md:-mr-8 lg:-mr-12 overflow-hidden">
         <div
           tabIndex={0}
           aria-label="Carrossel de atalhos de leis em alta"
-          className="flex items-center gap-2.5 overflow-x-auto px-1 pb-2 pt-1 scrollbar-none focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+          className="flex items-center gap-2.5 overflow-x-auto pl-1 pr-4 sm:pr-6 md:pr-8 lg:pr-12 pb-2 pt-1 scrollbar-none focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {activeLeis.map((lei) => {
