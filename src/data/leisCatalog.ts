@@ -25,7 +25,7 @@ export interface LeiCompacta {
 
 export const LEIS_CATALOG: LeiCatalogItem[] = [
   // Constituição
-  { id: 'cf88', nome: 'Constituição Federal', sigla: 'CF/88', descricao: 'Constituição da República Federativa do Brasil de 1988', tipo: 'constituicao', tabela_nome: 'CF88_CONSTITUICAO_FEDERAL', iconColor: '#16a34a', url_planalto: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', tags: ['constituição', 'carta magna', 'direitos fundamentais', 'CRFB', 'garantias', 'emenda constitucional'] },
+  { id: 'cf88', nome: 'Constituição Federal', sigla: 'CF/88', descricao: 'Constituição de 1988', tipo: 'constituicao', tabela_nome: 'CF88_CONSTITUICAO_FEDERAL', iconColor: '#16a34a', url_planalto: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm', tags: ['constituição', 'carta magna', 'direitos fundamentais', 'CRFB', 'garantias', 'emenda constitucional', 'república federativa'] },
   // Códigos
   { id: 'cp', nome: 'Código Penal', sigla: 'CP', descricao: 'Decreto-Lei nº 2.848/1940', tipo: 'codigo', tabela_nome: 'CP_CODIGO_PENAL', iconColor: '#ef4444', url_planalto: 'https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm', tags: ['crime', 'pena', 'homicídio', 'furto', 'roubo', 'estelionato', 'penal'] },
   { id: 'cc', nome: 'Código Civil', sigla: 'CC', descricao: 'Lei nº 10.406/2002', tipo: 'codigo', tabela_nome: 'CC_CODIGO_CIVIL', iconColor: '#f59e0b', url_planalto: 'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm', tags: ['contrato', 'família', 'herança', 'propriedade', 'obrigações', 'casamento', 'divórcio', 'civil'] },

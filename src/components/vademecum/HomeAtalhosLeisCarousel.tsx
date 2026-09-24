@@ -236,13 +236,13 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                   </span>
                 </div>
 
-                {/* Linha inferior: Nome completo e descrição curta */}
+                {/* Linha inferior: Nome completo e número/ano da lei */}
                 <div className="relative z-10">
                   <p className="font-body text-white font-bold text-[11px] sm:text-[11.5px] leading-tight line-clamp-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                     {lei.nome}
                   </p>
-                  <p className="font-body text-white/70 text-[9px] sm:text-[9.5px] truncate mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
-                    {lei.descricao}
+                  <p className="font-body text-white/80 text-[9.5px] sm:text-[10px] font-medium truncate mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                    {lei.id === 'cf88' ? 'Constituição de 1988' : lei.descricao}
                   </p>
                 </div>
               </button>
