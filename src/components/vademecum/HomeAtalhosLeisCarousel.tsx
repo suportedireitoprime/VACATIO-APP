@@ -1,10 +1,12 @@
 import { useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import {
   SlidersHorizontal,
   Search,
   Check,
+  Plus,
   RotateCcw,
   X,
   Scale,
@@ -41,20 +43,67 @@ import {
 } from 'lucide-react';
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 
-const STORAGE_KEY = 'home_atalhos_leis';
+const STORAGE_KEY = 'home_atalhos_leis_v3';
+const MAX_ATALHOS = 10;
 
+/** Ordem padrão solicitada: CF, CPC, CC, CP, CPP, CLT + restantes */
 const DEFAULT_ATALHOS_IDS = [
-  'cf88',
-  'clt',
-  'cc',
-  'cpc',
-  'cp',
-  'cpp',
-  'eoab',
-  'eca',
-  'cdc',
-  'ctn',
+  'cf88', // 1. CF/88
+  'cpc',  // 2. CPC
+  'cc',   // 3. Código Civil
+  'cp',   // 4. Código Penal
+  'cpp',  // 5. Código de Processo Penal
+  'clt',  // 6. CLT
+  'cdc',  // 7. CDC
+  'ctn',  // 8. CTN
+  'eoab', // 9. EOAB
+  'eca',  // 10. ECA
 ];
+
+interface AlternanciaTab {
+  id: string;
+  label: string;
+}
+
+const ALTERNANCIA_TABS: AlternanciaTab[] = [
+  { id: 'em-alta', label: 'Em Alta' },
+  { id: 'todos', label: 'Todas' },
+  { id: 'penal', label: 'Penal' },
+  { id: 'civil', label: 'Civil' },
+  { id: 'constitucional', label: 'Constitucional' },
+  { id: 'trabalho', label: 'Trabalho' },
+  { id: 'tributario', label: 'Tributário' },
+  { id: 'estatutos', label: 'Estatutos' },
+  { id: 'administrativo', label: 'Administrativo' },
+];
+
+const CATEGORY_MAP: Record<string, string[]> = {
+  penal: [
+    'cp', 'cpp', 'cpm', 'cppm', 'lep', 'lmp', 'ld', 'loc', 'laa', 'lit',
+    'lch', 'ltort', 'lcsf', 'lpt', 'lcp', 'lat', 'lci'
+  ],
+  civil: [
+    'cc', 'cpc', 'cdc', 'li', 'lrp', 'lalim', 'lalp', 'lgpd', 'mci',
+    'cflor', 'ccom', 'la'
+  ],
+  constitucional: [
+    'cf88', 'lindb', 'lpaf', 'lai', 'lap', 'lmi', 'lms', 'lhd'
+  ],
+  trabalho: [
+    'clt'
+  ],
+  tributario: [
+    'ctn', 'lrf', 'lrt', 'lcsf'
+  ],
+  estatutos: [
+    'eca', 'ei', 'epd', 'eir', 'ec', 'ed', 'eoab', 'et', 'ej', 'em',
+    'eind', 'eterra', 'emig', 'eref', 'emet', 'emus', 'eme', 'epc'
+  ],
+  administrativo: [
+    'lia', 'lpaf', 'nll', 'lai', 'lms', 'l8112', 'loman', 'lotcu',
+    'ces', 'lcon', 'lppp', 'lace'
+  ],
+};
 
 const LAW_ICON_MAP: Record<string, React.ElementType> = {
   // Constituição
@@ -126,6 +175,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<string>('em-alta');
 
   const activeLeis = useMemo(() => {
     const map = new Map<string, LeiCatalogItem>();
@@ -136,25 +186,52 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
   }, [selectedIds]);
 
   const filteredCatalog = useMemo(() => {
+    let list: LeiCatalogItem[];
+
+    if (activeTab === 'em-alta') {
+      const map = new Map<string, LeiCatalogItem>();
+      LEIS_CATALOG.forEach((lei) => map.set(lei.id, lei));
+      list = selectedIds
+        .map((id) => map.get(id))
+        .filter((item): item is LeiCatalogItem => Boolean(item));
+    } else if (activeTab === 'todos') {
+      list = LEIS_CATALOG;
+    } else if (CATEGORY_MAP[activeTab]) {
+      const allowedIds = new Set(CATEGORY_MAP[activeTab]);
+      list = LEIS_CATALOG.filter((l) => allowedIds.has(l.id));
+    } else {
+      list = LEIS_CATALOG;
+    }
+
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return LEIS_CATALOG;
-    return LEIS_CATALOG.filter(
+    if (!term) return list;
+
+    return list.filter(
       (lei) =>
         lei.sigla.toLowerCase().includes(term) ||
         lei.nome.toLowerCase().includes(term) ||
         lei.descricao.toLowerCase().includes(term) ||
         lei.tags?.some((t) => t.toLowerCase().includes(term))
     );
-  }, [searchTerm]);
+  }, [activeTab, selectedIds, searchTerm]);
 
   const toggleLei = useCallback((id: string) => {
     setSelectedIds((prev) => {
       let next: string[];
       if (prev.includes(id)) {
-        if (prev.length <= 1) return prev; // Mantém pelo menos 1 atalho
+        if (prev.length <= 1) {
+          toast.error('Mantenha pelo menos 1 atalho selecionado.');
+          return prev;
+        }
         next = prev.filter((item) => item !== id);
+        toast.info('Atalho removido do Em Alta');
       } else {
+        if (prev.length >= MAX_ATALHOS) {
+          toast.warning(`Limite de ${MAX_ATALHOS} atalhos atingido. Remova um atalho no "Em Alta" para adicionar outro.`);
+          return prev;
+        }
         next = [...prev, id];
+        toast.success('Atalho adicionado ao Em Alta!');
       }
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -168,6 +245,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_ATALHOS_IDS));
     } catch {}
+    toast.success('Atalhos restaurados para o padrão.');
   }, []);
 
   return (
@@ -266,43 +344,46 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                 className="fixed inset-0 bg-black/75 backdrop-blur-sm"
               />
 
-              {/* Sheet container */}
+              {/* Sheet container - 95% da altura da tela */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                className="relative z-10 w-full sm:max-w-lg bg-neutral-900 border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
+                className="relative z-10 w-full sm:max-w-xl bg-[#141416] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl h-[95vh] max-h-[95vh] flex flex-col overflow-hidden shadow-2xl"
               >
+                {/* Drag handle no topo em telas mobile */}
+                <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mt-2.5 -mb-1 sm:hidden shrink-0" />
+
                 {/* Header */}
-                <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between">
+                <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between shrink-0">
                   <div>
                     <h3 className="font-display text-white text-[17px] font-bold">
                       Personalizar Atalhos
                     </h3>
                     <p className="font-body text-neutral-400 text-[12px]">
-                      Selecione quais leis aparecem no carrossel da tela inicial
+                      Selecione até {MAX_ATALHOS} leis para o carrossel da tela inicial
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
                     aria-label="Fechar"
-                    className="p-1.5 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition"
+                    className="p-2 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
                 {/* Busca e Reset */}
-                <div className="p-3 sm:p-4 border-b border-white/5 flex items-center gap-2">
+                <div className="px-3 sm:px-4 py-2.5 border-b border-white/5 flex items-center gap-2 shrink-0">
                   <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl bg-neutral-800/80 border border-white/10">
                     <Search className="w-4 h-4 text-neutral-400 shrink-0" />
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Filtrar por sigla ou nome..."
+                      placeholder="Filtrar por sigla, nome ou número..."
                       className="bg-transparent text-white text-[13px] placeholder-neutral-500 w-full focus:outline-none"
                     />
                     {searchTerm && (
@@ -310,7 +391,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                         type="button"
                         onClick={() => setSearchTerm('')}
                         aria-label="Limpar filtro"
-                        className="text-neutral-400 hover:text-white"
+                        className="text-neutral-400 hover:text-white cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -320,73 +401,123 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                   <button
                     type="button"
                     onClick={resetDefaults}
-                    title="Restaurar padrão inicial"
-                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-white/10 bg-neutral-800/60 hover:bg-neutral-800 text-[11px] font-medium text-neutral-300 hover:text-white shrink-0 active:scale-95 transition"
+                    title="Restaurar padrão inicial (CF, CPC, CC, CP, CPP, CLT...)"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/10 bg-neutral-800/60 hover:bg-neutral-800 text-[12px] font-medium text-neutral-300 hover:text-white shrink-0 active:scale-95 transition cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Padrão</span>
                   </button>
                 </div>
 
-                {/* Lista de Leis para Selecionar com Ícone */}
-                <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-1.5 scrollbar-thin scrollbar-thumb-white/10">
-                  {filteredCatalog.map((lei) => {
-                    const isSelected = selectedIds.includes(lei.id);
-                    const LawIcon = getLawIcon(lei.id, lei.tipo);
-
+                {/* Menu de alternância de áreas / abas */}
+                <div className="px-3 sm:px-4 py-2 border-b border-white/5 overflow-x-auto scrollbar-none flex items-center gap-1.5 shrink-0">
+                  {ALTERNANCIA_TABS.map((tab) => {
+                    const isActive = activeTab === tab.id;
                     return (
                       <button
-                        key={lei.id}
+                        key={tab.id}
                         type="button"
-                        onClick={() => toggleLei(lei.id)}
-                        className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl border transition-all text-left cursor-pointer active:scale-[0.99] ${
-                          isSelected
-                            ? 'bg-primary/15 border-primary/40 text-white'
-                            : 'bg-neutral-800/40 border-white/5 text-neutral-400 hover:bg-neutral-800/70 hover:text-neutral-200'
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all select-none cursor-pointer flex items-center gap-1.5 ${
+                          isActive
+                            ? 'bg-white text-black shadow-sm'
+                            : 'bg-neutral-800/80 text-neutral-300 hover:text-white hover:bg-neutral-800 border border-white/5'
                         }`}
                       >
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
-                            <LawIcon className="w-4 h-4 text-white/90" strokeWidth={1.8} />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-display font-bold text-[14px] text-white">
-                                {lei.sigla}
-                              </span>
-                              <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-neutral-300">
-                                {lei.tipo}
-                              </span>
-                            </div>
-                            <p className="font-body text-[12px] truncate mt-0.5 text-neutral-300">
-                              {lei.nome}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div
-                          className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all shrink-0 ${
-                            isSelected
-                              ? 'bg-primary border-primary text-white shadow-sm'
-                              : 'border-white/20 bg-white/5'
-                          }`}
-                        >
-                          {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                        </div>
+                        <span>{tab.label}</span>
+                        {tab.id === 'em-alta' && (
+                          <span
+                            className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                              isActive ? 'bg-black/15 text-black' : 'bg-white/10 text-neutral-300'
+                            }`}
+                          >
+                            {selectedIds.length}/{MAX_ATALHOS}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
                 </div>
 
-                {/* Footer */}
-                <div className="p-3 sm:p-4 border-t border-white/10 flex items-center justify-between bg-neutral-900/90">
-                  <span className="text-[12px] text-neutral-400">
-                    <strong className="text-white">{selectedIds.length}</strong> selecionada(s)
-                  </span>
+                {/* Lista de Leis — Visual escuro neutro premium (Sem cor vermelha) */}
+                <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2 scrollbar-thin scrollbar-thumb-white/10">
+                  {filteredCatalog.length === 0 ? (
+                    <div className="py-12 text-center text-neutral-500 text-[13px]">
+                      {activeTab === 'em-alta'
+                        ? 'Nenhuma lei no Em Alta. Selecione leis nas outras abas para adicionar.'
+                        : 'Nenhuma lei encontrada para o filtro atual.'}
+                    </div>
+                  ) : (
+                    filteredCatalog.map((lei) => {
+                      const isSelected = selectedIds.includes(lei.id);
+                      const LawIcon = getLawIcon(lei.id, lei.tipo);
+
+                      return (
+                        <button
+                          key={lei.id}
+                          type="button"
+                          onClick={() => toggleLei(lei.id)}
+                          className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl border transition-all text-left cursor-pointer active:scale-[0.99] group ${
+                            isSelected
+                              ? 'bg-[#222226] border-white/20 text-white shadow-sm'
+                              : 'bg-[#18181B]/80 border-white/5 text-neutral-400 hover:bg-[#222226]/50 hover:text-neutral-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="w-9 h-9 rounded-lg bg-neutral-800 border border-white/10 flex items-center justify-center shrink-0">
+                              <LawIcon className="w-4.5 h-4.5 text-white/90" strokeWidth={1.8} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-display font-bold text-[14px] text-white">
+                                  {lei.sigla}
+                                </span>
+                                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-neutral-300 font-medium">
+                                  {lei.tipo}
+                                </span>
+                              </div>
+                              <p className="font-body text-[12px] truncate mt-0.5 text-neutral-300">
+                                {lei.nome}
+                              </p>
+                              <p className="font-body text-[11px] truncate text-neutral-400">
+                                {lei.id === 'cf88' ? 'Constituição de 1988' : lei.descricao}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div
+                            className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all shrink-0 ${
+                              isSelected
+                                ? 'bg-white border-white text-black shadow-sm'
+                                : 'border-white/20 bg-white/5 text-transparent group-hover:border-white/40'
+                            }`}
+                          >
+                            {isSelected ? (
+                              <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            ) : (
+                              <Plus className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Footer neutro e informativo */}
+                <div className="p-3 sm:p-4 border-t border-white/10 flex items-center justify-between bg-[#141416] shrink-0">
+                  <div className="flex flex-col">
+                    <span className="text-[12px] text-neutral-400">
+                      <strong className="text-white font-bold">{selectedIds.length}</strong> de <strong className="text-white font-bold">{MAX_ATALHOS}</strong> selecionadas
+                    </span>
+                    {selectedIds.length >= MAX_ATALHOS && (
+                      <span className="text-[10px] text-amber-400 font-medium">Limite do carrossel atingido</span>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold text-[13px] active:scale-95 transition shadow-sm"
+                    className="px-6 py-2 rounded-xl bg-white hover:bg-neutral-200 text-black font-bold text-[13px] active:scale-95 transition shadow-sm cursor-pointer"
                   >
                     Concluir
                   </button>
