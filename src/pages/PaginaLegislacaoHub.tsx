@@ -272,7 +272,10 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
 
               <div
                 aria-hidden="true"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-12 px-5 rounded-xl bg-primary text-black font-display text-[13px] font-extrabold tracking-wider flex items-center justify-center pointer-events-none select-none uppercase shadow-md shadow-black/30"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-12 px-5 rounded-xl bg-hero-panel text-white font-display text-[13px] font-bold tracking-wider flex items-center justify-center pointer-events-none select-none uppercase shadow-md shadow-red-950/40"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(350 68% 32%) 0%, hsl(350 74% 42%) 50%, hsl(348 80% 50%) 100%)',
+                }}
               >
                 PESQUISAR
               </div>

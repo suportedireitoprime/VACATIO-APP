@@ -39,8 +39,10 @@ const HomeActionShortcuts = () => {
                 navigate(item.to);
               }
             }}
-            style={{ '--shimmer-delay': `${index * 150}ms` } as React.CSSProperties}
-            className="group flex flex-col items-center justify-center py-3 px-1 rounded-2xl bg-card hover:bg-secondary backdrop-blur-md border border-white/10 shadow-xl transition-all active:scale-95 gap-2 text-center min-h-[48px] select-none cursor-pointer overflow-hidden"
+            style={{
+              '--shimmer-delay': `${index * 150}ms`,
+            } as React.CSSProperties}
+            className="group relative flex flex-col items-center justify-center h-[72px] px-1 rounded-2xl ios-glass-card transition-all duration-200 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden"
           >
             {badgeCount > 0 && item.badgeColor && (
               <span
@@ -52,11 +54,11 @@ const HomeActionShortcuts = () => {
             )}
 
             <Icon
-              className="w-5 h-5 shrink-0 transition-all group-hover:scale-110"
-              style={{ color: item.color }}
+              className="w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-110"
+              style={{ color: item.color, filter: 'saturate(1.25) drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}
               strokeWidth={2}
             />
-            <span className="text-[9px] font-extrabold text-white/90 leading-tight uppercase tracking-wider">
+            <span className="font-display text-white text-[10px] sm:text-[11px] font-bold leading-tight uppercase tracking-wider drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
               {item.label}
             </span>
           </button>
