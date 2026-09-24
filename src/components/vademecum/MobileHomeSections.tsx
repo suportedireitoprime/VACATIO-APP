@@ -339,13 +339,11 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       {/* 2. LEGISLAÇÃO BRASILEIRA — ÁREAS DO DIREITO */}
       <section className="space-y-3 px-1 pt-1">
         <div>
-          <div className="flex items-center gap-2">
+          <h3 className="font-display text-foreground text-[18px] font-bold uppercase flex items-center gap-2">
             <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
-            <h2 className="font-body text-foreground text-2xl sm:text-3xl font-bold tracking-tight">
-              Legislação Brasileira
-            </h2>
-          </div>
-          <p className="font-body text-muted-foreground text-[13px] leading-snug mt-1 ml-3">
+            <span className="truncate">Legislação Brasileira</span>
+          </h3>
+          <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3 truncate">
             Áreas do Direito: Penal, Civil, Constitucional, Trabalhista e mais.
           </p>
         </div>
@@ -374,11 +372,11 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       {/* 3. ESTATUTOS */}
       <section className="space-y-3 px-1 pt-1">
         <div>
-          <h3 className="font-display text-foreground text-[18px] font-bold flex items-center gap-2">
+          <h3 className="font-display text-foreground text-[18px] font-bold uppercase flex items-center gap-2">
             <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
             <span>Estatutos</span>
           </h3>
-          <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3">
+          <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3 truncate">
             ECA, OAB, Idoso, Deficiência e garantias vigentes.
           </p>
         </div>

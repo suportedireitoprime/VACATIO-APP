@@ -1,7 +1,44 @@
-import { useState, useMemo, useCallback, memo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, Search, Check, RotateCcw, X, Scale, BookMarked, Sparkles } from 'lucide-react';
+import {
+  SlidersHorizontal,
+  Search,
+  Check,
+  RotateCcw,
+  X,
+  Scale,
+  BookMarked,
+  Sparkles,
+  Landmark,
+  Sword,
+  Home,
+  FileText,
+  Gavel,
+  Briefcase,
+  ShoppingCart,
+  Car,
+  Vote,
+  Shield,
+  Trees,
+  Ship,
+  Plane,
+  Droplets,
+  Pickaxe,
+  Radio,
+  Baby,
+  HeartPulse,
+  Accessibility,
+  Handshake,
+  Building2,
+  Trophy,
+  Tent,
+  Mountain,
+  Globe2,
+  Store,
+  Ribbon,
+  Palette,
+} from 'lucide-react';
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 
 const STORAGE_KEY = 'home_atalhos_leis';
@@ -18,6 +55,58 @@ const DEFAULT_ATALHOS_IDS = [
   'cdc',
   'ctn',
 ];
+
+const LAW_ICON_MAP: Record<string, React.ElementType> = {
+  // Constituição
+  cf88: Landmark,
+  // Códigos — ícone representativo do tema
+  cp: Sword,
+  cc: Home,
+  cpc: FileText,
+  cpp: Gavel,
+  ctn: Landmark,
+  cdc: ShoppingCart,
+  clt: Briefcase,
+  ctb: Car,
+  ce: Vote,
+  cpm: Shield,
+  cppm: Shield,
+  cflor: Trees,
+  ccom: Ship,
+  cba: Plane,
+  cagua: Droplets,
+  cmin: Pickaxe,
+  ctel: Radio,
+  // Estatutos
+  eca: Baby,
+  ei: HeartPulse,
+  epd: Accessibility,
+  eir: Handshake,
+  ec: Building2,
+  ed: Sword,
+  eoab: Scale,
+  et: Trophy,
+  ej: Sparkles,
+  em: Shield,
+  eind: Tent,
+  eterra: Mountain,
+  emig: Globe2,
+  eref: Globe2,
+  emet: Building2,
+  emus: Palette,
+  eme: Store,
+  epc: Ribbon,
+  // Fallbacks
+  constituicao: Landmark,
+  codigo: Scale,
+  estatuto: BookMarked,
+};
+
+function getLawIcon(id: string, tipo?: string): React.ElementType {
+  if (LAW_ICON_MAP[id]) return LAW_ICON_MAP[id];
+  if (tipo && LAW_ICON_MAP[tipo]) return LAW_ICON_MAP[tipo];
+  return Scale;
+}
 
 interface Props {
   onOpenLei: (leiId: string) => void;
@@ -83,10 +172,10 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
 
   return (
     <section className="space-y-3">
-      {/* Cabeçalho da Seção */}
-      <div className="px-5 min-h-[50px] flex items-center justify-between gap-3">
+      {/* Cabeçalho da Seção com alinhamento px-1 idêntico a Legislação Brasileira */}
+      <div className="px-1 min-h-[50px] flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-foreground text-[18px] font-bold flex items-center gap-2">
+          <h3 className="font-display text-foreground text-[18px] font-bold uppercase flex items-center gap-2">
             <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
             <span className="truncate">Em Alta</span>
           </h3>
@@ -109,51 +198,76 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
         </button>
       </div>
 
-      {/* Carrossel Horizontal de Cards Vermelhos com Degradê */}
+      {/* Carrossel Horizontal de Cards Vermelhos Bordô (Design APP.PRIME) */}
       <div className="relative w-full overflow-hidden">
         <div
           tabIndex={0}
           aria-label="Carrossel de atalhos de leis em alta"
-          className="flex items-center gap-2.5 overflow-x-auto px-4 sm:px-6 pb-2 pt-1 scrollbar-none focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+          className="flex items-center gap-2.5 overflow-x-auto px-1 pb-2 pt-1 scrollbar-none focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          {activeLeis.map((lei, index) => (
-            <button
-              key={lei.id}
-              type="button"
-              onClick={() => onOpenLei(lei.id)}
-              className="bg-card-red-gradient min-w-[138px] max-w-[148px] sm:min-w-[152px] sm:max-w-[162px] h-[116px] sm:h-[122px] shrink-0 p-3 rounded-2xl relative overflow-hidden flex flex-col justify-between text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group"
-            >
-              {/* Brilho radial no topo do card */}
-              <div className="pointer-events-none absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/15 blur-xl group-hover:bg-white/25 transition-all" />
+          {activeLeis.map((lei) => {
+            const LawIcon = getLawIcon(lei.id, lei.tipo);
 
-              {/* Linha superior: Sigla destacada e ícone decorativo */}
-              <div className="flex items-center justify-between gap-1 w-full relative z-10">
-                <span className="font-display text-white text-[19px] sm:text-[21px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
-                  {lei.sigla}
-                </span>
-                <span className="p-1 rounded-lg bg-black/20 border border-white/15 text-white/90 shrink-0">
-                  {lei.tipo === 'constituicao' ? (
-                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  ) : lei.tipo === 'estatuto' ? (
-                    <BookMarked className="w-3.5 h-3.5 text-white/90" />
-                  ) : (
-                    <Scale className="w-3.5 h-3.5 text-white/90" />
-                  )}
-                </span>
-              </div>
+            return (
+              <button
+                key={lei.id}
+                type="button"
+                onClick={() => onOpenLei(lei.id)}
+                className="bg-card-red-gradient min-w-[140px] max-w-[150px] sm:min-w-[154px] sm:max-w-[164px] h-[120px] sm:h-[126px] shrink-0 p-3 rounded-2xl relative overflow-hidden flex flex-col justify-between text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group"
+              >
+                {/* SVGs jurídicos decorativos ao fundo estilo APP.PRIME */}
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 200 200"
+                  className="pointer-events-none absolute -right-3 -bottom-5 w-[110px] h-[110px] text-white/[0.08]"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M100 30 V170 M70 170 H130 M100 55 L55 95 M100 55 L145 95" strokeLinecap="round" />
+                  <path d="M35 95 Q55 135 75 95 Z" />
+                  <path d="M125 95 Q145 135 165 95 Z" />
+                </svg>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 100 100"
+                  className="pointer-events-none absolute top-1 right-12 w-[46px] h-[46px] text-white/[0.06]"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                >
+                  <path d="M18 78 L58 38" />
+                  <rect x="52" y="20" width="30" height="14" rx="2" transform="rotate(45 67 27)" />
+                  <path d="M10 88 H50" />
+                </svg>
 
-              {/* Linha inferior: Nome completo e descrição curta */}
-              <div className="relative z-10">
-                <p className="font-body text-white font-bold text-[11px] sm:text-[11.5px] leading-tight line-clamp-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-                  {lei.nome}
-                </p>
-                <p className="font-body text-white/70 text-[9px] sm:text-[9.5px] truncate mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
-                  {lei.descricao}
-                </p>
-              </div>
-            </button>
-          ))}
+                {/* Brilho suave no topo do card */}
+                <div className="pointer-events-none absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
+
+                {/* Linha superior: Sigla destacada e ícone temático em badge translúcido */}
+                <div className="flex items-center justify-between gap-1 w-full relative z-10">
+                  <span className="font-display text-white text-[19px] sm:text-[21px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+                    {lei.sigla}
+                  </span>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform">
+                    <LawIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow-sm" strokeWidth={1.8} />
+                  </div>
+                </div>
+
+                {/* Linha inferior: Nome completo e descrição curta */}
+                <div className="relative z-10">
+                  <p className="font-body text-white font-bold text-[11px] sm:text-[11.5px] leading-tight line-clamp-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                    {lei.nome}
+                  </p>
+                  <p className="font-body text-white/70 text-[9px] sm:text-[9.5px] truncate mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                    {lei.descricao}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -169,32 +283,32 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setModalOpen(false)}
-                className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+                className="fixed inset-0 bg-black/75 backdrop-blur-sm"
               />
 
-              {/* Sheet Container */}
+              {/* Sheet container */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
-                transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
-                className="relative z-10 w-full max-w-lg bg-neutral-900 border-t sm:border border-white/15 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden"
+                transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+                className="relative z-10 w-full sm:max-w-lg bg-neutral-900 border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
               >
                 {/* Header */}
-                <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between gap-3">
+                <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between">
                   <div>
-                    <h4 className="font-display text-white text-[18px] font-bold leading-tight">
+                    <h3 className="font-display text-white text-[17px] font-bold">
                       Personalizar Atalhos
-                    </h4>
-                    <p className="font-body text-neutral-400 text-[12px] mt-0.5">
-                      Escolha as leis que aparecem no seu carrossel inicial ({selectedIds.length} ativas)
+                    </h3>
+                    <p className="font-body text-neutral-400 text-[12px]">
+                      Selecione quais leis aparecem no carrossel da tela inicial
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    aria-label="Fechar personalização"
-                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 active:scale-95 transition"
+                    aria-label="Fechar"
+                    className="p-1.5 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -234,10 +348,12 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                   </button>
                 </div>
 
-                {/* Lista de Leis para Selecionar */}
+                {/* Lista de Leis para Selecionar com Ícone */}
                 <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-1.5 scrollbar-thin scrollbar-thumb-white/10">
                   {filteredCatalog.map((lei) => {
                     const isSelected = selectedIds.includes(lei.id);
+                    const LawIcon = getLawIcon(lei.id, lei.tipo);
+
                     return (
                       <button
                         key={lei.id}
@@ -249,18 +365,23 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                             : 'bg-neutral-800/40 border-white/5 text-neutral-400 hover:bg-neutral-800/70 hover:text-neutral-200'
                         }`}
                       >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-display font-bold text-[14px] text-white">
-                              {lei.sigla}
-                            </span>
-                            <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-neutral-300">
-                              {lei.tipo}
-                            </span>
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
+                            <LawIcon className="w-4 h-4 text-white/90" strokeWidth={1.8} />
                           </div>
-                          <p className="font-body text-[12px] truncate mt-0.5 text-neutral-300">
-                            {lei.nome}
-                          </p>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-display font-bold text-[14px] text-white">
+                                {lei.sigla}
+                              </span>
+                              <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-neutral-300">
+                                {lei.tipo}
+                              </span>
+                            </div>
+                            <p className="font-body text-[12px] truncate mt-0.5 text-neutral-300">
+                              {lei.nome}
+                            </p>
+                          </div>
                         </div>
 
                         <div
@@ -278,13 +399,16 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                 </div>
 
                 {/* Footer */}
-                <div className="p-3 sm:p-4 border-t border-white/10 bg-neutral-900/90 flex justify-end">
+                <div className="p-3 sm:p-4 border-t border-white/10 flex items-center justify-between bg-neutral-900/90">
+                  <span className="text-[12px] text-neutral-400">
+                    <strong className="text-white">{selectedIds.length}</strong> selecionada(s)
+                  </span>
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-hero-panel text-white font-display text-[13px] font-bold uppercase tracking-wider shadow-lg active:scale-95 transition"
+                    className="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold text-[13px] active:scale-95 transition shadow-sm"
                   >
-                    Pronto ({selectedIds.length} selecionadas)
+                    Concluir
                   </button>
                 </div>
               </motion.div>
@@ -296,4 +420,4 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
   );
 }
 
-export default memo(HomeAtalhosLeisCarousel);
+export default HomeAtalhosLeisCarousel;
