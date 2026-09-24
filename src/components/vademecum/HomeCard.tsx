@@ -41,7 +41,7 @@ const HomeCardImpl = ({
     data-track={dataTrack}
     data-track-name={dataTrackName}
     data-track-section={dataTrackSection}
-    className={`group relative flex flex-col justify-between w-full min-h-[98px] sm:min-h-[106px] h-full p-3.5 sm:p-4 rounded-2xl bg-[#2A2A2C] hover:bg-[#323234] border border-white/[0.08] shadow-sm hover:shadow-md active:scale-[0.97] transition-all text-left overflow-hidden ${className}`}
+    className={`group relative flex flex-col justify-between w-full h-[112px] sm:h-[118px] p-3.5 sm:p-4 rounded-2xl bg-card hover:bg-secondary/60 border border-border/60 hover:border-primary/40 shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-left overflow-hidden ${className}`}
   >
     {inlineTitle ? (
       <>
@@ -56,7 +56,7 @@ const HomeCardImpl = ({
               strokeWidth={1.75}
             />
             <p
-              className={`font-display text-white font-bold uppercase leading-tight line-clamp-2 ${
+              className={`font-display text-foreground font-bold uppercase leading-tight truncate ${
                 label.length <= 6
                   ? 'text-[17px] sm:text-[18px] font-black tracking-normal'
                   : 'text-[12px] sm:text-[13px] tracking-tight'
@@ -65,11 +65,11 @@ const HomeCardImpl = ({
               {label}
             </p>
           </div>
-          <ChevronRight className="w-4 h-4 text-white/30 shrink-0 group-hover:text-white/70 group-hover:translate-x-0.5 transition-all" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
         </div>
         <div className="w-full min-w-0 mt-auto pt-1">
           {sublabel && (
-            <p className="font-body text-zinc-400 text-[11px] sm:text-[11.5px] leading-snug line-clamp-2">
+            <p className="font-body text-muted-foreground text-[11px] sm:text-[11.5px] leading-snug truncate">
               {sublabel}
             </p>
           )}
@@ -86,14 +86,14 @@ const HomeCardImpl = ({
             }}
             strokeWidth={1.5}
           />
-          <ChevronRight className="w-4 h-4 text-white/35 group-hover:text-white/70 group-hover:translate-x-0.5 transition-all" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
         </div>
         <div className="w-full min-w-0 mt-auto">
-          <p className="font-display text-white text-[14.5px] sm:text-[15.5px] font-bold uppercase tracking-tight leading-tight line-clamp-2">
+          <p className="font-display text-foreground text-[13.5px] sm:text-[14.5px] font-bold uppercase tracking-tight leading-tight truncate">
             {label}
           </p>
           {sublabel && (
-            <p className="font-body text-zinc-400 text-[11px] sm:text-[11.5px] leading-snug mt-0.5 truncate">
+            <p className="font-body text-muted-foreground text-[11px] sm:text-[11.5px] leading-snug mt-0.5 truncate">
               {sublabel}
             </p>
           )}

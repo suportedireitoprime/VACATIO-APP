@@ -343,9 +343,6 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
             <span className="truncate">Legislação Brasileira</span>
           </h3>
-          <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3 truncate">
-            Áreas do Direito: Penal, Civil, Constitucional, Trabalhista e mais.
-          </p>
         </div>
         <div className="h-[1.5px] bg-border/70 w-full mb-2" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
@@ -390,7 +387,6 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               color={c.color}
               inlineTitle={true}
               delay={i * 0.03}
-              className="min-h-[108px] sm:min-h-[116px] py-4 px-3.5"
               onClick={() => handleOpenLei(c.leiId)}
               data-track="home_card_click"
               data-track-name={c.label}

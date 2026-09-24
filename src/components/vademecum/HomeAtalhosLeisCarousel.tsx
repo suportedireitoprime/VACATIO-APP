@@ -214,46 +214,22 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                 key={lei.id}
                 type="button"
                 onClick={() => onOpenLei(lei.id)}
-                className="bg-card-red-gradient min-w-[140px] max-w-[150px] sm:min-w-[154px] sm:max-w-[164px] h-[120px] sm:h-[126px] shrink-0 p-3 rounded-2xl relative overflow-hidden flex flex-col justify-between text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group"
+                className="bg-card-red-gradient min-w-[138px] max-w-[148px] sm:min-w-[152px] sm:max-w-[162px] h-[116px] sm:h-[122px] shrink-0 p-3 rounded-2xl relative overflow-hidden flex flex-col justify-between text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group"
               >
-                {/* SVGs jurídicos decorativos ao fundo estilo APP.PRIME */}
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 200 200"
-                  className="pointer-events-none absolute -right-3 -bottom-5 w-[110px] h-[110px] text-white/[0.08]"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M100 30 V170 M70 170 H130 M100 55 L55 95 M100 55 L145 95" strokeLinecap="round" />
-                  <path d="M35 95 Q55 135 75 95 Z" />
-                  <path d="M125 95 Q145 135 165 95 Z" />
-                </svg>
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 100 100"
-                  className="pointer-events-none absolute top-1 right-12 w-[46px] h-[46px] text-white/[0.06]"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                >
-                  <path d="M18 78 L58 38" />
-                  <rect x="52" y="20" width="30" height="14" rx="2" transform="rotate(45 67 27)" />
-                  <path d="M10 88 H50" />
-                </svg>
+                {/* Ícone temático no fundo transparente, do lado direito (substituindo a balança) */}
+                <LawIcon
+                  className="pointer-events-none absolute -right-2 -bottom-2 w-20 h-20 sm:w-22 sm:h-22 text-white/[0.12] group-hover:scale-105 group-hover:text-white/[0.18] transition-all duration-300"
+                  strokeWidth={1.3}
+                />
 
                 {/* Brilho suave no topo do card */}
                 <div className="pointer-events-none absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
 
-                {/* Linha superior: Sigla destacada e ícone temático em badge translúcido */}
-                <div className="flex items-center justify-between gap-1 w-full relative z-10">
-                  <span className="font-display text-white text-[19px] sm:text-[21px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+                {/* Linha superior: Apenas a sigla destacada */}
+                <div className="relative z-10">
+                  <span className="font-display text-white text-[21px] sm:text-[23px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
                     {lei.sigla}
                   </span>
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform">
-                    <LawIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow-sm" strokeWidth={1.8} />
-                  </div>
                 </div>
 
                 {/* Linha inferior: Nome completo e descrição curta */}
