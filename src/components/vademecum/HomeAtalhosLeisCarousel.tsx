@@ -225,9 +225,13 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                 {/* Brilho suave no topo do card */}
                 <div className="pointer-events-none absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
 
-                {/* Linha superior: Apenas a sigla destacada */}
-                <div className="relative z-10">
-                  <span className="font-display text-white text-[21px] sm:text-[23px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+                {/* Linha superior: Ícone temático branco do lado esquerdo antes do título/sigla */}
+                <div className="flex items-center gap-2 relative z-10">
+                  <LawIcon
+                    className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-white shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-200"
+                    strokeWidth={1.8}
+                  />
+                  <span className="font-display text-white text-[20px] sm:text-[22px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
                     {lei.sigla}
                   </span>
                 </div>
