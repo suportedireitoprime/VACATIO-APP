@@ -214,7 +214,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                 key={lei.id}
                 type="button"
                 onClick={() => onOpenLei(lei.id)}
-                className="bg-card-red-gradient min-w-[138px] max-w-[148px] sm:min-w-[152px] sm:max-w-[162px] h-[116px] sm:h-[122px] shrink-0 p-3 rounded-2xl relative overflow-hidden flex flex-col justify-between text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group"
+                className="bg-card-red-gradient border-0 min-w-[138px] max-w-[148px] sm:min-w-[152px] sm:max-w-[162px] h-[116px] sm:h-[122px] shrink-0 p-3 rounded-2xl relative overflow-hidden flex flex-col justify-between text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group"
               >
                 {/* Ícone temático no fundo transparente, do lado direito (substituindo a balança) */}
                 <LawIcon
