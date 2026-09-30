@@ -11,7 +11,7 @@ import landingVideoaulasAsset from '@/assets/landing-videoaulas.webp.asset.json'
 import logoVacatioAsset from '@/assets/logo-vacatio-v2.png.asset.json';
 import themisMarbleCutoutAsset from '@/assets/themis-marble-cutout.webp.asset.json';
 
-import cp from '@/assets/lei-cover-cp.webp';
+import cp from '@/assets/lei-cover-cp.jpg';
 import cf88 from '@/assets/lei-cover-cf88.webp';
 import cc from '@/assets/lei-cover-cc.webp';
 import clt from '@/assets/lei-cover-clt.webp';

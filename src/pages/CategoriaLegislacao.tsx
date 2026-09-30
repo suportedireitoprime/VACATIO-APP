@@ -2310,20 +2310,20 @@ const CategoriaLegislacao = () => {
 
                 {selectedLei && (selectedLei as any).sigla ? (
                   <>
-                    <h1 className="font-display text-black text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-widest leading-none drop-shadow-sm mb-1.5">
+                    <h1 className="font-display text-white text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-widest leading-none drop-shadow-sm mb-1.5">
                       {(selectedLei as any).sigla}
                     </h1>
-                    <p className="text-black/90 text-sm sm:text-base font-medium leading-snug uppercase tracking-wide">
+                    <p className="text-white/90 text-sm sm:text-base font-medium leading-snug uppercase tracking-wide">
                       {selectedLeiNome}
                     </p>
                   </>
                 ) : (
-                  <h1 className="font-display text-black text-xl sm:text-2xl md:text-3xl font-bold uppercase tracking-wide leading-tight drop-shadow-sm">
+                  <h1 className="font-display text-white text-xl sm:text-2xl md:text-3xl font-bold uppercase tracking-wide leading-tight drop-shadow-sm">
                     {selectedLeiNome}
                   </h1>
                 )}
                 {selectedLeiDescricao && (
-                  <p className="text-black/75 text-[11px] sm:text-xs mt-1.5 leading-snug line-clamp-2">
+                  <p className="text-white/75 text-[11px] sm:text-xs mt-1.5 leading-snug line-clamp-2">
                     {selectedLeiDescricao}
                   </p>
                 )}
