@@ -233,7 +233,7 @@ const BottomNav = () => {
 
           {/* Jurisprudência */}
           <button
-            onClick={() => { haptic.selection(); navigate('/legislacao/jurisprudencia'); }}
+            onClick={() => { haptic.selection(); navigate('/jurisprudencia'); }}
             data-track="bottom_nav_click"
             data-track-destino="jurisprudencia"
             className="flex flex-col items-center justify-end py-1.5 text-white"
@@ -247,7 +247,7 @@ const BottomNav = () => {
 
           {/* Especial */}
           <button
-            onClick={() => { haptic.selection(); navigate('/legislacao/lei-especial'); }}
+            onClick={() => { haptic.selection(); navigate('/legislacao/leis-especiais'); }}
             data-track="bottom_nav_click"
             data-track-destino="especial"
             className="flex flex-col items-center justify-end py-1.5 text-white"
