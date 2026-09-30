@@ -2311,9 +2311,9 @@ const CategoriaLegislacao = () => {
                       setLeiFavToggle((n) => n + 1);
                     }}
                     aria-label={fav ? 'Remover dos favoritos' : 'Favoritar lei'}
-                    className={`absolute right-4 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none ${fav ? 'bg-primary/20 border-primary/40' : 'bg-black/40 border-white/25'}`}
+                    className={`absolute left-[72px] top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none ${fav ? 'bg-primary/20 border-primary/40' : 'bg-black/40 border-white/25'}`}
                   >
-                    <Star className={`w-6 h-6 drop-shadow ${fav ? 'text-primary fill-primary' : 'text-white'}`} />
+                    <Heart className={`w-6 h-6 drop-shadow ${fav ? 'text-primary fill-primary' : 'text-white'}`} />
                   </button>
                 );
               })()}
@@ -2340,20 +2340,22 @@ const CategoriaLegislacao = () => {
                     {selectedLeiDescricao}
                   </p>
                 )}
-              </div>
 
-              {/* Botão Ver no Planalto movido para o lado direito (sobre a imagem escura) */}
-              {planaltoUrl && (
-                <a
-                  href={planaltoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute z-20 right-4 sm:right-6 bottom-[150px] inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] text-white/90 hover:text-white font-medium bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10 shadow-lg transition-colors active:scale-95"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  <span>{/^(estadual|municipal)_/.test(tipo || '') ? 'Ver legislação' : 'Ver no Planalto'}</span>
-                </a>
-              )}
+                {/* Botão Ver no Planalto movido para debaixo do título */}
+                {planaltoUrl && (
+                  <div className="mt-3">
+                    <a
+                      href={planaltoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] text-white/90 hover:text-white font-medium bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10 shadow-lg transition-colors active:scale-95"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      <span>{/^(estadual|municipal)_/.test(tipo || '') ? 'Ver legislação' : 'Ver no Planalto'}</span>
+                    </a>
+                  </div>
+                )}
+              </div>
 
               {/* Barra de ações (quadradinhos tipo Home) */}
               <div className="relative z-10 px-3 sm:px-5 pb-4 pt-3">
