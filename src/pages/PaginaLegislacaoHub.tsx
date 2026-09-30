@@ -215,21 +215,42 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
             </div>
           </div>
 
-          {/* Menu de Alternância (Segmented Control) */}
-          <div className="relative z-10 px-4 sm:px-6 pt-3 pb-2 flex justify-center w-full">
-            <div className="flex bg-black/40 backdrop-blur-md border border-white/10 p-1 rounded-xl w-full max-w-sm">
-              <button
-                onClick={() => { haptic.selection(); setActiveTab('todos'); }}
-                className={`flex-1 py-2 text-sm font-display font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'todos' ? 'bg-primary text-primary-foreground shadow-md' : 'text-white/60 hover:text-white'}`}
-              >
-                Todos
-              </button>
-              <button
-                onClick={() => { haptic.selection(); setActiveTab('favoritos'); }}
-                className={`flex-1 py-2 text-sm font-display font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'favoritos' ? 'bg-primary text-primary-foreground shadow-md' : 'text-white/60 hover:text-white'}`}
-              >
-                Favoritos
-              </button>
+          {/* Menu de Alternância (Scroll Horizontal Infinito) */}
+          <div className="relative z-10 pl-4 sm:pl-6 pt-3 pb-2 w-full overflow-hidden">
+            <div className="flex gap-2 overflow-x-auto pb-4 -mb-4 scrollbar-none mask-fade-right">
+              {[
+                { id: 'todos', label: 'Todos' },
+                { id: 'constituicao', label: 'Constituição' },
+                { id: 'codigos', label: 'Códigos' },
+                { id: 'estatutos', label: 'Estatutos' },
+                { id: 'leis-especiais', label: 'Leis Especiais' },
+                { id: 'leis-complementares', label: 'Complementares' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    haptic.selection();
+                    if (tab.id === 'todos') {
+                      setActiveTab('todos');
+                    } else if (tab.id === 'codigos' && isCodigo) {
+                      setActiveTab('todos');
+                    } else if (tab.id === 'estatutos' && !isCodigo) {
+                      setActiveTab('todos');
+                    } else {
+                      navigate(`/legislacao/${tab.id}`);
+                    }
+                  }}
+                  className={`shrink-0 px-4 py-2 text-[13px] font-display font-bold uppercase tracking-wider rounded-full transition-all border ${
+                    (tab.id === 'codigos' && isCodigo) || (tab.id === 'estatutos' && !isCodigo) || (activeTab === tab.id)
+                      ? 'bg-primary border-primary text-primary-foreground shadow-md'
+                      : 'bg-black/40 backdrop-blur-md border-white/10 text-white/70 hover:text-white hover:bg-black/60'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+              {/* Spacer at the end for scroll padding */}
+              <div className="w-4 shrink-0" />
             </div>
           </div>
 
