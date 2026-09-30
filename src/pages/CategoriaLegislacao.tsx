@@ -2215,6 +2215,7 @@ const CategoriaLegislacao = () => {
           const cover = getLeiCover(selectedLeiId, tipo);
           const selectedLei = leis.find(l => l.id === selectedLeiId);
           const planaltoUrl = (selectedLei as any)?.url_planalto;
+          const baseColor = getLeiColor(selectedLeiId, tipo);
           return (
             <div
               className="relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 flex flex-col z-20 pt-[var(--sai-top,env(safe-area-inset-top,0px))]"
@@ -2247,7 +2248,7 @@ const CategoriaLegislacao = () => {
                   <div
                     className="absolute inset-0"
                     style={{
-                      background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 55%, hsl(var(--primary)) 100%)',
+                      background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.2)} 55%, ${shade(baseColor, -0.4)} 100%)`,
                     }}
                   />
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
