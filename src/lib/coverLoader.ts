@@ -12,6 +12,7 @@ import logoVacatioAsset from '@/assets/logo-vacatio-v2.png.asset.json';
 import themisMarbleCutoutAsset from '@/assets/themis-marble-cutout.webp.asset.json';
 
 import cp from '@/assets/lei-cover-cp.jpg';
+import cpc from '@/assets/lei-cover-cpc.jpg';
 import cf88 from '@/assets/lei-cover-cf88.webp';
 import cc from '@/assets/lei-cover-cc.jpg';
 import clt from '@/assets/lei-cover-clt.webp';
@@ -34,6 +35,7 @@ export const COVERS = {
   cp,
   cf88,
   cc,
+  cpc,
   clt,
   cdc,
   eca,
