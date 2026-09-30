@@ -43,6 +43,7 @@ import {
   Palette,
 } from 'lucide-react';
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
+import { getLeiColor, shade } from '@/lib/leiTheme';
 
 const STORAGE_KEY = 'home_atalhos_leis_v3';
 const MAX_ATALHOS = 10;
@@ -287,13 +288,15 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
         >
           {activeLeis.map((lei) => {
             const LawIcon = getLawIcon(lei.id, lei.tipo);
+            const baseColor = getLeiColor(lei.id, lei.tipo);
 
             return (
               <button
                 key={lei.id}
                 type="button"
                 onClick={() => onOpenLei(lei.id)}
-                className="bg-card-red-gradient border-0 min-w-[138px] max-w-[148px] sm:min-w-[152px] sm:max-w-[162px] h-[116px] sm:h-[122px] shrink-0 p-3 rounded-2xl relative overflow-hidden flex flex-col justify-between text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group"
+                style={{ background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.3)} 100%)` }}
+                className="border-0 min-w-[138px] max-w-[148px] sm:min-w-[152px] sm:max-w-[162px] h-[116px] sm:h-[122px] shrink-0 p-3 rounded-2xl relative overflow-hidden flex flex-col justify-between text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group"
               >
                 {/* Ícone temático no fundo transparente, do lado direito (substituindo a balança) */}
                 <LawIcon

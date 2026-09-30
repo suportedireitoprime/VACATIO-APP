@@ -8,7 +8,7 @@ const COLOR_MAP: Record<string, string> = {
   cp:   '#7B1E1E',
   cpm:  '#7B1E1E',
   cc:   '#1E3A5F',
-  cpc:  '#6B4423',
+  cpc:  '#0284C7',
   cpp:  '#8B3A1F',
   clt:  '#0F5F5C',
   cdc:  '#9F1239',
