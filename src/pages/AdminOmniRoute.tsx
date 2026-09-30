@@ -7,7 +7,7 @@ export default function AdminOmniRoute() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState({
-    baseUrl: 'http://localhost:20128/v1',
+    baseUrl: 'https://omniroute-production-fb57.up.railway.app/v1',
     apiKey: '',
     defaultModel: 'openrouter/auto',
     enabled: false
@@ -27,11 +27,17 @@ export default function AdminOmniRoute() {
   useEffect(() => {
     async function loadModels() {
       if (!config.baseUrl) return;
+      
+      let formattedUrl = config.baseUrl;
+      if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = `https://${formattedUrl}`;
+      }
+
       setFetchingModels(true);
       try {
-        const url = config.baseUrl.endsWith('/v1') 
-          ? `${config.baseUrl}/models` 
-          : `${config.baseUrl.replace(/\/$/, '')}/v1/models`;
+        const url = formattedUrl.endsWith('/v1') 
+          ? `${formattedUrl}/models` 
+          : `${formattedUrl.replace(/\/$/, '')}/v1/models`;
         
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
