@@ -19,7 +19,11 @@ export default function AdminOmniRoute() {
     const saved = localStorage.getItem('omniroute_config');
     if (saved) {
       try {
-        setConfig(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (parsed.baseUrl === 'http://localhost:20128/v1') {
+          parsed.baseUrl = 'https://omniroute-production-fb57.up.railway.app/v1';
+        }
+        setConfig(parsed);
       } catch (e) {}
     }
   }, []);
@@ -126,7 +130,7 @@ export default function AdminOmniRoute() {
                 type="text"
                 value={config.baseUrl}
                 onChange={(e) => setConfig({ ...config, baseUrl: e.target.value })}
-                placeholder="http://localhost:20128/v1"
+                placeholder="https://omniroute-production-fb57.up.railway.app/v1"
                 className="w-full h-11 px-4 rounded-xl bg-black/30 border border-white/15 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-mono text-sm"
               />
               <p className="text-xs text-white/40 ml-1">URL local do OmniRoute ou gateway na nuvem.</p>
