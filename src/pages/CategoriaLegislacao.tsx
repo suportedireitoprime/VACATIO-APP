@@ -31,6 +31,7 @@ import { useIsDesktop } from '@/hooks/use-desktop';
 import RadarLegislacaoContent, { prefetchRadarData } from '@/components/vademecum/RadarLegislacaoContent';
 import { getLeiColor, getLeiCover, shade } from '@/lib/leiTheme';
 import { warmCoverCache } from '@/lib/coverLoader';
+import ShapeGrid from '@/components/ui/ShapeGrid';
 import { slugToTipo, tipoToSlug, leiToSlug, leiPath, findLeiBySlug, CATEGORIAS_FIXAS } from '@/lib/legislacaoSlugs';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { Navigate } from 'react-router-dom';
@@ -2251,6 +2252,17 @@ const CategoriaLegislacao = () => {
                       background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.2)} 55%, ${shade(baseColor, -0.4)} 100%)`,
                     }}
                   />
+                  <div className="absolute inset-0 pointer-events-none z-0 mix-blend-overlay opacity-60">
+                    <ShapeGrid 
+                      speed={0.5} 
+                      squareSize={40}
+                      direction='diagonal'
+                      borderColor='rgba(255, 255, 255, 0.05)'
+                      hoverFillColor='rgba(255, 255, 255, 0.1)'
+                      shape='square'
+                      hoverTrailAmount={5}
+                    />
+                  </div>
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.16),transparent_65%)]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
