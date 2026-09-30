@@ -57,6 +57,7 @@ const PREFETCH: Record<string, () => Promise<unknown>> = {
   '/ferramentas/peticao-inicial': () => import('./PeticaoInicial'),
   '/anotacoes/audio': () => import('./AnotacoesAudio'),
   '/meu-espaco': () => import('./MeuEspaco'),
+  '/admin-omniroute': () => import('./AdminOmniRoute'),
 };
 const prefetched = new Set<string>();
 const prefetching = new Map<string, Promise<unknown>>();
@@ -176,7 +177,8 @@ const CATEGORIES: Category[] = [
     items: [
       { id: 'admin-monitor', label: 'Monitoramento', icon: Activity, desc: 'Status e saúde do sistema', route: '/admin-monitor' },
       { id: 'monitor-usuarios', label: 'Usuários Online', icon: Users, desc: 'Monitoramento em tempo real', route: '/admin-monitor-usuarios' },
-      { id: 'monitor-apis', label: 'APIs', icon: Activity, desc: 'Funções que usam IA (custo, manual/auto)', route: '/admin-monitor-apis' },
+      { id: 'monitor-apis', label: 'APIs e Custos', icon: Activity, desc: 'Funções que usam IA (custo, manual/auto)', route: '/admin-monitor-apis' },
+      { id: 'admin-omniroute', label: 'OmniRoute Gateway', icon: Server, desc: 'Configurar roteador LLM unificado local/remoto', route: '/admin-omniroute' },
     ],
   },
 

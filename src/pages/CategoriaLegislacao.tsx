@@ -2237,6 +2237,19 @@ const CategoriaLegislacao = () => {
                 />
               </div>
 
+              {/* Fundo animado sobre a área preta da imagem */}
+              <div className="absolute inset-0 pointer-events-none z-0 mix-blend-screen opacity-80">
+                <ShapeGrid 
+                  speed={0.5} 
+                  squareSize={40}
+                  direction='diagonal'
+                  borderColor='rgba(255, 255, 255, 0.05)'
+                  hoverFillColor='rgba(255, 255, 255, 0.1)'
+                  shape='square'
+                  hoverTrailAmount={5}
+                />
+              </div>
+
               {/* Overlay amarelo com corte diagonal (mesmo estilo da Home) */}
               <div
                 className="absolute inset-0 z-[1] pointer-events-none"
@@ -2252,18 +2265,7 @@ const CategoriaLegislacao = () => {
                       background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.2)} 55%, ${shade(baseColor, -0.4)} 100%)`,
                     }}
                   />
-                  <div className="absolute inset-0 pointer-events-none z-0">
-                    <ShapeGrid 
-                      speed={0.5} 
-                      squareSize={40}
-                      direction='diagonal'
-                      borderColor='rgba(255, 255, 255, 0.05)'
-                      hoverFillColor='rgba(255, 255, 255, 0.1)'
-                      shape='square'
-                      hoverTrailAmount={5}
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.16),transparent_65%)]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 

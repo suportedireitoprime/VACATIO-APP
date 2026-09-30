@@ -173,6 +173,7 @@ const MeExplique = lazy(() => import("./pages/MeExplique.tsx"));
 const AdminMonitorUsuarios = lazy(() => import("./pages/AdminMonitorUsuarios.tsx"));
 const AdminMonitoramento = lazy(() => import("./pages/AdminMonitoramento.tsx"));
 const AdminMonitorApis = lazy(() => import("./pages/AdminMonitorApis.tsx"));
+const AdminOmniRoute = lazy(() => import("./pages/AdminOmniRoute.tsx"));
 const AdminAtualizacao = lazy(() => import("./pages/AdminAtualizacao.tsx"));
 const AdminNativeAssets = lazy(() => import("./pages/AdminNativeAssets.tsx"));
 const AdminAprender = lazy(() => import("./pages/AdminAprender.tsx"));
@@ -645,6 +646,7 @@ function AnimatedRoutes() {
           <Route path="/admin-monitor-usuarios" element={<ProtectedRoute><PageTransition><AdminMonitorUsuarios /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-monitoramento" element={<ProtectedRoute><PageTransition><AdminMonitoramento /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-monitor-apis" element={<ProtectedRoute><PageTransition><AdminMonitorApis /></PageTransition></ProtectedRoute>} />
+          <Route path="/admin-omniroute" element={<ProtectedRoute><PageTransition><AdminOmniRoute /></PageTransition></ProtectedRoute>} />
           <Route path="/assinatura" element={<ProtectedRoute><PageTransition><Assinatura /></PageTransition></ProtectedRoute>} />
           <Route path="/planos" element={<Navigate to="/assinatura" replace />} />
           <Route path="/planos/*" element={<Navigate to="/assinatura" replace />} />
