@@ -64,16 +64,43 @@ function urlVariants(url: string): string[] {
 }
 
 async function fetchHtml(url: string): Promise<string> {
-  const variants = urlVariants(url);
-  let lastErr: unknown = null;
-  for (const v of variants) {
-    try {
-      return await fetchHtmlOnce(v);
-    } catch (e) {
-      lastErr = e;
+  const key = Deno.env.get('BROWSERLESS_API_KEY');
+  if (!key) {
+    console.warn('BROWSERLESS_API_KEY não configurada. Usando fetch padrão.');
+    const variants = urlVariants(url);
+    let lastErr: unknown = null;
+    for (const v of variants) {
+      try { return await fetchHtmlOnce(v); } catch (e) { lastErr = e; }
     }
+    throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
   }
-  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+
+  // Tenta direto com Browserless
+  console.log(`Usando Browserless para: ${url}`);
+  const endpoint = `https://production-sfo.browserless.io/content?token=${encodeURIComponent(key)}`;
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      url,
+      gotoOptions: { waitUntil: 'networkidle2', timeout: 60000 },
+    }),
+  });
+  
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error(`Browserless Error: ${res.status} - ${errText}`);
+    // Fallback pra extração normal
+    console.log('Tentando fallback local...');
+    const variants = urlVariants(url);
+    let lastErr: unknown = null;
+    for (const v of variants) {
+      try { return await fetchHtmlOnce(v); } catch (e) { lastErr = e; }
+    }
+    throw new Error(`Browserless falhou e fallback também: ${errText}`);
+  }
+  
+  return await res.text();
 }
 
 

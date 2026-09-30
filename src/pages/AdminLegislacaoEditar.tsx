@@ -67,6 +67,7 @@ export default function AdminLegislacaoEditar() {
       .from('vade_mecum_leis')
       .select('id, slug, nome, nome_curto, categoria, planalto_url, total_artigos, updated_at, ultima_reextracao_em')
       .order('categoria')
+      .order('ordem' as any, { ascending: true, nullsFirst: false })
       .order('nome');
       
     if (error) {
@@ -299,8 +300,7 @@ function DetalheLeiSheet({
               <TabsTrigger value="legislacao" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Legislação</TabsTrigger>
               <TabsTrigger value="atualizacoes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Últimas Atualizações</TabsTrigger>
               <TabsTrigger value="raspagem" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Raspagem</TabsTrigger>
-              <TabsTrigger value="push" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Notificação Push</TabsTrigger>
-              <TabsTrigger value="historico" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3 text-amber-500 data-[state=active]:text-amber-500">Histórico de Atualização</TabsTrigger>
+              <TabsTrigger value="historico" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3 text-amber-500 data-[state=active]:text-amber-500">Novidades</TabsTrigger>
             </TabsList>
 
             <div className="p-4">
