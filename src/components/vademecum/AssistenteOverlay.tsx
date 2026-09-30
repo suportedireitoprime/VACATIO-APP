@@ -320,19 +320,18 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
     setAttachment(null);
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('assistente-juridica', {
-        body: {
-          messages: newMessages.map(m => ({
-            role: m.role, content: m.content,
-            ...(m.attachment ? { attachment: { mime: m.attachment.mime, data: m.attachment.data } } : {}),
-          })),
-          webSearch,
-        },
+      const chatReply = await generateOmniChat({
+        messages: newMessages.map(m => ({
+          role: m.role === 'assistant' ? 'assistant' : m.role === 'user' ? 'user' : 'system',
+          content: m.content
+          // TODO: attachments and webSearch need custom handling in OmniRoute if required
+        })),
+        temperature: 0.7
       });
-      if (error) throw error;
-      const webSources: ChatSource[] = Array.isArray(data?.sources) ? data.sources : [];
-      const startN = (webSources.length ? Math.max(...webSources.map((s) => s.n)) : 0) + 1;
-      const rawReply: string = data?.reply || 'Não consegui gerar uma resposta agora. Tente reformular.';
+      
+      const webSources: ChatSource[] = []; // OmniRoute doesn't natively return Google Search grounding sources in this format
+      const startN = 1;
+      const rawReply: string = chatReply || 'Não consegui gerar uma resposta agora. Tente reformular.';
       const { text: enrichedReply, sources: statuteSources } = extractStatuteSources(rawReply, startN);
       const asMsg: Message = {
         id: crypto.randomUUID(), role: 'assistant',
