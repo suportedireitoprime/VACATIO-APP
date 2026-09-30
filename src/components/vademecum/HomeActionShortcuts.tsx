@@ -42,7 +42,7 @@ const HomeActionShortcuts = () => {
             style={{
               '--shimmer-delay': `${index * 150}ms`,
             } as React.CSSProperties}
-            className="group relative flex flex-col items-center justify-center h-[72px] px-1 rounded-2xl border-0 ios-glass-card transition-all duration-200 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden"
+            className="group relative flex flex-col items-center justify-center h-[72px] px-1 rounded-2xl bg-black/65 backdrop-blur-md border border-white/15 shadow-lg shadow-black/30 transition-all duration-200 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden"
           >
             {badgeCount > 0 && item.badgeColor && (
               <span
