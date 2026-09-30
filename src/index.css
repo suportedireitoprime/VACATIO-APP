@@ -201,18 +201,18 @@ body {
   }
 
   /* Vermelho padrão do app (mesmo do painel vermelho da home) */
-  /* Painel principal Aprender — Dourado elegante */
+  /* Painel principal Aprender — Agora Vermelho */
   .bg-hero-yellow {
-    background: linear-gradient(135deg, hsl(46 65% 22%) 0%, hsl(46 65% 34%) 50%, hsl(46 65% 46%) 100%);
+    background: linear-gradient(135deg, hsl(350 68% 26%) 0%, hsl(348 80% 40%) 50%, hsl(348 80% 50%) 100%);
     color: #fff;
   }
   .bg-hero-yellow-soft {
-    background: linear-gradient(135deg, hsl(46 65% 22% / 0.9) 0%, hsl(46 65% 34% / 0.9) 50%, hsl(46 65% 46% / 0.9) 100%);
+    background: linear-gradient(135deg, hsl(350 68% 26% / 0.9) 0%, hsl(348 80% 40% / 0.9) 50%, hsl(348 80% 50% / 0.9) 100%);
     color: #fff;
   }
   .tab-hero-yellow[data-state="active"] {
-    background: linear-gradient(135deg, hsl(46 65% 32%) 0%, hsl(46 65% 44%) 50%, hsl(46 65% 52%) 100%) !important;
-    color: #1a1a1a !important;
+    background: linear-gradient(135deg, hsl(350 68% 30%) 0%, hsl(348 80% 45%) 50%, hsl(348 80% 55%) 100%) !important;
+    color: #fff !important;
   }
 
   /* Painel vermelho / tab ativa / rodapé / botões de pesquisa — gradiente compartilhado (DIREITO PRIME) */
