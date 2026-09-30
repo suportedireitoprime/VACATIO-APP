@@ -5,7 +5,7 @@ import {
   Gamepad2, Brain, BookA, MessageCircle, BellRing, Mic, Lightbulb, Building2,
   Rss, Palette, Users, GitBranch, Github, ImageIcon, KeyRound, Bug, Newspaper,
   Quote, Monitor, Send, RefreshCcw, Lock, Wrench, FileText, Crown, Search, Target, MapPin, PlayCircle,
-  Sparkles, UserPlus, GraduationCap, Scale, Store, Mail, FileSignature, User,
+  Sparkles, UserPlus, GraduationCap, Scale, Store, Mail, FileSignature, User, Server,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
