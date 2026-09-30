@@ -32,9 +32,7 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
   const isCodigo = resolvedTipo === 'codigo';
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const unreadCount = useUnreadNotifCount();
+  const [activeTab, setActiveTab] = useState<'todos' | 'favoritos'>('todos');
 
   const CategoryIcon: LucideIcon = isCodigo ? Gavel : BookMarked;
   const pageTitle = isCodigo ? 'Códigos' : 'Estatutos';
@@ -178,25 +176,7 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
             </button>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                onClick={() => setNotifOpen(true)}
-                aria-label={`Abrir notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
-                className="grid w-11 h-11 sm:w-12 sm:h-12 shrink-0 place-items-center rounded-full bg-black/40 border border-white/10 text-white backdrop-blur-md transition-colors hover:bg-black/60 active:scale-95 relative"
-              >
-                <Bell className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.4} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none flex items-center justify-center border border-neutral-900 shadow">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => setMenuOpen(true)}
-                aria-label="Abrir menu"
-                className="grid w-11 h-11 sm:w-12 sm:h-12 shrink-0 place-items-center rounded-full bg-black/40 border border-white/10 text-white backdrop-blur-md transition-colors hover:bg-black/60 active:scale-95"
-              >
-                <MenuIcon className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.4} />
-              </button>
+              {/* Notificações e Menu removidos do Hub de Códigos conforme solicitado */}
             </div>
           </header>
 
@@ -235,9 +215,22 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
             </div>
           </div>
 
-          {/* Atalhos Rápidos: Favoritos, Anotações, Grifos, Chat */}
-          <div className="relative z-10 px-3 sm:px-5 pt-3 pb-2">
-            <HomeActionShortcuts />
+          {/* Menu de Alternância (Segmented Control) */}
+          <div className="relative z-10 px-4 sm:px-6 pt-3 pb-2 flex justify-center w-full">
+            <div className="flex bg-black/40 backdrop-blur-md border border-white/10 p-1 rounded-xl w-full max-w-sm">
+              <button
+                onClick={() => { haptic.selection(); setActiveTab('todos'); }}
+                className={`flex-1 py-2 text-sm font-display font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'todos' ? 'bg-primary text-primary-foreground shadow-md' : 'text-white/60 hover:text-white'}`}
+              >
+                Todos
+              </button>
+              <button
+                onClick={() => { haptic.selection(); setActiveTab('favoritos'); }}
+                className={`flex-1 py-2 text-sm font-display font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'favoritos' ? 'bg-primary text-primary-foreground shadow-md' : 'text-white/60 hover:text-white'}`}
+              >
+                Favoritos
+              </button>
+            </div>
           </div>
 
           {/* Barra de Pesquisa Integrada no Hero (estilo idêntico ao Início) */}
@@ -343,11 +336,7 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
         </main>
       </div>
 
-      {/* SideMenu e Notificações em Suspense */}
-      <Suspense fallback={null}>
-        {menuOpen && <SideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />}
-        {notifOpen && <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />}
-      </Suspense>
+
     </div>
   );
 };
