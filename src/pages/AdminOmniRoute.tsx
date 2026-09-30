@@ -30,23 +30,9 @@ export default function AdminOmniRoute() {
 
   useEffect(() => {
     async function loadModels() {
-      if (!config.baseUrl) return;
-      
-      let formattedUrl = config.baseUrl;
-      if (!/^https?:\/\//i.test(formattedUrl)) {
-        formattedUrl = `https://${formattedUrl}`;
-      }
-
       setFetchingModels(true);
       try {
-        const url = formattedUrl.endsWith('/v1') 
-          ? `${formattedUrl}/models` 
-          : `${formattedUrl.replace(/\/$/, '')}/v1/models`;
-        
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
-        
-        const res = await fetch(url, { headers });
+        const res = await fetch('https://openrouter.ai/api/v1/models');
         if (res.ok) {
           const data = await res.json();
           if (data && data.data && Array.isArray(data.data)) {
@@ -62,7 +48,7 @@ export default function AdminOmniRoute() {
     
     const timer = setTimeout(loadModels, 1000);
     return () => clearTimeout(timer);
-  }, [config.baseUrl, config.apiKey]);
+  }, []);
 
   const handleSave = () => {
     setLoading(true);
