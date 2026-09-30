@@ -77,7 +77,7 @@ export async function startListening(onResult: SpeechListener, lang = 'pt-BR'): 
     await SpeechRecognition.start({
       language: lang,
       partialResults: true,
-      popup: false,
+      popup: true,
       maxResults: 1,
     });
     // Timeout de segurança: se nada for reconhecido em 8s, encerra.
