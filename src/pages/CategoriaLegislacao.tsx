@@ -2231,7 +2231,7 @@ const CategoriaLegislacao = () => {
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
-                  className="absolute top-0 bottom-0 -right-20 md:-right-32 h-full w-auto max-w-none object-cover object-right select-none"
+                  className="absolute inset-0 w-full h-full object-cover object-right select-none"
                 />
               </div>
 
