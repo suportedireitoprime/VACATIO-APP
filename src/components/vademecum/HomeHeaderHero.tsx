@@ -7,7 +7,7 @@ import heroEstudanteImg from '@/assets/covers/hero-justice.webp';
 import HeroMotifs from './HeroMotifs';
 import HomeBrandBanner from './HomeBrandBanner';
 import HomeActionShortcuts from './HomeActionShortcuts';
-import HomeSearchButton from './HomeSearchButton';
+
 import NotificationsSheet, { useUnreadNotifCount } from './NotificationsSheet';
 import SearchOverlay from './SearchOverlay';
 import RecentesOverlay from './RecentesOverlay';
@@ -167,10 +167,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
           <HomeActionShortcuts />
         </div>
 
-        {/* Barra de Pesquisa */}
-        <div className="relative z-10 px-4 sm:px-6 w-full pb-5">
-          <HomeSearchButton onOpenSearch={handleOpenSearch} />
-        </div>
+        {/* Barra de Pesquisa removida daqui e movida para o BottomNav */}
       </div>
 
       <Suspense fallback={null}>

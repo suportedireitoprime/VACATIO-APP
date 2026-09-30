@@ -215,53 +215,47 @@ const BottomNav = () => {
             </span>
           </button>
 
-          {/* Professor (FAB centralizado — coluna do meio) */}
+          {/* Pesquisar (FAB centralizado — coluna do meio) */}
           <button
-            onClick={() => { haptic.light(); navigate('/me-explique'); }}
+            onClick={() => { haptic.light(); setSearchOpen(true); }}
             data-track="bottom_nav_click"
-            data-track-destino="professor"
+            data-track-destino="pesquisar"
             className="flex flex-col items-center justify-end -mt-11"
-            aria-label="Professor"
+            aria-label="Pesquisar"
           >
             <span className="relative flex flex-col items-center gap-1.5 pt-1 pb-1 px-2 rounded-2xl">
               <span className="relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 ring-4 ring-background btn-attention-shine overflow-hidden">
-                <GraduationCap className="w-9 h-9 sm:w-10 sm:h-10 text-white relative z-[2]" strokeWidth={1.3} />
+                <Search className="w-8 h-8 sm:w-9 sm:h-9 text-white relative z-[2]" strokeWidth={1.5} />
               </span>
-              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white leading-tight">Professor</span>
+              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white leading-tight">Pesquisar</span>
             </span>
           </button>
 
-          {/* Ferramentas */}
+          {/* Jurisprudência */}
           <button
-            onPointerDown={() => {
-              for (const f of FERRAMENTAS) if (f.prefetch) prefetchRoute(f.prefetch);
-            }}
-            onClick={() => { haptic.selection(); navigate('/ferramentas'); }}
+            onClick={() => { haptic.selection(); navigate('/legislacao/jurisprudencia'); }}
             data-track="bottom_nav_click"
-            data-track-destino="ferramentas"
+            data-track-destino="jurisprudencia"
             className="flex flex-col items-center justify-end py-1.5 text-white"
-            aria-label="Ferramentas"
+            aria-label="Jurisprudência"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <Wrench className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
-              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Ferramentas</span>
+              <Scale className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
+              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Jurisprudência</span>
             </span>
           </button>
 
-          {/* Radar */}
+          {/* Especial */}
           <button
-            onClick={() => { haptic.selection(); navigate('/radares'); }}
-            onPointerEnter={() => prefetchRoute('radar360')}
-            onPointerDown={() => prefetchRoute('radar360')}
-            onTouchStart={() => prefetchRoute('radar360')}
+            onClick={() => { haptic.selection(); navigate('/legislacao/lei-especial'); }}
             data-track="bottom_nav_click"
-            data-track-destino="radar"
+            data-track-destino="especial"
             className="flex flex-col items-center justify-end py-1.5 text-white"
-            aria-label="Radar"
+            aria-label="Especial"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <ScanEye className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
-              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Radar</span>
+              <Shield className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
+              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Especial</span>
             </span>
           </button>
         </div>
