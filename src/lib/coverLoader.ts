@@ -13,7 +13,7 @@ import themisMarbleCutoutAsset from '@/assets/themis-marble-cutout.webp.asset.js
 
 import cp from '@/assets/lei-cover-cp.jpg';
 import cf88 from '@/assets/lei-cover-cf88.webp';
-import cc from '@/assets/lei-cover-cc.webp';
+import cc from '@/assets/lei-cover-cc.jpg';
 import clt from '@/assets/lei-cover-clt.webp';
 import cdc from '@/assets/lei-cover-cdc.webp';
 import defaultCover from '@/assets/lei-cover-default.webp';
