@@ -137,6 +137,15 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
+    id: 'legislacao-editar',
+    title: 'Legislação Editar',
+    desc: 'Extrair leis do Planalto, verificar novidades e gerenciar Vade Mecum',
+    icon: BookOpen,
+    items: [
+      { id: 'admin-legislacao-editar', label: 'Legislação Editar', icon: Search, desc: 'Extrair leis e ver atualizações em ordem cronológica', route: '/admin-legislacao-editar' },
+    ],
+  },
+  {
     id: 'lembretes',
     title: 'Lembretes',
     desc: 'Funções do app que oferecem lembretes ao usuário',
