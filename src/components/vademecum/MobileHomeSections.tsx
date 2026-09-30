@@ -343,7 +343,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
             <span className="truncate">Legislação Brasileira</span>
           </h3>
-          <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3 truncate">
+          <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3">
             Áreas do Direito: Penal, Civil, Constitucional, Trabalhista e mais.
           </p>
         </div>
@@ -354,7 +354,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               key={c.id}
               icon={c.icon}
               label={c.label}
-              sublabel={c.sublabel}
+              sublabel={`${c.leiIds.length} leis • ${c.sublabel}`}
               color={c.color}
               delay={i * 0.04}
               onClick={() => {
