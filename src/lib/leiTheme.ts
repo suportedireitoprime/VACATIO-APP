@@ -4,28 +4,28 @@
 import { COVERS } from './coverLoader';
 
 const COLOR_MAP: Record<string, string> = {
-  cf88: '#0B6E4F',
-  cp:   '#7B1E1E',
-  cpm:  '#7B1E1E',
-  cc:   '#1E3A5F',
-  cpc:  '#0284C7',
-  cpp:  '#8B3A1F',
-  clt:  '#0F5F5C',
-  cdc:  '#9F1239',
-  eca:  '#2C5282',
-  ctn:  '#78350F',
+  cf88: '#10B981', // Emerald 500
+  cp:   '#EF4444', // Red 500
+  cpm:  '#EF4444',
+  cc:   '#3B82F6', // Blue 500
+  cpc:  '#0EA5E9', // Sky 500
+  cpp:  '#F97316', // Orange 500
+  clt:  '#14B8A6', // Teal 500
+  cdc:  '#F43F5E', // Rose 500
+  eca:  '#6366F1', // Indigo 500
+  ctn:  '#F59E0B', // Amber 500
 };
 
 const TIPO_COLOR: Record<string, string> = {
-  constituicao:   '#0B6E4F',
-  codigo:         '#1E3A5F',
-  estatuto:       '#9F1239',
-  'lei-especial': '#6B4423',
-  sumula:         '#8B3A1F',
-  jurisprudencia: '#8B3A1F',
+  constituicao:   '#10B981',
+  codigo:         '#3B82F6',
+  estatuto:       '#F43F5E',
+  'lei-especial': '#F59E0B',
+  sumula:         '#F97316',
+  jurisprudencia: '#F97316',
 };
 
-const FALLBACK = ['#0B6E4F','#1E3A5F','#6B4423','#8B3A1F','#9F1239','#0F5F5C','#78350F','#2C5282','#7B1E1E','#4C1D95'];
+const FALLBACK = ['#10B981','#3B82F6','#F59E0B','#F97316','#F43F5E','#14B8A6','#8B5CF6','#EC4899','#EF4444','#0EA5E9'];
 function hash(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
