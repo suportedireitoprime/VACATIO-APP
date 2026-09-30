@@ -128,6 +128,15 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
+    id: 'omniroute',
+    title: 'OmniRoute Gateway',
+    desc: 'Configurar roteador LLM unificado local/remoto',
+    icon: Server,
+    items: [
+      { id: 'admin-omniroute', label: 'OmniRoute Gateway', icon: Server, desc: 'Configurar roteador LLM', route: '/admin-omniroute' },
+    ],
+  },
+  {
     id: 'lembretes',
     title: 'Lembretes',
     desc: 'Funções do app que oferecem lembretes ao usuário',
@@ -178,7 +187,6 @@ const CATEGORIES: Category[] = [
       { id: 'admin-monitor', label: 'Monitoramento', icon: Activity, desc: 'Status e saúde do sistema', route: '/admin-monitor' },
       { id: 'monitor-usuarios', label: 'Usuários Online', icon: Users, desc: 'Monitoramento em tempo real', route: '/admin-monitor-usuarios' },
       { id: 'monitor-apis', label: 'APIs e Custos', icon: Activity, desc: 'Funções que usam IA (custo, manual/auto)', route: '/admin-monitor-apis' },
-      { id: 'admin-omniroute', label: 'OmniRoute Gateway', icon: Server, desc: 'Configurar roteador LLM unificado local/remoto', route: '/admin-omniroute' },
     ],
   },
 
