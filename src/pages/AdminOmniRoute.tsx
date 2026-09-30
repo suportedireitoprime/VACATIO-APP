@@ -12,6 +12,8 @@ export default function AdminOmniRoute() {
     defaultModel: 'openrouter/auto',
     enabled: false
   });
+  const [models, setModels] = useState<{ id: string }[]>([]);
+  const [fetchingModels, setFetchingModels] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('omniroute_config');
@@ -21,6 +23,36 @@ export default function AdminOmniRoute() {
       } catch (e) {}
     }
   }, []);
+
+  useEffect(() => {
+    async function loadModels() {
+      if (!config.baseUrl) return;
+      setFetchingModels(true);
+      try {
+        const url = config.baseUrl.endsWith('/v1') 
+          ? `${config.baseUrl}/models` 
+          : `${config.baseUrl.replace(/\/$/, '')}/v1/models`;
+        
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
+        
+        const res = await fetch(url, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.data && Array.isArray(data.data)) {
+            setModels(data.data);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load models', e);
+      } finally {
+        setFetchingModels(false);
+      }
+    }
+    
+    const timer = setTimeout(loadModels, 1000);
+    return () => clearTimeout(timer);
+  }, [config.baseUrl, config.apiKey]);
 
   const handleSave = () => {
     setLoading(true);
@@ -110,14 +142,33 @@ export default function AdminOmniRoute() {
             <div className="space-y-1.5">
               <label className="text-sm text-white/70 flex items-center gap-2">
                 <Cpu className="w-4 h-4" /> Modelo Padrão (Fallback)
+                {fetchingModels && <span className="text-xs text-white/40 animate-pulse">(buscando modelos...)</span>}
               </label>
-              <input
-                type="text"
-                value={config.defaultModel}
-                onChange={(e) => setConfig({ ...config, defaultModel: e.target.value })}
-                placeholder="openrouter/auto"
-                className="w-full h-11 px-4 rounded-xl bg-black/30 border border-white/15 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-mono text-sm"
-              />
+              {models.length > 0 ? (
+                <div className="relative">
+                  <select
+                    value={config.defaultModel}
+                    onChange={(e) => setConfig({ ...config, defaultModel: e.target.value })}
+                    className="w-full h-11 px-4 rounded-xl bg-black/30 border border-white/15 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-mono text-sm appearance-none"
+                  >
+                    <option value="openrouter/auto">openrouter/auto</option>
+                    {models.map(m => (
+                      <option key={m.id} value={m.id}>{m.id}</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-white/50">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </div>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  value={config.defaultModel}
+                  onChange={(e) => setConfig({ ...config, defaultModel: e.target.value })}
+                  placeholder="openrouter/auto"
+                  className="w-full h-11 px-4 rounded-xl bg-black/30 border border-white/15 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-mono text-sm"
+                />
+              )}
             </div>
           </div>
         </div>
