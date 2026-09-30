@@ -245,17 +245,17 @@ const BottomNav = () => {
             </span>
           </button>
 
-          {/* Especial */}
+          {/* Ferramentas */}
           <button
-            onClick={() => { haptic.selection(); navigate('/legislacao/leis-especiais'); }}
+            onClick={() => { haptic.selection(); navigate('/ferramentas'); }}
             data-track="bottom_nav_click"
-            data-track-destino="especial"
+            data-track-destino="ferramentas"
             className="flex flex-col items-center justify-end py-1.5 text-white"
-            aria-label="Especial"
+            aria-label="Ferramentas"
           >
             <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <Shield className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
-              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Especial</span>
+              <Wrench className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
+              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Ferramentas</span>
             </span>
           </button>
         </div>

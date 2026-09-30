@@ -9,10 +9,6 @@ const SHORTCUT_ITEMS = [
   { label: 'Anotações', icon: ScrollText, to: '/pessoal/anotacoes' as string | null, action: null as (() => void) | null, color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
   { label: 'Grifos', icon: Feather, to: '/pessoal/grifos' as string | null, action: null as (() => void) | null, color: '#34D399', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
   { label: 'Chat', icon: MessageCircle, to: null as string | null, action: () => window.dispatchEvent(new CustomEvent('vacatio:open-chat')), color: '#FACC15', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-  { label: 'Ferramentas', icon: Wrench, to: '/ferramentas' as string | null, action: null as (() => void) | null, color: '#A78BFA', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-  { label: 'Radar', icon: ScanEye, to: '/radares' as string | null, action: null as (() => void) | null, color: '#F472B6', badgeColor: null, badgeKey: null, prefetch: 'radar360' as PrefetchKey | null },
-  { label: 'Me Explique', icon: GraduationCap, to: '/me-explique' as string | null, action: null as (() => void) | null, color: '#FBBF24', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-  { label: 'Videoaulas', icon: Video, to: '/estudos' as string | null, action: null as (() => void) | null, color: '#818CF8', badgeColor: null, badgeKey: null, prefetch: 'estudos' as PrefetchKey | null },
 ];
 
 const HomeActionShortcuts = () => {
