@@ -2252,7 +2252,7 @@ const CategoriaLegislacao = () => {
                       background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.2)} 55%, ${shade(baseColor, -0.4)} 100%)`,
                     }}
                   />
-                  <div className="absolute inset-0 pointer-events-none z-0 mix-blend-overlay opacity-60">
+                  <div className="absolute inset-0 pointer-events-none z-0">
                     <ShapeGrid 
                       speed={0.5} 
                       squareSize={40}
