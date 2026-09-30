@@ -89,7 +89,7 @@ const HomeCardImpl = ({
           <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
         </div>
         <div className="w-full min-w-0 mt-auto">
-          <p className="font-display text-foreground text-[13.5px] sm:text-[14.5px] font-bold uppercase tracking-tight leading-tight truncate">
+          <p className="font-display text-foreground text-[15.5px] sm:text-[16.5px] font-black uppercase tracking-tight leading-tight truncate">
             {label}
           </p>
           {sublabel && (

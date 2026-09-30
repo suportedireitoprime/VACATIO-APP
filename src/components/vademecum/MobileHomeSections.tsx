@@ -77,22 +77,22 @@ const ALL_CATS: Cat[] = [...GRID_CATS, ...LIST_CATS];
 interface AreaCat extends Cat { leiIds: string[]; }
 
 const AREA_CATS: AreaCat[] = [
-  { id: 'area-penal',          label: 'Direito Penal',          sublabel: 'CP, CPP, LEP, Lei Maria da Penha…',          icon: ShieldAlert, color: '#EF4444', leiIds: ['cp','cpp','lep','lmp','ld','loc','laa','lcp','lch','ltort','lcsf','lpt','laa'] },
-  { id: 'area-civil',          label: 'Direito Civil',          sublabel: 'CC, LI, LRP, alimentos, alienação…',          icon: House,       color: '#3B82F6', leiIds: ['cc','li','lrp','lalim','lalp','lgpd','mci','ld','laa'] },
-  { id: 'area-tributario',     label: 'Direito Tributário',     sublabel: 'CTN, LRF, Reforma Tributária…',              icon: CircleDollarSign, color: '#10B981', leiIds: ['ctn','lrf','lrt'] },
-  { id: 'area-constitucional', label: 'Direito Constitucional', sublabel: 'CF/88, LINDB, LPAF, LAI…',                  icon: Landmark,    color: '#FACC15', leiIds: ['cf88','lindb','lpaf','lai','lap','lap','lmi','lms','lhd'] },
-  { id: 'area-processual-civil',  label: 'Direito Processual Civil',  sublabel: 'CPC, LJE, mandado de segurança…',       icon: FileText,    color: '#F59E0B', leiIds: ['cpc','lje','lms','lmi','lhd'] },
-  { id: 'area-processual-penal',  label: 'Direito Processual Penal',  sublabel: 'CPP, interceptação, mandado…',        icon: ShieldCheck, color: '#F97316', leiIds: ['cpp','lit','lpt','lms'] },
-  { id: 'area-trabalho',       label: 'Direito do Trabalho',    sublabel: 'CLT, legislação trabalhista…',              icon: Briefcase,   color: '#8B5CF6', leiIds: ['clt'] },
-  { id: 'area-empresarial',    label: 'Direito Empresarial',    sublabel: 'CCom, LSA, LF, arbitragem, startups…',      icon: Store,       color: '#A855F7', leiIds: ['ccom','lsa','lf','la','lpi','lace','lcon','lppp','lmls','lda','eme','lfl'] },
-  { id: 'area-administrativo', label: 'Direito Administrativo', sublabel: 'LIA, LPAF, licitações, improbidade…',       icon: Building,    color: '#06B6D4', leiIds: ['lia','lpaf','nll','lai','lms','l8112','loman','lotcu','ces'] },
-  { id: 'area-eleitoral',      label: 'Direito Eleitoral',      sublabel: 'CE, LPP, Lei das Eleições, Ficha Limpa…',   icon: Vote,        color: '#6366F1', leiIds: ['ce','lpp','lele','lfl','line'] },
-  { id: 'area-previdenciario', label: 'Direito Previdenciário', sublabel: 'LBPS, LCSS, LPC, LOAS…',                    icon: HeartPulse,  color: '#14B8A6', leiIds: ['lbps','lcss','lpc','loas'] },
-  { id: 'area-ambiental',      label: 'Direito Ambiental',      sublabel: 'Código Florestal, crimes ambientais, biossegurança…', icon: TreePine, color: '#16A34A', leiIds: ['cflor','lca','lbio'] },
-  { id: 'area-consumidor',     label: 'Direito do Consumidor',  sublabel: 'CDC, defesa do consumidor…',                icon: ShoppingCart, color: '#EC4899', leiIds: ['cdc'] },
+  { id: 'area-penal',          label: 'Penal',          sublabel: 'CP, CPP, LEP, Lei Maria da Penha…',          icon: ShieldAlert, color: '#EF4444', leiIds: ['cp','cpp','lep','lmp','ld','loc','laa','lcp','lch','ltort','lcsf','lpt','laa'] },
+  { id: 'area-civil',          label: 'Civil',          sublabel: 'CC, LI, LRP, alimentos, alienação…',          icon: House,       color: '#3B82F6', leiIds: ['cc','li','lrp','lalim','lalp','lgpd','mci','ld','laa'] },
+  { id: 'area-tributario',     label: 'Tributário',     sublabel: 'CTN, LRF, Reforma Tributária…',              icon: CircleDollarSign, color: '#10B981', leiIds: ['ctn','lrf','lrt'] },
+  { id: 'area-constitucional', label: 'Constitucional', sublabel: 'CF/88, LINDB, LPAF, LAI…',                  icon: Landmark,    color: '#FACC15', leiIds: ['cf88','lindb','lpaf','lai','lap','lap','lmi','lms','lhd'] },
+  { id: 'area-processual-civil',  label: 'Processual Civil',  sublabel: 'CPC, LJE, mandado de segurança…',       icon: FileText,    color: '#F59E0B', leiIds: ['cpc','lje','lms','lmi','lhd'] },
+  { id: 'area-processual-penal',  label: 'Processual Penal',  sublabel: 'CPP, interceptação, mandado…',        icon: ShieldCheck, color: '#F97316', leiIds: ['cpp','lit','lpt','lms'] },
+  { id: 'area-trabalho',       label: 'Trabalho',    sublabel: 'CLT, legislação trabalhista…',              icon: Briefcase,   color: '#8B5CF6', leiIds: ['clt'] },
+  { id: 'area-empresarial',    label: 'Empresarial',    sublabel: 'CCom, LSA, LF, arbitragem, startups…',      icon: Store,       color: '#A855F7', leiIds: ['ccom','lsa','lf','la','lpi','lace','lcon','lppp','lmls','lda','eme','lfl'] },
+  { id: 'area-administrativo', label: 'Administrativo', sublabel: 'LIA, LPAF, licitações, improbidade…',       icon: Building,    color: '#06B6D4', leiIds: ['lia','lpaf','nll','lai','lms','l8112','loman','lotcu','ces'] },
+  { id: 'area-eleitoral',      label: 'Eleitoral',      sublabel: 'CE, LPP, Lei das Eleições, Ficha Limpa…',   icon: Vote,        color: '#6366F1', leiIds: ['ce','lpp','lele','lfl','line'] },
+  { id: 'area-previdenciario', label: 'Previdenciário', sublabel: 'LBPS, LCSS, LPC, LOAS…',                    icon: HeartPulse,  color: '#14B8A6', leiIds: ['lbps','lcss','lpc','loas'] },
+  { id: 'area-ambiental',      label: 'Ambiental',      sublabel: 'Código Florestal, crimes ambientais, biossegurança…', icon: TreePine, color: '#16A34A', leiIds: ['cflor','lca','lbio'] },
+  { id: 'area-consumidor',     label: 'Consumidor',  sublabel: 'CDC, defesa do consumidor…',                icon: ShoppingCart, color: '#EC4899', leiIds: ['cdc'] },
   { id: 'area-crianca-idoso',  label: 'Criança, Idoso e PCD',   sublabel: 'ECA, Estatuto do Idoso, EPD…',              icon: Baby,        color: '#F43F5E', leiIds: ['eca','ei','epd'] },
-  { id: 'area-militar',        label: 'Direito Militar',        sublabel: 'CPM, CPPM, Estatuto dos Militares…',        icon: Shield,      color: '#64748B', leiIds: ['cpm','cppm','em'] },
-  { id: 'area-internacional',  label: 'Direito Internacional',  sublabel: 'Estatuto da Migração, Refugiado…',          icon: Globe,       color: '#0891B2', leiIds: ['emig','eref'] },
+  { id: 'area-militar',        label: 'Militar',        sublabel: 'CPM, CPPM, Estatuto dos Militares…',        icon: Shield,      color: '#64748B', leiIds: ['cpm','cppm','em'] },
+  { id: 'area-internacional',  label: 'Internacional',  sublabel: 'Estatuto da Migração, Refugiado…',          icon: Globe,       color: '#0891B2', leiIds: ['emig','eref'] },
 ];
 
 interface CategoriaFormal extends Cat { route?: string; leiIds?: string[]; }
@@ -354,7 +354,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               key={c.id}
               icon={c.icon}
               label={c.label}
-              sublabel={`${c.leiIds.length} leis • ${c.sublabel}`}
+              sublabel={`${c.leiIds.length} leis disponíveis`}
               color={c.color}
               delay={i * 0.04}
               onClick={() => {
