@@ -174,7 +174,10 @@ export function AdminHojeCards() {
     const hoje = new Date();
     const [{ data }, { count: c5m }] = await Promise.all([
       supabase.rpc('admin_metricas_dia' as any, { _dia: isoDate(hoje) }),
-      supabase.from('user_activity_log').select('*', { count: 'exact', head: true }).gte('last_seen_at', new Date(Date.now() - 5 * 60 * 1000).toISOString()),
+      supabase.from('user_activity_log')
+        .select('*', { count: 'exact', head: true })
+        .gte('last_seen_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
+        .neq('display_name', 'Wesley Nunes'),
     ]);
     const m = (data as any) || {};
     const novos: Record<CardId, number> = { online5m: c5m || 0, online: m.online || 0, cadastros: m.cadastros || 0, trial: m.trial || 0 };
@@ -203,7 +206,11 @@ export function AdminHojeCards() {
       if (id === 'online5m') {
         // Query users seen in last 5m regardless of selected day (it only makes sense for "now")
         const limitDate = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-        const { data } = await supabase.from('user_activity_log').select('*').gte('last_seen_at', limitDate).order('last_seen_at', { ascending: false });
+        const { data } = await supabase.from('user_activity_log')
+          .select('*')
+          .gte('last_seen_at', limitDate)
+          .neq('display_name', 'Wesley Nunes')
+          .order('last_seen_at', { ascending: false });
         rawList = ((data as any[]) || []).map((r) => ({
           key: r.user_id,
           userId: r.user_id,
@@ -226,7 +233,7 @@ export function AdminHojeCards() {
         }));
       }
       
-      const list = rawList;
+      const list = rawList.filter(r => r.title !== 'Wesley Nunes');
       setRows(list);
       if (sameDay(date, new Date())) {
         const seen = readSeen(id, date);
