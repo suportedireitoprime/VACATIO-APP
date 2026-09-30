@@ -336,6 +336,11 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       {/* 1. NO LUGAR DE NOTÍCIAS: CARROSSEL DO EM ALTA (Cards vermelhos com degradê + Personalizar) */}
       <HomeAtalhosLeisCarousel onOpenLei={handleOpenLei} />
 
+      {/* CARROSSEL DE NOTÍCIAS JURÍDICAS */}
+      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen my-2">
+        <HomeNoticiasCarousel onOpenChange={onNewsOpenChange} />
+      </div>
+
       {/* 2. LEGISLAÇÃO BRASILEIRA — ÁREAS DO DIREITO */}
       <section className="space-y-3 px-1 pt-1">
         <div>
@@ -399,10 +404,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
         </div>
       </section>
 
-      {/* 4. CARROSSEL DE NOTÍCIAS JURÍDICAS — POSICIONADO DEPOIS DE ESTATUTOS */}
-      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen my-2">
-        <HomeNoticiasCarousel onOpenChange={onNewsOpenChange} />
-      </div>
+      {/* ESTATUTOS E CARROSSEL ACABARAM AQUI */}
 
       {/* 5. CHAT JURÍDICO */}
       <div className="px-1">
