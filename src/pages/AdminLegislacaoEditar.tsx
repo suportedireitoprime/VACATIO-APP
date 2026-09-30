@@ -79,6 +79,16 @@ export default function AdminLegislacaoEditar() {
 
   useEffect(() => { carregar(); }, []);
 
+  const CATEGORIA_LABELS: Record<string, string> = {
+    codigo: 'Códigos',
+    estatuto: 'Estatutos',
+    lei: 'Legislação Especial',
+    estadual_sp: 'Estadual (SP)',
+    constituicao: 'Constituição'
+  };
+
+  const getCatName = (cat: string) => CATEGORIA_LABELS[cat] || cat;
+
   const categoriasMap = useMemo(() => {
     const map: Record<string, LeiRow[]> = {};
     const q = busca.trim().toLowerCase();
@@ -87,9 +97,10 @@ export default function AdminLegislacaoEditar() {
       if (q && !`${l.nome} ${l.nome_curto ?? ''} ${l.categoria}`.toLowerCase().includes(q)) {
         continue;
       }
-      const cat = l.categoria || 'Sem categoria';
-      if (!map[cat]) map[cat] = [];
-      map[cat].push(l);
+      const rawCat = l.categoria || 'sem_categoria';
+      const catName = getCatName(rawCat);
+      if (!map[catName]) map[catName] = [];
+      map[catName].push(l);
     }
     return map;
   }, [leis, busca]);
