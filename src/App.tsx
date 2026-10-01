@@ -86,8 +86,6 @@ const PessoalLivros = lazy(() => import("./pages/pessoal/Livros.tsx"));
 const PessoalFilmes = lazy(() => import("./pages/pessoal/Filmes.tsx"));
 const PessoalJurisprudencias = lazy(() => import("./pages/pessoal/Jurisprudencias.tsx"));
 const PessoalTematicas = lazy(() => import("./pages/pessoal/Tematicas.tsx"));
-import MeuEspaco from "./pages/MeuEspaco.tsx";
-
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const Configuracoes = lazy(() => import("./pages/Configuracoes.tsx"));
 const RadarDeputados = lazy(() => import("./pages/RadarDeputados.tsx"));
@@ -708,8 +706,6 @@ function AnimatedRoutes() {
           <Route path="/pessoal/filmes" element={<ProtectedRoute><PageTransition><PessoalFilmes /></PageTransition></ProtectedRoute>} />
           <Route path="/pessoal/jurisprudencias" element={<ProtectedRoute><PageTransition><PessoalJurisprudencias /></PageTransition></ProtectedRoute>} />
           <Route path="/pessoal/tematicas" element={<ProtectedRoute><PageTransition><PessoalTematicas /></PageTransition></ProtectedRoute>} />
-          <Route path="/meu-espaco" element={<ProtectedRoute><PageTransition><MeuEspaco /></PageTransition></ProtectedRoute>} />
-          <Route path="/homepage/meu-espaco" element={<ProtectedRoute><PageTransition><MeuEspaco /></PageTransition></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
 
 

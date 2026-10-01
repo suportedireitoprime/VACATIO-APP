@@ -231,7 +231,7 @@ function TypewriterText({ hints }: { hints: string[] }) {
   return (
     <span className="inline-flex items-center min-h-[15px]">
       {text}
-      <span className="ml-[1px] inline-block w-[1.5px] h-[12px] bg-primary/80 animate-pulse" />
+      <span className="ml-[1px] inline-block w-[1.5px] h-[12px] bg-black/80 animate-pulse" />
     </span>
   );
 }
@@ -433,12 +433,27 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
 
           {activeTab !== 'todas' && activeTab !== 'jurisprudencia' && LEIS_CATALOG.filter(l => l.tipo === activeTab).map((lei, i) => {
             const LawIcon = LAW_ICON_MAP[lei.id] || BookMarked;
+            
+            let displayLabel = lei.sigla || lei.nome;
+            let displaySublabel = lei.nome;
+            
+            if (lei.tipo === 'estatuto') {
+              if (lei.id === 'eca') {
+                displayLabel = 'ECA';
+              } else if (lei.id === 'epd') {
+                displayLabel = 'PCD';
+              } else {
+                displayLabel = lei.nome.replace(/^Estatuto (da|do|de|dos|das|nacional da) /i, '').trim();
+              }
+              displaySublabel = lei.descricao;
+            }
+
             return (
               <HomeCard
                 key={lei.id}
                 icon={LawIcon}
-                label={lei.sigla || lei.nome}
-                sublabel={lei.nome}
+                label={displayLabel}
+                sublabel={displaySublabel}
                 color={lei.iconColor || '#38BDF8'}
                 inlineTitle={true}
                 delay={i * 0.03}
@@ -460,7 +475,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent('vacatio:open-chat'))}
           data-track="home_chat_juridico_click"
-          className="w-full relative overflow-hidden flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-primary border border-primary/30 shadow-sm active:scale-[0.99] transition cursor-pointer"
+          className="w-full relative overflow-hidden flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-[#10B981] border border-[#10B981]/30 shadow-sm active:scale-[0.99] transition cursor-pointer"
         >
           <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.15] text-black">
             <motion.div
@@ -724,6 +739,21 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                 <div className="space-y-2">
                   {filteredCategoryItems.map((lei, i) => {
                     const LawIcon = LAW_ICON_MAP[lei.id] || CategorySheetIcon;
+                    
+                    let displayLabel = lei.nome;
+                    let displaySublabel = lei.descricao;
+                    
+                    if (lei.tipo === 'estatuto') {
+                      if (lei.id === 'eca') {
+                        displayLabel = 'ECA';
+                      } else if (lei.id === 'epd') {
+                        displayLabel = 'PCD';
+                      } else {
+                        displayLabel = lei.nome.replace(/^Estatuto (da|do|de|dos|das|nacional da) /i, '').trim();
+                      }
+                      displaySublabel = lei.descricao;
+                    }
+
                     return (
                     <motion.button
                       key={lei.id}
@@ -750,10 +780,10 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
 
                       <div className="flex-1 min-w-0 text-left">
                         <p className="font-display text-foreground text-[16px] font-bold leading-tight line-clamp-1 uppercase tracking-[0.08em]">
-                          {lei.nome}
+                          {displayLabel}
                         </p>
                         <p className="font-body text-muted-foreground text-[12.5px] leading-snug mt-1 line-clamp-2">
-                          {lei.descricao}
+                          {displaySublabel}
                         </p>
                       </div>
                       <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />

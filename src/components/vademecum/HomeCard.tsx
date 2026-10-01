@@ -45,8 +45,8 @@ const HomeCardImpl = ({
   >
     {inlineTitle ? (
       <>
-        <div className="flex items-center justify-between w-full gap-2">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div className="flex items-start w-full gap-2">
+          <div className="flex items-start gap-2.5 min-w-0 flex-1">
             <Icon
               className="w-7 h-7 sm:w-[30px] sm:h-[30px] relative shrink-0 transition-transform duration-300 group-hover:scale-105"
               style={{
@@ -56,23 +56,25 @@ const HomeCardImpl = ({
               strokeWidth={1.75}
             />
             <p
-              className={`font-display text-foreground font-bold uppercase leading-tight truncate ${
+              className={`font-display text-foreground font-bold uppercase leading-[1.15] line-clamp-2 ${
                 label.length <= 6
-                  ? 'text-[17px] sm:text-[18px] font-black tracking-normal'
-                  : 'text-[12px] sm:text-[13px] tracking-tight'
+                  ? 'text-[17px] sm:text-[18px] font-black tracking-normal mt-0.5'
+                  : 'text-[12.5px] sm:text-[13.5px] tracking-tight pt-[3px]'
               }`}
             >
               {label}
             </p>
           </div>
-          <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
         </div>
-        <div className="w-full min-w-0 mt-auto pt-1">
-          {sublabel && (
-            <p className="font-body text-muted-foreground text-[11px] sm:text-[11.5px] leading-snug truncate">
-              {sublabel}
-            </p>
-          )}
+        <div className="flex items-end justify-between w-full mt-auto pt-1 gap-2">
+          <div className="min-w-0 flex-1">
+            {sublabel && (
+              <p className="font-body text-muted-foreground text-[11px] sm:text-[11.5px] leading-snug truncate">
+                {sublabel}
+              </p>
+            )}
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
         </div>
       </>
     ) : (

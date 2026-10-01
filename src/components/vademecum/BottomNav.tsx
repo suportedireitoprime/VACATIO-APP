@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, BookMarked, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock, Shield, Camera, Wrench } from 'lucide-react';
+import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, BookMarked, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock, Shield, Camera, Wrench, Highlighter, Heart, Feather } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import MentorOverlay from './MentorOverlay';
 // PessoalSheet removido — Meu Espaço agora é rota dedicada (/meu-espaco).
@@ -186,7 +186,7 @@ const BottomNav = () => {
       aria-label="Navegação principal"
       role="navigation"
       data-bottom-nav
-      className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-hero-panel backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-out ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
+      className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-out ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
     >
       {/* Degradê escuro subindo do rodapé para dar profundidade */}
       <div
@@ -194,38 +194,38 @@ const BottomNav = () => {
         className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
       />
       <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
-        {/* Códigos */}
+        {/* Favoritos */}
         <button
           onClick={() => {
             haptic.selection();
-            setPickerTipo('codigo');
+            navigate('/pessoal/leis');
           }}
           data-track="bottom_nav_click"
-          data-track-destino="codigos"
+          data-track-destino="favoritos"
           className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
-            pickerTipo === 'codigo' ? 'text-white' : 'text-white/80 hover:text-white'
+            path.startsWith('/pessoal/leis') ? 'text-white' : 'text-white/80 hover:text-white'
           }`}
-          aria-label="Códigos"
+          aria-label="Favoritos"
         >
-          <Gavel className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${pickerTipo === 'codigo' ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
-          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Códigos</span>
+          <Heart className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${path.startsWith('/pessoal/leis') ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
+          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Favoritos</span>
         </button>
 
-        {/* Estatutos */}
+        {/* Grifos */}
         <button
           onClick={() => {
             haptic.selection();
-            setPickerTipo('estatuto');
+            navigate('/pessoal/grifos');
           }}
           data-track="bottom_nav_click"
-          data-track-destino="estatutos"
+          data-track-destino="grifos"
           className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
-            pickerTipo === 'estatuto' ? 'text-white' : 'text-white/80 hover:text-white'
+            path.startsWith('/pessoal/grifos') ? 'text-white' : 'text-white/80 hover:text-white'
           }`}
-          aria-label="Estatutos"
+          aria-label="Grifos"
         >
-          <BookMarked className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${pickerTipo === 'estatuto' ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
-          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Estatutos</span>
+          <Feather className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${path.startsWith('/pessoal/grifos') ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
+          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Grifos</span>
         </button>
 
         {/* Pesquisar (FAB centralizado — botão projetado para fora como no ArtigoBottomSheet) */}
@@ -249,18 +249,18 @@ const BottomNav = () => {
           <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white drop-shadow-sm truncate px-0.5">Pesquisar</span>
         </button>
 
-        {/* Jurisprudência */}
+        {/* Anotações */}
         <button
-          onClick={() => { haptic.selection(); setJurisprudenciaOpen(true); }}
+          onClick={() => { haptic.selection(); navigate('/pessoal/anotacoes'); }}
           data-track="bottom_nav_click"
-          data-track-destino="jurisprudencia"
+          data-track-destino="anotacoes"
           className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
-            jurisprudenciaOpen ? 'text-white' : 'text-white/80 hover:text-white'
+            path.startsWith('/pessoal/anotacoes') ? 'text-white' : 'text-white/80 hover:text-white'
           }`}
-          aria-label="Jurisprudência"
+          aria-label="Anotações"
         >
-          <Scale className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${jurisprudenciaOpen ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
-          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Jurisp.</span>
+          <StickyNote className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${path.startsWith('/pessoal/anotacoes') ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
+          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Anotações</span>
         </button>
 
         {/* Ferramentas */}

@@ -54,7 +54,6 @@ const PREFETCH: Record<string, () => Promise<unknown>> = {
   '/radar/deputados': () => import('./RadarDeputados'),
   '/newsletter': () => import('./Newsletter'),
   '/configuracoes': () => import('./Configuracoes'),
-  '/meu-espaco': () => import('./MeuEspaco'),
   '/admin-omniroute': () => import('./AdminOmniRoute'),
 };
 const prefetched = new Set<string>();
@@ -111,7 +110,6 @@ const CATEGORIES: Category[] = [
       { id: 'admin-newsletter', label: 'Newsletter', icon: Mail, desc: 'Receba um resumo jurídico diário no e-mail', route: '/newsletter' },
       { id: 'admin-horus-congelado', label: 'Assistente Horus (Congelado)', icon: MessageCircle, desc: 'Assistente virtual por IA (oculto do app principal)', route: '/assistente-horus' },
       { id: 'admin-blog-congelado', label: 'Blog Jurídico (Congelado)', icon: Rss, desc: 'Artigos jurídicos (oculto do app principal)', route: '/blog' },
-      { id: 'admin-meu-espaco', label: 'Meu Espaço (Oculto)', icon: User, desc: 'Seção original de perfil e estatísticas do usuário', route: '/meu-espaco' },
     ],
   },
   {
