@@ -409,16 +409,44 @@ function DetalheLeiSheet({
                     <div className="space-y-1.5 max-h-[50vh] overflow-y-auto rounded-xl border border-border/50 bg-background p-2">
                       {(() => {
                         const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+                        
+                        const extractDateFromText = (text: string) => {
+                          let bestDate = 0;
+                          let bestMonth = 0;
+                          let bestYear = 0;
+                          
+                          // Match formats like "de 12.1.2024" or "de 2024" inside annotations
+                          const regex = /\((?:Reda[çc][ãa]o\s+dada|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]).*?de\s+(?:(\d{1,2})\.(\d{1,2})\.(\d{4})|(\d{4}))\)/gi;
+                          let match;
+                          while ((match = regex.exec(text)) !== null) {
+                            let y = 0, m = 0;
+                            if (match[4]) {
+                              y = parseInt(match[4], 10);
+                            } else if (match[3]) {
+                              y = parseInt(match[3], 10);
+                              m = parseInt(match[2], 10) - 1; // 0-indexed month
+                            }
+                            if (y > 1900 && y <= new Date().getFullYear()) {
+                              const score = y * 100 + m;
+                              if (score > bestDate) {
+                                bestDate = score;
+                                bestYear = y;
+                                bestMonth = m;
+                              }
+                            }
+                          }
+                          return bestYear > 0 ? { year: bestYear, month: bestMonth, score: bestDate } : null;
+                        };
+
                         const listaPreview = previewMode === 'recentes'
                           ? [...artigos]
                               .filter(a => !/^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i.test(a.numero))
-                              .sort((a, b) => {
-                                const da = a.ult_alteracao_em ? new Date(a.ult_alteracao_em).getTime() : 0;
-                                const db = b.ult_alteracao_em ? new Date(b.ult_alteracao_em).getTime() : 0;
-                                return db - da;
-                              })
+                              .map(a => ({ ...a, parsedDate: extractDateFromText(a.texto) }))
+                              .filter(a => a.parsedDate !== null) // Only show articles that have an edit date!
+                              .sort((a, b) => b.parsedDate!.score - a.parsedDate!.score)
                               .slice(0, 80)
                           : artigos.slice(0, 80);
+                          
                         return listaPreview.map((art, i) => {
                         const isStructural = /^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i.test(art.numero);
                         
@@ -464,10 +492,10 @@ function DetalheLeiSheet({
                                 <span className="mx-1 text-muted-foreground/60">—</span>
                                 {caputText || '(sem texto)'}
                               </p>
-                              {previewMode === 'recentes' && art.ult_alteracao_em && (
+                              {previewMode === 'recentes' && (art as any).parsedDate && (
                                 <span className="inline-flex items-center self-start gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/30 text-[10px] font-semibold text-amber-300">
                                   <Clock className="w-3 h-3" />
-                                  {MESES[new Date(art.ult_alteracao_em).getMonth()]}/{new Date(art.ult_alteracao_em).getFullYear()}
+                                  {MESES[(art as any).parsedDate.month]}/{(art as any).parsedDate.year}
                                 </span>
                               )}
                             </div>
