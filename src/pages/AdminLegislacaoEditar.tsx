@@ -239,7 +239,7 @@ function DetalheLeiSheet({
       if (error) throw new Error(error.message);
       setHistorico(data || []);
     } catch (err: any) {
-      toast.error('Erro ao buscar histórico: ' + err.message);
+      console.warn('[historico-atualizacao-lei] Edge Function indisponível:', err.message);
     } finally {
       setLoadingHistorico(false);
     }
