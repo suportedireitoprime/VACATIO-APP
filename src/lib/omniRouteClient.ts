@@ -66,7 +66,7 @@ export async function generateOmniText({
   messages.push({ role: 'user', content: prompt });
 
   const body = JSON.stringify({
-    model: modelOverride || config.defaultModel || 'openrouter/auto',
+    model: modelOverride || config.defaultModel || 'omniroute/auto',
     messages,
     temperature
   });
@@ -112,7 +112,7 @@ export async function generateOmniChat({
   if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
 
   const body = JSON.stringify({
-    model: modelOverride || config.defaultModel || 'openrouter/auto',
+    model: modelOverride || config.defaultModel || 'omniroute/auto',
     messages,
     temperature
   });
@@ -156,7 +156,7 @@ export async function generateOmniImage({
   if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
 
   const body = JSON.stringify({
-    model: modelOverride || config.defaultModel || 'openrouter/auto',
+    model: modelOverride || config.defaultModel || 'omniroute/auto',
     prompt,
     n: 1,
     size: '1024x1024'

@@ -9,7 +9,7 @@ export default function AdminOmniRoute() {
   const [config, setConfig] = useState({
     baseUrl: 'https://omniroute-production-fb57.up.railway.app/v1',
     apiKey: '',
-    defaultModel: 'openrouter/auto',
+    defaultModel: 'omniroute/auto',
     enabled: false
   });
   const [models, setModels] = useState<{ id: string }[]>([]);
@@ -170,7 +170,10 @@ export default function AdminOmniRoute() {
                     onChange={(e) => setConfig({ ...config, defaultModel: e.target.value })}
                     className="w-full h-11 px-4 rounded-xl bg-black/30 border border-white/15 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-mono text-sm appearance-none"
                   >
-                    <option value="openrouter/auto">openrouter/auto</option>
+                    <option value="omniroute/auto">omniroute/auto</option>
+                    <option value="gemini-2.5-pro">gemini-2.5-pro (Antigravity)</option>
+                    <option value="gemini-2.0-flash-thinking-exp">gemini-2.0-flash-thinking (Antigravity)</option>
+                    <option value="gemini-2.0-flash-exp">gemini-2.0-flash (Antigravity)</option>
                     {models.map(m => (
                       <option key={m.id} value={m.id}>{m.id}</option>
                     ))}
@@ -184,7 +187,7 @@ export default function AdminOmniRoute() {
                   type="text"
                   value={config.defaultModel}
                   onChange={(e) => setConfig({ ...config, defaultModel: e.target.value })}
-                  placeholder="openrouter/auto"
+                  placeholder="omniroute/auto"
                   className="w-full h-11 px-4 rounded-xl bg-black/30 border border-white/15 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-mono text-sm"
                 />
               )}
