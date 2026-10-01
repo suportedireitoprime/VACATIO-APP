@@ -270,7 +270,7 @@ export default function AdminBibliotecaLeis() {
     try {
       const lei = leis.find(l => l.id === imp.lei_id);
       if (!lei) throw new Error('Lei não encontrada');
-      await supabase.functions.invoke('reextrair-lei-planalto', { body: { slug: lei.slug } });
+      await supabase.functions.invoke('reextrair-lei-planalto', { body: { slug: lei.slug, dry_run: false } });
       await supabase.from('radar_impactos_leis' as any).update({
         status: 'aplicado', aplicado_em: new Date().toISOString(),
       }).eq('id', imp.id);

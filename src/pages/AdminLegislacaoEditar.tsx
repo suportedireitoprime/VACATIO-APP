@@ -251,7 +251,7 @@ function DetalheLeiSheet({
     const tid = toast.loading('Raspando lei do Planalto...');
     try {
       const { error } = await supabase.functions.invoke('reextrair-lei-planalto', {
-        body: { slug: lei.slug }
+        body: { slug: lei.slug, dry_run: false }
       });
       if (error) throw new Error(error.message);
       toast.success('Lei raspada com sucesso!', { id: tid });

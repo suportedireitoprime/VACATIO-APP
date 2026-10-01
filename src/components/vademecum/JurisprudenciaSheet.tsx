@@ -56,53 +56,50 @@ const JurisprudenciaSheet = ({ open, onClose }: Props) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[1400] bg-black/75 backdrop-blur-md pointer-events-none"
+        onClick={onClose}
+        className="fixed inset-0 z-[1400] bg-black/75 backdrop-blur-md"
       />
       <motion.div
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="fixed inset-0 z-[1401] overflow-y-auto overscroll-none"
+        className="fixed bottom-0 left-0 right-0 z-[1401] bg-card border-t border-border rounded-t-3xl pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] h-[90dvh] flex flex-col overflow-y-auto md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-6 md:top-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl"
       >
-        <div className="min-h-full flex flex-col justify-end">
-          <div className="h-[12dvh] shrink-0" onClick={onClose} />
-          
-          <div className="flex-1 bg-card border-t border-border rounded-t-3xl pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] flex flex-col md:mx-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl md:mt-24 md:mb-6">
-            {/* Cabeçalho */}
-            <div className="bg-card rounded-t-3xl border-b border-border/40 shrink-0">
-              <div className="flex items-center justify-center pt-2 pb-1">
-                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+        {/* Cabeçalho */}
+        <div className="shrink-0 pt-2 pb-1 bg-card">
+          <div className="flex items-center justify-center">
+            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+          </div>
+          <div className="flex items-center justify-between px-5 pb-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                style={{ backgroundColor: '#FFCC00' }}
+              >
+                <Gavel className="w-5 h-5" style={{ color: '#1a1200' }} />
               </div>
-              <div className="flex items-center justify-between px-5 pb-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: '#FFCC00' }}
-                  >
-                    <Gavel className="w-5 h-5" style={{ color: '#1a1200' }} />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-display text-lg text-foreground font-bold leading-none truncate">
-                      Jurisprudência
-                    </h3>
-                    <p className="text-muted-foreground text-[11px] font-body mt-1">
-                      Escolha a coleção de súmulas
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={onClose}
-                  aria-label="Fechar"
-                  className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0"
-                >
-                  <X className="w-4 h-4 text-foreground" />
-                </button>
+              <div className="min-w-0">
+                <h3 className="font-display text-lg text-foreground font-bold leading-none truncate">
+                  Jurisprudência
+                </h3>
+                <p className="text-muted-foreground text-[11px] font-body mt-1">
+                  Escolha a coleção de súmulas
+                </p>
               </div>
             </div>
+            <button
+              onClick={onClose}
+              aria-label="Fechar"
+              className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0"
+            >
+              <X className="w-4 h-4 text-foreground" />
+            </button>
+          </div>
+        </div>
 
-            {/* Lista rolável — mesmo estilo dos itens de Códigos */}
-            <div className="px-4 pt-4 pb-6 flex flex-col gap-3">
+        {/* Lista rolável — mesmo estilo dos itens de Códigos */}
+        <div className="px-4 pt-4 pb-6 flex flex-col gap-3">
           <p className="px-1 text-[11px] uppercase tracking-widest text-muted-foreground font-body font-semibold">
             Tribunais Superiores
           </p>

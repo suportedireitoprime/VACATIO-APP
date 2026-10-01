@@ -22,9 +22,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchMeuEspacoFeed, MEU_ESPACO_FEED_KEY } from '@/services/meuEspacoFeed';
 import { prefetchAllPessoal } from '@/services/pessoalPrefetch';
-import { CategoryPickerSheet, useFavoritasLeis } from './AtalhosCarousel';
+import { CategoryPickerSheet, CAT_PRINCIPAIS, CAT_OUTRAS, useFavoritasLeis } from './AtalhosCarousel';
 import JurisprudenciaSheet from './JurisprudenciaSheet';
-import { BookMarked, ScrollText } from 'lucide-react';
+import { leiPath } from '@/lib/legislacaoSlugs';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import vacatioLogoAsset from '@/assets/logo-vacatio-v2.png.asset.json';
 import vacatioLogoBundled from '@/assets/bundled/logo-vacatio-v2.webp';
@@ -83,10 +83,8 @@ const BottomNav = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [horusView, setHorusView] = useState<'chooser' | 'main' | 'funcoes' | 'notificacoes'>('chooser');
 
-  const [codigosOpen, setCodigosOpen] = useState(false);
-  const [estatutosOpen, setEstatutosOpen] = useState(false);
   const [jurisprudenciaOpen, setJurisprudenciaOpen] = useState(false);
-
+  const [pickerTipo, setPickerTipo] = useState<string | null>(null);
   const { ids: favIds, toggle: toggleFav, isFav } = useFavoritasLeis();
 
   // (Removido: intervalo do NavShine — animação contínua no BottomNav.)
@@ -184,61 +182,74 @@ const BottomNav = () => {
     <>
     {/* Bottom bar — visível em celular e tablet (< lg).
         Desktop (lg+) usa a sidebar lateral. */}
-    <nav aria-label="Navegação principal" role="navigation" className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden transition-all duration-300 ease-out md:bottom-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-auto ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
-
-      <div className="bg-bottomnav-gradient rounded-t-3xl shadow-[0_-8px_30px_hsl(var(--primary)/0.25)] md:rounded-full md:shadow-2xl md:shadow-primary/30">
-        {/* Sombra escura leve acima do rodapé */}
-        <div className="absolute inset-x-0 bottom-full h-16 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.5), transparent)' }} />
-
-        <div className="relative grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto md:gap-2 md:px-4 md:py-2">
+    <nav
+      aria-label="Navegação principal"
+      role="navigation"
+      data-bottom-nav
+      className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-hero-panel backdrop-blur-md rounded-t-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-out ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
+    >
+      {/* Degradê escuro subindo do rodapé para dar profundidade */}
+      <div
+        aria-hidden="true"
+        className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
+      />
+      <div className="relative z-10 max-w-2xl mx-auto px-2 py-2">
+        <div className="grid grid-cols-5 items-stretch">
           {/* Códigos */}
           <button
             onClick={() => {
               haptic.selection();
-              setCodigosOpen(true);
+              setPickerTipo('codigo');
             }}
             data-track="bottom_nav_click"
             data-track-destino="codigos"
-            className="flex flex-col items-center justify-end py-1.5 text-white"
+            className={`flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all relative ${
+              pickerTipo === 'codigo' ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
+            }`}
             aria-label="Códigos"
           >
-            <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <Gavel className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
-              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Códigos</span>
-            </span>
+            <Gavel className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${pickerTipo === 'codigo' ? 'scale-110' : ''}`} strokeWidth={1.2} />
+            <span className="font-body text-[12px] font-medium leading-tight text-center text-white/90 drop-shadow-sm">Códigos</span>
           </button>
 
           {/* Estatutos */}
           <button
             onClick={() => {
               haptic.selection();
-              setEstatutosOpen(true);
+              setPickerTipo('estatuto');
             }}
             data-track="bottom_nav_click"
             data-track-destino="estatutos"
-            className="flex flex-col items-center justify-end py-1.5 text-white"
+            className={`flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all relative ${
+              pickerTipo === 'estatuto' ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
+            }`}
             aria-label="Estatutos"
           >
-            <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <BookMarked className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
-              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Estatutos</span>
-            </span>
+            <BookMarked className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${pickerTipo === 'estatuto' ? 'scale-110' : ''}`} strokeWidth={1.2} />
+            <span className="font-body text-[12px] font-medium leading-tight text-center text-white/90 drop-shadow-sm">Estatutos</span>
           </button>
 
-          {/* Pesquisar (FAB centralizado — coluna do meio) */}
+          {/* Pesquisar (FAB centralizado — botão projetado para fora) */}
           <button
-            onClick={() => { haptic.light(); setSearchOpen(true); }}
+            onPointerDown={(e) => {
+              if (e.button === 0) { haptic.light(); setSearchOpen(true); }
+            }}
+            onClick={() => { setSearchOpen(true); }}
             data-track="bottom_nav_click"
             data-track-destino="pesquisar"
-            className="flex flex-col items-center justify-end -mt-11"
+            className="relative flex flex-col items-center justify-end gap-1 py-2"
             aria-label="Pesquisar"
           >
-            <span className="relative flex flex-col items-center gap-1.5 pt-1 pb-1 px-2 rounded-2xl">
-              <span className="relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 ring-4 ring-background btn-attention-shine overflow-hidden">
-                <Search className="w-8 h-8 sm:w-9 sm:h-9 text-white relative z-[2]" strokeWidth={1.5} />
-              </span>
-              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white leading-tight">Pesquisar</span>
+            <span
+              className={`absolute -top-9 left-1/2 -translate-x-1/2 w-[72px] h-[72px] rounded-full flex items-center justify-center overflow-hidden bg-hero-panel shadow-[0_10px_26px_rgba(0,0,0,0.6)] transition-transform btn-attention-shine active:scale-95 ${
+                searchOpen ? 'scale-110' : ''
+              }`}
+            >
+              <Search className="relative z-10 w-9 h-9 text-white drop-shadow-lg" aria-hidden="true" strokeWidth={1.2} />
             </span>
+            {/* Spacer invisível ocupando o mesmo espaço do ícone dos outros slots */}
+            <span aria-hidden className="w-8 h-8" />
+            <span className="font-body text-[12px] font-medium leading-tight text-center text-white drop-shadow-sm">Pesquisar</span>
           </button>
 
           {/* Jurisprudência */}
@@ -246,13 +257,13 @@ const BottomNav = () => {
             onClick={() => { haptic.selection(); setJurisprudenciaOpen(true); }}
             data-track="bottom_nav_click"
             data-track-destino="jurisprudencia"
-            className="flex flex-col items-center justify-end py-1.5 text-white"
+            className={`flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all relative ${
+              jurisprudenciaOpen ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
+            }`}
             aria-label="Jurisprudência"
           >
-            <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <Scale className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
-              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Jurisprudência</span>
-            </span>
+            <Scale className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${jurisprudenciaOpen ? 'scale-110' : ''}`} strokeWidth={1.2} />
+            <span className="font-body text-[12px] font-medium leading-tight text-center text-white/90 drop-shadow-sm">Jurisprudência</span>
           </button>
 
           {/* Ferramentas */}
@@ -260,18 +271,16 @@ const BottomNav = () => {
             onClick={() => { haptic.selection(); navigate('/ferramentas'); }}
             data-track="bottom_nav_click"
             data-track-destino="ferramentas"
-            className="flex flex-col items-center justify-end py-1.5 text-white"
+            className={`flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all relative ${
+              path.startsWith('/ferramentas') ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
+            }`}
             aria-label="Ferramentas"
           >
-            <span className="relative flex flex-col items-center gap-1.5 overflow-hidden px-2 py-1 rounded-lg">
-              <Wrench className="w-7 h-7 sm:w-8 sm:h-8 text-white/90" strokeWidth={1.25} />
-              <span className="font-body text-[11px] sm:text-[12px] font-normal text-white/90 leading-tight">Ferramentas</span>
-            </span>
+            <Wrench className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${path.startsWith('/ferramentas') ? 'scale-110' : ''}`} strokeWidth={1.2} />
+            <span className="font-body text-[12px] font-medium leading-tight text-center text-white/90 drop-shadow-sm">Ferramentas</span>
           </button>
         </div>
       </div>
-      {/* Container escuro para o safe-area-inset-bottom do celular, garantindo que a barra de navegação do sistema fique escura */}
-      <div className="h-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] bg-background w-full md:hidden" />
     </nav>
 
     {/* Tablet agora usa a mesma bottom bar do celular (acima). */}
@@ -683,49 +692,7 @@ const BottomNav = () => {
     {/* Chat Jurídico */}
     <AssistenteOverlay open={chatOpen} onClose={() => setChatOpen(false)} />
 
-    {/* Códigos Sheet */}
-    <AnimatePresence>
-      {codigosOpen && (
-        <CategoryPickerSheet
-          tipo="codigo"
-          label="CÓDIGOS"
-          Icon={BookMarked}
-          accent="#F87171"
-          isFav={isFav}
-          onToggleFav={toggleFav}
-          favIds={favIds}
-          onClose={() => setCodigosOpen(false)}
-          onSelectLei={(leiId) => {
-            setCodigosOpen(false);
-            const lei = LEIS_CATALOG.find((l) => l.id === leiId);
-            if (lei) navigate(leiPath(lei));
-          }}
-        />
-      )}
-    </AnimatePresence>
-
-    {/* Estatutos Sheet */}
-    <AnimatePresence>
-      {estatutosOpen && (
-        <CategoryPickerSheet
-          tipo="estatuto"
-          label="ESTATUTOS"
-          Icon={ScrollText}
-          accent="#3B82F6"
-          isFav={isFav}
-          onToggleFav={toggleFav}
-          favIds={favIds}
-          onClose={() => setEstatutosOpen(false)}
-          onSelectLei={(leiId) => {
-            setEstatutosOpen(false);
-            const lei = LEIS_CATALOG.find((l) => l.id === leiId);
-            if (lei) navigate(leiPath(lei));
-          }}
-        />
-      )}
-    </AnimatePresence>
-
-    {/* Jurisprudência Sheet */}
+    {/* Jurisprudência bottom sheet */}
     <AnimatePresence>
       {jurisprudenciaOpen && (
         <JurisprudenciaSheet
@@ -733,6 +700,33 @@ const BottomNav = () => {
           onClose={() => setJurisprudenciaOpen(false)}
         />
       )}
+    </AnimatePresence>
+
+    {/* Picker genérico por tipo (Códigos, Estatutos, Penal Especial, etc.) */}
+    <AnimatePresence>
+      {pickerTipo && (() => {
+        const cat = [...CAT_PRINCIPAIS, ...CAT_OUTRAS].find(c => c.id === pickerTipo);
+        const Icon = cat?.icon ?? BookMarked;
+        const accent = cat?.accent ?? '#60A5FA';
+        return (
+          <CategoryPickerSheet
+            tipo={pickerTipo}
+            label={cat?.label ?? ''}
+            Icon={Icon}
+            accent={accent}
+            isFav={isFav}
+            onToggleFav={toggleFav}
+            favIds={favIds}
+            onClose={() => setPickerTipo(null)}
+            onSelectLei={(leiId) => { 
+              setPickerTipo(null);
+              // Como estamos no BottomNav, precisamos navegar para a lei
+              const lei = LEIS_CATALOG.find(l => l.id === leiId);
+              if (lei) navigate(leiPath(lei));
+            }}
+          />
+        );
+      })()}
     </AnimatePresence>
 
     </>

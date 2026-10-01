@@ -84,6 +84,7 @@ export default function AdminBuscadorLeis() {
           nome_curto: s.nome_curto,
           planalto_url: s.planalto_url,
           categoria: s.categoria,
+          dry_run: false,
         },
       });
       if (error) throw error;
