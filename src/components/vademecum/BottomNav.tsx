@@ -186,100 +186,96 @@ const BottomNav = () => {
       aria-label="Navegação principal"
       role="navigation"
       data-bottom-nav
-      className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-hero-panel backdrop-blur-md rounded-t-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-out ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
+      className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-hero-panel backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-out ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
     >
       {/* Degradê escuro subindo do rodapé para dar profundidade */}
       <div
         aria-hidden="true"
         className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
       />
-      <div className="relative z-10 max-w-2xl mx-auto px-2 py-2">
-        <div className="grid grid-cols-5 items-stretch">
-          {/* Códigos */}
-          <button
-            onClick={() => {
-              haptic.selection();
-              setPickerTipo('codigo');
-            }}
-            data-track="bottom_nav_click"
-            data-track-destino="codigos"
-            className={`flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all relative ${
-              pickerTipo === 'codigo' ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
-            }`}
-            aria-label="Códigos"
-          >
-            <Gavel className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${pickerTipo === 'codigo' ? 'scale-110' : ''}`} strokeWidth={1.2} />
-            <span className="font-body text-[12px] font-medium leading-tight text-center text-white/90 drop-shadow-sm">Códigos</span>
-          </button>
+      <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
+        {/* Códigos */}
+        <button
+          onClick={() => {
+            haptic.selection();
+            setPickerTipo('codigo');
+          }}
+          data-track="bottom_nav_click"
+          data-track-destino="codigos"
+          className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
+            pickerTipo === 'codigo' ? 'text-white' : 'text-white/80 hover:text-white'
+          }`}
+          aria-label="Códigos"
+        >
+          <Gavel className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${pickerTipo === 'codigo' ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
+          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Códigos</span>
+        </button>
 
-          {/* Estatutos */}
-          <button
-            onClick={() => {
-              haptic.selection();
-              setPickerTipo('estatuto');
-            }}
-            data-track="bottom_nav_click"
-            data-track-destino="estatutos"
-            className={`flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all relative ${
-              pickerTipo === 'estatuto' ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
-            }`}
-            aria-label="Estatutos"
-          >
-            <BookMarked className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${pickerTipo === 'estatuto' ? 'scale-110' : ''}`} strokeWidth={1.2} />
-            <span className="font-body text-[12px] font-medium leading-tight text-center text-white/90 drop-shadow-sm">Estatutos</span>
-          </button>
+        {/* Estatutos */}
+        <button
+          onClick={() => {
+            haptic.selection();
+            setPickerTipo('estatuto');
+          }}
+          data-track="bottom_nav_click"
+          data-track-destino="estatutos"
+          className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
+            pickerTipo === 'estatuto' ? 'text-white' : 'text-white/80 hover:text-white'
+          }`}
+          aria-label="Estatutos"
+        >
+          <BookMarked className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${pickerTipo === 'estatuto' ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
+          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Estatutos</span>
+        </button>
 
-          {/* Pesquisar (FAB centralizado — botão projetado para fora) */}
-          <button
-            onPointerDown={(e) => {
-              if (e.button === 0) { haptic.light(); setSearchOpen(true); }
-            }}
-            onClick={() => { setSearchOpen(true); }}
-            data-track="bottom_nav_click"
-            data-track-destino="pesquisar"
-            className="relative flex flex-col items-center justify-end gap-1 py-2"
-            aria-label="Pesquisar"
-          >
-            <span
-              className={`absolute -top-9 left-1/2 -translate-x-1/2 w-[72px] h-[72px] rounded-full flex items-center justify-center overflow-hidden bg-hero-panel shadow-[0_10px_26px_rgba(0,0,0,0.6)] transition-transform btn-attention-shine active:scale-95 ${
-                searchOpen ? 'scale-110' : ''
-              }`}
-            >
-              <Search className="relative z-10 w-9 h-9 text-white drop-shadow-lg" aria-hidden="true" strokeWidth={1.2} />
-            </span>
-            {/* Spacer invisível ocupando o mesmo espaço do ícone dos outros slots */}
-            <span aria-hidden className="w-8 h-8" />
-            <span className="font-body text-[12px] font-medium leading-tight text-center text-white drop-shadow-sm">Pesquisar</span>
-          </button>
-
-          {/* Jurisprudência */}
-          <button
-            onClick={() => { haptic.selection(); setJurisprudenciaOpen(true); }}
-            data-track="bottom_nav_click"
-            data-track-destino="jurisprudencia"
-            className={`flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all relative ${
-              jurisprudenciaOpen ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
+        {/* Pesquisar (FAB centralizado — botão projetado para fora como no ArtigoBottomSheet) */}
+        <button
+          onPointerDown={(e) => {
+            if (e.button === 0) { haptic.light(); setSearchOpen(true); }
+          }}
+          onClick={() => { setSearchOpen(true); }}
+          data-track="bottom_nav_click"
+          data-track-destino="pesquisar"
+          className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 min-h-[6.25rem] min-w-[5.75rem] touch-manipulation select-none"
+          aria-label="Pesquisar"
+        >
+          <span
+            className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden bg-primary shadow-lg shadow-primary/40 transition-transform btn-attention-shine active:scale-95 ${
+              searchOpen ? 'scale-105' : ''
             }`}
-            aria-label="Jurisprudência"
           >
-            <Scale className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${jurisprudenciaOpen ? 'scale-110' : ''}`} strokeWidth={1.2} />
-            <span className="font-body text-[12px] font-medium leading-tight text-center text-white/90 drop-shadow-sm">Jurisp.</span>
-          </button>
+            <Search className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground drop-shadow-sm" aria-hidden="true" strokeWidth={1.5} />
+          </span>
+          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white drop-shadow-sm truncate px-0.5">Pesquisar</span>
+        </button>
 
-          {/* Ferramentas */}
-          <button
-            onClick={() => { haptic.selection(); navigate('/ferramentas'); }}
-            data-track="bottom_nav_click"
-            data-track-destino="ferramentas"
-            className={`flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all relative ${
-              path.startsWith('/ferramentas') ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
-            }`}
-            aria-label="Ferramentas"
-          >
-            <Wrench className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${path.startsWith('/ferramentas') ? 'scale-110' : ''}`} strokeWidth={1.2} />
-            <span className="font-body text-[12px] font-medium leading-tight text-center text-white/90 drop-shadow-sm">Ferramentas</span>
-          </button>
-        </div>
+        {/* Jurisprudência */}
+        <button
+          onClick={() => { haptic.selection(); setJurisprudenciaOpen(true); }}
+          data-track="bottom_nav_click"
+          data-track-destino="jurisprudencia"
+          className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
+            jurisprudenciaOpen ? 'text-white' : 'text-white/80 hover:text-white'
+          }`}
+          aria-label="Jurisprudência"
+        >
+          <Scale className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${jurisprudenciaOpen ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
+          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Jurisp.</span>
+        </button>
+
+        {/* Ferramentas */}
+        <button
+          onClick={() => { haptic.selection(); navigate('/ferramentas'); }}
+          data-track="bottom_nav_click"
+          data-track-destino="ferramentas"
+          className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
+            path.startsWith('/ferramentas') ? 'text-white' : 'text-white/80 hover:text-white'
+          }`}
+          aria-label="Ferramentas"
+        >
+          <Wrench className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${path.startsWith('/ferramentas') ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
+          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Ferramentas</span>
+        </button>
       </div>
     </nav>
 
