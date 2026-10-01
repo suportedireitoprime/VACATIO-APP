@@ -193,7 +193,7 @@ const BottomNav = () => {
         aria-hidden="true"
         className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
       />
-      <div className="relative z-10 max-w-2xl mx-auto px-1 py-2">
+      <div className="relative z-10 max-w-2xl mx-auto px-1 py-1">
         <div className="grid grid-cols-5 items-stretch">
           {/* Códigos */}
           <button
@@ -203,7 +203,7 @@ const BottomNav = () => {
             }}
             data-track="bottom_nav_click"
             data-track-destino="codigos"
-            className={`flex flex-col items-center justify-center gap-1 w-full py-2 rounded-xl transition-all relative ${
+            className={`flex flex-col items-center justify-center gap-1 w-full py-1.5 rounded-xl transition-all relative ${
               pickerTipo === 'codigo' ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
             }`}
             aria-label="Códigos"
@@ -220,7 +220,7 @@ const BottomNav = () => {
             }}
             data-track="bottom_nav_click"
             data-track-destino="estatutos"
-            className={`flex flex-col items-center justify-center gap-1 w-full py-2 rounded-xl transition-all relative ${
+            className={`flex flex-col items-center justify-center gap-1 w-full py-1.5 rounded-xl transition-all relative ${
               pickerTipo === 'estatuto' ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
             }`}
             aria-label="Estatutos"
@@ -237,7 +237,7 @@ const BottomNav = () => {
             onClick={() => { setSearchOpen(true); }}
             data-track="bottom_nav_click"
             data-track-destino="pesquisar"
-            className="relative flex flex-col items-center justify-end gap-1 w-full py-2"
+            className="relative flex flex-col items-center justify-center gap-1 w-full py-1.5"
             aria-label="Pesquisar"
           >
             <span
@@ -257,7 +257,7 @@ const BottomNav = () => {
             onClick={() => { haptic.selection(); setJurisprudenciaOpen(true); }}
             data-track="bottom_nav_click"
             data-track-destino="jurisprudencia"
-            className={`flex flex-col items-center justify-center gap-1 w-full py-2 rounded-xl transition-all relative ${
+            className={`flex flex-col items-center justify-center gap-1 w-full py-1.5 rounded-xl transition-all relative ${
               jurisprudenciaOpen ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
             }`}
             aria-label="Jurisprudência"
@@ -271,7 +271,7 @@ const BottomNav = () => {
             onClick={() => { haptic.selection(); navigate('/ferramentas'); }}
             data-track="bottom_nav_click"
             data-track-destino="ferramentas"
-            className={`flex flex-col items-center justify-center gap-1 w-full py-2 rounded-xl transition-all relative ${
+            className={`flex flex-col items-center justify-center gap-1 w-full py-1.5 rounded-xl transition-all relative ${
               path.startsWith('/ferramentas') ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
             }`}
             aria-label="Ferramentas"
