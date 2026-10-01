@@ -243,6 +243,7 @@ interface Props {
 
 const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('todas');
   const [juriOpen, setJuriOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState<Cat | AreaCat | CategoriaFormal | null>(null);
   const [categorySearch, setCategorySearch] = useState('');
@@ -341,20 +342,59 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
         <HomeNoticiasCarousel onOpenChange={onNewsOpenChange} />
       </div>
 
-      {/* 2. LEGISLAÇÃO BRASILEIRA — ÁREAS DO DIREITO */}
+      {/* 2. LEGISLAÇÃO BRASILEIRA — ÁREAS DO DIREITO (COM ABAS) */}
       <section className="space-y-3 px-1 pt-1">
-        <div>
+        {/* Menu de Alternância (Tabs) */}
+        <div className="flex overflow-x-auto no-scrollbar gap-2 pb-1 -mr-4 pr-6">
+          {[
+            { id: 'todas', label: 'Todas' },
+            { id: 'codigo', label: 'Códigos' },
+            { id: 'estatuto', label: 'Estatutos' },
+            { id: 'jurisprudencia', label: 'Jurisprudência' },
+            { id: 'lei-ordinaria', label: 'Leis Ordinárias' },
+            { id: 'lei-especial', label: 'Penal Especial' },
+            { id: 'decreto', label: 'Decretos' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-1.5 rounded-full text-[13px] font-display font-bold whitespace-nowrap transition-colors ${
+                activeTab === tab.id
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-secondary/60 text-muted-foreground border border-border/50 hover:bg-secondary'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="pt-1">
           <h3 className="font-display text-foreground text-[18px] font-bold uppercase flex items-center gap-2">
             <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
-            <span className="truncate">Legislação Brasileira</span>
+            <span className="truncate">
+              {activeTab === 'todas' ? 'Legislação Brasileira' : 
+               activeTab === 'codigo' ? 'Códigos' :
+               activeTab === 'estatuto' ? 'Estatutos' :
+               activeTab === 'jurisprudencia' ? 'Jurisprudência' :
+               activeTab === 'lei-ordinaria' ? 'Leis Ordinárias' :
+               activeTab === 'lei-especial' ? 'Penal Especial' : 'Decretos'}
+            </span>
           </h3>
-          <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3">
-            Áreas do Direito: Penal, Civil, Constitucional, Trabalhista e mais.
+          <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3 truncate mt-0.5">
+            {activeTab === 'todas' && 'Principais áreas: Penal, Civil, Constitucional e mais.'}
+            {activeTab === 'codigo' && 'Principais códigos jurídicos brasileiros.'}
+            {activeTab === 'estatuto' && 'Estatutos de proteção e garantias.'}
+            {activeTab === 'jurisprudencia' && 'Súmulas STF, STJ e Vinculantes.'}
+            {activeTab === 'lei-ordinaria' && 'Consolidações e leis federais.'}
+            {activeTab === 'lei-especial' && 'Legislação penal extravagante.'}
+            {activeTab === 'decreto' && 'Regulamentações executivas federais.'}
           </p>
         </div>
+
         <div className="h-[1.5px] bg-border/70 w-full mb-2" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-          {AREA_CATS.map((c, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 min-h-[200px] content-start">
+          {activeTab === 'todas' && AREA_CATS.map((c, i) => (
             <HomeCard
               key={c.id}
               icon={c.icon}
@@ -371,36 +411,44 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               data-track-section="areas"
             />
           ))}
-        </div>
-      </section>
 
-      {/* 3. ESTATUTOS */}
-      <section className="space-y-3 px-1 pt-1">
-        <div>
-          <h3 className="font-display text-foreground text-[18px] font-bold uppercase flex items-center gap-2">
-            <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
-            <span>Estatutos</span>
-          </h3>
-          <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3 truncate">
-            ECA, OAB, Idoso, Deficiência e garantias vigentes.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-          {ESTATUTOS_LIST.map((c, i) => (
+          {activeTab === 'jurisprudencia' && [
+            { id: 'juri-stf-vinc', label: 'Súmulas Vinculantes', sublabel: 'STF', icon: ScrollText, color: '#EC4899' },
+            { id: 'juri-stf', label: 'Súmulas STF', sublabel: 'Supremo Tribunal Federal', icon: ScrollText, color: '#EC4899' },
+            { id: 'juri-stj', label: 'Súmulas STJ', sublabel: 'Superior Tribunal de Justiça', icon: ScrollText, color: '#EC4899' },
+          ].map((c, i) => (
             <HomeCard
               key={c.id}
               icon={c.icon}
               label={c.label}
               sublabel={c.sublabel}
               color={c.color}
-              inlineTitle={true}
-              delay={i * 0.03}
-              onClick={() => handleOpenLei(c.leiId)}
+              delay={i * 0.04}
+              onClick={() => setJuriOpen(true)}
               data-track="home_card_click"
               data-track-name={c.label}
-              data-track-section="estatutos"
+              data-track-section="jurisprudencia"
             />
           ))}
+
+          {activeTab !== 'todas' && activeTab !== 'jurisprudencia' && LEIS_CATALOG.filter(l => l.tipo === activeTab).map((lei, i) => {
+            const LawIcon = LAW_ICON_MAP[lei.id] || BookMarked;
+            return (
+              <HomeCard
+                key={lei.id}
+                icon={LawIcon}
+                label={lei.sigla || lei.nome}
+                sublabel={lei.nome}
+                color={lei.iconColor || '#38BDF8'}
+                inlineTitle={true}
+                delay={i * 0.03}
+                onClick={() => handleOpenLei(lei.id)}
+                data-track="home_card_click"
+                data-track-name={lei.sigla || lei.nome}
+                data-track-section={activeTab}
+              />
+            );
+          })}
         </div>
       </section>
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Bell, CheckCheck, Scale, Newspaper, Video, BookOpen, ArrowRight, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -318,17 +319,17 @@ export default function NotificationsSheet({ open, onClose }: Props) {
     navigate(it.to);
   };
 
-  if (!mounted) return null;
+  if (!mounted || typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <>
       <div
-        className="fixed inset-0 z-[90] bg-black/60 transition-opacity duration-200"
+        className="fixed inset-0 z-[1400] bg-black/60 transition-opacity duration-200"
         style={{ opacity: entered ? 1 : 0 }}
         onClick={onClose}
       />
       <aside
-        className="fixed top-0 right-0 bottom-0 z-[91] w-full max-w-md bg-background border-l border-border/50 shadow-2xl flex flex-col will-change-transform"
+        className="fixed top-0 right-0 bottom-0 z-[1401] w-full max-w-md bg-background border-l border-border/50 shadow-2xl flex flex-col will-change-transform overflow-hidden"
         style={{
           paddingTop: 'var(--sai-top,env(safe-area-inset-top,0px))',
           paddingBottom: 'var(--sai-bottom,env(safe-area-inset-bottom,0px))',
@@ -336,7 +337,21 @@ export default function NotificationsSheet({ open, onClose }: Props) {
           transition: 'transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1)',
         }}
       >
-        <header className="relative border-b border-border/50 bg-gradient-to-b from-primary/10 via-background to-background">
+        <style>{`
+          @keyframes slideGrid {
+            0% { background-position: 0 0; }
+            100% { background-position: 32px 32px; }
+          }
+        `}</style>
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-20 z-0" 
+          style={{ 
+            backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
+            animation: 'slideGrid 15s linear infinite'
+          }} 
+        />
+        <header className="relative z-10 border-b border-border/50 bg-gradient-to-b from-primary/10 via-background to-background">
           <div className="px-4 pt-4 pb-4 sm:px-5 sm:pt-5 sm:pb-5 flex items-start gap-3">
             <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0 shadow-sm">
               <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
@@ -368,16 +383,16 @@ export default function NotificationsSheet({ open, onClose }: Props) {
             <div className="px-4 sm:px-5 pb-3 flex justify-end">
               <button
                 onClick={markAllRead}
-                className="text-[12px] font-semibold text-primary hover:underline flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/25 active:scale-95 transition"
+                className="text-[12px] font-semibold text-secondary-foreground hover:bg-secondary flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/50 border border-border active:scale-95 transition"
               >
-                <CheckCheck className="w-3.5 h-3.5" />
+                <CheckCheck className="w-3.5 h-3.5 text-muted-foreground" />
                 Marcar todas como lidas
               </button>
             </div>
           )}
         </header>
 
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 relative z-10">
           {loading && (
             <div className="text-center text-muted-foreground py-10 text-sm">Carregando…</div>
           )}
@@ -400,7 +415,7 @@ export default function NotificationsSheet({ open, onClose }: Props) {
               <button
                 key={it.id}
                 onClick={() => openItem(it)}
-                className="w-full text-left rounded-2xl border p-3 flex gap-3 bg-secondary/50 border-primary/40 active:scale-[0.99] transition-transform animate-fade-in"
+                className="w-full h-[124px] text-left rounded-2xl border p-3 flex gap-3 bg-secondary/50 border-border active:scale-[0.99] transition-transform animate-fade-in relative overflow-hidden"
               >
                 <div className={`w-11 h-11 rounded-xl ${meta.bg} flex items-center justify-center shrink-0 overflow-hidden`}>
                   {it.image ? (
@@ -411,8 +426,8 @@ export default function NotificationsSheet({ open, onClose }: Props) {
                     <Icon className="w-5 h-5" style={{ color: meta.color }} />
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                <div className="flex-1 min-w-0 flex flex-col justify-start h-full">
+                  <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                     <span
                       className="text-[9.5px] font-bold uppercase tracking-wider"
                       style={{ color: meta.color }}
@@ -421,7 +436,7 @@ export default function NotificationsSheet({ open, onClose }: Props) {
                     </span>
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" aria-label="não lida" />
                     <span
-                      className="ml-auto inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-primary/15 text-primary"
+                      className="ml-auto inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground"
                       title={abs}
                     >
                       <Clock className="w-2.5 h-2.5" />
@@ -444,6 +459,7 @@ export default function NotificationsSheet({ open, onClose }: Props) {
           })}
         </div>
       </aside>
-    </>
+    </>,
+    document.body
   );
 }

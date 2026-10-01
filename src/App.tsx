@@ -105,8 +105,6 @@ const GrafoArtigos = lazy(() => import("./pages/GrafoArtigos.tsx"));
 const Ferramentas = lazy(() => import("./pages/Ferramentas.tsx"));
 const LocaisJuridicos = lazy(() => import("./pages/LocaisJuridicos.tsx"));
 const DicionarioJuridicoPage = lazy(() => import("./pages/DicionarioJuridicoPage.tsx"));
-const PeticaoInicial = lazy(() => import("./pages/PeticaoInicial.tsx"));
-const PeticaoInicialEditor = lazy(() => import("./pages/PeticaoInicialEditor.tsx"));
 const AdminLocais = lazy(() => import("./pages/AdminLocais.tsx"));
 const TematicaJuridica = lazy(() => import("./pages/TematicaJuridica.tsx"));
 const Compartilhado = lazy(() => import("./pages/Compartilhado.tsx"));
@@ -227,7 +225,6 @@ const SuportePublico = lazy(() => import("./pages/SuportePublico.tsx"));
 const Opiniao = lazy(() => import("./pages/Opiniao.tsx"));
 const LembretesLocal = lazy(() => import("./pages/LembretesLocal.tsx"));
 const PreferenciasLembretes = lazy(() => import("./pages/PreferenciasLembretes.tsx"));
-const AnotacoesAudio = lazy(() => import("./pages/AnotacoesAudio.tsx"));
 const AssistenteApp = lazy(() => import("./pages/AssistenteApp.tsx"));
 import AssistenteHorus from "./pages/AssistenteHorus.tsx";
 
@@ -561,7 +558,6 @@ function AnimatedRoutes() {
           <Route path="/meus-lembretes" element={<ProtectedRoute><PageTransition><MeusLembretes /></PageTransition></ProtectedRoute>} />
           <Route path="/lembretes/local" element={<ProtectedRoute><PageTransition><LembretesLocal /></PageTransition></ProtectedRoute>} />
           <Route path="/lembretes/preferencias" element={<ProtectedRoute><PageTransition><PreferenciasLembretes /></PageTransition></ProtectedRoute>} />
-          <Route path="/anotacoes/audio" element={<ProtectedRoute><PageTransition><AnotacoesAudio /></PageTransition></ProtectedRoute>} />
           <Route path="/ajustes/excluir-conta" element={<ProtectedRoute><PageTransition><ExcluirConta /></PageTransition></ProtectedRoute>} />
           <Route path="/radar/deputados" element={<ProtectedRoute><PageTransition><RadarDeputados /></PageTransition></ProtectedRoute>} />
           <Route path="/radar/votacoes" element={<ProtectedRoute><PageTransition><RadarVotacoes /></PageTransition></ProtectedRoute>} />
@@ -579,8 +575,6 @@ function AnimatedRoutes() {
           <Route path="/ferramentas/locais" element={<ProtectedRoute><PageTransition><LocaisJuridicos /></PageTransition></ProtectedRoute>} />
           <Route path="/ferramentas/dicionario" element={<ProtectedRoute><PageTransition><DicionarioJuridicoPage /></PageTransition></ProtectedRoute>} />
           <Route path="/me-explique" element={<ProtectedRoute><PageTransition><MeExplique /></PageTransition></ProtectedRoute>} />
-          <Route path="/ferramentas/peticao-inicial" element={<ProtectedRoute><PageTransition><PeticaoInicial /></PageTransition></ProtectedRoute>} />
-          <Route path="/ferramentas/peticao-inicial/:id" element={<ProtectedRoute><PageTransition><PeticaoInicialEditor /></PageTransition></ProtectedRoute>} />
           <Route path="/admin/locais" element={<ProtectedRoute><PageTransition><AdminLocais /></PageTransition></ProtectedRoute>} />
           <Route path="/tematica-juridica" element={<ProtectedRoute><PageTransition><TematicaJuridica /></PageTransition></ProtectedRoute>} />
           <Route path="/radar-360" element={<ProtectedRoute><PageTransition><Radar360 /></PageTransition></ProtectedRoute>} />
