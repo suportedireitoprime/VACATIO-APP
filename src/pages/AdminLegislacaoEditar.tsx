@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -218,12 +219,12 @@ function DetalheLeiSheet({
 
   const carregarBasico = async () => {
     setLoadingArts(true);
-    const [{ data: arts }, { data: imps }] = await Promise.all([
-      supabase
+    const [arts, { data: imps }] = await Promise.all([
+      fetchAllRows(() => supabase
         .from('vade_mecum_artigos')
         .select('id, numero, texto, ordem, ult_alteracao_em')
         .eq('lei_id', lei.id)
-        .order('ordem'),
+        .order('ordem')),
       supabase
         .from('radar_impactos_leis')
         .select('id, artigo_numero, tipo, ato_ementa, resumo_ia, status, created_at')
