@@ -415,8 +415,9 @@ function DetalheLeiSheet({
                           let bestMonth = 0;
                           let bestYear = 0;
                           
-                          // Match formats like "de 12.1.2024" or "de 2024" inside annotations
-                          const regex = /\((?:Reda[çc][ãa]o\s+dada|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]).*?de\s+(?:(\d{1,2})\.(\d{1,2})\.(\d{4})|(\d{4}))\)/gi;
+                          // Match formats like "de 12.1.2024" or "de 2024" inside annotations.
+                          // Planalto HTML sometimes truncates the closing parenthesis, so we omit \).
+                          const regex = /\((?:Reda[çc][ãa]o\s+dada|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]).*?de\s+(?:(\d{1,2})\.(\d{1,2})\.(\d{4})|(\d{4}))/gi;
                           let match;
                           while ((match = regex.exec(text)) !== null) {
                             let y = 0, m = 0;
@@ -439,12 +440,15 @@ function DetalheLeiSheet({
                         };
 
                         const listaPreview = previewMode === 'recentes'
-                          ? [...artigos]
-                              .filter(a => !/^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i.test(a.numero))
-                              .map(a => ({ ...a, parsedDate: extractDateFromText(a.texto) }))
-                              .filter(a => a.parsedDate !== null) // Only show articles that have an edit date!
-                              .sort((a, b) => b.parsedDate!.score - a.parsedDate!.score)
-                              .slice(0, 80)
+                          ? (() => {
+                              const filtrados = [...artigos]
+                                .filter(a => !/^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i.test(a.numero))
+                                .map(a => ({ ...a, parsedDate: extractDateFromText(a.texto) }))
+                                .filter(a => a.parsedDate !== null)
+                                .sort((a, b) => b.parsedDate!.score - a.parsedDate!.score);
+                              
+                              return filtrados.length > 0 ? filtrados.slice(0, 80) : [...artigos].reverse().slice(0, 80);
+                            })()
                           : artigos.slice(0, 80);
                           
                         return listaPreview.map((art, i) => {
