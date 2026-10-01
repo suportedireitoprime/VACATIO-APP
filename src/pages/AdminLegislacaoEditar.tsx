@@ -204,6 +204,7 @@ function DetalheLeiSheet({
   const [loadingHistorico, setLoadingHistorico] = useState(false);
   const [reextraindo, setReextraindo] = useState(false);
 
+  const [previewMode, setPreviewMode] = useState<'inicio' | 'recentes'>('inicio');
   const [pushTitulo, setPushTitulo] = useState(`Atualização: ${lei.nome_curto || lei.nome}`);
   const [pushMsg, setPushMsg] = useState('');
 
@@ -378,14 +379,35 @@ function DetalheLeiSheet({
                 {/* Preview dos artigos no estilo Vade Mecum */}
                 {artigos.length > 0 && (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-sm text-foreground">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="font-semibold text-sm text-foreground shrink-0">
                         Preview · <span className="text-primary">{artigos.length} artigos</span>
                       </h4>
-                      <Badge variant="outline" className="text-[10px]">Estilo Vade Mecum</Badge>
+                      <div className="flex items-center bg-secondary/60 rounded-lg p-0.5 border border-border/50">
+                        <button
+                          onClick={() => setPreviewMode('inicio')}
+                          className={`px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
+                            previewMode === 'inicio'
+                              ? 'bg-primary text-white shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Início
+                        </button>
+                        <button
+                          onClick={() => setPreviewMode('recentes')}
+                          className={`px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
+                            previewMode === 'recentes'
+                              ? 'bg-primary text-white shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Mais recentes
+                        </button>
+                      </div>
                     </div>
                     <div className="space-y-1.5 max-h-[50vh] overflow-y-auto rounded-xl border border-border/50 bg-background p-2">
-                      {artigos.map((art, i) => {
+                      {(previewMode === 'recentes' ? [...artigos].reverse().slice(0, 80) : artigos.slice(0, 80)).map((art, i) => {
                         const isStructural = /^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i.test(art.numero);
                         
                         if (isStructural) {
