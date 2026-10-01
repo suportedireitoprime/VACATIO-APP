@@ -657,9 +657,9 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                 <button
                   onClick={() => setCategoryOpen(null)}
                   aria-label="Fechar"
-                  className="w-9 h-9 rounded-full bg-secondary/60 flex items-center justify-center shrink-0"
+                  className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-full bg-secondary/60 flex items-center justify-center shrink-0 hover:bg-secondary transition-colors"
                 >
-                  <X className="w-4 h-4 text-foreground" />
+                  <X className="w-5 h-5 text-foreground" />
                 </button>
               </div>
               <div className="px-4 pb-3">
@@ -696,19 +696,19 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
 
               {categoryOpen?.id !== 'cat-estadual' && (
                 <div className="px-4 pb-2">
-                  <div className="flex bg-secondary/30 rounded-xl p-1 border border-border/50">
+                  <div className="flex bg-secondary/60 rounded-2xl p-1.5 border border-border/50">
                     <button
                       onClick={() => setListFilter('todos')}
-                      className={`flex-1 py-1.5 rounded-lg text-[13px] font-bold uppercase transition-all ${
-                        listFilter === 'todos' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-secondary/40'
+                      className={`flex-1 min-h-[44px] rounded-xl text-[14px] font-bold uppercase tracking-wide transition-all ${
+                        listFilter === 'todos' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-white'
                       }`}
                     >
                       Todos
                     </button>
                     <button
                       onClick={() => setListFilter('favoritos')}
-                      className={`flex-1 py-1.5 rounded-lg text-[13px] font-bold uppercase transition-all ${
-                        listFilter === 'favoritos' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-secondary/40'
+                      className={`flex-1 min-h-[44px] rounded-xl text-[14px] font-bold uppercase tracking-wide transition-all ${
+                        listFilter === 'favoritos' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-white'
                       }`}
                     >
                       Favoritos
