@@ -135,45 +135,52 @@ export default function AdminLegislacaoEditar() {
             )}
             
             {categoriasKeys.map(cat => {
-              const isExpanded = categoriaAtiva === cat;
               const itens = categoriasMap[cat];
               
               return (
                 <Card key={cat} className="overflow-hidden">
                   <button
-                    onClick={() => setCategoriaAtiva(isExpanded ? null : cat)}
+                    onClick={() => setCategoriaAtiva(cat)}
                     className="w-full px-4 py-3 bg-secondary/20 hover:bg-secondary/40 flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">{cat}</span>
                       <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{itens.length}</Badge>
                     </div>
-                    <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground transition-transform" />
                   </button>
-                  
-                  {isExpanded && (
-                    <div className="divide-y divide-border/60 border-t border-border/60">
-                      {itens.map(lei => (
-                        <button
-                          key={lei.id}
-                          onClick={() => setSelecionada(lei)}
-                          className="w-full text-left px-4 py-3 hover:bg-secondary/40 flex items-center justify-between"
-                        >
-                          <div className="min-w-0 pr-4">
-                            <p className="text-sm font-medium leading-tight truncate">{lei.nome}</p>
-                            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{lei.nome_curto || lei.slug}</p>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </Card>
               );
             })}
           </div>
         )}
       </div>
+
+      <Sheet open={!!categoriaAtiva} onOpenChange={(val) => !val && setCategoriaAtiva(null)}>
+        <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl px-0 pb-0 pt-4 flex flex-col gap-0 border-border bg-background">
+          <SheetHeader className="px-5 pb-3 border-b border-border text-left">
+            <SheetTitle className="font-display font-bold text-xl">{categoriaAtiva}</SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-2 py-2 divide-y divide-border/60">
+            {categoriaAtiva && categoriasMap[categoriaAtiva]?.map(lei => (
+              <button
+                key={lei.id}
+                onClick={() => {
+                  setCategoriaAtiva(null);
+                  setTimeout(() => setSelecionada(lei), 200);
+                }}
+                className="w-full text-left px-4 py-3.5 hover:bg-secondary/40 flex items-center justify-between rounded-xl transition-colors"
+              >
+                <div className="min-w-0 pr-4">
+                  <p className="text-[15px] font-medium leading-tight truncate">{lei.nome}</p>
+                  <p className="text-[12px] text-muted-foreground mt-1 truncate">{lei.nome_curto || lei.slug}</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              </button>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {selecionada && (
         <DetalheLeiSheet
