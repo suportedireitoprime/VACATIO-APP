@@ -378,8 +378,20 @@ function DetalheLeiSheet({
                     <Button onClick={fazerRaspagem} disabled={reextraindo || !lei.planalto_url} className="w-full max-w-xs">
                       {reextraindo ? 'Raspando...' : 'Iniciar Raspagem Agora'}
                     </Button>
-                    {!lei.planalto_url && (
+                    {!lei.planalto_url ? (
                       <p className="text-xs text-destructive mt-2">URL do Planalto não configurada no banco.</p>
+                    ) : (
+                      <div className="mt-4 flex flex-col items-center">
+                        <span className="text-xs text-muted-foreground mb-1">Fonte da raspagem:</span>
+                        <a 
+                          href={lei.planalto_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+                        >
+                          {lei.planalto_url}
+                        </a>
+                      </div>
                     )}
                   </div>
                 </Card>
@@ -423,17 +435,19 @@ function DetalheLeiSheet({
                           let bestMonth = 0;
                           let bestYear = 0;
                           
-                          // Match formats like "de 12.1.2024" or "de 2024" inside annotations.
-                          // Planalto HTML sometimes truncates the closing parenthesis, so we omit \).
-                          const regex = /\((?:Reda[çc][ãa]o\s+dada|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]).*?de\s+(?:(\d{1,2})\.(\d{1,2})\.(\d{4})|(\d{4}))/gi;
+                          // match formats like "de 12.1.2024" or "de 2024" inside annotations.
+                          const regex = /(?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]|Revogad[oa]).*?de\s+(?:(\d{1,2})\.(\d{1,2})\.(\d{4})|(\d{4}))/gi;
                           let match;
+                          let hasMonthFound = false;
                           while ((match = regex.exec(text)) !== null) {
                             let y = 0, m = 0;
+                            let hm = false;
                             if (match[4]) {
                               y = parseInt(match[4], 10);
                             } else if (match[3]) {
                               y = parseInt(match[3], 10);
                               m = parseInt(match[2], 10) - 1; // 0-indexed month
+                              hm = true;
                             }
                             if (y > 1900 && y <= new Date().getFullYear()) {
                               const score = y * 100 + m;
@@ -441,10 +455,11 @@ function DetalheLeiSheet({
                                 bestDate = score;
                                 bestYear = y;
                                 bestMonth = m;
+                                hasMonthFound = hm;
                               }
                             }
                           }
-                          return bestYear > 0 ? { year: bestYear, month: bestMonth, score: bestDate } : null;
+                          return bestYear > 0 ? { year: bestYear, month: bestMonth, hasMonth: hasMonthFound, score: bestDate } : null;
                         };
 
                         const listaPreview = previewMode === 'recentes'
@@ -455,7 +470,9 @@ function DetalheLeiSheet({
                                 .filter(a => a.parsedDate !== null)
                                 .sort((a, b) => b.parsedDate!.score - a.parsedDate!.score);
                               
-                              return filtrados.length > 0 ? filtrados.slice(0, 80) : [...artigos].reverse().slice(0, 80);
+                              return filtrados.length > 0 
+                                ? filtrados.slice(0, 80) 
+                                : [...artigos].filter(a => !/^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i.test(a.numero)).reverse().slice(0, 80);
                             })()
                           : artigos.slice(0, 80);
                           
@@ -507,7 +524,7 @@ function DetalheLeiSheet({
                               {previewMode === 'recentes' && (art as any).parsedDate && (
                                 <span className="inline-flex items-center self-start gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/30 text-[10px] font-semibold text-amber-300">
                                   <Clock className="w-3 h-3" />
-                                  {MESES[(art as any).parsedDate.month]}/{(art as any).parsedDate.year}
+                                  {(art as any).parsedDate.hasMonth ? `${MESES[(art as any).parsedDate.month]}/` : ''}{(art as any).parsedDate.year}
                                 </span>
                               )}
                             </div>
