@@ -237,17 +237,19 @@ const BottomNav = () => {
             onClick={() => { setSearchOpen(true); }}
             data-track="bottom_nav_click"
             data-track-destino="pesquisar"
-            className="relative flex flex-col items-center justify-end gap-1 w-full py-1 h-[52px]"
+            className="relative flex flex-col items-center justify-center gap-1 w-full py-1"
             aria-label="Pesquisar"
           >
             <span
-              className={`absolute bottom-6 left-1/2 -translate-x-1/2 w-[68px] h-[68px] rounded-full flex items-center justify-center overflow-hidden bg-hero-panel shadow-[0_8px_20px_rgba(0,0,0,0.6)] border-[3px] border-[#0A0A0A] transition-transform btn-attention-shine active:scale-95 ${
+              className={`absolute -top-8 left-1/2 -translate-x-1/2 w-[72px] h-[72px] rounded-full flex items-center justify-center overflow-hidden bg-hero-panel shadow-[0_10px_26px_rgba(0,0,0,0.6)] transition-transform btn-attention-shine active:scale-95 ${
                 searchOpen ? 'scale-110' : ''
               }`}
             >
-              <Search className="relative z-10 w-8 h-8 text-white drop-shadow-lg" aria-hidden="true" strokeWidth={1.2} />
+              <Search className="relative z-10 w-9 h-9 text-white drop-shadow-lg" aria-hidden="true" strokeWidth={1.2} />
             </span>
-            <span className="font-body text-[10px] tracking-tighter font-medium leading-tight text-center text-white drop-shadow-sm truncate w-full mt-auto">Pesquisar</span>
+            {/* Spacer invisível ocupando o espaço do ícone para manter o alinhamento */}
+            <span aria-hidden className="w-7 h-7" />
+            <span className="font-body text-[10px] tracking-tighter font-medium leading-tight text-center text-white drop-shadow-sm truncate w-full px-0.5">Pesquisar</span>
           </button>
 
           {/* Jurisprudência */}
