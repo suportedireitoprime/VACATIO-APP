@@ -240,7 +240,7 @@ const BottomNav = () => {
           aria-label="Pesquisar"
         >
           <span
-            className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden bg-primary shadow-lg shadow-primary/40 transition-transform btn-attention-shine active:scale-95 ${
+            className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden bg-primary shadow-[0_8px_30px_rgba(0,0,0,0.6)] ring-1 ring-black/5 transition-transform fab-search-shine active:scale-95 ${
               searchOpen ? 'scale-105' : ''
             }`}
           >

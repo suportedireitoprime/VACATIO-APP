@@ -1211,3 +1211,34 @@ html.light .bg-\[\#212121\]\/95 { background-color: hsl(var(--card) / 0.95) !imp
   transform: translateX(-150%) skewX(-18deg);
   animation: lpSheenSweep 3s infinite;
 }
+
+/* === Reflexo do FAB de Pesquisa a cada 7 segundos === */
+@keyframes fabShineInterval {
+  0% { transform: translateX(-150%) skewX(-18deg); }
+  15% { transform: translateX(150%) skewX(-18deg); }
+  100% { transform: translateX(150%) skewX(-18deg); }
+}
+.fab-search-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.fab-search-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsla(0, 0%, 100%, 0.3) 45%,
+    hsla(0, 0%, 100%, 0.7) 50%,
+    hsla(0, 0%, 100%, 0.3) 55%,
+    transparent 70%
+  );
+  transform: translateX(-150%) skewX(-18deg);
+  animation: fabShineInterval 7s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+}
