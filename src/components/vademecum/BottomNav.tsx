@@ -193,8 +193,8 @@ const BottomNav = () => {
         aria-hidden="true"
         className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
       />
-      <div className="relative z-10 max-w-2xl mx-auto px-1">
-        <div className="grid grid-cols-5 items-center h-[56px]">
+      <div className="relative z-10 max-w-2xl mx-auto px-2 py-2">
+        <div className="grid grid-cols-5 items-stretch">
           {/* Códigos */}
           <button
             onClick={() => {
@@ -203,13 +203,13 @@ const BottomNav = () => {
             }}
             data-track="bottom_nav_click"
             data-track-destino="codigos"
-            className={`flex flex-col items-center justify-center gap-1 w-full h-full rounded-xl transition-all relative ${
+            className={`flex flex-col items-center justify-center gap-1 w-full py-2 rounded-xl transition-all relative ${
               pickerTipo === 'codigo' ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
             }`}
             aria-label="Códigos"
           >
-            <Gavel className={`w-[22px] h-[22px] transition-transform text-white/90 drop-shadow-md ${pickerTipo === 'codigo' ? 'scale-110' : ''}`} strokeWidth={1.2} />
-            <span className="font-body text-[9px] sm:text-[10px] tracking-tighter font-medium leading-none text-center text-white/90 drop-shadow-sm truncate w-full px-0.5">Códigos</span>
+            <Gavel className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${pickerTipo === 'codigo' ? 'scale-110' : ''}`} strokeWidth={1.2} />
+            <span className="font-body text-[10px] tracking-tighter font-medium leading-tight text-center text-white/90 drop-shadow-sm truncate w-full px-0.5">Códigos</span>
           </button>
 
           {/* Estatutos */}
@@ -220,13 +220,13 @@ const BottomNav = () => {
             }}
             data-track="bottom_nav_click"
             data-track-destino="estatutos"
-            className={`flex flex-col items-center justify-center gap-1 w-full h-full rounded-xl transition-all relative ${
+            className={`flex flex-col items-center justify-center gap-1 w-full py-2 rounded-xl transition-all relative ${
               pickerTipo === 'estatuto' ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
             }`}
             aria-label="Estatutos"
           >
-            <BookMarked className={`w-[22px] h-[22px] transition-transform text-white/90 drop-shadow-md ${pickerTipo === 'estatuto' ? 'scale-110' : ''}`} strokeWidth={1.2} />
-            <span className="font-body text-[9px] sm:text-[10px] tracking-tighter font-medium leading-none text-center text-white/90 drop-shadow-sm truncate w-full px-0.5">Estatutos</span>
+            <BookMarked className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${pickerTipo === 'estatuto' ? 'scale-110' : ''}`} strokeWidth={1.2} />
+            <span className="font-body text-[10px] tracking-tighter font-medium leading-tight text-center text-white/90 drop-shadow-sm truncate w-full px-0.5">Estatutos</span>
           </button>
 
           {/* Pesquisar (FAB centralizado — botão projetado para fora) */}
@@ -237,19 +237,19 @@ const BottomNav = () => {
             onClick={() => { setSearchOpen(true); }}
             data-track="bottom_nav_click"
             data-track-destino="pesquisar"
-            className="relative flex flex-col items-center justify-center gap-1 w-full h-full"
+            className="relative flex flex-col items-center justify-end gap-1 w-full py-2"
             aria-label="Pesquisar"
           >
             <span
-              className={`absolute -top-7 left-1/2 -translate-x-1/2 w-[64px] h-[64px] rounded-full flex items-center justify-center overflow-hidden bg-hero-panel shadow-[0_10px_26px_rgba(0,0,0,0.6)] transition-transform btn-attention-shine active:scale-95 ${
+              className={`absolute -top-9 left-1/2 -translate-x-1/2 w-[72px] h-[72px] rounded-full flex items-center justify-center overflow-hidden bg-hero-panel shadow-[0_10px_26px_rgba(0,0,0,0.6)] transition-transform btn-attention-shine active:scale-95 ${
                 searchOpen ? 'scale-110' : ''
               }`}
             >
-              <Search className="relative z-10 w-8 h-8 text-white drop-shadow-lg" aria-hidden="true" strokeWidth={1.2} />
+              <Search className="relative z-10 w-9 h-9 text-white drop-shadow-lg" aria-hidden="true" strokeWidth={1.2} />
             </span>
             {/* Spacer invisível ocupando o mesmo espaço do ícone dos outros slots */}
-            <span aria-hidden className="w-[22px] h-[22px]" />
-            <span className="font-body text-[9px] sm:text-[10px] tracking-tighter font-medium leading-none text-center text-white drop-shadow-sm truncate w-full px-0.5">Pesquisar</span>
+            <span aria-hidden className="w-8 h-8" />
+            <span className="font-body text-[10px] tracking-tighter font-medium leading-tight text-center text-white drop-shadow-sm truncate w-full px-0.5">Pesquisar</span>
           </button>
 
           {/* Jurisprudência */}
@@ -257,13 +257,13 @@ const BottomNav = () => {
             onClick={() => { haptic.selection(); setJurisprudenciaOpen(true); }}
             data-track="bottom_nav_click"
             data-track-destino="jurisprudencia"
-            className={`flex flex-col items-center justify-center gap-1 w-full h-full rounded-xl transition-all relative ${
+            className={`flex flex-col items-center justify-center gap-1 w-full py-2 rounded-xl transition-all relative ${
               jurisprudenciaOpen ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
             }`}
             aria-label="Jurisprudência"
           >
-            <Scale className={`w-[22px] h-[22px] transition-transform text-white/90 drop-shadow-md ${jurisprudenciaOpen ? 'scale-110' : ''}`} strokeWidth={1.2} />
-            <span className="font-body text-[9px] sm:text-[10px] tracking-tighter font-medium leading-none text-center text-white/90 drop-shadow-sm truncate w-full px-0.5">Jurisprudência</span>
+            <Scale className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${jurisprudenciaOpen ? 'scale-110' : ''}`} strokeWidth={1.2} />
+            <span className="font-body text-[10px] tracking-tighter font-medium leading-tight text-center text-white/90 drop-shadow-sm truncate w-full px-0.5">Jurisprudência</span>
           </button>
 
           {/* Ferramentas */}
@@ -271,13 +271,13 @@ const BottomNav = () => {
             onClick={() => { haptic.selection(); navigate('/ferramentas'); }}
             data-track="bottom_nav_click"
             data-track-destino="ferramentas"
-            className={`flex flex-col items-center justify-center gap-1 w-full h-full rounded-xl transition-all relative ${
+            className={`flex flex-col items-center justify-center gap-1 w-full py-2 rounded-xl transition-all relative ${
               path.startsWith('/ferramentas') ? 'text-white/90 bg-white/15 ring-1 ring-white/25' : 'text-white/90 hover:bg-white/10'
             }`}
             aria-label="Ferramentas"
           >
-            <Wrench className={`w-[22px] h-[22px] transition-transform text-white/90 drop-shadow-md ${path.startsWith('/ferramentas') ? 'scale-110' : ''}`} strokeWidth={1.2} />
-            <span className="font-body text-[9px] sm:text-[10px] tracking-tighter font-medium leading-none text-center text-white/90 drop-shadow-sm truncate w-full px-0.5">Ferramentas</span>
+            <Wrench className={`w-8 h-8 transition-transform text-white/90 drop-shadow-md ${path.startsWith('/ferramentas') ? 'scale-110' : ''}`} strokeWidth={1.2} />
+            <span className="font-body text-[10px] tracking-tighter font-medium leading-tight text-center text-white/90 drop-shadow-sm truncate w-full px-0.5">Ferramentas</span>
           </button>
         </div>
       </div>
