@@ -22,8 +22,8 @@ import ArtigoBottomSheet from '@/components/vademecum/ArtigoBottomSheet';
 import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
-import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import HistoricoAtualizacaoCarousel from '@/components/vademecum/HistoricoAtualizacaoCarousel';
+import NovidadeDetalheSheet from '@/components/vademecum/NovidadeDetalheSheet';
 import type { ArtigoLei } from '@/data/mockData';
 import brasaoImgAsset from '@/assets/brasao-republica.webp';
 const brasaoImg = brasaoImgAsset;
@@ -144,6 +144,7 @@ const CategoriaLegislacao = () => {
   const [selectedLeiNome, setSelectedLeiNome] = useState('');
   const [selectedLeiDescricao, setSelectedLeiDescricao] = useState('');
   const [selectedTabelaNome, setSelectedTabelaNome] = useState<string | null>(null);
+  const [selectedNovidade, setSelectedNovidade] = useState<any | null>(null);
   const [selectedLeiEmenta, setSelectedLeiEmenta] = useState<string>('');
   const [showEmentaDialog, setShowEmentaDialog] = useState(false);
   const [artigos, setArtigos] = useState<ArtigoLei[]>([]);
@@ -2047,16 +2048,14 @@ const CategoriaLegislacao = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.02 }}
                       onClick={() => {
-                        setOverlayPanel(null);
-                        setOpenFromNovidades(true);
-                        setOpenModInfo({
+                        setSelectedNovidade({
+                          artigo: item.artigo,
                           tipo: item.tipo,
                           referencia: item.referencia,
-                          leiNome: item.leiNome,
+                          leiNome: item.leiNome || selectedLeiNome,
                           parteModificada: item.parteModificada,
-                          linhasModificadas: item.linhasModificadas,
+                          textoAnterior: (item as any).textoAnterior
                         });
-                        setOpenArtigo(item.artigo);
                       }}
                       className="w-full text-left rounded-2xl bg-card hover:bg-secondary/60 transition-all group flex overflow-hidden min-h-[82px]"
                     >
@@ -2101,7 +2100,7 @@ const CategoriaLegislacao = () => {
       fav: { label: 'Favoritos', icon: Heart, desc: 'Aqui ficam os artigos que você marcou com o coração. Favoritar facilita o acesso rápido aos dispositivos que você mais consulta.' },
       playlist: { label: 'Playlist', icon: ListMusic, desc: 'Ouça as narrações dos artigos desta lei. Ideal para estudar enquanto faz outras atividades — basta gerar as narrações na tela de Narração.' },
       anotacoes: { label: 'Anotações', icon: StickyNote, desc: 'Veja todas as suas anotações e grifos desta lei em um só lugar. Para criar, abra um artigo e grife um trecho.' },
-      novidades: { label: 'Histórico', icon: History, desc: 'Histórico de alterações legislativas — veja quais artigos foram incluídos, revogados ou modificados, organizados por ano.' },
+      novidades: { label: 'Novidades', icon: History, desc: 'Histórico de alterações legislativas — veja quais artigos foram incluídos, revogados ou modificados, organizados por ano.' },
       radar: { label: 'Radar', icon: Radar, desc: 'Proposições em tramitação no Congresso que podem alterar esta legislação. Acompanhe os projetos de lei em tempo real.' },
     };
     const overlayContents: Record<string, React.ReactNode> = {
@@ -2158,7 +2157,7 @@ const CategoriaLegislacao = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 320 }}
-              className="fixed inset-x-0 bottom-0 z-[60] h-[80vh] bg-background border-t border-white/10 rounded-t-3xl flex flex-col shadow-2xl lg:max-w-[720px] lg:mx-auto"
+              className="fixed inset-x-0 bottom-0 z-[60] h-[100dvh] bg-background border-t border-white/10 flex flex-col shadow-2xl lg:max-w-[720px] lg:mx-auto"
               style={{ willChange: 'transform' }}
             >
               {/* Drag handle */}
@@ -2446,10 +2445,15 @@ const CategoriaLegislacao = () => {
               artigos={artigos} 
               dbAlteracoes={dbAlteracoes} 
               leiAccent={leiAccent} 
-              onOpenArtigo={(a) => {
-                const sheetTrigger = document.createElement('div');
-                sheetTrigger.dataset.artigo = JSON.stringify(a);
-                openArtigo(a);
+              onOpenNovidade={(item) => {
+                setSelectedNovidade({
+                  artigo: item.artigo,
+                  tipo: item.tipo,
+                  referencia: item.referencia,
+                  leiNome: item.leiNome || selectedLeiNome,
+                  parteModificada: item.parteModificada,
+                  textoAnterior: item.textoAnterior
+                });
               }} 
               onViewAll={() => setOverlayPanel('novidades')}
             />
@@ -2738,6 +2742,60 @@ const CategoriaLegislacao = () => {
             } else {
               setSearchQuery(clean);
               handleSearch(clean);
+            }
+          }}
+        />
+
+        <NovidadeDetalheSheet
+          open={!!selectedNovidade}
+          onClose={() => setSelectedNovidade(null)}
+          artigo={selectedNovidade?.artigo}
+          tipo={selectedNovidade?.tipo || ''}
+          referencia={selectedNovidade?.referencia || ''}
+          leiNome={selectedNovidade?.leiNome || ''}
+          parteModificada={selectedNovidade?.parteModificada || ''}
+          textoAnterior={selectedNovidade?.textoAnterior}
+          onGoToArtigo={() => {
+            if (selectedNovidade) {
+              setOverlayPanel(null);
+              setOpenFromNovidades(true);
+              // Find full item from db/artigos logic to get lines modified if needed,
+              // but we can pass basic info to openModInfo
+              setOpenModInfo({
+                tipo: selectedNovidade.tipo,
+                referencia: selectedNovidade.referencia,
+                leiNome: selectedNovidade.leiNome,
+                parteModificada: selectedNovidade.parteModificada,
+                linhasModificadas: [] // optional
+              });
+              setOpenArtigo(selectedNovidade.artigo);
+              setSelectedNovidade(null);
+            }
+          }}
+        />
+
+        <NovidadeDetalheSheet
+          open={!!selectedNovidade}
+          onClose={() => setSelectedNovidade(null)}
+          artigo={selectedNovidade?.artigo}
+          tipo={selectedNovidade?.tipo || ''}
+          referencia={selectedNovidade?.referencia || ''}
+          leiNome={selectedNovidade?.leiNome || ''}
+          parteModificada={selectedNovidade?.parteModificada || ''}
+          textoAnterior={selectedNovidade?.textoAnterior}
+          onGoToArtigo={() => {
+            if (selectedNovidade) {
+              setOverlayPanel(null);
+              setOpenFromNovidades(true);
+              setOpenModInfo({
+                tipo: selectedNovidade.tipo,
+                referencia: selectedNovidade.referencia,
+                leiNome: selectedNovidade.leiNome,
+                parteModificada: selectedNovidade.parteModificada,
+                linhasModificadas: []
+              });
+              setOpenArtigo(selectedNovidade.artigo);
+              setSelectedNovidade(null);
             }
           }}
         />

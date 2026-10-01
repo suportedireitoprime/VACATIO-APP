@@ -7,7 +7,7 @@ interface HistoricoAtualizacaoCarouselProps {
   artigos: ArtigoLei[];
   dbAlteracoes: Record<string, any>[];
   leiAccent: string;
-  onOpenArtigo: (artigo: ArtigoLei) => void;
+  onOpenNovidade: (item: any) => void;
   onViewAll?: () => void;
 }
 
@@ -22,7 +22,7 @@ export type ModItem = {
   fromMonitor?: boolean;
 };
 
-export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, leiAccent, onOpenArtigo, onViewAll }: HistoricoAtualizacaoCarouselProps) {
+export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, leiAccent, onOpenNovidade, onViewAll }: HistoricoAtualizacaoCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const historicoAlteracoes = useMemo(() => {
@@ -113,7 +113,7 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
         <div className="min-w-0 flex-1">
           <h3 className="font-display text-foreground text-[16px] sm:text-[18px] font-bold mb-0.5 flex items-center gap-2">
             <span className="w-1 h-5 rounded-full shrink-0" style={{ backgroundColor: leiAccent }} />
-            <span className="truncate">Histórico de Atualização</span>
+            <span className="truncate">Novidades</span>
           </h3>
           <p className="font-body text-muted-foreground text-[12px] leading-snug ml-[14px] truncate">
             Últimos artigos atualizados nesta legislação
@@ -144,7 +144,7 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
           return (
             <motion.button
               key={`${item.artigo.id}-${i}`}
-              onClick={() => onOpenArtigo(item.artigo)}
+              onClick={() => onOpenNovidade(item)}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(i * 0.04, 0.2) }}
