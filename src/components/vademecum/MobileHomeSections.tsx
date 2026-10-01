@@ -358,7 +358,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-1.5 rounded-full text-[13px] font-display font-bold whitespace-nowrap transition-colors ${
+              className={`min-h-[44px] px-5 py-2.5 rounded-full text-[14px] font-display font-bold uppercase tracking-wide flex items-center justify-center whitespace-nowrap transition-colors ${
                 activeTab === tab.id
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-secondary/60 text-muted-foreground border border-border/50 hover:bg-secondary'
