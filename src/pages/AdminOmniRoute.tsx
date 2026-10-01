@@ -90,7 +90,7 @@ export default function AdminOmniRoute() {
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-white/10 pt-safe">
         <div className="flex h-14 items-center px-4 gap-3">
           <button
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate('/admin-funcoes')}
             className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/5 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-white/70" />
