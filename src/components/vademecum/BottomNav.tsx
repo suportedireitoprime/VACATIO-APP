@@ -22,6 +22,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchMeuEspacoFeed, MEU_ESPACO_FEED_KEY } from '@/services/meuEspacoFeed';
 import { prefetchAllPessoal } from '@/services/pessoalPrefetch';
+import { CategoryPickerSheet, useFavoritasLeis } from './AtalhosCarousel';
+import JurisprudenciaSheet from './JurisprudenciaSheet';
+import { BookMarked, ScrollText } from 'lucide-react';
+import { LEIS_CATALOG } from '@/data/leisCatalog';
 import vacatioLogoAsset from '@/assets/logo-vacatio-v2.png.asset.json';
 import vacatioLogoBundled from '@/assets/bundled/logo-vacatio-v2.webp';
 
@@ -78,6 +82,12 @@ const BottomNav = () => {
   // pessoalOpen removido — Meu Espaço é rota agora.
   const [chatOpen, setChatOpen] = useState(false);
   const [horusView, setHorusView] = useState<'chooser' | 'main' | 'funcoes' | 'notificacoes'>('chooser');
+
+  const [codigosOpen, setCodigosOpen] = useState(false);
+  const [estatutosOpen, setEstatutosOpen] = useState(false);
+  const [jurisprudenciaOpen, setJurisprudenciaOpen] = useState(false);
+
+  const { ids: favIds, toggle: toggleFav, isFav } = useFavoritasLeis();
 
   // (Removido: intervalo do NavShine — animação contínua no BottomNav.)
 
@@ -185,7 +195,7 @@ const BottomNav = () => {
           <button
             onClick={() => {
               haptic.selection();
-              navigate('/legislacao/codigos');
+              setCodigosOpen(true);
             }}
             data-track="bottom_nav_click"
             data-track-destino="codigos"
@@ -202,7 +212,7 @@ const BottomNav = () => {
           <button
             onClick={() => {
               haptic.selection();
-              navigate('/legislacao/estatutos');
+              setEstatutosOpen(true);
             }}
             data-track="bottom_nav_click"
             data-track-destino="estatutos"
@@ -233,7 +243,7 @@ const BottomNav = () => {
 
           {/* Jurisprudência */}
           <button
-            onClick={() => { haptic.selection(); navigate('/jurisprudencia'); }}
+            onClick={() => { haptic.selection(); setJurisprudenciaOpen(true); }}
             data-track="bottom_nav_click"
             data-track-destino="jurisprudencia"
             className="flex flex-col items-center justify-end py-1.5 text-white"
@@ -672,6 +682,58 @@ const BottomNav = () => {
 
     {/* Chat Jurídico */}
     <AssistenteOverlay open={chatOpen} onClose={() => setChatOpen(false)} />
+
+    {/* Códigos Sheet */}
+    <AnimatePresence>
+      {codigosOpen && (
+        <CategoryPickerSheet
+          tipo="codigo"
+          label="CÓDIGOS"
+          Icon={BookMarked}
+          accent="#F87171"
+          isFav={isFav}
+          onToggleFav={toggleFav}
+          favIds={favIds}
+          onClose={() => setCodigosOpen(false)}
+          onSelectLei={(leiId) => {
+            setCodigosOpen(false);
+            const lei = LEIS_CATALOG.find((l) => l.id === leiId);
+            if (lei) navigate(leiPath(lei));
+          }}
+        />
+      )}
+    </AnimatePresence>
+
+    {/* Estatutos Sheet */}
+    <AnimatePresence>
+      {estatutosOpen && (
+        <CategoryPickerSheet
+          tipo="estatuto"
+          label="ESTATUTOS"
+          Icon={ScrollText}
+          accent="#3B82F6"
+          isFav={isFav}
+          onToggleFav={toggleFav}
+          favIds={favIds}
+          onClose={() => setEstatutosOpen(false)}
+          onSelectLei={(leiId) => {
+            setEstatutosOpen(false);
+            const lei = LEIS_CATALOG.find((l) => l.id === leiId);
+            if (lei) navigate(leiPath(lei));
+          }}
+        />
+      )}
+    </AnimatePresence>
+
+    {/* Jurisprudência Sheet */}
+    <AnimatePresence>
+      {jurisprudenciaOpen && (
+        <JurisprudenciaSheet
+          open={jurisprudenciaOpen}
+          onClose={() => setJurisprudenciaOpen(false)}
+        />
+      )}
+    </AnimatePresence>
 
     </>
   );

@@ -154,7 +154,7 @@ function writeFavoritas(ids: string[]) {
   try { window.dispatchEvent(new CustomEvent('vacatio:leis-favoritas-changed')); } catch { /* ignore */ }
 }
 
-function useFavoritasLeis() {
+export function useFavoritasLeis() {
   const [ids, setIds] = useState<string[]>(() => readFavoritas());
   useEffect(() => {
     const sync = () => setIds(readFavoritas());
@@ -496,7 +496,7 @@ function DashboardPanel({ onSelect, sweepKey }: { onSelect: (id: string) => void
   );
 }
 
-function FrostedIcon({
+export function FrostedIcon({
   icon: Icon, color, size = 'md', sweep = false, sweepIndex = 0, sweepCount = 8, sweepStagger = false, sweepKey,
 }: {
   icon: React.ElementType;
@@ -670,7 +670,7 @@ function EmptyFavoritos() {
 /*  Category picker sheet — busca + mic + Todos/Favoritos             */
 /* ------------------------------------------------------------------ */
 
-function CategoryPickerSheet({
+export function CategoryPickerSheet({
   tipo, label, Icon, accent, isFav, onToggleFav, favIds, onClose, onSelectLei,
 }: {
   tipo: string;
@@ -711,33 +711,38 @@ function CategoryPickerSheet({
       <motion.div
         initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="fixed bottom-0 left-0 right-0 z-[90] bg-card border-t border-border rounded-t-3xl pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] h-[88vh] flex flex-col overflow-hidden"
+        className="fixed inset-0 z-[90] overflow-y-auto overscroll-none"
       >
-        {/* Cabeçalho fixo 100% ofuscado */}
-        <div className="sticky top-0 z-10 bg-card backdrop-blur-xl border-b border-border/40 shrink-0">
-          <div className="flex items-center justify-center pt-2 pb-1">
-            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-          </div>
-
-          <div className="flex items-center justify-between px-5 pb-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <FrostedIcon icon={Icon} color={accent} size="sm" />
-              <div className="min-w-0">
-                <h3 className="font-display text-lg text-foreground font-bold leading-none truncate">{label}</h3>
-                <p className="text-muted-foreground text-[11px] font-body mt-0.5">Escolha uma lei</p>
+        <div className="min-h-full flex flex-col justify-end">
+          {/* Fundo clicável para fechar ao clicar no topo */}
+          <div className="h-[12dvh] shrink-0" onClick={onClose} />
+          
+          <div className="flex-1 bg-card border-t border-border rounded-t-3xl pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] flex flex-col md:mx-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl">
+            {/* Cabeçalho */}
+            <div className="bg-card rounded-t-3xl border-b border-border/40 shrink-0">
+              <div className="flex items-center justify-center pt-2 pb-1">
+                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
               </div>
-            </div>
-            <button
-              onClick={onClose}
-              aria-label="Fechar"
-              className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0"
-            >
-              <X className="w-4 h-4 text-foreground" />
-            </button>
-          </div>
 
-          {/* Barra de busca com mic transbordante */}
-          <div className="px-4 pb-3 pt-1 pr-6">
+              <div className="flex items-center justify-between px-5 pb-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FrostedIcon icon={Icon} color={accent} size="sm" />
+                  <div className="min-w-0">
+                    <h3 className="font-display text-lg text-foreground font-bold leading-none truncate">{label}</h3>
+                    <p className="text-muted-foreground text-[11px] font-body mt-0.5">Escolha uma lei</p>
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  aria-label="Fechar"
+                  className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0"
+                >
+                  <X className="w-4 h-4 text-foreground" />
+                </button>
+              </div>
+
+              {/* Barra de busca com mic transbordante */}
+              <div className="px-4 pb-3 pt-1 pr-6">
             <div className={`relative flex items-center gap-2 rounded-2xl border transition-colors pl-3 pr-14 h-12
               ${voice.listening
                 ? 'bg-background border-primary/70 shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]'
@@ -823,7 +828,7 @@ function CategoryPickerSheet({
 
 
         {/* Lista */}
-        <div className="px-4 pt-1 pb-4 flex flex-col gap-2.5 overflow-y-auto">
+        <div className="px-4 pt-1 pb-4 flex flex-col gap-2.5">
           {filtered.length === 0 && (
             <p className="text-center text-muted-foreground text-sm py-8">
               {scope === 'favoritos'
@@ -868,6 +873,8 @@ function CategoryPickerSheet({
               </motion.div>
             );
           })}
+        </div>
+          </div>
         </div>
       </motion.div>
     </>

@@ -647,6 +647,9 @@ function AnimatedRoutes() {
           <Route path="/admin-monitoramento" element={<ProtectedRoute><PageTransition><AdminMonitoramento /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-monitor-apis" element={<ProtectedRoute><PageTransition><AdminMonitorApis /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-omniroute" element={<ProtectedRoute><PageTransition><AdminOmniRoute /></PageTransition></ProtectedRoute>} />
+          <Route path="/admin/omniroute" element={<Navigate to="/admin-omniroute" replace />} />
+          <Route path="/omniroute" element={<Navigate to="/admin-omniroute" replace />} />
+          <Route path="/omni-route" element={<Navigate to="/admin-omniroute" replace />} />
           <Route path="/assinatura" element={<ProtectedRoute><PageTransition><Assinatura /></PageTransition></ProtectedRoute>} />
           <Route path="/planos" element={<Navigate to="/assinatura" replace />} />
           <Route path="/planos/*" element={<Navigate to="/assinatura" replace />} />
