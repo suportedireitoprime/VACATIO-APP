@@ -374,6 +374,69 @@ function DetalheLeiSheet({
                     )}
                   </div>
                 </Card>
+
+                {/* Preview dos artigos no estilo Vade Mecum */}
+                {artigos.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm text-foreground">
+                        Preview · <span className="text-primary">{artigos.length} artigos</span>
+                      </h4>
+                      <Badge variant="outline" className="text-[10px]">Estilo Vade Mecum</Badge>
+                    </div>
+                    <div className="space-y-1.5 max-h-[50vh] overflow-y-auto rounded-xl border border-border/50 bg-background p-2">
+                      {artigos.map((art, i) => {
+                        const isStructural = /^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i.test(art.numero);
+                        
+                        if (isStructural) {
+                          const lines = art.texto.split('\n').map(l => l.trim()).filter(Boolean);
+                          const head = lines[0] || art.numero;
+                          const sub = lines.slice(1).join(' — ');
+                          return (
+                            <div key={art.id} className="px-3 py-3 flex flex-col items-center text-center">
+                              <p className="text-[13px] uppercase tracking-[0.2em] font-extrabold text-amber-300 leading-tight">
+                                {head}
+                              </p>
+                              {sub && (
+                                <p className="text-[13px] mt-1 font-serif italic font-medium leading-snug text-amber-100/90 max-w-[32ch]">
+                                  {sub}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        const badgeLabel = art.numero.replace(/^Art\.?\s*/i, '').trim() || art.numero;
+                        const caputText = art.texto
+                          .split('\n')[0]
+                          .replace(/^Art\.?\s*\d+[º°]?(-[A-Z])?\s*[.\-]?\s*/i, '')
+                          .replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '')
+                          .trim();
+                        
+                        return (
+                          <div
+                            key={art.id}
+                            className="w-full min-h-[68px] text-left px-3 py-2 rounded-xl bg-card/70 border border-border/60 flex items-stretch gap-3"
+                          >
+                            <div className="shrink-0 flex flex-col items-center">
+                              <span className="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-300/25 to-amber-600/10 border border-amber-400/30 flex flex-col items-center justify-center leading-none">
+                                <span className="text-[14px] font-bold text-amber-200 leading-none">{badgeLabel}</span>
+                                <span className="mt-0.5 text-[7px] uppercase tracking-[0.16em] font-bold text-amber-300/80 leading-none">Art</span>
+                              </span>
+                            </div>
+                            <div className="min-w-0 flex-1 flex flex-col justify-center">
+                              <p className="text-[12px] leading-snug line-clamp-2 text-muted-foreground">
+                                <span className="font-bold text-foreground">Art. {badgeLabel}</span>
+                                <span className="mx-1 text-muted-foreground/60">—</span>
+                                {caputText || '(sem texto)'}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="push" className="mt-0 space-y-4">
