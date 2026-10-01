@@ -142,8 +142,10 @@ function stripPlanaltoAnnotations(s: string): string {
   return s.replace(PLANALTO_NOTE_BLOCK_RE, " ").replace(/\s+/g, " ").trim();
 }
 
-function removePlanaltoAnnotationBlocks(s: string): string {
-  return s.replace(PLANALTO_NOTE_BLOCK_RE, " ");
+function formatPlanaltoAnnotationBlocks(s: string): string {
+  // Apenas limpa as quebras de linha para não confundir o parser, mas MANTÉM no texto
+  // para que as datas de "Redação dada" sejam exibidas no app e lidas pelo "Mais recentes".
+  return s.replace(PLANALTO_NOTE_BLOCK_RE, (m) => m.replace(/\s+/g, " "));
 }
 
 // Normaliza rótulo de hierarquia para CAIXA ALTA no campo `numero`
@@ -250,7 +252,7 @@ function extractBlocos(html: string): Bloco[] {
   // Em páginas como a Lei de Drogas, o HTML quebra "(Redação dada pela\nLei nº...)"
   // em duas linhas; se não limpar aqui, o parser confunde a anotação com o
   // nome oficial do CAPÍTULO/SEÇÃO.
-  body = removePlanaltoAnnotationBlocks(body);
+  body = formatPlanaltoAnnotationBlocks(body);
 
   const linhasBrutas = body
     .split(/\n/)
