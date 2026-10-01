@@ -10,7 +10,7 @@ import {
   Landmark, LandPlot, LayoutGrid, Leaf, List, Map, Mic, MicOff, Network, NotebookPen,
   PiggyBank, Plane, PocketKnife, RadioTower, ReceiptText, Scale, Scroll, ScrollText, Search,
   Shield, ShieldAlert, ShieldCheck, ShieldX, Ship, ShoppingCart, Siren, Sprout, Stamp, Store,
-  Tractor, TreePine, Users, Vote, Wallet, Wifi, X, MessageCircle, BookOpen, type LucideIcon,
+  Tractor, TreePine, Users, Vote, Wallet, Wifi, X, MessageCircle, BookOpen, Heart, type LucideIcon,
 } from 'lucide-react';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { ESTADOS } from '@/pages/LegislacaoEstadual';
@@ -18,6 +18,7 @@ import { ESTADOS } from '@/pages/LegislacaoEstadual';
 import { PillarIcon } from '@/components/icons/PillarIcon';
 import { leiPath, tipoToSlug } from '@/lib/legislacaoSlugs';
 import { pushRecente } from '@/lib/leisRecentes';
+import { getFavoritos, LEIS_FAVORITOS_EVENT } from '@/lib/leisFavoritos';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import VoiceCaptureOverlay from './VoiceCaptureOverlay';
 import HomeNoticiasCarousel from './HomeNoticiasCarousel';
@@ -247,6 +248,17 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const [juriOpen, setJuriOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState<Cat | AreaCat | CategoriaFormal | null>(null);
   const [categorySearch, setCategorySearch] = useState('');
+  const [listFilter, setListFilter] = useState<'todos' | 'favoritos'>('todos');
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!categoryOpen) return;
+    setListFilter('todos');
+    const update = () => setFavoriteIds(new Set(getFavoritos().map(f => f.leiId)));
+    update();
+    window.addEventListener(LEIS_FAVORITOS_EVENT, update);
+    return () => window.removeEventListener(LEIS_FAVORITOS_EVENT, update);
+  }, [categoryOpen]);
 
   const handleVoiceSearch = useCallback((text: string) => {
     setCategorySearch(text);
@@ -308,14 +320,18 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
     return LEIS_CATALOG.filter(l => l.tipo === categoryOpen.id);
   }, [categoryOpen]);
   const filteredCategoryItems = useMemo(() => {
+    let base = categoryItems;
+    if (listFilter === 'favoritos') {
+      base = base.filter(l => favoriteIds.has(l.id));
+    }
     const term = categorySearch.trim();
-    if (!term) return categoryItems;
+    if (!term) return base;
     const needle = normalizeSearch(term);
-    return categoryItems.filter((lei) => {
+    return base.filter((lei) => {
       const haystack = normalizeSearch(`${lei.nome} ${lei.sigla} ${lei.descricao} ${(lei.tags || []).join(' ')}`);
       return haystack.includes(needle);
     });
-  }, [categoryItems, categorySearch]);
+  }, [categoryItems, categorySearch, listFilter, favoriteIds]);
   const CategorySheetIcon = categoryOpen?.icon || BookMarked;
 
   // Lock background scroll while any bottom sheet is open
@@ -678,6 +694,29 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                 </div>
               </div>
 
+              {categoryOpen?.id !== 'cat-estadual' && (
+                <div className="px-4 pb-2">
+                  <div className="flex bg-secondary/30 rounded-xl p-1 border border-border/50">
+                    <button
+                      onClick={() => setListFilter('todos')}
+                      className={`flex-1 py-1.5 rounded-lg text-[13px] font-bold uppercase transition-all ${
+                        listFilter === 'todos' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-secondary/40'
+                      }`}
+                    >
+                      Todos
+                    </button>
+                    <button
+                      onClick={() => setListFilter('favoritos')}
+                      className={`flex-1 py-1.5 rounded-lg text-[13px] font-bold uppercase transition-all ${
+                        listFilter === 'favoritos' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-secondary/40'
+                      }`}
+                    >
+                      Favoritos
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="flex-1 overflow-y-auto px-4 pb-4">
                 {categoryOpen?.id === 'cat-estadual' ? (
                   (() => {
@@ -786,6 +825,9 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                           {displaySublabel}
                         </p>
                       </div>
+                      {favoriteIds.has(lei.id) && (
+                        <Heart className="w-5 h-5 fill-red-500 text-red-500 shrink-0" />
+                      )}
                       <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
                     </motion.button>
                   );})}
