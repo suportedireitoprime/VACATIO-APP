@@ -32,6 +32,7 @@ interface ArtigoRow {
   numero: string;
   texto: string;
   ordem: number;
+  ult_alteracao_em: string | null;
 }
 
 interface ImpactoRow {
@@ -213,7 +214,7 @@ function DetalheLeiSheet({
     const [{ data: arts }, { data: imps }] = await Promise.all([
       supabase
         .from('vade_mecum_artigos')
-        .select('id, numero, texto, ordem')
+        .select('id, numero, texto, ordem, ult_alteracao_em')
         .eq('lei_id', lei.id)
         .order('ordem'),
       supabase
@@ -407,7 +408,19 @@ function DetalheLeiSheet({
                       </div>
                     </div>
                     <div className="space-y-1.5 max-h-[50vh] overflow-y-auto rounded-xl border border-border/50 bg-background p-2">
-                      {(previewMode === 'recentes' ? [...artigos].reverse().slice(0, 80) : artigos.slice(0, 80)).map((art, i) => {
+                      {(() => {
+                        const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+                        const listaPreview = previewMode === 'recentes'
+                          ? [...artigos]
+                              .filter(a => !/^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i.test(a.numero))
+                              .sort((a, b) => {
+                                const da = a.ult_alteracao_em ? new Date(a.ult_alteracao_em).getTime() : 0;
+                                const db = b.ult_alteracao_em ? new Date(b.ult_alteracao_em).getTime() : 0;
+                                return db - da;
+                              })
+                              .slice(0, 80)
+                          : artigos.slice(0, 80);
+                        return listaPreview.map((art, i) => {
                         const isStructural = /^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i.test(art.numero);
                         
                         if (isStructural) {
@@ -446,16 +459,23 @@ function DetalheLeiSheet({
                                 <span className="mt-0.5 text-[7px] uppercase tracking-[0.16em] font-bold text-amber-300/80 leading-none">Art</span>
                               </span>
                             </div>
-                            <div className="min-w-0 flex-1 flex flex-col justify-center">
+                            <div className="min-w-0 flex-1 flex flex-col justify-center gap-1">
                               <p className="text-[12px] leading-snug line-clamp-2 text-muted-foreground">
                                 <span className="font-bold text-foreground">Art. {badgeLabel}</span>
                                 <span className="mx-1 text-muted-foreground/60">—</span>
                                 {caputText || '(sem texto)'}
                               </p>
+                              {previewMode === 'recentes' && art.ult_alteracao_em && (
+                                <span className="inline-flex items-center self-start gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/30 text-[10px] font-semibold text-amber-300">
+                                  <Clock className="w-3 h-3" />
+                                  {MESES[new Date(art.ult_alteracao_em).getMonth()]}/{new Date(art.ult_alteracao_em).getFullYear()}
+                                </span>
+                              )}
                             </div>
                           </div>
                         );
-                      })}
+                      });
+                      })()}
                     </div>
                   </div>
                 )}
