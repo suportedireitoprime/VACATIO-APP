@@ -246,7 +246,6 @@ function DetalheLeiSheet({
   };
 
   const fazerRaspagem = async () => {
-    if (!window.confirm('Isto vai acionar a Edge Function para reextrair a lei inteira do Planalto. Continuar?')) return;
     setReextraindo(true);
     const tid = toast.loading('Raspando lei do Planalto...');
     try {
@@ -265,7 +264,6 @@ function DetalheLeiSheet({
 
   const enviarPush = async () => {
     if (!pushMsg.trim()) return toast.error('Digite a mensagem do push');
-    if (!window.confirm('Enviar notificação push para todos os usuários?')) return;
     
     const tid = toast.loading('Enviando Push...');
     try {
