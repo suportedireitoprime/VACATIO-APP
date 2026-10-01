@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 export default function AdminOmniRoute() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [config, setConfig] = useState({
     baseUrl: 'https://omniroute-production-fb57.up.railway.app/v1',
     apiKey: '',
@@ -82,6 +83,32 @@ export default function AdminOmniRoute() {
       toast.error('Erro ao salvar configurações.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    if (!config.baseUrl) {
+      toast.error('Preencha a URL para testar');
+      return;
+    }
+    setTesting(true);
+    try {
+      const url = config.baseUrl.endsWith('/v1')
+        ? `${config.baseUrl}/models`
+        : `${config.baseUrl.replace(/\/$/, '')}/v1/models`;
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
+
+      const res = await fetch(url, { headers });
+      if (!res.ok) {
+        throw new Error(`Erro HTTP ${res.status}`);
+      }
+      toast.success('Conexão estabelecida com sucesso!');
+    } catch (e: any) {
+      toast.error(`Falha na conexão: ${e.message}`);
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -203,14 +230,21 @@ export default function AdminOmniRoute() {
           </p>
         </div>
 
-        <div className="pt-4">
+        <div className="pt-4 flex gap-3">
+          <button
+            onClick={handleTestConnection}
+            disabled={testing}
+            className="flex-1 h-12 rounded-xl bg-white/5 border border-white/10 text-white font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors disabled:opacity-50"
+          >
+            {testing ? 'Testando...' : 'Testar Conexão'}
+          </button>
           <button
             onClick={handleSave}
             disabled={loading}
-            className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50"
+            className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             <Save className="w-5 h-5" />
-            {loading ? 'Salvando...' : 'Salvar Configurações'}
+            {loading ? 'Salvando...' : 'Salvar'}
           </button>
         </div>
 
