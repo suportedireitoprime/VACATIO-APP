@@ -300,7 +300,6 @@ function DetalheLeiSheet({
               <TabsTrigger value="legislacao" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Legislação</TabsTrigger>
               <TabsTrigger value="atualizacoes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Últimas Atualizações</TabsTrigger>
               <TabsTrigger value="raspagem" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Raspagem</TabsTrigger>
-              <TabsTrigger value="historico" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3 text-amber-500 data-[state=active]:text-amber-500">Novidades</TabsTrigger>
             </TabsList>
 
             <div className="p-4">
@@ -477,87 +476,6 @@ function DetalheLeiSheet({
                       });
                       })()}
                     </div>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="push" className="mt-0 space-y-4">
-                <h3 className="font-semibold text-sm">Avisar Usuários (Push Notification)</h3>
-                <p className="text-xs text-muted-foreground">Envie um alerta para a base de usuários informando novidades desta lei.</p>
-                
-                <div className="space-y-4 mt-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium">Título do Push</label>
-                    <Input value={pushTitulo} onChange={e => setPushTitulo(e.target.value)} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium">Mensagem</label>
-                    <Textarea 
-                      value={pushMsg} 
-                      onChange={e => setPushMsg(e.target.value)} 
-                      placeholder="Ex: O Código Penal sofreu atualizações importantes hoje. Confira os novos artigos..."
-                      rows={3}
-                    />
-                  </div>
-                  <Button onClick={enviarPush} className="w-full gap-2">
-                    <Bell className="w-4 h-4" /> Disparar Push
-                  </Button>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="historico" className="mt-0 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-sm text-amber-500 flex items-center gap-2">
-                      <History className="w-4 h-4" /> Rastreador do Planalto
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Busca diretamente no código fonte do Planalto textos riscados indicando alteração, mostrando como era e como ficou.
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={carregarHistorico} disabled={loadingHistorico}>
-                    <RefreshCw className={`w-4 h-4 ${loadingHistorico ? 'animate-spin' : ''}`} />
-                  </Button>
-                </div>
-
-                {loadingHistorico ? (
-                  <div className="flex flex-col items-center justify-center p-8 space-y-4">
-                    <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
-                    <p className="text-sm text-muted-foreground animate-pulse text-center">
-                      Acessando {lei.planalto_url}...<br/>Mapeando histórico de alterações do texto...
-                    </p>
-                  </div>
-                ) : historico.length === 0 ? (
-                  <Card className="p-8 text-center text-muted-foreground">
-                    <p className="text-sm">Nenhuma alteração com texto riscado encontrada nesta lei.</p>
-                  </Card>
-                ) : (
-                  <div className="space-y-6 mt-4">
-                    {historico.map((hist, i) => (
-                      <Card key={i} className="overflow-hidden border-border/50">
-                        <div className="bg-secondary/30 px-3 py-2 border-b flex items-center justify-between">
-                          <Badge variant="outline" className="font-bold border-primary text-primary">{hist.artigo_numero}</Badge>
-                          {hist.data_aproximada > 0 && <span className="text-xs font-semibold">{hist.data_aproximada}</span>}
-                        </div>
-                        <div className="p-3 text-xs text-muted-foreground italic bg-secondary/10 border-b">
-                          {hist.nota}
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                          <div className="space-y-2">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-destructive">Redação Anterior</div>
-                            <div className="text-sm text-muted-foreground line-through decoration-destructive/50">{hist.texto_antigo}</div>
-                          </div>
-                          <div className="hidden md:flex items-center justify-center -mx-6 z-10">
-                            <div className="bg-background border rounded-full p-1"><ArrowRight className="w-4 h-4 text-muted-foreground" /></div>
-                          </div>
-                          <div className="space-y-2 mt-4 md:mt-0">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Nova Redação</div>
-                            <div className="text-sm font-medium">{hist.texto_novo}</div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
                   </div>
                 )}
               </TabsContent>
