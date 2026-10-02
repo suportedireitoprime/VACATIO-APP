@@ -6,6 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { UserDossieSheet } from './UserDossieSheet';
 import { rotaParaFuncao } from '@/lib/rotaFuncoes';
+import { ADMIN_EMAILS, isAdminEmail } from '@/lib/adminEmails';
+
+const ADMIN_EMAILS_FILTER = `(${ADMIN_EMAILS.map((e) => `"${e}"`).join(',')})`;
 
 type CardId = 'online5m' | 'online' | 'cadastros' | 'trial';
 
@@ -177,7 +180,7 @@ export function AdminHojeCards() {
       supabase.from('user_activity_log')
         .select('*', { count: 'exact', head: true })
         .gte('last_seen_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
-        .neq('display_name', 'Wesley Nunes'),
+        .not('email', 'in', ADMIN_EMAILS_FILTER),
     ]);
     const m = (data as any) || {};
     const novos: Record<CardId, number> = { online5m: c5m || 0, online: m.online || 0, cadastros: m.cadastros || 0, trial: m.trial || 0 };
@@ -209,7 +212,7 @@ export function AdminHojeCards() {
         const { data } = await supabase.from('user_activity_log')
           .select('*')
           .gte('last_seen_at', limitDate)
-          .neq('display_name', 'Wesley Nunes')
+          .not('email', 'in', ADMIN_EMAILS_FILTER)
           .order('last_seen_at', { ascending: false });
         rawList = ((data as any[]) || []).map((r) => ({
           key: r.user_id,
@@ -233,7 +236,7 @@ export function AdminHojeCards() {
         }));
       }
       
-      const list = rawList.filter(r => r.title !== 'Wesley Nunes');
+      const list = rawList.filter(r => !isAdminEmail(r.email));
       setRows(list);
       if (sameDay(date, new Date())) {
         const seen = readSeen(id, date);
