@@ -16,7 +16,7 @@ const HomeActionShortcuts = () => {
   const shortcutBadges = useShortcutBadges();
 
   return (
-    <div className="grid grid-cols-4 gap-2 mx-1 mt-1">
+    <div className="flex items-center justify-between mx-1 mt-1 bg-black/65 backdrop-blur-md border border-white/15 rounded-[20px] p-1.5 shadow-lg shadow-black/30">
       {SHORTCUT_ITEMS.map((item, index) => {
         const Icon = item.icon;
         const badgeCount = item.badgeKey ? shortcutBadges.counts[item.badgeKey] : 0;
@@ -42,11 +42,11 @@ const HomeActionShortcuts = () => {
             style={{
               '--shimmer-delay': `${index * 150}ms`,
             } as React.CSSProperties}
-            className="group relative flex flex-col items-center justify-center h-[72px] px-1 rounded-2xl bg-black/65 backdrop-blur-md border border-white/15 shadow-lg shadow-black/30 transition-all duration-200 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden"
+            className="flex-1 group relative flex flex-col items-center justify-center py-2 px-1 rounded-[14px] hover:bg-white/5 active:bg-white/10 transition-all duration-200 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden"
           >
             {badgeCount > 0 && item.badgeColor && (
               <span
-                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] font-bold leading-none flex items-center justify-center border border-white/20 shadow z-10"
+                className="absolute top-1 right-2 min-w-[16px] h-[16px] px-1 rounded-full text-white text-[9px] font-bold leading-none flex items-center justify-center border border-white/20 shadow z-10"
                 style={{ backgroundColor: item.badgeColor }}
               >
                 {badgeCount > 99 ? '99+' : badgeCount}
