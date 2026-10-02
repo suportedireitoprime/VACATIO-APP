@@ -2512,7 +2512,7 @@ const CategoriaLegislacao = () => {
         </Dialog>
 
 
-        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-28 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-[800px]' : 'max-w-5xl'}`} style={{ fontSize: `${fontSizeScale || 1}rem` }}>
+        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-28 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-[1200px]' : 'max-w-5xl'}`} style={{ fontSize: `${fontSizeScale || 1}rem` }}>
 
           {/* Mini-Sumário Flutuante removido */}
 
@@ -2552,7 +2552,7 @@ const CategoriaLegislacao = () => {
             {/* Nova Barra de Pesquisa */}
             {(() => {
               const searchContent = (
-                <div ref={searchBarRef} className={`mx-auto w-full ${isDesktop ? 'max-w-[340px]' : ''}`}>
+                <div ref={searchBarRef} className={`mx-auto w-full ${isDesktop ? 'max-w-full' : ''}`}>
                   <form
                     className="flex items-center gap-2.5 min-w-0"
                     onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
@@ -2708,7 +2708,7 @@ const CategoriaLegislacao = () => {
             {isDesktop ? (
               <div className="flex gap-6">
                 {/* Chapters sidebar */}
-                <div className="w-[260px] shrink-0 sticky top-4 self-start max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl bg-card border border-border p-3">
+                <div className="w-[320px] shrink-0 sticky top-4 self-start max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl bg-card border border-border p-3">
                   {chaptersPanel}
                 </div>
                 {/* Articles */}

@@ -66,12 +66,12 @@ const DesktopBreadcrumb = () => {
       aria-label="Breadcrumb"
       className="relative z-30 w-full border-b border-border/60 bg-background/85 backdrop-blur-md"
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-8 xl:px-12 py-3">
-        <ol className="flex items-center gap-1.5 text-[12px] font-body">
+      <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 md:px-6 py-3">
+        <ol className="flex items-center gap-1.5 text-[12px] font-body flex-1 min-w-0 pr-4">
           <li>
             <button
               onClick={() => navigate('/')}
-              className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+              className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors shrink-0"
             >
               <Home className="w-3.5 h-3.5" />
               <span className="sr-only">Início</span>
@@ -80,8 +80,8 @@ const DesktopBreadcrumb = () => {
           {trail.map((step, i) => {
             const isLast = i === trail.length - 1;
             return (
-              <li key={step.path} className="flex items-center gap-1.5">
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+              <li key={step.path} className="flex items-center gap-1.5 min-w-0">
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
                 {isLast ? (
                   <span className="font-semibold text-foreground truncate max-w-[240px]">
                     {step.label}
@@ -98,7 +98,7 @@ const DesktopBreadcrumb = () => {
             );
           })}
         </ol>
-        <div id="breadcrumb-actions-portal" className="flex items-center gap-2" />
+        <div id="breadcrumb-actions-portal" className="flex items-center justify-end w-full max-w-[808px]" />
       </div>
     </nav>
   );
