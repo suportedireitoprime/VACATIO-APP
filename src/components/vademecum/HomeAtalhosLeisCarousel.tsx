@@ -295,43 +295,49 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                 key={lei.id}
                 type="button"
                 onClick={() => onOpenLei(lei.id)}
-                style={{ background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.3)} 100%)` }}
-                className="border-0 min-w-[138px] max-w-[148px] sm:min-w-[152px] sm:max-w-[162px] h-[116px] sm:h-[122px] shrink-0 p-3 rounded-2xl relative overflow-hidden flex flex-col justify-between text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group"
+                className="border-0 min-w-[138px] max-w-[148px] sm:min-w-[152px] sm:max-w-[162px] h-[116px] sm:h-[122px] shrink-0 rounded-2xl relative flex flex-col text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
-                {/* Ícone temático no fundo transparente, do lado direito (substituindo a balança) */}
-                <LawIcon
-                  className="pointer-events-none absolute -right-2 -bottom-2 w-20 h-20 sm:w-22 sm:h-22 text-white/[0.15] drop-shadow-md group-hover:scale-105 group-hover:text-white/[0.2] transition-all duration-300"
-                  strokeWidth={1.3}
+                {/* Fundo com clip para a cor e o ícone de marca d'água */}
+                <div 
+                  className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
+                  style={{ background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.3)} 100%)` }}
+                >
+                  {/* Ícone temático no fundo transparente */}
+                  <LawIcon
+                    className="absolute -right-2 -bottom-2 w-20 h-20 sm:w-22 sm:h-22 text-white/[0.15] drop-shadow-md group-hover:scale-105 group-hover:text-white/[0.2] transition-all duration-300"
+                    strokeWidth={1.3}
+                  />
+                  {/* Brilho suave no topo do card */}
+                  <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
+                </div>
+
+                {/* Imagem vazando do card (Homem Sendo Preso) */}
+                <img
+                  src="/assets/homem-preso.png"
+                  alt="Homem preso"
+                  className="absolute -top-8 right-0 h-[130px] w-auto object-contain pointer-events-none z-10 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
                 />
 
-                {/* Brilho suave no topo do card */}
-                <div className="pointer-events-none absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
-
-                {/* Linha superior: Ícone temático + sigla na esquerda e setinha na direita */}
-                <div className="flex items-center justify-between gap-1.5 relative z-10 w-full">
-                  <div className="flex items-center gap-2 min-w-0">
+                {/* Conteúdo visível (Sigla da lei no fundo e ícone no canto superior) */}
+                <div className="relative z-20 flex flex-col justify-between w-full h-full p-3 pointer-events-none">
+                  {/* Canto superior (Opcional, apenas um pequeno destaque) */}
+                  <div className="flex justify-between items-start">
                     <LawIcon
                       className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-white shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-200"
                       strokeWidth={1.8}
                     />
-                    <span className="font-display text-white text-[20px] sm:text-[22px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+                  </div>
+                  
+                  {/* Canto inferior (Abreviatura) */}
+                  <div className="flex justify-between items-end mt-auto">
+                    <span className="font-display text-white text-[24px] sm:text-[26px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
                       {lei.sigla}
                     </span>
+                    <ChevronRight
+                      className="w-4 h-4 text-white/70 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200 shrink-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] mb-1"
+                      strokeWidth={2.4}
+                    />
                   </div>
-                  <ChevronRight
-                    className="w-4 h-4 text-white/70 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200 shrink-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
-                    strokeWidth={2.4}
-                  />
-                </div>
-
-                {/* Linha inferior: Nome completo e número/ano da lei */}
-                <div className="relative z-10">
-                  <p className="font-body text-white font-bold text-[11px] sm:text-[11.5px] leading-tight line-clamp-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-                    {lei.nome}
-                  </p>
-                  <p className="font-body text-white/80 text-[9.5px] sm:text-[10px] font-medium truncate mt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
-                    {lei.id === 'cf88' ? 'Constituição de 1988' : lei.descricao}
-                  </p>
                 </div>
               </button>
             );
