@@ -23,22 +23,17 @@ jobs:
       - name: Checkout do Repositório
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 8
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: 'npm'
 
       - name: Instalar pacotes
-        run: pnpm install --no-frozen-lockfile
+        run: npm install --legacy-peer-deps
 
       - name: Build do Projeto (Vite)
-        run: pnpm run build
+        run: npm run build
         env:
           VITE_BASE_URL: /VACATIO-APP/
           # Adicione as variáveis de ambiente necessárias para o build do PWA aqui, caso necessário
