@@ -1,11 +1,22 @@
 import { useIsDesktop } from '@/hooks/use-desktop';
-import { useSessionTracker } from '@/hooks/useSessionTracker';
-import { Wifi, WifiOff, CloudOff, CloudTick } from 'lucide-react';
+import { Wifi, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 export default function DesktopStatusBar() {
   const isDesktop = useIsDesktop();
-  const { isOnline } = useSessionTracker();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const onOnline = () => setIsOnline(true);
+    const onOffline = () => setIsOnline(false);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, []);
 
   if (!isDesktop) return null;
 
