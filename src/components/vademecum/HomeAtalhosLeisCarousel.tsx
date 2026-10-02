@@ -291,11 +291,11 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
             const baseColor = getLeiColor(lei.id, lei.tipo);
             
             let coverImage = null;
-            if (lei.id === 'cdc') coverImage = '/assets/cdc-worker.png';
-            else if (lei.id === 'cpp') coverImage = '/assets/cpp-court.png';
-            else if (['cp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.png';
+            if (lei.id === 'cdc') coverImage = '/assets/cdc-worker.webp';
+            else if (lei.id === 'cpp') coverImage = '/assets/cpp-court.webp';
+            else if (['cp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.webp';
             // Default para outras se houver no futuro
-            else if (['ctn'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.png'; 
+            else if (['ctn'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.webp'; 
 
             return (
               <button
@@ -318,12 +318,11 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                   <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
                 </div>
 
-                {/* Imagem vazando do card */}
                 {coverImage && (
                   <img
                     src={coverImage}
                     alt={`Capa da lei ${lei.sigla}`}
-                    className="absolute -top-6 right-0 h-[118px] w-auto object-contain pointer-events-none z-10 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] group-hover:drop-shadow-[0_12px_20px_rgba(0,0,0,0.7)] group-hover:scale-105 transition-all duration-300"
+                    className="absolute -top-6 right-0 h-[118px] w-auto max-w-none object-contain pointer-events-none z-10 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] group-hover:drop-shadow-[0_12px_20px_rgba(0,0,0,0.7)] group-hover:scale-105 transition-all duration-300"
                   />
                 )}
 
