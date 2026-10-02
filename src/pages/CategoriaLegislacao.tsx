@@ -2200,7 +2200,7 @@ const CategoriaLegislacao = () => {
     };
 
     // Menu de alternância no rodapé
-    const footerBottomNav = !focusMode && !isDesktop ? (
+    const footerBottomNav = !focusMode && !isDesktop && !showSearchRecents ? (
       <div className="fixed bottom-0 left-0 right-0 z-[60] bg-background/95 backdrop-blur-md border-t border-white/5 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] px-3 pt-3">
         <div className={`mx-auto grid grid-cols-3 gap-2 ${isDesktop ? 'max-w-xl' : 'w-full'}`}>
           {[
@@ -2212,7 +2212,7 @@ const CategoriaLegislacao = () => {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               disabled={loadingArtigos}
-              className={`flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-2xl transition-all ${
+              className={`flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-[22px] transition-all ${
                 activeTab === tab.key
                   ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
                   : 'bg-[#1C1C1E] text-white/80 hover:bg-[#2C2C2E] hover:text-white'
@@ -2582,8 +2582,13 @@ const CategoriaLegislacao = () => {
                         placeholder="Pesquisar artigo..."
                         inputMode="search"
                         enterKeyHint="search"
-                        className={`rounded-2xl bg-[#1C1C1E] text-white placeholder:text-white/50 border-transparent shadow-xl pl-10 pr-20 font-bold transition-colors focus:bg-[#1C1C1E] focus-visible:ring-2 focus-visible:ring-white/20 ${isDesktop ? 'h-9 text-xs' : 'h-12 text-[13px]'}`}
-                        onFocus={() => setShowSearchRecents(true)}
+                        className={`rounded-2xl bg-[#1C1C1E] text-white placeholder:text-white/50 border-transparent shadow-xl pl-10 pr-20 font-bold transition-colors focus:bg-[#1C1C1E] focus-visible:ring-2 focus-visible:ring-white/20 ${isDesktop ? 'h-10 text-xs' : 'h-[52px] text-[14px]'}`}
+                        onFocus={(e) => {
+                          setShowSearchRecents(true);
+                          setTimeout(() => {
+                            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }, 150);
+                        }}
                         onBlur={() => setTimeout(() => setShowSearchRecents(false), 200)}
                       />
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
