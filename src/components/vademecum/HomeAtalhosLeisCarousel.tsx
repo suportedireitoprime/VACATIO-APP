@@ -300,7 +300,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
               >
                 {/* Ícone temático no fundo transparente, do lado direito (substituindo a balança) */}
                 <LawIcon
-                  className="pointer-events-none absolute -right-2 -bottom-2 w-20 h-20 sm:w-22 sm:h-22 text-white/[0.12] group-hover:scale-105 group-hover:text-white/[0.18] transition-all duration-300"
+                  className="pointer-events-none absolute -right-2 -bottom-2 w-20 h-20 sm:w-22 sm:h-22 text-white/[0.15] drop-shadow-md group-hover:scale-105 group-hover:text-white/[0.2] transition-all duration-300"
                   strokeWidth={1.3}
                 />
 
