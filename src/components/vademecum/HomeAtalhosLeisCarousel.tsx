@@ -289,6 +289,12 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
           {activeLeis.map((lei) => {
             const LawIcon = getLawIcon(lei.id, lei.tipo);
             const baseColor = getLeiColor(lei.id, lei.tipo);
+            
+            let coverImage = null;
+            if (lei.id === 'cdc') coverImage = '/assets/cdc-worker.png';
+            else if (['cp', 'cpp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.png';
+            // Default para outras se houver no futuro
+            else if (['ctn'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.png'; 
 
             return (
               <button
@@ -311,12 +317,14 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                   <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
                 </div>
 
-                {/* Imagem vazando do card (Homem Sendo Preso Novo) */}
-                <img
-                  src="/assets/homem-preso-novo.png"
-                  alt="Homem preso e Policial"
-                  className="absolute -top-7 right-0 h-[126px] w-auto object-contain pointer-events-none z-10 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
-                />
+                {/* Imagem vazando do card */}
+                {coverImage && (
+                  <img
+                    src={coverImage}
+                    alt={`Capa da lei ${lei.sigla}`}
+                    className="absolute -top-7 right-0 h-[126px] w-auto object-contain pointer-events-none z-10 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
+                  />
+                )}
 
                 {/* Conteúdo visível (Sigla da lei no fundo e ícone no canto superior) */}
                 <div className="relative z-20 flex flex-col justify-between w-full h-full p-3 pointer-events-none">
