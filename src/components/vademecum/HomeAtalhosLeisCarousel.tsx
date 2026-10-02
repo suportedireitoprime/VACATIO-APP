@@ -313,7 +313,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
 
                 {/* Imagem vazando do card (Homem Sendo Preso Novo) */}
                 <img
-                  src="/assets/homem-preso-novo.png"
+                  src="/assets/homem-preso-novo.jpg"
                   alt="Homem preso e Policial"
                   className="absolute -top-8 right-0 h-[130px] w-auto object-contain pointer-events-none z-10 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
                 />
