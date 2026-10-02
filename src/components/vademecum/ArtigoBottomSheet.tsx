@@ -1855,30 +1855,28 @@ const ArtigoBottomSheet = ({
   const isRevogado = processedLines.length === 0 && rawLines.length > 0;
   const displayLines = isRevogado ? rawLines : processedLines;
 
-  const navChips = useMemo(() => {
-    if (!displayLines || displayLines.length <= 1) return [];
-    const chips: { chip: string; index: number }[] = [];
+  const navChips: { chip: string; index: number }[] = [];
+  if (displayLines && displayLines.length > 1) {
     displayLines.forEach((line, i) => {
       if (i === 0) {
-        chips.push({ chip: 'Caput', index: i });
+        navChips.push({ chip: 'Caput', index: i });
         return;
       }
       const t = line.trim();
       if (/^[a-z]\)\s*/i.test(t)) {
         const m = t.match(/^([a-z]\))/i);
-        if (m) chips.push({ chip: m[1].toLowerCase(), index: i });
+        if (m) navChips.push({ chip: m[1].toLowerCase(), index: i });
       } else if (/^§\s*(\d+)/i.test(t)) {
         const m = t.match(/^§\s*(\d+)/i);
-        if (m) chips.push({ chip: `§ ${m[1]}º`, index: i });
+        if (m) navChips.push({ chip: `§ ${m[1]}º`, index: i });
       } else if (/^Par[áa]grafo\s+[úu]nico/i.test(t)) {
-        chips.push({ chip: 'Par. único', index: i });
+        navChips.push({ chip: 'Par. único', index: i });
       } else if (/^([IVXLCDM]+)\s*[-–.)]/i.test(t)) {
         const m = t.match(/^([IVXLCDM]+)/i);
-        if (m) chips.push({ chip: m[1].toUpperCase(), index: i });
+        if (m) navChips.push({ chip: m[1].toUpperCase(), index: i });
       }
     });
-    return chips;
-  }, [displayLines]);
+  }
 
   const getRenderedLineText = (line: string, lineIndex: number, isFirst: boolean) => {
     const isModifiedLine = modificationInfo && modificationInfo.linhasModificadas.includes(lineIndex);
