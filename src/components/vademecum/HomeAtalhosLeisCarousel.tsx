@@ -311,10 +311,10 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                   <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
                 </div>
 
-                {/* Imagem vazando do card (Homem Sendo Preso) */}
+                {/* Imagem vazando do card (Homem Sendo Preso Novo) */}
                 <img
-                  src="/assets/homem-preso.png"
-                  alt="Homem preso"
+                  src="/assets/homem-preso-novo.png"
+                  alt="Homem preso e Policial"
                   className="absolute -top-8 right-0 h-[130px] w-auto object-contain pointer-events-none z-10 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
                 />
 
