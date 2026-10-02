@@ -258,14 +258,6 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
           <h3 className="font-display text-foreground text-[18px] font-bold uppercase flex items-center gap-2">
             <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
             <span className="truncate">Em Alta</span>
-            {/* #40 — Tag pulsante "Ao Vivo" */}
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-[10px] font-bold uppercase tracking-wider ml-1">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
-              </span>
-              Atualizado
-            </span>
           </h3>
           <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3 truncate">
             Meus atalhos de leis mais consultadas
