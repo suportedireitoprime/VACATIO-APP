@@ -47,8 +47,8 @@ import {
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 import { getLeiColor, shade } from '@/lib/leiTheme';
 
-const STORAGE_KEY = 'home_atalhos_leis_v4';
-const MAX_ATALHOS = 12;
+const STORAGE_KEY = 'home_atalhos_leis_v5';
+const MAX_ATALHOS = 13;
 
 /** Ordem padrão solicitada: CF, CPC, CC, CP, CPP, CLT + restantes */
 const DEFAULT_ATALHOS_IDS = [
@@ -63,6 +63,7 @@ const DEFAULT_ATALHOS_IDS = [
   'eoab', // 9. EOAB
   'eca',  // 10. ECA
   'epd',  // 11. Estatuto PCD
+  'ce',   // 12. Código Eleitoral
 ];
 
 interface AlternanciaTab {
@@ -321,6 +322,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
             else if (lei.id === 'eca') coverImage = '/assets/eca-kids.webp';
             else if (lei.id === 'eoab') coverImage = '/assets/eoab-woman.webp';
             else if (lei.id === 'epd') coverImage = '/assets/epd-wheelchair.webp';
+            else if (lei.id === 'ce') coverImage = '/assets/ce-vote.webp';
 
             return (
               <button
