@@ -315,7 +315,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                 <img
                   src="/assets/homem-preso-novo.png"
                   alt="Homem preso e Policial"
-                  className="absolute -top-10 right-0 h-[140px] w-auto object-contain pointer-events-none z-10 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
+                  className="absolute -top-7 right-0 h-[126px] w-auto object-contain pointer-events-none z-10 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
                 />
 
                 {/* Conteúdo visível (Sigla da lei no fundo e ícone no canto superior) */}
