@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Search, X, BookMarked, Gavel, ArrowRight, Zap } from 'lucide-react';
+import { Search, X, BookMarked, Gavel, ArrowRight, Zap, MessageCircle, ScrollText, Feather, Heart, Wrench } from 'lucide-react';
 
 import DesktopTopHeader from '@/components/vademecum/DesktopTopHeader';
 import ShapeGrid from '@/components/ui/ShapeGrid';
@@ -126,6 +126,30 @@ const IndexDesktop = () => {
         <DesktopTopHeader onAssistenteClick={() => setAssistenteOpen(true)} />
 
         <div className="flex-1 min-w-0 overflow-y-auto pb-12">
+          {/* MENU SUPERIOR (ALTERNÂNCIA) */}
+          <div className="w-full bg-black/20 border-b border-white/5 relative z-30 mb-2">
+            <div className="max-w-7xl mx-auto px-8 py-4 flex items-center gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {[
+                { label: 'Favoritos', icon: Heart, color: 'text-red-400', bg: 'bg-red-400/10', action: () => navigate('/pessoal/favoritos') },
+                { label: 'Anotações', icon: ScrollText, color: 'text-sky-400', bg: 'bg-sky-400/10', action: () => navigate('/pessoal/anotacoes') },
+                { label: 'Grifos', icon: Feather, color: 'text-emerald-400', bg: 'bg-emerald-400/10', action: () => navigate('/pessoal/grifos') },
+                { label: 'Chat', icon: MessageCircle, color: 'text-yellow-400', bg: 'bg-yellow-400/10', action: () => setAssistenteOpen(true) },
+                { label: 'Ferramentas', icon: Wrench, color: 'text-purple-400', bg: 'bg-purple-400/10', action: () => navigate('/ferramentas') },
+              ].map(item => (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  className="group flex items-center gap-3 px-5 py-2.5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 backdrop-blur-md transition-all cursor-pointer shrink-0"
+                >
+                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${item.bg}`}>
+                     <item.icon className={`w-4 h-4 ${item.color} group-hover:scale-110 transition-transform`} strokeWidth={2.5} />
+                   </div>
+                   <span className="font-display font-bold text-[14px] text-white/90 uppercase tracking-wider group-hover:text-white pr-1">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* HERO VERMELHO COM ACESSO RÁPIDO */}
           <div
             className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 pt-6 pb-12 flex flex-col z-20"
