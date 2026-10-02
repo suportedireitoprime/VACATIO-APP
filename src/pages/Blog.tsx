@@ -132,7 +132,7 @@ const Blog = () => {
 
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       {/* Header compacto no topo — sem capa grande */}
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg">
         <div className="max-w-3xl mx-auto">

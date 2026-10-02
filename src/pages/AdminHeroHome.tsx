@@ -98,7 +98,7 @@ export default function AdminHeroHome() {
   };
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <PageHeader
         title="Imagens do início do app"
         subtitle="Gerencie os personagens que aparecem no painel amarelo da home"

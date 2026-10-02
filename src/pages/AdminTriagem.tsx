@@ -57,7 +57,7 @@ export default function AdminTriagem() {
   };
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <PageHeader title="Triagem" onBack={() => navigate('/admin-funcoes')} />
       <div className="max-w-5xl mx-auto p-4 pb-24">
         <Tabs defaultValue="cadastro" className="w-full">

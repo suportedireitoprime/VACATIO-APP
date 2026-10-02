@@ -708,7 +708,7 @@ export default function Assinatura() {
 
   // ── CHECKOUT VIEW ──
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <AppHeader
         onBack={() => { setView("plans"); setPixQrImage(null); setPixPaymentId(null); }}
         title={

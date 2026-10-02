@@ -159,7 +159,7 @@ const SumulasTribunal = ({ tribunal }: Props) => {
   ];
 
   return (
-    <div className="min-h-dvh bg-background pb-20 lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <div className={`bg-gradient-to-br ${GRADIENT[tribunal]} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
         <div className="max-w-5xl mx-auto">
           <button

@@ -76,7 +76,7 @@ const EstadoDetalhe = () => {
 
   if (showConstituicao) {
     return (
-      <div className="min-h-dvh bg-background">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm">
           <div className="max-w-5xl mx-auto">
             <PageHeader
@@ -173,7 +173,7 @@ const EstadoDetalhe = () => {
   }
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto">

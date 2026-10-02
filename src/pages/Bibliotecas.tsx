@@ -271,7 +271,7 @@ const Bibliotecas = () => {
 
   if (isDesktop) {
     return (
-      <Suspense fallback={<div className="min-h-dvh bg-background" />}>
+      <Suspense fallback={<div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0" />}>
         <BibliotecasDesktop />
       </Suspense>
     );

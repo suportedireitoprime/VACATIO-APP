@@ -1059,7 +1059,7 @@ const CategoriaLegislacao = () => {
     // If a year is selected, show the list of laws
     if (selectedAno) {
       return (
-        <div className="min-h-dvh bg-background pb-20 lg:pb-0">
+        <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
           <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
             <div className="max-w-5xl mx-auto">
               <button
@@ -1144,7 +1144,7 @@ const CategoriaLegislacao = () => {
 
     // Year selection view
     return (
-      <div className="min-h-dvh bg-background pb-20 lg:pb-0">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
           <div className="max-w-5xl mx-auto">
             <button
@@ -1209,7 +1209,7 @@ const CategoriaLegislacao = () => {
 
     if (selectedAnoDecreto) {
       return (
-        <div className="min-h-dvh bg-background pb-20 lg:pb-0">
+        <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
           <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
             <div className="max-w-5xl mx-auto">
               <button
@@ -1294,7 +1294,7 @@ const CategoriaLegislacao = () => {
 
     // Year selection view for decretos
     return (
-      <div className="min-h-dvh bg-background pb-20 lg:pb-0">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
           <div className="max-w-5xl mx-auto">
             <button
@@ -1352,7 +1352,7 @@ const CategoriaLegislacao = () => {
     if (selectedTribunal) {
       const tribunalInfo = SUMULA_TRIBUNAIS.find(t => t.id === selectedTribunal);
       return (
-        <div className="min-h-dvh bg-background pb-20 lg:pb-0">
+        <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
           <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
             <div className="max-w-5xl mx-auto">
               <button
@@ -1468,7 +1468,7 @@ const CategoriaLegislacao = () => {
 
     // Tribunal selection view
     return (
-      <div className="min-h-dvh bg-background pb-20 lg:pb-0">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
           <div className="max-w-5xl mx-auto">
             <button
@@ -2529,7 +2529,7 @@ const CategoriaLegislacao = () => {
         </Dialog>
 
 
-        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-28 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-[1200px]' : 'max-w-5xl'}`} style={{ fontSize: `${fontSizeScale || 1}rem` }}>
+        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-[1200px]' : 'max-w-5xl'}`} style={{ fontSize: `${fontSizeScale || 1}rem` }}>
 
           {/* Mini-Sumário Flutuante removido */}
 

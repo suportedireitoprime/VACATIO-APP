@@ -257,7 +257,7 @@ const AdminNarracaoApresentacao = () => {
   );
 
   return (
-    <div className="min-h-dvh bg-background pb-28">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <PageHeader title="Apresentação Narrada" subtitle="PDF → voz → narração" onBack={() => navigate('/admin-narracao')} />
 
       {(job || lendoPdf) && (

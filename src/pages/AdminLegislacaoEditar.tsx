@@ -111,7 +111,7 @@ export default function AdminLegislacaoEditar() {
   const categoriasKeys = Object.keys(categoriasMap).sort();
 
   return (
-    <div className="min-h-dvh bg-background pb-24">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <PageHeader title="Legislação Editar" onBack={() => navigate(-1)} />
 
       <div className="px-4 pt-4 max-w-3xl mx-auto space-y-4">

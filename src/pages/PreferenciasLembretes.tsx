@@ -89,7 +89,7 @@ export default function PreferenciasLembretes() {
     : t === 'location' ? 'Artigo · local' : t;
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <AppHeader title="Preferências de lembretes" />
       <div className="mx-auto max-w-2xl p-4 pb-24 space-y-8">
         {loading ? (

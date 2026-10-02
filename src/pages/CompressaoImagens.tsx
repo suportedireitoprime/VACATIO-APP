@@ -192,7 +192,7 @@ export default function CompressaoImagens() {
   const pendingCount = files.filter(f => !results.has(`${f.bucket}/${f.path}`)).length;
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       {/* Header */}
       <PageHeader
         title="Compressão de Imagens"

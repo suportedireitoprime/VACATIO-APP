@@ -12,7 +12,7 @@ const FUNCOES = [
 const AdminLembretes = () => {
   const navigate = useNavigate();
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <PageHeader title="Lembretes" subtitle="Funções do app que oferecem lembretes" onBack={() => navigate('/admin-funcoes')} />
       <div className="max-w-3xl mx-auto p-4 space-y-3">
         {FUNCOES.map((f) => {

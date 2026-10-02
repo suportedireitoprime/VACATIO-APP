@@ -38,7 +38,7 @@ const SobreApp = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <AppHeader title="Sobre o App" />
 
       <div className="p-4 space-y-6 max-w-lg mx-auto pb-16">

@@ -113,7 +113,7 @@ export default function LembretesLocal() {
   };
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <AppHeader title="Lembretes por Local" />
       <div className="mx-auto max-w-2xl p-4 pb-24">
         <p className="mb-4 text-sm text-muted-foreground">

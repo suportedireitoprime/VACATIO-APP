@@ -36,7 +36,7 @@ const ExcluirConta = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <AppHeader title="Excluir minha conta" />
 
       <div className="p-4 max-w-lg mx-auto space-y-4">

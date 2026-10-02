@@ -353,7 +353,7 @@ export default function AdminPushSection() {
   }
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <PageHeader title={meta.title} subtitle={meta.subtitle} onBack={() => navigate('/admin-push')} />
       <div className="max-w-3xl mx-auto p-4 space-y-4">
         <div className="grid grid-cols-2 gap-2">

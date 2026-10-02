@@ -141,7 +141,7 @@ const Novidades = () => {
 
   if (detailItem) {
     return (
-      <div className="min-h-dvh bg-background">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         <LeiOrdinariaDetail lei={detailItem} onBack={() => setDetailItem(null)} />
       </div>
     );
@@ -150,7 +150,7 @@ const Novidades = () => {
   const selectedDateKey = toDateKey(selectedDate);
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       {/* Red gradient header */}
       <div className="bg-gradient-to-b from-primary/30 via-primary/15 to-background pb-4">
         {/* Top bar */}

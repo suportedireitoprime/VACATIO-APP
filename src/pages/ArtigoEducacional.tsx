@@ -84,7 +84,7 @@ export default function ArtigoEducacional() {
 
   if (!artigo) {
     return (
-      <div className="min-h-dvh bg-background">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         <PageHeader title="Artigo" onBack={() => navigate('/aprender')} />
         <div className="p-6 text-center text-muted-foreground text-sm">Artigo não encontrado.</div>
       </div>
@@ -92,7 +92,7 @@ export default function ArtigoEducacional() {
   }
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <PageHeader
         title={artigo.titulo}
         subtitle={artigo.categoria}

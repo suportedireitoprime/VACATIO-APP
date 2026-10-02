@@ -105,7 +105,7 @@ export default function AdminHomeCuriosidades() {
   };
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <PageHeader
         title="Curiosidades da Home"
         subtitle="Cards leves misturados com os stats do painel"

@@ -279,7 +279,7 @@ const AprenderAula = () => {
   if (finalizada) {
     const pct = perguntas.length ? Math.round((acertos / perguntas.length) * 100) : 100;
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
         <div className="mx-auto max-w-2xl px-4 py-10 text-center">
           <div
             className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30"

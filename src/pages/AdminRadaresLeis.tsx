@@ -98,7 +98,7 @@ export default function AdminRadaresLeis() {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-24">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       <PageHeader title="Radar de Leis" onBack={() => navigate('/admin-funcoes')} />
       <div className="max-w-4xl mx-auto p-4 space-y-4">
         <Card className="p-4 space-y-3">
