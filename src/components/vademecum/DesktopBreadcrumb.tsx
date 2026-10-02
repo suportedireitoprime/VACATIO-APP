@@ -66,37 +66,40 @@ const DesktopBreadcrumb = () => {
       aria-label="Breadcrumb"
       className="relative z-30 w-full border-b border-border/60 bg-background/85 backdrop-blur-md"
     >
-      <ol className="mx-auto flex max-w-7xl items-center gap-1.5 px-8 xl:px-12 py-2 text-[12px] font-body">
-        <li>
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
-          >
-            <Home className="w-3.5 h-3.5" />
-            <span className="sr-only">Início</span>
-          </button>
-        </li>
-        {trail.map((step, i) => {
-          const isLast = i === trail.length - 1;
-          return (
-            <li key={step.path} className="flex items-center gap-1.5">
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
-              {isLast ? (
-                <span className="font-semibold text-foreground truncate max-w-[240px]">
-                  {step.label}
-                </span>
-              ) : (
-                <button
-                  onClick={() => navigate(step.path)}
-                  className="text-muted-foreground hover:text-primary transition-colors truncate max-w-[180px]"
-                >
-                  {step.label}
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-8 xl:px-12 py-3">
+        <ol className="flex items-center gap-1.5 text-[12px] font-body">
+          <li>
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span className="sr-only">Início</span>
+            </button>
+          </li>
+          {trail.map((step, i) => {
+            const isLast = i === trail.length - 1;
+            return (
+              <li key={step.path} className="flex items-center gap-1.5">
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+                {isLast ? (
+                  <span className="font-semibold text-foreground truncate max-w-[240px]">
+                    {step.label}
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => navigate(step.path)}
+                    className="text-muted-foreground hover:text-primary transition-colors truncate max-w-[180px]"
+                  >
+                    {step.label}
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+        <div id="breadcrumb-actions-portal" className="flex items-center gap-2" />
+      </div>
     </nav>
   );
 };
