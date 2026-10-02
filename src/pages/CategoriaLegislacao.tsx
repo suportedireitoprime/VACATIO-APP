@@ -302,6 +302,16 @@ const CategoriaLegislacao = () => {
     setDbAlteracoes([]);
     setLoadingDbAlteracoes(false);
   }, [overlayPanel, selectedTabelaNome]);
+  // 53. Botão 'Esc' Global
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && overlayPanel) {
+        setOverlayPanel(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [overlayPanel]);
 
   // Fetch narrations when playlist tab is active
   useEffect(() => {
@@ -1879,13 +1889,13 @@ const CategoriaLegislacao = () => {
 
     // ---- Overlay panel content builders ----
     const favContent = (
-      <div className="space-y-2 pb-8">
+      <div className={`pb-8 ${isDesktop ? 'grid grid-cols-2 gap-4 items-start' : 'space-y-2'}`}>
         {artigos.filter(a => isArtigoFav(a)).length > 0 ? (
           artigos.filter(a => isArtigoFav(a)).map((artigo, i) => (
             <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => { setOverlayPanel(null); setOpenArtigo(artigo); }} accentColor={leiAccent} tags={{ favorito: true, grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
           ))
         ) : (
-          <div className="flex flex-col items-center py-16 gap-3">
+          <div className={`flex flex-col items-center py-16 gap-3 ${isDesktop ? 'col-span-2' : ''}`}>
             <Heart className="w-10 h-10 text-muted-foreground/40" />
             <p className="text-foreground text-sm font-medium">Você não tem nenhum artigo favoritado</p>
             <p className="text-muted-foreground/70 text-xs text-center max-w-[240px]">Toque no coração ao abrir um artigo para favoritá-lo.</p>
@@ -2210,30 +2220,45 @@ const CategoriaLegislacao = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={() => setOverlayPanel(null)}
-              className="fixed inset-0 z-[59] bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-[59] bg-background/60 backdrop-blur-md"
             />
             <motion.div
               key={overlayPanel}
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
+              initial={isDesktop ? { opacity: 0, scale: 0.95, y: '-50%', x: '-50%' } : { y: '100%', opacity: 1 }}
+              animate={isDesktop ? { opacity: 1, scale: 1, y: '-50%', x: '-50%' } : { y: 0, opacity: 1 }}
+              exit={isDesktop ? { opacity: 0, scale: 0.95, y: '-50%', x: '-50%' } : { y: '100%', opacity: 1 }}
               transition={{ type: 'spring', damping: 30, stiffness: 320 }}
-              className="fixed inset-x-0 bottom-0 z-[60] h-[100dvh] bg-background border-t border-white/10 flex flex-col shadow-2xl lg:max-w-[720px] lg:mx-auto"
+              className={`fixed z-[60] bg-background border border-white/10 flex flex-col shadow-2xl ${
+                isDesktop 
+                  ? 'top-1/2 left-1/2 w-full max-w-3xl max-h-[85vh] rounded-2xl' 
+                  : 'inset-x-0 bottom-0 h-[100dvh] rounded-t-2xl'
+              }`}
               style={{ willChange: 'transform' }}
             >
-              {/* Drag handle */}
-              <div className="flex justify-center pt-3 pb-1 shrink-0">
-                <div className="w-10 h-1 rounded-full bg-white/20" />
-              </div>
-              {/* Header */}
-              <div className="flex items-center gap-3 px-4 py-2 border-b border-white/5 shrink-0">
-                <button onClick={() => setOverlayPanel(null)} className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center">
-                  <ArrowLeft className="w-5 h-5 text-white" />
-                </button>
-                <div className="flex-1 min-w-0">
-                  <h1 className="font-display text-base font-bold text-foreground truncate">{overlayLabels[overlayPanel]?.label}</h1>
-                  <p className="text-xs text-muted-foreground truncate">{selectedLeiNome}</p>
+              {/* Drag handle (somente mobile) */}
+              {!isDesktop && (
+                <div className="flex justify-center pt-3 pb-1 shrink-0">
+                  <div className="w-10 h-1 rounded-full bg-white/20" />
                 </div>
+              )}
+              {/* Header */}
+              <div className="flex items-center justify-between gap-3 px-4 md:px-6 py-3 border-b border-white/5 shrink-0 bg-background/95 backdrop-blur-sm sticky top-0 z-10 rounded-t-2xl">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  {!isDesktop && (
+                    <button onClick={() => setOverlayPanel(null)} className="w-9 h-9 shrink-0 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center">
+                      <ArrowLeft className="w-5 h-5 text-white" />
+                    </button>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h1 className="font-display text-base md:text-lg font-bold text-foreground truncate">{overlayLabels[overlayPanel]?.label}</h1>
+                    <p className="text-xs text-muted-foreground truncate">{selectedLeiNome}</p>
+                  </div>
+                </div>
+                {isDesktop && (
+                  <button onClick={() => setOverlayPanel(null)} className="w-9 h-9 shrink-0 rounded-full hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition-colors">
+                    <XIcon className="w-5 h-5" />
+                  </button>
+                )}
               </div>
               {/* Explanatory banner (hidden for Favoritos) */}
               {overlayPanel !== 'fav' && (
