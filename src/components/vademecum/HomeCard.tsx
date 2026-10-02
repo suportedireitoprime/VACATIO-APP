@@ -11,6 +11,7 @@ interface HomeCardProps {
   inlineTitle?: boolean;
   onClick: () => void;
   className?: string;
+  statusBadge?: string;
   'data-track'?: string;
   'data-track-name'?: string;
   'data-track-section'?: string;
@@ -29,6 +30,7 @@ const HomeCardImpl = ({
   inlineTitle = false,
   onClick,
   className = '',
+  statusBadge,
   'data-track': dataTrack,
   'data-track-name': dataTrackName,
   'data-track-section': dataTrackSection,
@@ -43,6 +45,11 @@ const HomeCardImpl = ({
     data-track-section={dataTrackSection}
     className={`group relative flex flex-col justify-between w-full h-[112px] sm:h-[118px] p-3.5 sm:p-4 rounded-2xl bg-card hover:bg-secondary/60 border border-border/60 hover:border-primary/40 shadow-sm hover:shadow-xl hover:-translate-y-[2px] active:scale-[0.98] transition-all duration-300 text-left overflow-hidden ${className}`}
   >
+    {statusBadge && (
+      <div className="absolute top-2.5 right-3 px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold uppercase tracking-wider hidden sm:block">
+        {statusBadge}
+      </div>
+    )}
     {inlineTitle ? (
       <>
         <div className="flex items-start w-full gap-2">

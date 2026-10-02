@@ -21,6 +21,7 @@ import { leiPath, leiToSlug, tipoToSlug } from '@/lib/legislacaoSlugs';
 import { prefetchAllArtigos } from '@/services/legislacaoService';
 import { prefetchResenha } from '@/services/atualizacaoService';
 import { prefetchNoticias } from '@/services/noticiasService';
+import DesktopNewsGrid from '@/components/desktop/DesktopNewsGrid';
 import { warmCoverCache } from '@/lib/coverLoader';
 
 const SearchOverlay = lazy(() => import('@/components/vademecum/SearchOverlay'));
@@ -310,7 +311,7 @@ const IndexDesktop = () => {
                 <button
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id as TabType); setActiveArea(null); setSearchQuery(''); }}
-                  className={`px-5 py-2.5 text-[14px] font-display font-bold uppercase tracking-wider rounded-full transition-all border ${
+                  className={`px-6 py-3 text-[15px] font-display font-bold uppercase tracking-wider rounded-full transition-all border ${
                     activeTab === tab.id
                       ? 'bg-primary border-primary text-primary-foreground shadow-md'
                       : 'bg-black/40 backdrop-blur-md border-white/10 text-white/70 hover:text-white hover:bg-black/60'
@@ -319,6 +320,11 @@ const IndexDesktop = () => {
                   {tab.label}
                 </button>
               ))}
+
+              <button className="ml-2 px-5 py-3 text-[15px] font-display font-bold uppercase tracking-wider rounded-full transition-all border bg-black/40 backdrop-blur-md border-white/10 text-white/70 hover:text-white hover:bg-black/60 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-list-filter"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>
+                Filtros
+              </button>
               
               <div className="ml-auto relative w-64 hidden md:block">
                  <input
@@ -384,6 +390,7 @@ const IndexDesktop = () => {
                   const custom = displayNames[lei.id];
                   const cardLabel = custom ? custom.label : lei.sigla || lei.nome;
                   const cardSublabel = custom ? custom.sublabel : lei.descricao;
+                  const badge = EM_ALTA_IDS.includes(lei.id) ? 'ATUALIZADO' : undefined;
 
                   return (
                     <HomeCard
@@ -392,6 +399,7 @@ const IndexDesktop = () => {
                       label={cardLabel}
                       sublabel={cardSublabel}
                       color={lei.iconColor || (isCodigo ? '#F59E0B' : '#3B82F6')}
+                      statusBadge={badge}
                       inlineTitle={true}
                       delay={Math.min(i * 0.015, 0.2)}
                       className="min-h-[116px] py-4 px-4"
@@ -416,6 +424,9 @@ const IndexDesktop = () => {
             </>
             )}
           </main>
+
+          {/* Notícias em Grid de Revista */}
+          <DesktopNewsGrid />
         </div>
 
         <Suspense fallback={null}>
