@@ -29,10 +29,12 @@ const config: CapacitorConfig = {
   experimental: {
     ios: {
       spm: {
+        swiftToolsVersion: '6.1',
         packageOptions: {
           // Evita colisão de identidade SwiftPM com @capacitor/app (ambos viram "app").
           '@capacitor-firebase/app': { symlink: true },
           '@capacitor-firebase/crashlytics': { symlink: true },
+          '@capacitor-firebase/analytics': { symlink: true },
         },
       },
     },
