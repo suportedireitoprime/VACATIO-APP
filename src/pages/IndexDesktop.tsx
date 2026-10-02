@@ -183,7 +183,7 @@ const IndexDesktop = () => {
 
           {/* HERO VERMELHO COM ACESSO RÁPIDO */}
           <div
-            className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 pt-6 pb-12 flex flex-col z-20"
+            className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 pt-6 pb-12 [@media(max-height:800px)]:pb-6 flex flex-col z-20"
             style={{ backgroundColor: '#050505' }}
           >
             {/* Overlay vermelho com gradiente */}
@@ -205,8 +205,10 @@ const IndexDesktop = () => {
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.16),transparent_65%)] pointer-events-none" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
 
-                {/* Motifs jurídicos clássicos */}
-                <HeroMotifs />
+                {/* Motifs jurídicos clássicos com leve efeito flutuante (Parallax/Idle) */}
+                <div className="absolute inset-0 animate-[pulse_12s_ease-in-out_infinite]">
+                  <HeroMotifs />
+                </div>
 
                 <div
                   className="absolute inset-0 opacity-10 pointer-events-none"
@@ -239,7 +241,7 @@ const IndexDesktop = () => {
                   Lei seca, comentários, explicações artigo por artigo, narração, resumos e muito mais para você <strong className="text-white">dominar o Direito</strong>.
                 </p>
 
-                <div className="relative w-full max-w-lg flex items-center h-16 pl-14 pr-[116px] rounded-2xl bg-black/65 backdrop-blur-md border border-white/15 shadow-lg shadow-black/30 search-bar-shine cursor-pointer group hover:border-white/30 transition-colors" onClick={() => setSearchOpen(true)}>
+                <button autoFocus className="relative w-full max-w-2xl text-left flex items-center h-16 pl-14 pr-[116px] rounded-2xl bg-black/65 backdrop-blur-md border border-white/15 shadow-lg shadow-black/30 search-bar-shine cursor-pointer group hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-colors" onClick={() => setSearchOpen(true)}>
                   <Search
                     className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-primary shrink-0 pointer-events-none group-hover:scale-110 transition-transform"
                     strokeWidth={2.2}
@@ -253,7 +255,7 @@ const IndexDesktop = () => {
                   >
                     PESQUISAR
                   </div>
-                </div>
+                </button>
               </div>
 
               {/* LADO DIREITO: Acesso Rápido - Em Alta */}
@@ -337,7 +339,7 @@ const IndexDesktop = () => {
 
             {/* Áreas do Direito (se Todos e nenhuma área selecionada) */}
             {activeTab === 'todos' && !activeArea && !searchQuery ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                 {AREA_CATS.map((area, i) => (
                   <HomeCard
                     key={area.id}
@@ -374,7 +376,7 @@ const IndexDesktop = () => {
                 )}
                 {/* Grid de Cards das Leis */}
                 {filteredItems.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                     {filteredItems.map((lei, i) => {
                   const Icon = LAW_ICON_MAP[lei.id] || (lei.tipo === 'codigo' ? Gavel : BookMarked);
                   const isCodigo = lei.tipo === 'codigo';
