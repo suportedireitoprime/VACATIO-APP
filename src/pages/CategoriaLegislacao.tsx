@@ -2563,6 +2563,8 @@ const CategoriaLegislacao = () => {
                         value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Pesquisar artigo..."
+                        inputMode="search"
+                        enterKeyHint="search"
                         className={`rounded-2xl bg-[#1C1C1E] text-white placeholder:text-white/50 border-transparent shadow-xl pl-10 pr-20 font-bold transition-colors focus:bg-[#1C1C1E] focus-visible:ring-2 focus-visible:ring-white/20 ${isDesktop ? 'h-9 text-xs' : 'h-12 text-[13px]'}`}
                         onFocus={() => setShowSearchRecents(true)}
                         onBlur={() => setTimeout(() => setShowSearchRecents(false), 200)}
@@ -2683,6 +2685,8 @@ const CategoriaLegislacao = () => {
                       value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Pesquisar artigo"
+                      inputMode="search"
+                      enterKeyHint="search"
                       className="h-11 rounded-xl bg-secondary border-border pl-9 pr-12 text-sm"
                     />
                     <button

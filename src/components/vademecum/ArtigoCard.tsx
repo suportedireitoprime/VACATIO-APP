@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ChevronRight, Heart, Highlighter, StickyNote } from 'lucide-react';
 import type { ArtigoLei } from '@/data/mockData';
 import { useLeituraStore } from '@/stores/useLeituraStore';
@@ -44,6 +45,7 @@ const cleanStructuralText = (value: string) => value.replace(planaltoAnnotationR
 
 const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, withShine, tags, anotacaoTexto }: ArtigoCardProps) => {
   const { bionicReading } = useLeituraStore();
+  const [noteExpanded, setNoteExpanded] = useState(false);
   const displayNumero = normalizeArtigoLabel(artigo.numero);
 
   // Cabeçalhos estruturais (PARTE, TÍTULO, CAPÍTULO…) — cartõezinhos verticais
@@ -221,17 +223,36 @@ const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, with
         </div>
       </button>
       
-      {/* Nota na margem direita (visível apenas em telas muito largas) */}
+      {/* Nota Post-it — visível em qualquer tamanho de tela, colapsável */}
       {anotacaoTexto && (
-        <div className="hidden xl:flex absolute left-full top-0 ml-8 w-[280px] p-4 rounded-2xl bg-sky-900/20 border border-sky-400/20 text-sky-100/90 text-[13px] leading-relaxed max-h-[140px] overflow-hidden flex-col gap-2 shadow-xl backdrop-blur-md transition-all hover:bg-sky-900/30">
-          <div className="flex items-center gap-2 opacity-80 shrink-0">
-            <StickyNote className="w-3.5 h-3.5 text-sky-400" />
-            <span className="font-bold text-[10px] uppercase tracking-wider text-sky-300">Anotação</span>
+        <>
+          {/* Mobile: pílula e balão expansível */}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setNoteExpanded((v) => !v); }}
+            aria-expanded={noteExpanded}
+            aria-label={noteExpanded ? 'Ocultar anotação' : 'Ver anotação'}
+            className="xl:hidden flex items-center gap-1.5 mt-1 ml-[60px] px-2.5 py-1 rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300 text-[11px] font-semibold transition-colors hover:bg-sky-500/25 active:scale-95"
+          >
+            <StickyNote className="w-3 h-3" />
+            {noteExpanded ? 'Ocultar' : 'Ver anotação'}
+          </button>
+          {noteExpanded && (
+            <div className="xl:hidden ml-[60px] mt-1 p-3 rounded-xl bg-sky-900/25 border border-sky-400/25 text-sky-100/90 text-[12.5px] leading-relaxed shadow-lg backdrop-blur-sm">
+              <p className="italic font-serif line-clamp-6">"{anotacaoTexto}"</p>
+            </div>
+          )}
+          {/* Desktop xl+: nota flutuante na margem direita */}
+          <div className="hidden xl:flex absolute left-full top-0 ml-8 w-[280px] p-4 rounded-2xl bg-sky-900/20 border border-sky-400/20 text-sky-100/90 text-[13px] leading-relaxed max-h-[140px] overflow-hidden flex-col gap-2 shadow-xl backdrop-blur-md transition-all hover:bg-sky-900/30">
+            <div className="flex items-center gap-2 opacity-80 shrink-0">
+              <StickyNote className="w-3.5 h-3.5 text-sky-400" />
+              <span className="font-bold text-[10px] uppercase tracking-wider text-sky-300">Anotação</span>
+            </div>
+            <p className="line-clamp-4 overflow-hidden text-ellipsis italic font-serif">
+              "{anotacaoTexto}"
+            </p>
           </div>
-          <p className="line-clamp-4 overflow-hidden text-ellipsis italic font-serif">
-            "{anotacaoTexto}"
-          </p>
-        </div>
+        </>
       )}
     </div>
   );
