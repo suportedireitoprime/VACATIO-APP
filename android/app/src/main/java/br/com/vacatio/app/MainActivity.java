@@ -75,6 +75,9 @@ public class MainActivity extends BridgeActivity {
         if (webView == null) return;
 
         final float density = getResources().getDisplayMetrics().density;
+        
+        webView.setVerticalScrollBarEnabled(false);
+        webView.setHorizontalScrollBarEnabled(false);
 
         // Listener direto na WebView — é ela que efetivamente recebe os insets
         // em edge-to-edge no Capacitor.
