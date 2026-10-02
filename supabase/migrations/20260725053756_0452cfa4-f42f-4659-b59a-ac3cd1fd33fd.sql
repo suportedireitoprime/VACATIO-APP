@@ -28,3 +28,4 @@ CREATE POLICY "Public read jurisprudencia_prontas"
 CREATE TRIGGER trg_jurisprudencia_prontas_updated
   BEFORE UPDATE ON public.jurisprudencia_prontas
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

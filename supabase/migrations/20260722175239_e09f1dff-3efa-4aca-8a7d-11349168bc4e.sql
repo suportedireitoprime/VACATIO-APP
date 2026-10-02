@@ -4,3 +4,4 @@ ALTER TABLE public.apple_csr_storage
 
 COMMENT ON COLUMN public.apple_csr_storage.provisioning_profile_base64 IS 'Base64 do arquivo .mobileprovision da Apple';
 COMMENT ON COLUMN public.apple_csr_storage.provisioning_profile_updated_at IS 'Data/hora em que o provisioning profile foi salvo';
+

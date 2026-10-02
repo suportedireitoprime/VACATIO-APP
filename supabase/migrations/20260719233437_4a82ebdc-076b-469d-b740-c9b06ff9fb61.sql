@@ -1,1 +1,2 @@
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS horus_onboarded_at timestamptz;
+

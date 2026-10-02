@@ -10,3 +10,4 @@ END $$;
 
 -- Remove a tabela de notícias da Câmara (fonte descontinuada — só Migalhas agora)
 DROP TABLE IF EXISTS public.noticias_camara CASCADE;
+

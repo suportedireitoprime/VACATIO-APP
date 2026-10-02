@@ -12,3 +12,4 @@ ALTER TABLE public.vade_mecum_artigos
   ADD COLUMN IF NOT EXISTS termos jsonb,
   ADD COLUMN IF NOT EXISTS narracao_url text,
   ADD COLUMN IF NOT EXISTS planalto_url text;
+

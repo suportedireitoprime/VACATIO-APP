@@ -22,3 +22,4 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.concorrentes;
   END IF;
 END $$;
+

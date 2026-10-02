@@ -54,3 +54,4 @@ CREATE POLICY "curiosidades bucket admin all"
   TO authenticated
   USING (bucket_id = 'home-curiosidades' AND public.is_admin_user(auth.uid()))
   WITH CHECK (bucket_id = 'home-curiosidades' AND public.is_admin_user(auth.uid()));
+

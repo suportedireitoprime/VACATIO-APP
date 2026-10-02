@@ -2,3 +2,4 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS status_perfil TEXT,
   ADD COLUMN IF NOT EXISTS faixa_etaria TEXT,
   ADD COLUMN IF NOT EXISTS telefone TEXT;
+

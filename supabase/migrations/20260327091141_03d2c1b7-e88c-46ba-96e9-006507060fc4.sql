@@ -34,3 +34,4 @@ BEGIN
   UPDATE constituicoes_estaduais SET caput = replace(caput, '°', 'º') WHERE caput LIKE '%°%';
 END;
 $$;
+

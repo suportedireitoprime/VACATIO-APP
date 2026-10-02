@@ -42,3 +42,4 @@ CREATE TRIGGER update_tematica_juridica_obras_updated_at
 CREATE INDEX idx_tematica_juridica_obras_tipo ON public.tematica_juridica_obras(tipo);
 CREATE INDEX idx_tematica_juridica_obras_ordem ON public.tematica_juridica_obras(ordem);
 CREATE INDEX idx_tematica_juridica_obras_categorias ON public.tematica_juridica_obras USING GIN(categorias_juridicas);
+

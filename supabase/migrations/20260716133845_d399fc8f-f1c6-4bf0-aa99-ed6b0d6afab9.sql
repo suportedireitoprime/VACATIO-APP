@@ -20,3 +20,4 @@ BEGIN
       ADD COLUMN IF NOT EXISTS analise_detalhada text', t);
   END LOOP;
 END $$;
+

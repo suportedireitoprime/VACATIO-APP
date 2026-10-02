@@ -63,3 +63,4 @@ CREATE INDEX IF NOT EXISTS idx_biblioteca_leitura_jobs_livro
   ON public.biblioteca_leitura_jobs (livro_tabela, livro_id);
 
 ALTER PUBLICATION supabase_realtime ADD TABLE public.biblioteca_leitura_jobs;
+

@@ -22,3 +22,4 @@ ALTER TABLE public.constituicoes_estaduais ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Leitura pública constituicoes_estaduais" ON public.constituicoes_estaduais FOR SELECT TO public USING (true);
 CREATE POLICY "Inserção constituicoes_estaduais" ON public.constituicoes_estaduais FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Deleção constituicoes_estaduais" ON public.constituicoes_estaduais FOR DELETE TO public USING (true);
+

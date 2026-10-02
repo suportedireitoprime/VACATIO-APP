@@ -40,3 +40,4 @@ SELECT u.id, 'anual', 'active', '2099-12-31T00:00:00Z'::timestamptz
 FROM auth.users u
 WHERE lower(u.email) = 'suporte.vacatio@gmail.com'
 ON CONFLICT DO NOTHING;
+

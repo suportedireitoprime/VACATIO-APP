@@ -1,1 +1,2 @@
 UPDATE public.horus_poderes SET ativo = true WHERE slug = 'langfuse';
+

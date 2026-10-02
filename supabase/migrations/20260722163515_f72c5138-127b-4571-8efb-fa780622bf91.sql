@@ -22,3 +22,4 @@ CREATE POLICY "Users manage their own store setup progress"
   FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+

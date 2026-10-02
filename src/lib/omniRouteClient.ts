@@ -7,6 +7,15 @@ export interface OmniRouteConfig {
   enabled: boolean;
 }
 
+export type OmniModelComplexity = 'low' | 'medium' | 'high' | 'tiered';
+
+export const OMNI_MODELS: Record<OmniModelComplexity, string> = {
+  low: 'antigravity/gemini-3.7-flash-low',
+  medium: 'antigravity/gemini-3.7-flash-medium',
+  high: 'antigravity/gemini-3.7-flash-high',
+  tiered: 'antigravity/gemini-3.7-flash-tiered',
+};
+
 export function getOmniRouteConfig(): OmniRouteConfig | null {
   try {
     const raw = localStorage.getItem('omniroute_config');
@@ -33,12 +42,14 @@ export async function generateOmniText({
   prompt,
   systemPrompt,
   temperature = 0.7,
-  modelOverride
+  modelOverride,
+  complexity
 }: {
   prompt: string;
   systemPrompt?: string;
   temperature?: number;
   modelOverride?: string;
+  complexity?: OmniModelComplexity;
 }) {
   const config = getOmniRouteConfig();
   
@@ -65,8 +76,10 @@ export async function generateOmniText({
   }
   messages.push({ role: 'user', content: prompt });
 
+  const finalModel = modelOverride || (complexity ? OMNI_MODELS[complexity] : config.defaultModel) || 'omniroute/auto';
+
   const body = JSON.stringify({
-    model: modelOverride || config.defaultModel || 'omniroute/auto',
+    model: finalModel,
     messages,
     temperature
   });
@@ -87,11 +100,13 @@ export async function generateOmniText({
 export async function generateOmniChat({
   messages,
   temperature = 0.7,
-  modelOverride
+  modelOverride,
+  complexity
 }: {
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
   temperature?: number;
   modelOverride?: string;
+  complexity?: OmniModelComplexity;
 }) {
   const config = getOmniRouteConfig();
   
@@ -111,8 +126,10 @@ export async function generateOmniChat({
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
 
+  const finalModel = modelOverride || (complexity ? OMNI_MODELS[complexity] : config.defaultModel) || 'omniroute/auto';
+
   const body = JSON.stringify({
-    model: modelOverride || config.defaultModel || 'omniroute/auto',
+    model: finalModel,
     messages,
     temperature
   });

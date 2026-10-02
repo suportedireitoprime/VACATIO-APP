@@ -55,3 +55,4 @@ CREATE POLICY "authenticated_read_questoes" ON public.simulado_questoes
 
 CREATE POLICY "service_all_questoes" ON public.simulado_questoes
   FOR ALL TO service_role USING (true) WITH CHECK (true);
+

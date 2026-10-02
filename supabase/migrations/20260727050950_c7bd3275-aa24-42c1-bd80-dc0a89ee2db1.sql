@@ -3,3 +3,4 @@ ALTER TABLE public.narracao_vozes_preview
 
 ALTER TABLE public.narracao_livro_paginas
   ADD CONSTRAINT narracao_livro_paginas_livro_pagina_key UNIQUE (livro_tabela, livro_id, pagina_index);
+

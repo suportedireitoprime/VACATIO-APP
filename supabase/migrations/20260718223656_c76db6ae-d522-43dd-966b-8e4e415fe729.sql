@@ -43,3 +43,4 @@ END
 FROM lei
 WHERE a.lei_id = lei.id
   AND a.numero ~ '^[0-9]+$';
+

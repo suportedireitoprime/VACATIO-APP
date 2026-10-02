@@ -9,3 +9,4 @@ UPDATE public.blog_edicao_config SET estilo_capa_prompt = 'Flat vector editorial
 - NO text, NO title, NO logo, NO caption, NO watermark visible anywhere in the artwork.
 - Timeless, elegant, feels like the cover of a classic law/philosophy book reprinted for a modern law blog.'
 WHERE id = (SELECT id FROM public.blog_edicao_config LIMIT 1);
+

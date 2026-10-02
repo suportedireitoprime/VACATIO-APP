@@ -29,3 +29,4 @@ CREATE POLICY "Admins can read events" ON public.app_events
         AND lower(u.email) IN ('wn7corporation@gmail.com','suporte.vacatio@gmail.com')
     )
   );
+

@@ -1,1 +1,2 @@
 DELETE FROM public.narracoes_artigos WHERE tabela_nome = 'CC_CODIGO_CIVIL';
+

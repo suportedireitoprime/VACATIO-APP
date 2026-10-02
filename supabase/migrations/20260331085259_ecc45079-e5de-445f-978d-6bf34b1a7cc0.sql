@@ -73,3 +73,4 @@ SELECT cron.schedule(
   '0 4 * * 0',
   $$DELETE FROM artigo_ai_cache WHERE created_at < now() - interval '90 days'$$
 );
+

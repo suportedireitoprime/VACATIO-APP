@@ -87,3 +87,4 @@ DROP TRIGGER IF EXISTS trg_sumario_touch ON public.aprender_sumario_sugerido;
 CREATE TRIGGER trg_sumario_touch
   BEFORE UPDATE ON public.aprender_sumario_sugerido
   FOR EACH ROW EXECUTE FUNCTION public.tg_sumario_touch();
+

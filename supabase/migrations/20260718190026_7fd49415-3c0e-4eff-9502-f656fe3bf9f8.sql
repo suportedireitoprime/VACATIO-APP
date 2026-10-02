@@ -34,3 +34,4 @@ DROP TRIGGER IF EXISTS notification_read_state_set_updated_at ON public.notifica
 CREATE TRIGGER notification_read_state_set_updated_at
   BEFORE UPDATE ON public.notification_read_state
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

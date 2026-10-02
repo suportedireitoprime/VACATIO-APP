@@ -16,3 +16,4 @@ SET corpus_lei_id = EXCLUDED.corpus_lei_id,
     nome_exibicao = EXCLUDED.nome_exibicao,
     ativo = true,
     updated_at = now();
+

@@ -128,3 +128,4 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.aprender_streak_atual(uuid) TO authenticated;
+

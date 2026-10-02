@@ -70,3 +70,4 @@ AS $function$
         AND created_at < ((_dia + 1)::timestamp AT TIME ZONE 'America/Sao_Paulo'))
   ) ELSE jsonb_build_object('online',0,'cadastros',0,'trial',0) END;
 $function$;
+

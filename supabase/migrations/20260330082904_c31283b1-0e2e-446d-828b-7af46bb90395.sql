@@ -15,3 +15,4 @@ CREATE POLICY "Anyone can read anotacoes" ON public.anotacoes_artigo FOR SELECT 
 CREATE POLICY "Anyone can insert anotacoes" ON public.anotacoes_artigo FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Anyone can delete anotacoes" ON public.anotacoes_artigo FOR DELETE TO anon, authenticated USING (true);
 CREATE POLICY "Anyone can update anotacoes" ON public.anotacoes_artigo FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+

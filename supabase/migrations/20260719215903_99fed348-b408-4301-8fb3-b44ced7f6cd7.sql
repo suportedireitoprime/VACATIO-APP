@@ -117,3 +117,4 @@ $$;
 
 REVOKE ALL ON FUNCTION public.horus_transferir_numero(uuid, text) FROM public;
 GRANT EXECUTE ON FUNCTION public.horus_transferir_numero(uuid, text) TO service_role;
+

@@ -25,3 +25,4 @@ AS $$
   ORDER BY s.created_at DESC
   LIMIT 20;
 $$;
+

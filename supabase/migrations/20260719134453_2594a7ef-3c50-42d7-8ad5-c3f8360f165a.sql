@@ -15,3 +15,4 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.admin_ai_usage_actors(uuid[]) TO authenticated;
+

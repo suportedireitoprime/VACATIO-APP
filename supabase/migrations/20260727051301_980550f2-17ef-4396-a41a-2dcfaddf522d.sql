@@ -25,3 +25,4 @@ CREATE UNIQUE INDEX narracao_vozes_config_padrao_unico
 CREATE TRIGGER narracao_vozes_config_updated_at
   BEFORE UPDATE ON public.narracao_vozes_config
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

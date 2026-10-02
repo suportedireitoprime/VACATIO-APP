@@ -10,3 +10,4 @@ FROM public.horus_whatsapp_users h
 WHERE h.user_id = p.id
   AND h.verified_at IS NOT NULL
   AND (p.telefone IS NULL OR regexp_replace(coalesce(p.telefone,''), '\D','','g') <> regexp_replace(h.phone_e164,'\D','','g'));
+

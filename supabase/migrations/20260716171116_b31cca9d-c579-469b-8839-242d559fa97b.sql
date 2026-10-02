@@ -94,3 +94,4 @@ INSERT INTO public.feature_limits (feature_key, label, description, category, li
   ('share_card', 'Compartilhar artigo como card', 'Exportar imagem/card do artigo', 'leis', 3, 'monthly', NULL, 24),
   ('noticia_read', 'Ler notícia jurídica completa', 'Notícias do Migalhas etc', 'blog', 5, 'monthly', NULL, 11),
   ('videoaula', 'Videoaula (fluxo YouTube)', 'Transcrição + resumo + questões', 'estudo', 2, 'monthly', NULL, 34);
+

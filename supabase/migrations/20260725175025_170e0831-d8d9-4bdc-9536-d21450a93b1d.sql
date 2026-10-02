@@ -42,3 +42,4 @@ CREATE TRIGGER trg_teses_edicoes_updated BEFORE UPDATE ON public.jurisprudencia_
 FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 CREATE TRIGGER trg_teses_itens_updated BEFORE UPDATE ON public.jurisprudencia_teses_itens
 FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

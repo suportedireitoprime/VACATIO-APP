@@ -25,3 +25,4 @@ CREATE POLICY "Users can update own activity" ON user_activity_log
   FOR UPDATE TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+

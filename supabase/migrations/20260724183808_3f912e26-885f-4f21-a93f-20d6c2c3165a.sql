@@ -28,3 +28,4 @@ FROM public.profiles p
 WHERE s.user_id = p.id
   AND trim(coalesce(p.display_name,'')) <> ''
   AND trim(coalesce(s.nome_preferido,'')) <> trim(coalesce(p.display_name,''));
+

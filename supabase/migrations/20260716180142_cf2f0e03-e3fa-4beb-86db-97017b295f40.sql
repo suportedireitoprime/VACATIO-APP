@@ -81,3 +81,4 @@ BEGIN
   RETURN jsonb_build_object('tipo', novo_tipo, 'likes', likes, 'dislikes', dislikes);
 END;
 $$;
+

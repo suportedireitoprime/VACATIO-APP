@@ -80,3 +80,4 @@ WHERE NOT EXISTS (SELECT 1 FROM public.horus_funcoes WHERE lower(nome) = 'conver
 
 UPDATE public.horus_funcoes SET eh_fallback = true, prioridade = 999
 WHERE lower(nome) = 'conversa livre';
+

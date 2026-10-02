@@ -14,3 +14,4 @@ CREATE POLICY "Users manage own usage" ON public.premium_usage
 
 CREATE INDEX idx_premium_usage_user_month 
   ON public.premium_usage(user_id, feature, used_at);
+

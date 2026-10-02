@@ -4,3 +4,4 @@ FOR UPDATE
 TO anon, authenticated
 USING (true)
 WITH CHECK (true);
+

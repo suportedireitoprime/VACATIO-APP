@@ -21,3 +21,4 @@ ON public.mensagens_suporte
 FOR SELECT
 TO authenticated
 USING (auth.uid() = user_id);
+

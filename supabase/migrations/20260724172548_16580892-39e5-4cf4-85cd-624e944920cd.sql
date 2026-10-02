@@ -19,3 +19,4 @@ INSERT INTO public.aprender_areas (slug, nome, descricao, cor, ordem) VALUES
   ('direito-desportivo', 'Direito Desportivo', 'Regras, entidades e justiça desportiva.', '#D6631A', 18),
   ('lei-penal-especial', 'Lei Penal Especial', 'Leis penais extravagantes e crimes especiais.', '#7A1D28', 19)
 ON CONFLICT (slug) DO NOTHING;
+

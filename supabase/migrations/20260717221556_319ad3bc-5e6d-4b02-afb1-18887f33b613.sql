@@ -18,3 +18,4 @@ CREATE POLICY "Boletins video leitura" ON storage.objects FOR SELECT
 CREATE POLICY "Boletins video escrita admin" ON storage.objects FOR ALL
   USING (bucket_id = 'boletins-video' AND public.is_admin_user(auth.uid()))
   WITH CHECK (bucket_id = 'boletins-video' AND public.is_admin_user(auth.uid()));
+

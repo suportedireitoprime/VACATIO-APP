@@ -17,3 +17,4 @@ ALTER TABLE public.decretos ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Leitura pública decretos" ON public.decretos FOR SELECT TO public USING (true);
 CREATE POLICY "Inserção decretos" ON public.decretos FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Deleção decretos" ON public.decretos FOR DELETE TO public USING (true);
+

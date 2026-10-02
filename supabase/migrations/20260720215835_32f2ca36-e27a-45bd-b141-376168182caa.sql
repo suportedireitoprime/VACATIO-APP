@@ -80,3 +80,4 @@ CREATE INDEX IF NOT EXISTS push_subscriptions_user_idx ON public.push_subscripti
 CREATE TRIGGER push_subscriptions_set_updated_at
   BEFORE UPDATE ON public.push_subscriptions
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

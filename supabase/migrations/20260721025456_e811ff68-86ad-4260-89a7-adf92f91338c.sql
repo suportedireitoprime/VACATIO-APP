@@ -7,3 +7,4 @@ CREATE POLICY "aulas_audio_update_own" ON storage.objects FOR UPDATE TO authenti
   USING (bucket_id = 'aulas-audio' AND auth.uid()::text = (storage.foldername(name))[1]);
 CREATE POLICY "aulas_audio_delete_own" ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'aulas-audio' AND auth.uid()::text = (storage.foldername(name))[1]);
+

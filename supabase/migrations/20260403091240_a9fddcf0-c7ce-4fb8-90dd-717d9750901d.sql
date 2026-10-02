@@ -28,3 +28,4 @@ CREATE POLICY "kanban_read" ON public.kanban_proposicoes
 CREATE INDEX idx_kanban_status ON public.kanban_proposicoes (status_kanban);
 CREATE INDEX idx_kanban_lei_afetada ON public.kanban_proposicoes (lei_afetada);
 CREATE INDEX idx_kanban_atualizado ON public.kanban_proposicoes (atualizado_em DESC);
+

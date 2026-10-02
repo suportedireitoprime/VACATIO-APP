@@ -9,3 +9,4 @@ SET conteudo_md_refinado = NULL,
     etapa = 'Aguardando refino',
     progresso = 0
 WHERE livro_id = '123' AND livro_tabela = 'classicos';
+

@@ -1,5 +1,5 @@
 
-CREATE TABLE public.noticias_camara (
+CREATE TABLE IF NOT EXISTS public.noticias_camara (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   titulo text NOT NULL,
   resumo text,
@@ -25,3 +25,4 @@ CREATE INDEX idx_noticias_camara_data ON public.noticias_camara (data_publicacao
 
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
+

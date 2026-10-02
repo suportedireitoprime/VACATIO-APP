@@ -97,3 +97,4 @@ CREATE POLICY "blog-capas auth read" ON storage.objects
   FOR SELECT TO authenticated USING (bucket_id = 'blog-capas');
 CREATE POLICY "blog-capas svc write" ON storage.objects
   FOR ALL TO service_role USING (bucket_id = 'blog-capas') WITH CHECK (bucket_id = 'blog-capas');
+

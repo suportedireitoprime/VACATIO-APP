@@ -21,3 +21,4 @@ CREATE POLICY "Service role full access on legislacao_alteracoes"
   TO service_role
   USING (true)
   WITH CHECK (true);
+

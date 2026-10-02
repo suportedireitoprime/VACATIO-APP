@@ -147,3 +147,4 @@ $$;
 -- Cache de horário de funcionamento (para "Aberto agora")
 ALTER TABLE public.locais_juridicos ADD COLUMN IF NOT EXISTS horario_places jsonb;
 ALTER TABLE public.locais_juridicos ADD COLUMN IF NOT EXISTS place_id text;
+

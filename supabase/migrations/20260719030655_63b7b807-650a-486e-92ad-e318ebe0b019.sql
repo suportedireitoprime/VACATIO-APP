@@ -42,3 +42,4 @@ BEGIN
   PERFORM cron.schedule('personalizada-horus-hora','15 * * * *',
     format($f$SELECT net.http_post(url:='%s/notificacao-personalizada-horus', headers:=jsonb_build_object('Content-Type','application/json','apikey','%s'))$f$, fn_url_base, anon));
 END $$;
+

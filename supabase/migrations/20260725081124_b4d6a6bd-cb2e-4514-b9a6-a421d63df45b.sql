@@ -12,3 +12,4 @@ ALTER TABLE public.sumulas_favoritos ENABLE ROW LEVEL SECURITY;
 
 CREATE INDEX sumulas_favoritos_user_tribunal_created_idx
   ON public.sumulas_favoritos (user_id, tribunal, created_at DESC);
+

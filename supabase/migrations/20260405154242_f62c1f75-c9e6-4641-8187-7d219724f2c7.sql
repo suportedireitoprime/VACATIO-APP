@@ -22,3 +22,4 @@ create policy "Anyone can read geracao_global"
   using (true);
 
 insert into public.geracao_global (id) values (gen_random_uuid());
+

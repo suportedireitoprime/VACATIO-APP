@@ -27,3 +27,4 @@ CREATE POLICY "Public read jpr_resultados"
   ON public.jurisprudencia_prontas_resultados
   FOR SELECT
   USING (true);
+

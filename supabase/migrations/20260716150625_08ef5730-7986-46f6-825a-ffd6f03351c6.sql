@@ -15,3 +15,4 @@ GRANT SELECT ON public.biblioteca_capa_feedback TO authenticated;
 GRANT ALL ON public.biblioteca_capa_feedback TO service_role;
 ALTER TABLE public.biblioteca_capa_feedback ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "auth read feedback" ON public.biblioteca_capa_feedback FOR SELECT TO authenticated USING (true);
+

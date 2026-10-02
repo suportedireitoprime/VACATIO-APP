@@ -6,3 +6,4 @@ ALTER TABLE public.horus_conversations
   ADD COLUMN IF NOT EXISTS cost_usd numeric(10,6),
   ADD COLUMN IF NOT EXISTS tools_used text[],
   ADD COLUMN IF NOT EXISTS model text;
+

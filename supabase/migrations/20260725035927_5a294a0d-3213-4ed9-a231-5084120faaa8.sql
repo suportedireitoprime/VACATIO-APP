@@ -25,3 +25,4 @@ CREATE INDEX dicionario_juridico_palavra_idx ON public.dicionario_juridico (pala
 CREATE TRIGGER trg_dicionario_juridico_updated
   BEFORE UPDATE ON public.dicionario_juridico
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

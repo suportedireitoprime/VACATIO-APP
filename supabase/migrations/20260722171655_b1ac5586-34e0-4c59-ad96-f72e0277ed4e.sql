@@ -17,3 +17,4 @@ CREATE POLICY "Users manage own apple csr"
 ON public.apple_csr_storage FOR ALL
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
+

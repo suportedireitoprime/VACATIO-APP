@@ -36,3 +36,4 @@ END;
 $function$;
 
 GRANT EXECUTE ON FUNCTION public.admin_lista_provider(text, text) TO authenticated;
+

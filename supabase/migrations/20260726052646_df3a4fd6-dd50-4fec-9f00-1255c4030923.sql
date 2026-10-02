@@ -251,3 +251,4 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.sumulas_favoritos TO authenticate
 GRANT ALL ON public.sumulas_favoritos TO service_role;
 ALTER TABLE public.sumulas_favoritos ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Súmulas favoritos: dono gerencia" ON public.sumulas_favoritos FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+

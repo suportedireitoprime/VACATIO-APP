@@ -69,3 +69,4 @@ GRANT ALL ON public.mentor_historico_resumo TO service_role;
 ALTER TABLE public.mentor_historico_resumo ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own mentor_historico_resumo" ON public.mentor_historico_resumo FOR ALL TO authenticated
   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+

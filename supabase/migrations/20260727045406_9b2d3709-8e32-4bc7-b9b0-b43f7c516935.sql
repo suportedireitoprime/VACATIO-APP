@@ -81,3 +81,4 @@ CREATE TRIGGER narracao_vozes_preview_updated
 CREATE TRIGGER narracao_livro_paginas_updated
   BEFORE UPDATE ON public.narracao_livro_paginas
   FOR EACH ROW EXECUTE FUNCTION public.narracao_set_updated_at();
+

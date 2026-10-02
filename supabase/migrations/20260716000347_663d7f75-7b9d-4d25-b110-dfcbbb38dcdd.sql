@@ -21,3 +21,4 @@ COMPOSITION:
 - NO text, NO title, NO caption, NO logo, NO watermark.
 
 Timeless, elegant — the cover of a classic law/philosophy volume re-issued for a modern blog on a pitch-black background.' WHERE 1=1;
+

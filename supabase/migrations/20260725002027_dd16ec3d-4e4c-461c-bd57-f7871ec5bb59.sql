@@ -43,3 +43,4 @@ WHERE id IN (470, 484, 505);
 
 -- Remove them from the origin table
 DELETE FROM public.biblioteca_fora_da_toga WHERE id IN (470, 484, 505);
+

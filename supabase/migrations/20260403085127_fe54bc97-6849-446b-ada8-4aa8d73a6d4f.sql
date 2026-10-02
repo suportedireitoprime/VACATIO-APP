@@ -21,3 +21,4 @@ SELECT cron.schedule(
   ) as request_id;
   $$
 );
+

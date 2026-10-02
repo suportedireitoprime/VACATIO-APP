@@ -19,3 +19,4 @@ CREATE POLICY "Anyone can insert AI cache"
   ON public.artigo_ai_cache FOR INSERT
   TO anon, authenticated
   WITH CHECK (true);
+

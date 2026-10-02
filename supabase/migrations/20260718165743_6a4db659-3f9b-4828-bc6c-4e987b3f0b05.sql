@@ -57,3 +57,4 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   LIMIT greatest(_limit, 1);
 $$;
 GRANT EXECUTE ON FUNCTION public.blog_posts_trending(int, int) TO anon, authenticated;
+

@@ -52,3 +52,4 @@ CREATE POLICY "Admins can delete estadual catalog"
 CREATE TRIGGER trg_estadual_catalog_updated_at
   BEFORE UPDATE ON public.vade_mecum_leis_estaduais_catalog
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

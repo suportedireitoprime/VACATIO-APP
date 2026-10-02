@@ -26,3 +26,4 @@ SELECT cron.schedule(
   );
   $$
 );
+

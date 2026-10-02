@@ -1,2 +1,3 @@
 TRUNCATE TABLE public.jurisprudencia_prontas_resultados;
 TRUNCATE TABLE public.jurisprudencia_prontas CASCADE;
+

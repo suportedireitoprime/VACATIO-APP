@@ -12,3 +12,4 @@ ALTER TABLE public.blog_edicao_config
   ADD COLUMN IF NOT EXISTS narracao_modelo text DEFAULT 'openai/gpt-4o-mini-tts',
   ADD COLUMN IF NOT EXISTS narracao_estilo text DEFAULT 'Narração entusiasmada, curiosa e informativa. Tom que engaja o ouvinte como um contador de histórias jurídicas: ritmo natural, pausas leves, ênfase nas descobertas. Português do Brasil.',
   ADD COLUMN IF NOT EXISTS narracao_amostra text DEFAULT 'Você sabia que a Constituição de 1988 é chamada de Constituição Cidadã justamente por ter nascido de uma das assembleias mais participativas da história do Brasil? Cada artigo dela carrega décadas de conquistas — e ainda molda o seu dia a dia agora, enquanto você me escuta.';
+

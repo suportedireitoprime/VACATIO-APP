@@ -6,3 +6,4 @@ DROP TABLE IF EXISTS public.leis CASCADE;
 
 -- Add index on ordem_numero for default ordering on CP_CODIGO_PENAL
 CREATE INDEX IF NOT EXISTS idx_cp_codigo_penal_ordem ON public."CP_CODIGO_PENAL" (ordem_numero ASC);
+

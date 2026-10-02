@@ -151,7 +151,7 @@ ALTER TABLE public.ext_atualizacao_biblioteca ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public read ext_atualizacao_biblioteca" ON public.ext_atualizacao_biblioteca FOR SELECT USING (true);
 
 -- Bucket para PDFs importados
-INSERT INTO storage.buckets (id, name, public) VALUES ('biblioteca-externa', 'biblioteca-externa', true)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('biblioteca-externa', 'biblioteca-externa', true) ON CONFLICT (id) DO NOTHING;
 
 CREATE POLICY "Public read biblioteca-externa" ON storage.objects FOR SELECT USING (bucket_id = 'biblioteca-externa');
+

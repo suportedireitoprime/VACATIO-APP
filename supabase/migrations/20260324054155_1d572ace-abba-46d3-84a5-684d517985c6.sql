@@ -75,3 +75,4 @@ CREATE POLICY "Service role pode deletar leis" ON public.leis FOR DELETE USING (
 CREATE POLICY "Service role pode deletar artigos" ON public.artigos_lei FOR DELETE USING (true);
 CREATE POLICY "Service role pode deletar incisos" ON public.incisos FOR DELETE USING (true);
 CREATE POLICY "Service role pode deletar paragrafos" ON public.paragrafos FOR DELETE USING (true);
+

@@ -45,3 +45,4 @@ ALTER TABLE public.tematica_watchlist ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Usuário gerencia sua watchlist"
   ON public.tematica_watchlist FOR ALL TO authenticated
   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+

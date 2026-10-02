@@ -28,3 +28,4 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.boletins_juridicos TO authenticat
 GRANT ALL ON public.boletins_juridicos TO service_role;
 GRANT SELECT, UPDATE ON public.boletim_config TO authenticated;
 GRANT ALL ON public.boletim_config TO service_role;
+

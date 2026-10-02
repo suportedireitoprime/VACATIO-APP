@@ -152,3 +152,4 @@ CREATE INDEX IF NOT EXISTS idx_eca_fts ON "ECA_ESTATUTO_CRIANCA_ADOLESCENTE" USI
 CREATE INDEX IF NOT EXISTS idx_ctb_fts ON "CTB_CODIGO_TRANSITO_BRASILEIRO" USING gin(to_tsvector('portuguese', caput));
 CREATE INDEX IF NOT EXISTS idx_ei_fts ON "EI_ESTATUTO_IDOSO" USING gin(to_tsvector('portuguese', caput));
 CREATE INDEX IF NOT EXISTS idx_epd_fts ON "EPD_ESTATUTO_PESSOA_DEFICIENCIA" USING gin(to_tsvector('portuguese', caput));
+

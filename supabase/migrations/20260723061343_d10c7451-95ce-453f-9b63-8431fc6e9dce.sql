@@ -66,3 +66,4 @@ CREATE POLICY "Users manage own jurisprudencia favoritos" ON public.jurisprudenc
 INSERT INTO public.jurisprudencia_leis_map (slug_local, corpus_lei_id, corpus_lei_slug, nome_exibicao) VALUES
   ('codigo-penal', 20, 'cp', 'Código Penal')
 ON CONFLICT (slug_local) DO NOTHING;
+

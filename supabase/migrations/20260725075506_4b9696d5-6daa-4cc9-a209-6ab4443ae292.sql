@@ -21,3 +21,4 @@ CREATE POLICY "Súmulas STJ são públicas para leitura"
 CREATE TRIGGER update_sumulas_stj_updated_at
   BEFORE UPDATE ON public.sumulas_stj
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

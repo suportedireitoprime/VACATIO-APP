@@ -1,1 +1,2 @@
 DROP POLICY IF EXISTS "narracoes_service_role_all" ON public.narracoes_artigos;
+

@@ -65,3 +65,4 @@ CREATE POLICY "own avisos" ON public.avisos FOR ALL TO authenticated
   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE TRIGGER trg_avisos_updated BEFORE UPDATE ON public.avisos
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

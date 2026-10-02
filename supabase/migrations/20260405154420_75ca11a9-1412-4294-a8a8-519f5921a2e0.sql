@@ -20,3 +20,4 @@ as $$
   set total_erros = total_erros + 1,
       updated_at = now();
 $$;
+

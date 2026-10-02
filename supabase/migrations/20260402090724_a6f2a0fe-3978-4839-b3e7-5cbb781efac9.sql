@@ -5,3 +5,4 @@ INSERT INTO resenha_diaria (tipo_ato, numero_ato, ementa, url, data_publicacao, 
 ('Lei', 'Lei nº 15.369, de 31.3.2026', 'Altera a Lei nº 9.394, de 20 de dezembro de 1996 (Lei de Diretrizes e Bases da Educação Nacional), para definir a extensão da oferta de educação infantil em creches e pré-escolas pelos Municípios às zonas urbanas e rurais.', 'http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/Lei/L15369.htm', '1º de abril de 2026', '2026-04-01'),
 ('Decreto', 'Decreto nº 12.917, de 31.3.2026', 'Altera o Decreto nº 5.493, de 18 de julho de 2005, que regulamenta o disposto na Lei nº 11.096, de 13 de janeiro de 2005, que institui o Programa Universidade para Todos.', 'http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/Decreto/D12917.htm', '1º de abril de 2026', '2026-04-01')
 ON CONFLICT (url) DO NOTHING;
+

@@ -60,3 +60,4 @@ ON CONFLICT (key) DO NOTHING;
 -- 4) Índices úteis
 CREATE INDEX IF NOT EXISTS idx_push_campaigns_automation_key ON public.push_campaigns (automation_key);
 CREATE INDEX IF NOT EXISTS idx_push_campaigns_tipo_created ON public.push_campaigns (tipo, created_at DESC);
+

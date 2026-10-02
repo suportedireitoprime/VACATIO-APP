@@ -76,3 +76,4 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.is_premium_user(UUID) TO authenticated, anon;
+

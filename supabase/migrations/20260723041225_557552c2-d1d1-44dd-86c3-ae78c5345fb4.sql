@@ -147,3 +147,4 @@ CREATE TRIGGER aprender_modulos_updated BEFORE UPDATE ON public.aprender_modulos
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 CREATE TRIGGER aprender_aulas_updated BEFORE UPDATE ON public.aprender_aulas
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

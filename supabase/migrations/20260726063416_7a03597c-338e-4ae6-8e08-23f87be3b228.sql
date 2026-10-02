@@ -31,3 +31,4 @@ CREATE POLICY "own_desktop_sessions_select"
   ON public.desktop_sessions FOR SELECT
   TO authenticated
   USING (user_id = auth.uid());
+

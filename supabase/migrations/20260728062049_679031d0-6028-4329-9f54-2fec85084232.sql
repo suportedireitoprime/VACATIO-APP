@@ -19,3 +19,4 @@ GRANT ALL ON public.desktop_link_tokens TO service_role;
 GRANT ALL ON public.horus_qr_cache TO service_role;
 GRANT ALL ON public.horus_verification_codes TO service_role;
 GRANT ALL ON public.smart_link_claims TO service_role;
+

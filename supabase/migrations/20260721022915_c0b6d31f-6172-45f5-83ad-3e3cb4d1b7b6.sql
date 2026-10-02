@@ -71,3 +71,4 @@ CREATE POLICY "Users manage own audio recordings"
 CREATE TRIGGER trg_audio_recordings_updated
   BEFORE UPDATE ON public.audio_recordings
   FOR EACH ROW EXECUTE FUNCTION public.update_location_reminders_updated_at();
+

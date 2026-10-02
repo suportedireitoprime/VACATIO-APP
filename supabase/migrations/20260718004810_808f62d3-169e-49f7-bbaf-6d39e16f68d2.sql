@@ -1,1 +1,2 @@
 DELETE FROM public.boletins_juridicos WHERE data_ref = '2026-07-16';
+

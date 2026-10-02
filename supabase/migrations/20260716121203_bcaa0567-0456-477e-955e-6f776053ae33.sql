@@ -60,3 +60,4 @@ CREATE POLICY "Service role escreve biblioteca-ocr"
   TO service_role
   USING (bucket_id = 'biblioteca-ocr')
   WITH CHECK (bucket_id = 'biblioteca-ocr');
+

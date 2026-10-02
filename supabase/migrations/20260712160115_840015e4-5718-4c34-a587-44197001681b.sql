@@ -20,3 +20,4 @@ CREATE INDEX device_tokens_user_id_idx ON public.device_tokens(user_id);
 CREATE TRIGGER device_tokens_updated_at
   BEFORE UPDATE ON public.device_tokens
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

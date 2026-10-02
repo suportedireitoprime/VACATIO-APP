@@ -35,3 +35,4 @@ CREATE POLICY "admins gerenciam sumario sugerido"
         'wn7juridico@gmail.com'
       ])
   ));
+

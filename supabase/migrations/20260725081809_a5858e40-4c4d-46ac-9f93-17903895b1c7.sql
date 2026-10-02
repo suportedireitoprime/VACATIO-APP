@@ -22,3 +22,4 @@ ON public.sumulas_stf FOR SELECT USING (true);
 CREATE TRIGGER update_sumulas_stf_updated_at
 BEFORE UPDATE ON public.sumulas_stf
 FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

@@ -94,3 +94,4 @@ CREATE POLICY "usuario ou admin apaga comentario" ON public.apresentacao_comenta
 CREATE TRIGGER trg_apresentacoes_updated BEFORE UPDATE ON public.apresentacoes_narradas FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 CREATE TRIGGER trg_apresentacao_slides_updated BEFORE UPDATE ON public.apresentacao_slides FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 CREATE TRIGGER trg_apresentacao_comentarios_updated BEFORE UPDATE ON public.apresentacao_comentarios FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

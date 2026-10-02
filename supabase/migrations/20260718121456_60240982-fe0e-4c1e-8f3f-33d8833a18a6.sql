@@ -4,3 +4,4 @@ UPDATE public.horus_funcoes
  WHERE modelo IN ('gemini-flash-latest','gemini-flash-lite-latest','gemini-2.5-flash','gemini-2.5-pro')
     OR modelo LIKE 'gemini-3%'
     OR modelo LIKE '%-latest';
+

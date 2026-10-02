@@ -100,3 +100,4 @@ DROP POLICY IF EXISTS "Allow update" ON sumulas;
 CREATE POLICY "service_role_insert" ON sumulas FOR INSERT TO service_role WITH CHECK (true);
 CREATE POLICY "service_role_update" ON sumulas FOR UPDATE TO service_role USING (true);
 CREATE POLICY "service_role_delete" ON sumulas FOR DELETE TO service_role USING (true);
+

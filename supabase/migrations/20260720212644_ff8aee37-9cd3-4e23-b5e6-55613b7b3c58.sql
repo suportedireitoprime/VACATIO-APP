@@ -30,3 +30,4 @@ CREATE POLICY "Frases são públicas para leitura"
 CREATE POLICY "Qualquer um pode inserir frases"
   ON public.biblioteca_frases FOR INSERT
   WITH CHECK (true);
+

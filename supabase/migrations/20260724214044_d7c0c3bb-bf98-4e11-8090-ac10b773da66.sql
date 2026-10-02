@@ -51,3 +51,4 @@ create trigger trg_praticar_progresso_artigo_updated_at
   before update on public.praticar_progresso_artigo
   for each row execute function public.update_updated_at_column();
 create index idx_praticar_progresso_user_lei on public.praticar_progresso_artigo(user_id, lei_id);
+

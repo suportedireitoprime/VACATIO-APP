@@ -21,3 +21,4 @@ CREATE POLICY "Public read sumulas_vinculantes"
 CREATE TRIGGER trg_sumulas_vinculantes_updated
   BEFORE UPDATE ON public.sumulas_vinculantes
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

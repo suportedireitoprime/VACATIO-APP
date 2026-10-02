@@ -52,3 +52,4 @@ BEGIN
       CREATE POLICY "service_delete_%s" ON public.%I FOR DELETE TO service_role USING (true)', short, t);
   END LOOP;
 END $$;
+

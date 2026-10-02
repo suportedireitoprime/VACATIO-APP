@@ -18,3 +18,4 @@ CREATE POLICY "Insercao artigos educacionais" ON public.artigo_educacional_cache
 
 CREATE POLICY "Atualizacao artigos educacionais" ON public.artigo_educacional_cache
   FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+

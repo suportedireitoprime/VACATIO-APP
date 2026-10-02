@@ -105,3 +105,4 @@ VALUES (
   0
 )
 ON CONFLICT (key) DO NOTHING;
+

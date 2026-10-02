@@ -55,3 +55,4 @@ SELECT cron.schedule(
   ) AS request_id;
   $$
 );
+

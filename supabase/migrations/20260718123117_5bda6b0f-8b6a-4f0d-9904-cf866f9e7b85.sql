@@ -22,3 +22,4 @@ DO $$ BEGIN
       CHECK (onboarding_state IN ('unknown','code_sent','verified'));
   END IF;
 END $$;
+

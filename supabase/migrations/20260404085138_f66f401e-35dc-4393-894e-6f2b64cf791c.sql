@@ -273,3 +273,4 @@ BEGIN
     EXECUTE format('CREATE POLICY "Public read access" ON public.%I FOR SELECT TO anon, authenticated USING (true)', t);
   END LOOP;
 END $$;
+

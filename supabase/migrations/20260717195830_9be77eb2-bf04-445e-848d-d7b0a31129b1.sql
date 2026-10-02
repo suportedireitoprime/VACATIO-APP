@@ -18,3 +18,4 @@ CREATE TRIGGER update_horus_qr_cache_updated_at
 BEFORE UPDATE ON public.horus_qr_cache
 FOR EACH ROW
 EXECUTE FUNCTION public.update_updated_at_column();
+

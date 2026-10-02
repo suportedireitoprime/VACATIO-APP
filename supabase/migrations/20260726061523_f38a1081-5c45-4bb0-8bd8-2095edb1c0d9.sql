@@ -28,3 +28,4 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.increment_dicionario_click(text) TO anon, authenticated;
+

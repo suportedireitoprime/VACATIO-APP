@@ -74,3 +74,4 @@ DROP TRIGGER IF EXISTS trg_alerta_trial_apple ON public.apple_subscriptions;
 CREATE TRIGGER trg_alerta_trial_apple
   AFTER INSERT ON public.apple_subscriptions
   FOR EACH ROW EXECUTE FUNCTION public.enfileirar_alerta_trial();
+

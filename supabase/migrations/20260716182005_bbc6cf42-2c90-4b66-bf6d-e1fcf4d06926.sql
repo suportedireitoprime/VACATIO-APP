@@ -90,3 +90,4 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_design_prompt_for_categoria(text) TO authenticated, anon, service_role;
+

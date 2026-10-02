@@ -16,3 +16,4 @@ UPDATE public.locais_juridicos
        google_maps_uri = NULL,
        reviews = NULL
  WHERE nome IS NULL OR lower(nome) = 'sem nome';
+

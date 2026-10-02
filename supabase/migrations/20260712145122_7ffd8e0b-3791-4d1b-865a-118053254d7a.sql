@@ -18,7 +18,7 @@ $$;
 -- ============================================================
 -- 1) vade_mecum_leis
 -- ============================================================
-CREATE TABLE public.vade_mecum_leis (
+CREATE TABLE IF NOT EXISTS public.vade_mecum_leis (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug text NOT NULL UNIQUE,
   nome text NOT NULL,
@@ -43,7 +43,7 @@ CREATE TRIGGER trg_vm_leis_updated
 -- ============================================================
 -- 2) vade_mecum_artigos
 -- ============================================================
-CREATE TABLE public.vade_mecum_artigos (
+CREATE TABLE IF NOT EXISTS public.vade_mecum_artigos (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   lei_id uuid NOT NULL REFERENCES public.vade_mecum_leis(id) ON DELETE CASCADE,
   numero text,
@@ -85,7 +85,7 @@ CREATE TRIGGER trg_vm_artigos_updated
 -- ============================================================
 -- 3) artigos_favoritos (user)
 -- ============================================================
-CREATE TABLE public.artigos_favoritos (
+CREATE TABLE IF NOT EXISTS public.artigos_favoritos (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   tabela_codigo text NOT NULL,
@@ -107,7 +107,7 @@ CREATE INDEX idx_artigos_favoritos_codigo ON public.artigos_favoritos(user_id, t
 -- ============================================================
 -- 4) artigos_grifos (user)
 -- ============================================================
-CREATE TABLE public.artigos_grifos (
+CREATE TABLE IF NOT EXISTS public.artigos_grifos (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   tabela_codigo text NOT NULL,
@@ -133,7 +133,7 @@ CREATE TRIGGER trg_artigos_grifos_updated
 -- ============================================================
 -- 5) artigos_anotacoes (user)
 -- ============================================================
-CREATE TABLE public.artigos_anotacoes (
+CREATE TABLE IF NOT EXISTS public.artigos_anotacoes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   tabela_codigo text NOT NULL,
@@ -159,7 +159,7 @@ CREATE TRIGGER trg_artigos_anotacoes_updated
 -- ============================================================
 -- 6) artigos_visualizacoes (user)
 -- ============================================================
-CREATE TABLE public.artigos_visualizacoes (
+CREATE TABLE IF NOT EXISTS public.artigos_visualizacoes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   tabela_codigo text NOT NULL,
@@ -185,7 +185,8 @@ CREATE INDEX idx_artigos_visualizacoes_user ON public.artigos_visualizacoes(user
 -- ============================================================
 -- 7) artigo_ai_cache (leitura pública, escrita via service role/edge)
 -- ============================================================
-CREATE TABLE public.artigo_ai_cache (
+DROP TABLE IF EXISTS public.artigo_ai_cache;
+CREATE TABLE IF NOT EXISTS public.artigo_ai_cache (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tabela_codigo text NOT NULL,
   numero_artigo text NOT NULL,
@@ -210,7 +211,7 @@ CREATE TRIGGER trg_artigo_ai_cache_updated
 -- ============================================================
 -- 8) HISTORICO_ALTERACOES (público)
 -- ============================================================
-CREATE TABLE public."HISTORICO_ALTERACOES" (
+CREATE TABLE IF NOT EXISTS public."HISTORICO_ALTERACOES" (
   id bigserial PRIMARY KEY,
   tabela_lei text NOT NULL,
   numero_artigo text NOT NULL,
@@ -241,7 +242,7 @@ CREATE TRIGGER trg_historico_alteracoes_updated
 -- ============================================================
 -- 9) vade_mecum_ingest_jobs
 -- ============================================================
-CREATE TABLE public.vade_mecum_ingest_jobs (
+CREATE TABLE IF NOT EXISTS public.vade_mecum_ingest_jobs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   lei_slug text NOT NULL,
   lei_nome text,
@@ -355,3 +356,4 @@ AS $$
   FROM public.vade_mecum_leis l
   WHERE l.slug = _slug;
 $$;
+

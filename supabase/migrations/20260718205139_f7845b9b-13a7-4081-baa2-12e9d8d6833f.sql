@@ -29,3 +29,4 @@ CREATE POLICY "Admins can update hero motifs config"
 INSERT INTO public.hero_motifs_config (id, slots_count, interval_ms)
 VALUES (1, 12, 3000)
 ON CONFLICT (id) DO NOTHING;
+

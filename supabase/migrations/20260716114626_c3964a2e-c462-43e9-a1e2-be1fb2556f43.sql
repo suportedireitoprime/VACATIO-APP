@@ -18,3 +18,4 @@ ALTER TABLE public.biblioteca_lideranca DROP CONSTRAINT IF EXISTS biblioteca_lid
 ALTER TABLE public.biblioteca_lideranca ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE public.biblioteca_lideranca ALTER COLUMN id TYPE bigint USING NULL;
 ALTER TABLE public.biblioteca_lideranca ADD PRIMARY KEY (id);
+

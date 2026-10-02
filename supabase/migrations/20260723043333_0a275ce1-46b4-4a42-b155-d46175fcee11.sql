@@ -108,3 +108,4 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.aprender_revisoes_devidas(uuid) TO authenticated;
+

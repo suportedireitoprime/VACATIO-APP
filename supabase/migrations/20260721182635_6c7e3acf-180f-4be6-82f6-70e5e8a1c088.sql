@@ -7,3 +7,4 @@ DO $$ BEGIN
     EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE public.reminder_dispatch_log';
   END IF;
 END $$;
+

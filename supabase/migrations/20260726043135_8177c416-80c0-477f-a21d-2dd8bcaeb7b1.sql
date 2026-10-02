@@ -154,3 +154,4 @@ DO $$ BEGIN
     EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE public.horus_whatsapp_users';
   END IF;
 END $$;
+

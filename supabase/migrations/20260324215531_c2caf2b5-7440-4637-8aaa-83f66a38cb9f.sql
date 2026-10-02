@@ -58,3 +58,4 @@ BEGIN
       CREATE POLICY "Deleção %s" ON public.%I FOR DELETE TO public USING (true)', short_name, t);
   END LOOP;
 END $$;
+

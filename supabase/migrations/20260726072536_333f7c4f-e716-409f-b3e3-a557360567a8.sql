@@ -16,3 +16,4 @@ GRANT ALL ON public.smart_link_claims TO service_role;
 ALTER TABLE public.smart_link_claims ENABLE ROW LEVEL SECURITY;
 
 -- Nenhuma policy pra anon/authenticated: só service_role (edge function) acessa.
+

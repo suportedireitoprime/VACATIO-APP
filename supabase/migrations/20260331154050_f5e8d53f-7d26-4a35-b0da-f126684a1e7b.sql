@@ -23,3 +23,4 @@ CREATE POLICY "service_delete_logs_simulado" ON public.simulado_process_logs
 
 -- Adicionar coluna imagem_url na tabela simulado_questoes
 ALTER TABLE public.simulado_questoes ADD COLUMN IF NOT EXISTS imagem_url TEXT;
+

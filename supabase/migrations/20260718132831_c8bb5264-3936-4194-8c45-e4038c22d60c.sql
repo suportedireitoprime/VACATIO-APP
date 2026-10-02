@@ -8,3 +8,4 @@ ALTER TABLE public.horus_whatsapp_users
     'app_atualizacoes', true,
     'artigo_favorito', true
   );
+

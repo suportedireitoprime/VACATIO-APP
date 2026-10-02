@@ -58,3 +58,4 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.admin_push_status_usuario(uuid) TO authenticated;
+

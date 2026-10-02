@@ -123,3 +123,4 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.locais_proximos(double precision, double precision, text[], integer, integer)
   TO anon, authenticated, service_role;
+

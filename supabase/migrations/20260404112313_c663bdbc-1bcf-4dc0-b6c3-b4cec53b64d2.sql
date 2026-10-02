@@ -21,3 +21,4 @@ CREATE POLICY "Users can insert own favorites"
 CREATE POLICY "Users can delete own favorites"
   ON public.biblioteca_favoritos FOR DELETE
   USING (auth.uid() = user_id);
+

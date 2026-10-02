@@ -18,3 +18,4 @@ CREATE POLICY "Admin gerencia blocos"
   ON public.aprender_blocos FOR ALL TO authenticated
   USING (public.is_admin_user(auth.uid()))
   WITH CHECK (public.is_admin_user(auth.uid()));
+

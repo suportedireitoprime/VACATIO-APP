@@ -22,3 +22,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS artigos_anotacoes_unique_text_per_article_idx
   )
   WHERE anotacao IS NOT NULL
     AND btrim(anotacao) <> '';
+

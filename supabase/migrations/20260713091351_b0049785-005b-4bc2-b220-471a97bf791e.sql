@@ -92,3 +92,4 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.biblioteca_estudos TO authenticat
 GRANT ALL ON public.biblioteca_estudos TO service_role;
 ALTER TABLE public.biblioteca_estudos ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public read estudos" ON public.biblioteca_estudos FOR SELECT USING (true);
+

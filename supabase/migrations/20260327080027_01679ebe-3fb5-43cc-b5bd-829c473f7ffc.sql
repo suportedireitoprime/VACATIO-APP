@@ -21,3 +21,4 @@ CREATE POLICY "Leitura pública sumulas" ON public.sumulas FOR SELECT TO public 
 CREATE POLICY "Inserção sumulas" ON public.sumulas FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Deleção sumulas" ON public.sumulas FOR DELETE TO public USING (true);
 CREATE POLICY "Atualização sumulas" ON public.sumulas FOR UPDATE TO public USING (true) WITH CHECK (true);
+

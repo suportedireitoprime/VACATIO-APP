@@ -16,3 +16,4 @@ ALTER TABLE public.radar_ranking ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "ranking_public_read" ON public.radar_ranking FOR SELECT TO anon, authenticated USING (true);
 CREATE POLICY "ranking_insert" ON public.radar_ranking FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "ranking_delete" ON public.radar_ranking FOR DELETE TO anon, authenticated USING (true);
+

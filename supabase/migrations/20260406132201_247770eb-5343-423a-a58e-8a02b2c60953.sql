@@ -4,3 +4,4 @@ INSERT INTO resenha_diaria (tipo_ato, numero_ato, ementa, url, data_publicacao, 
 ('Lei', 'Lei nº 15.375, de 2.4.2026', 'Reconhece como manifestação da cultura nacional o Festival de Inverno de Garanhuns, realizado no Município de Garanhuns, no Estado de Pernambuco.', 'http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/Lei/L15375.htm', '6 de abril de 2026', '2026-04-06'),
 ('Decreto', 'Decreto nº 12.919, de 2.4.2026', 'Renova a concessão outorgada à TV Planície Ltda., para executar, sem direito de exclusividade, serviço de radiodifusão de sons e imagens em tecnologia digital, no Município de Campos dos Goytacazes, Estado do Rio de Janeiro.', 'http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/Decreto/D12919.htm', '6 de abril de 2026', '2026-04-06')
 ON CONFLICT (url) DO NOTHING;
+

@@ -8,3 +8,4 @@ FOR ALL
 TO service_role
 USING (bucket_id = 'mobile-config')
 WITH CHECK (bucket_id = 'mobile-config');
+

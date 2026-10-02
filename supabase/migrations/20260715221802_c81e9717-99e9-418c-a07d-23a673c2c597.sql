@@ -141,3 +141,4 @@ $$ LANGUAGE plpgsql SET search_path = public;
 CREATE TRIGGER trg_overlay_frases_updated_at
 BEFORE UPDATE ON public.overlay_frases
 FOR EACH ROW EXECUTE FUNCTION public.update_overlay_frases_updated_at();
+

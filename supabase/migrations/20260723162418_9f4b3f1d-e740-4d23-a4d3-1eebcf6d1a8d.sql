@@ -33,3 +33,4 @@ CREATE POLICY "users read own feedback" ON public.chat_feedback
 
 CREATE INDEX chat_feedback_created_idx ON public.chat_feedback (created_at DESC);
 CREATE INDEX chat_feedback_tipo_idx ON public.chat_feedback (tipo);
+

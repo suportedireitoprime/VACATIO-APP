@@ -26,3 +26,4 @@ UPDATE kanban_proposicoes SET lei_afetada =
     ELSE NULL
   END
 WHERE lei_afetada IS NULL AND ementa IS NOT NULL;
+

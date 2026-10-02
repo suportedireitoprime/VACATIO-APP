@@ -73,3 +73,4 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.tematica_ranking_engajamento(INT) TO anon, authenticated;
+

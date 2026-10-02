@@ -1,3 +1,11 @@
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS trigger AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 
 -- Tabela de inscrições de newsletter
 CREATE TABLE public.newsletter_subscriptions (
@@ -43,3 +51,5 @@ CREATE TRIGGER update_newsletter_subscriptions_updated_at
   BEFORE UPDATE ON public.newsletter_subscriptions
   FOR EACH ROW
   EXECUTE FUNCTION public.update_updated_at_column();
+
+

@@ -26,3 +26,4 @@ GRANT SELECT ON public.study_flashcards TO anon, authenticated;
 GRANT ALL ON public.study_flashcards TO service_role;
 ALTER TABLE public.study_flashcards ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "public read study_flashcards" ON public.study_flashcards FOR SELECT USING (true);
+

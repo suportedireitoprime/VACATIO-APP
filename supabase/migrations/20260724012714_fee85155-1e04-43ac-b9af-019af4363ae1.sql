@@ -27,3 +27,4 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.increment_user_metrics(int, int) TO authenticated;
+

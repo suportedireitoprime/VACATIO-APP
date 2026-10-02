@@ -16,3 +16,4 @@ ALTER TABLE public.artigos_anotacoes
     (anotacao IS NOT NULL AND length(btrim(anotacao)) > 0)
     OR audio_url IS NOT NULL
   );
+

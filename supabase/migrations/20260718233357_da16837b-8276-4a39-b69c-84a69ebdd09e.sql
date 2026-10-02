@@ -63,3 +63,4 @@ CREATE POLICY "admins gerenciam concorrente_analises"
   ON public.concorrente_analises FOR ALL
   USING (public.is_admin_user(auth.uid()))
   WITH CHECK (public.is_admin_user(auth.uid()));
+

@@ -15,3 +15,4 @@ CREATE INDEX IF NOT EXISTS radar_impactos_leis_lei_status_idx
 
 CREATE INDEX IF NOT EXISTS radar_impactos_leis_status_created_idx
   ON public.radar_impactos_leis(status, created_at DESC);
+

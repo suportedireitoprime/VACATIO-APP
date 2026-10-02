@@ -51,7 +51,7 @@ CREATE POLICY "Service delete images" ON public.biblioteca_imagens
   FOR DELETE TO service_role USING (true);
 
 -- Storage bucket
-INSERT INTO storage.buckets (id, name, public) VALUES ('biblioteca', 'biblioteca', true);
+INSERT INTO storage.buckets (id, name, public) VALUES ('biblioteca', 'biblioteca', true) ON CONFLICT DO NOTHING;
 
 CREATE POLICY "Auth users upload to biblioteca" ON storage.objects
   FOR INSERT TO authenticated
@@ -68,3 +68,4 @@ CREATE POLICY "Public read biblioteca" ON storage.objects
 CREATE POLICY "Auth users delete own biblioteca files" ON storage.objects
   FOR DELETE TO authenticated
   USING (bucket_id = 'biblioteca' AND (storage.foldername(name))[1] = auth.uid()::text);
+

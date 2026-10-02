@@ -80,3 +80,4 @@ CREATE POLICY "Leitura pública radar_votacoes" ON public.radar_votacoes FOR SEL
 CREATE POLICY "Inserção radar_votacoes" ON public.radar_votacoes FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Deleção radar_votacoes" ON public.radar_votacoes FOR DELETE TO public USING (true);
 CREATE POLICY "Update radar_votacoes" ON public.radar_votacoes FOR UPDATE TO public USING (true) WITH CHECK (true);
+

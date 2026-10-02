@@ -52,3 +52,4 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.admin_metricas_dia(date) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_lista_dia(text, date) TO authenticated;
+

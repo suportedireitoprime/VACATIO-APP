@@ -7,3 +7,4 @@ SET texto_base = 'A Universidade de Cambridge, onde Stephen Hawking realizou boa
 (https://www.estadao.com.br/ciencia, 14.03.2018. Adaptado)'
 WHERE simulado_id = 'af1a276f-fc68-4963-a6fa-2ddc64ab472c' 
 AND numero BETWEEN 1 AND 5;
+

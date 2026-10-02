@@ -105,3 +105,4 @@ insert into public.horus_funcoes (nome, descricao, prompt, icone, keywords, orde
 ('Modo estudo', 'Gera 3 questões objetivas sobre um tema jurídico.', 'Gere 3 questões objetivas (A-D) sobre o tema pedido, com gabarito comentado ao final.', 'GraduationCap', array['estudar','questão','simulado','prova'], 6),
 ('Resumo de mídia', 'Resume PDFs, áudios ou imagens enviados no chat.', 'Você recebeu uma mídia. Resuma o conteúdo em tópicos e destaque pontos jurídicos relevantes.', 'FileAudio', array[]::text[], 7)
 on conflict do nothing;
+

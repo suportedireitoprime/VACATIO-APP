@@ -23,3 +23,4 @@ CREATE TRIGGER update_user_reminders_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 CREATE INDEX idx_user_reminders_user ON public.user_reminders(user_id) WHERE ativo = true;
+

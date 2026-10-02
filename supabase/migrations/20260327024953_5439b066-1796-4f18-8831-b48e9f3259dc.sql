@@ -1,1 +1,2 @@
 ALTER TABLE public.radar_proposicoes ADD COLUMN IF NOT EXISTS autor_foto text;
+

@@ -17,3 +17,4 @@ CREATE POLICY "Insert resenha" ON resenha_diaria FOR INSERT WITH CHECK (true);
 CREATE POLICY "Update resenha" ON resenha_diaria FOR UPDATE USING (true);
 
 CREATE INDEX idx_resenha_data ON resenha_diaria(data_dou DESC);
+

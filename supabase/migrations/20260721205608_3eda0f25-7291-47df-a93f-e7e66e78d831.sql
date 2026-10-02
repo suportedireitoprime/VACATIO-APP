@@ -16,3 +16,4 @@ CREATE INDEX IF NOT EXISTS desktop_link_tokens_expires_at_idx
 GRANT ALL ON public.desktop_link_tokens TO service_role;
 
 ALTER TABLE public.desktop_link_tokens ENABLE ROW LEVEL SECURITY;
+

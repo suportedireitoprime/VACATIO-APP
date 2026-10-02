@@ -1,1 +1,2 @@
 ALTER TABLE public.horus_whatsapp_users ADD COLUMN IF NOT EXISTS perfil_pessoal jsonb NOT NULL DEFAULT '{}'::jsonb;
+

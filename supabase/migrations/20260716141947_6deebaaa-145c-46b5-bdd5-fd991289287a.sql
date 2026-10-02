@@ -27,3 +27,4 @@ COMPOSITION:
 
 Timeless, elegant — the cover of a classic law/philosophy volume re-issued for a modern blog, matching the exact style of "Dei Delitti e delle Pene" and "Il Contratto Sociale" reference covers, but in HORIZONTAL orientation with the subject filling the frame edge-to-edge.$prompt$
 WHERE true;
+

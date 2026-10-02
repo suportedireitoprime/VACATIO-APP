@@ -110,3 +110,4 @@ SELECT cron.schedule(
     body:='{"offset": 500, "batchSize": 50}'::jsonb
   ) as request_id;$$
 );
+

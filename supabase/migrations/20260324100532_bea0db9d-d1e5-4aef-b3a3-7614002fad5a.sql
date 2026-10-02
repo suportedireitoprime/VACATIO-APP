@@ -15,3 +15,4 @@ ALTER TABLE public.noticias_camara ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Leitura pública noticias" ON public.noticias_camara FOR SELECT TO public USING (true);
 CREATE POLICY "Inserção noticias" ON public.noticias_camara FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "Deleção noticias" ON public.noticias_camara FOR DELETE TO public USING (true);
+

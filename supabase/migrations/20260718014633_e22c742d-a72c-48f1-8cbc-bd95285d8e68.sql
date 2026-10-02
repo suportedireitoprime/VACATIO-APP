@@ -34,3 +34,4 @@ CREATE POLICY "Usuário apaga próprio comentário" ON public.boletim_comentario
 
 CREATE INDEX idx_boletim_likes_scene ON public.boletim_likes(boletim_id, scene_index);
 CREATE INDEX idx_boletim_comentarios_scene ON public.boletim_comentarios(boletim_id, scene_index);
+

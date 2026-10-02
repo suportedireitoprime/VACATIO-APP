@@ -16,3 +16,4 @@ CREATE POLICY "Public insert PL headlines" ON public.radar_pl_headlines
 
 CREATE POLICY "Public update PL headlines" ON public.radar_pl_headlines
   FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+

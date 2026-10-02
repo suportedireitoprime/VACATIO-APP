@@ -1,5 +1,5 @@
 
-SELECT cron.unschedule(2);
+
 
 SELECT cron.schedule(
   'resenha-13h',
@@ -24,3 +24,4 @@ SELECT cron.schedule(
   ) as request_id;
   $$
 );
+

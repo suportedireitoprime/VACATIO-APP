@@ -59,3 +59,4 @@ CREATE POLICY "coment apagar dono" ON public.noticias_comentarios
 CREATE TRIGGER trg_noticias_comentarios_updated
   BEFORE UPDATE ON public.noticias_comentarios
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

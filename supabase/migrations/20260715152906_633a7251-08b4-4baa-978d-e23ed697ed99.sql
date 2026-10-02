@@ -38,3 +38,4 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.aplicar_hierarquia_lei(uuid, uuid[], integer[], text[], text[], integer[]) TO service_role;
+

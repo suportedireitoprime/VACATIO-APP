@@ -81,3 +81,4 @@ CREATE TRIGGER artigos_anotacoes_updated_at
 CREATE TRIGGER artigos_grifos_updated_at
   BEFORE UPDATE ON public.artigos_grifos
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

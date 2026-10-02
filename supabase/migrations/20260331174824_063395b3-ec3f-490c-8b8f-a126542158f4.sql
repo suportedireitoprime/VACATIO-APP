@@ -13,3 +13,4 @@ As estatísticas assustadoras não podem ser consideradas de interesse apenas da
 (Folha de S.Paulo, 03.09.2025. Editorial. Adaptado)'
 WHERE simulado_id = 'af1a276f-fc68-4963-a6fa-2ddc64ab472c' 
 AND numero BETWEEN 6 AND 10;
+

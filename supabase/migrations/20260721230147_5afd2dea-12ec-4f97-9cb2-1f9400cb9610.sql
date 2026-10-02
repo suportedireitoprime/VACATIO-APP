@@ -19,3 +19,4 @@ CREATE POLICY "Users manage their own activity state"
   TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+

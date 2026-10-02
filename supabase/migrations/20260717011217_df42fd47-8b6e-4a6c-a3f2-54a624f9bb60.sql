@@ -31,3 +31,4 @@ CREATE INDEX idx_resumos_ordem ON public.resumos_juridicos(area, ordem_tema, ord
 CREATE TRIGGER trg_resumos_juridicos_updated_at
   BEFORE UPDATE ON public.resumos_juridicos
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

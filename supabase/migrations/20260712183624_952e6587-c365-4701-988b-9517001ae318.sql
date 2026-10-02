@@ -65,3 +65,4 @@ CREATE POLICY "admin reads push events" ON public.push_events
 -- 4) device_tokens index
 CREATE INDEX IF NOT EXISTS device_tokens_platform_user ON public.device_tokens (platform, user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS device_tokens_token_unique ON public.device_tokens (token);
+

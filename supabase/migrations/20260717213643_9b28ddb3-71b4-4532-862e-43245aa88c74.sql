@@ -10,3 +10,4 @@ CREATE POLICY "admin full access conversations"
   TO authenticated
   USING (public.is_admin_user(auth.uid()))
   WITH CHECK (public.is_admin_user(auth.uid()));
+

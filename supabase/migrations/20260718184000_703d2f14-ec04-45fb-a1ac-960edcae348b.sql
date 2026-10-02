@@ -10,3 +10,4 @@ CREATE INDEX IF NOT EXISTS blog_post_likes_created_at_idx
   ON public.blog_post_likes (created_at DESC);
 CREATE INDEX IF NOT EXISTS blog_post_likes_post_created_idx
   ON public.blog_post_likes (post_id, created_at DESC);
+

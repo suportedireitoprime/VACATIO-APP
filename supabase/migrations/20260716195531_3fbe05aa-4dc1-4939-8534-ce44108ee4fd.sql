@@ -55,3 +55,4 @@ CREATE POLICY "Admin can manage hero-home objects"
 CREATE POLICY "Anyone can read hero-home objects"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'hero-home');
+

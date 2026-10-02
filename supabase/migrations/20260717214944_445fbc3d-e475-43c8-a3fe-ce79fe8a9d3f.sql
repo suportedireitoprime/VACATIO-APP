@@ -131,3 +131,4 @@ INSERT INTO public.horus_config (chave, valor) VALUES
   ('proativos_pausados', 'false'::jsonb),
   ('proativos_frequencia_horas', '48'::jsonb)
 ON CONFLICT (chave) DO NOTHING;
+

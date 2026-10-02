@@ -1,1 +1,2 @@
 GRANT INSERT, UPDATE, DELETE ON public.sumulas_stj TO sandbox_exec;
+

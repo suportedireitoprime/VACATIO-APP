@@ -9,3 +9,4 @@ GRANT ALL ON public.assinatura_cancelamentos TO service_role;
 ALTER TABLE public.assinatura_cancelamentos ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "user manages own cancellation" ON public.assinatura_cancelamentos
   FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+

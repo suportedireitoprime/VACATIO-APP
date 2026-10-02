@@ -24,3 +24,4 @@ AS $$
         AND lower(u.email) IN ('wn7corporation@gmail.com','suporte.vacatio@gmail.com','wn7juridico@gmail.com')
     );
 $$;
+

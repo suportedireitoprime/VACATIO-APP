@@ -15,3 +15,4 @@ UPDATE leis_ordinarias SET data_publicacao = '30.3.2026', ementa = 'Institui o D
 UPDATE leis_ordinarias SET data_publicacao = '31.3.2026', ementa = 'Institui o Selo de Engenharia ou Arquitetura Solidária, destinado às empresas e aos profissionais de engenharia, arquitetura ou ramo da construção civil.' WHERE id = 'ef504747-72cd-43c5-8ba7-61a2fa441b46';
 
 UPDATE leis_ordinarias SET data_publicacao = '31.3.2026', ementa = 'Dispõe sobre a licença-paternidade; institui o salário-paternidade no âmbito da Previdência Social; e altera a Consolidação das Leis do Trabalho e as Leis nºs 8.212 e 8.213, de 24 de julho de 1991, e 11.770, de 9 de setembro de 2008.' WHERE id = 'a3e74643-d61c-4a04-8fc1-b35bd8b48adf';
+

@@ -31,3 +31,4 @@ CREATE INDEX IF NOT EXISTS artigo_videoaulas_cache_lookup_idx
 CREATE TRIGGER artigo_videoaulas_cache_touch
   BEFORE UPDATE ON public.artigo_videoaulas_cache
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

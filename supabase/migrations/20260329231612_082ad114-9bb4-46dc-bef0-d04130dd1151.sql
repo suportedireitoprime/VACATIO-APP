@@ -47,3 +47,4 @@ CREATE TABLE study_answers (
 ALTER TABLE study_answers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users read own answers" ON study_answers FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM study_sessions WHERE study_sessions.id = study_answers.session_id AND study_sessions.user_id = auth.uid()));
 CREATE POLICY "Users insert own answers" ON study_answers FOR INSERT TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM study_sessions WHERE study_sessions.id = study_answers.session_id AND study_sessions.user_id = auth.uid()));
+

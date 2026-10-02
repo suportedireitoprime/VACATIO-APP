@@ -30,3 +30,4 @@ DROP POLICY IF EXISTS "service_role_delete" ON public.resenha_diaria;
 CREATE POLICY "service_role_delete" ON public.resenha_diaria FOR DELETE TO service_role USING (true);
 
 CREATE INDEX IF NOT EXISTS idx_resenha_data ON public.resenha_diaria(data_dou DESC);
+

@@ -32,3 +32,4 @@ CREATE POLICY "own select pdf telemetry"
 CREATE INDEX idx_pdf_telemetry_url ON public.biblioteca_pdf_telemetry(url);
 CREATE INDEX idx_pdf_telemetry_event ON public.biblioteca_pdf_telemetry(event);
 CREATE INDEX idx_pdf_telemetry_created ON public.biblioteca_pdf_telemetry(created_at DESC);
+

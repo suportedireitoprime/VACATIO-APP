@@ -13,3 +13,4 @@ CREATE POLICY "narracoes conteudo atualiza admin"
 CREATE POLICY "narracoes conteudo apaga admin"
   ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'narracoes-conteudo' AND public.is_admin_user(auth.uid()));
+

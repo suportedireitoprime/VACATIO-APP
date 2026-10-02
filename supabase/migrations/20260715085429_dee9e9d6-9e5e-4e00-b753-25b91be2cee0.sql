@@ -43,3 +43,4 @@ GRANT SELECT ON public.reels_analises TO anon, authenticated;
 GRANT ALL ON public.reels_analises TO service_role;
 ALTER TABLE public.reels_analises ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "reels_ana_read_all" ON public.reels_analises FOR SELECT USING (true);
+

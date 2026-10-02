@@ -1,1 +1,2 @@
 ALTER TABLE simulado_questoes ADD COLUMN IF NOT EXISTS enunciado_pos_imagem TEXT;
+

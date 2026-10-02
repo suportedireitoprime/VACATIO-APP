@@ -187,3 +187,4 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.buscar_conteudo(text, text, int) TO anon, authenticated, service_role;
+

@@ -53,3 +53,4 @@ CREATE POLICY "Admins read all feedback photos"
   USING (
     bucket_id = 'feedback-photos' AND public.is_admin_user(auth.uid())
   );
+

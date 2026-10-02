@@ -226,3 +226,4 @@ CREATE POLICY "service_delete_eterra" ON "ETERRA_ESTATUTO_TERRA" FOR DELETE TO s
 
 -- Enable realtime on anotacoes_artigo for cross-device sync
 ALTER PUBLICATION supabase_realtime ADD TABLE anotacoes_artigo;
+

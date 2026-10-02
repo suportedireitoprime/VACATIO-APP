@@ -110,3 +110,4 @@ $$;
 
 REVOKE ALL ON FUNCTION public.admin_get_open_journey(uuid, uuid, text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.admin_get_open_journey(uuid, uuid, text) TO authenticated;
+

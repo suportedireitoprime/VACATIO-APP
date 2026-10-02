@@ -5,3 +5,4 @@ ALTER TABLE public.biblioteca_leitura_nativa
 
 -- Realtime para o cliente acompanhar
 ALTER PUBLICATION supabase_realtime ADD TABLE public.biblioteca_leitura_nativa;
+

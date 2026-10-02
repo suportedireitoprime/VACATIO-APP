@@ -52,3 +52,4 @@ END;
 $function$;
 
 GRANT EXECUTE ON FUNCTION public.admin_gerenciar_usuario(uuid, text) TO authenticated;
+

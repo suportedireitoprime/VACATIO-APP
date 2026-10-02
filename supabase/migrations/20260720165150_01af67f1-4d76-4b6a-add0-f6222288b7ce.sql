@@ -30,3 +30,4 @@ CREATE POLICY "Users read their own sessions"
 CREATE POLICY "Admins read all sessions"
   ON public.user_sessions FOR SELECT TO authenticated
   USING (public.is_admin_user(auth.uid()));
+

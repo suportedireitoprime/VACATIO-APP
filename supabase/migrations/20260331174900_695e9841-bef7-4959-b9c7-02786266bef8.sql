@@ -11,3 +11,4 @@ Um dos músicos mais celebrados da nação é Orlando Pantera, um cometa que viv
 (Kalaf Epalanga. Minha pátria é a língua portuguesa: Crônicas. 2023. Adaptado)'
 WHERE simulado_id = 'af1a276f-fc68-4963-a6fa-2ddc64ab472c' 
 AND numero BETWEEN 11 AND 15;
+

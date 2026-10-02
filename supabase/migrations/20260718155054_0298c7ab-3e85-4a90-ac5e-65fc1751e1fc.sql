@@ -1,1 +1,2 @@
 ALTER TABLE public.tematica_juridica_obras ADD COLUMN IF NOT EXISTS porque_assistir TEXT;
+

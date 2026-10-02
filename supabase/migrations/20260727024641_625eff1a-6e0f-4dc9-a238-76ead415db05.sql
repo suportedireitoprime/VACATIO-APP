@@ -30,3 +30,4 @@ BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
 DROP TRIGGER IF EXISTS horus_canais_touch ON public.horus_canais;
 CREATE TRIGGER horus_canais_touch BEFORE UPDATE ON public.horus_canais
 FOR EACH ROW EXECUTE FUNCTION public.horus_canais_touch();
+

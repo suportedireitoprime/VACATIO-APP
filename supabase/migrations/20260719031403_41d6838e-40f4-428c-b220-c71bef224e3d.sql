@@ -8,3 +8,4 @@ WHERE a.ctid <> b.ctid
 -- Índice único para impedir novas duplicatas por número normalizado
 CREATE UNIQUE INDEX IF NOT EXISTS horus_whatsapp_users_phone_digits_uidx
   ON public.horus_whatsapp_users ((regexp_replace(phone_e164, '\D', '', 'g')));
+

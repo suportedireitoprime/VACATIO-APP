@@ -48,3 +48,4 @@ ALTER TABLE public.informativos_stf ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "informativos_stf public read" ON public.informativos_stf FOR SELECT USING (true);
 CREATE TRIGGER trg_informativos_stf_updated_at BEFORE UPDATE ON public.informativos_stf
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

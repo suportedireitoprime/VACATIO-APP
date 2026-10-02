@@ -5,3 +5,4 @@ ALTER TABLE public.aprender_progresso_aula
 
 ALTER TABLE public.aprender_progresso_bloco
   ADD CONSTRAINT aprender_progresso_bloco_user_bloco_uniq UNIQUE (user_id, bloco_id);
+

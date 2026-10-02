@@ -124,3 +124,4 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   ORDER BY d.created_at DESC
   LIMIT greatest(_limit, 1);
 $$;
+

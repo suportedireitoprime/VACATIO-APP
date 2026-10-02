@@ -42,3 +42,4 @@ CREATE TRIGGER peticoes_iniciais_updated_at
 INSERT INTO public.feature_limits (feature_key, label, description, category, limit_value, period, enabled, sort_order)
 SELECT 'peticao_inicial', 'Petição inicial com IA', 'Quantas petições iniciais o usuário free pode gerar por mês', 'ferramentas', 1, 'monthly', true, 100
 WHERE NOT EXISTS (SELECT 1 FROM public.feature_limits WHERE feature_key = 'peticao_inicial');
+

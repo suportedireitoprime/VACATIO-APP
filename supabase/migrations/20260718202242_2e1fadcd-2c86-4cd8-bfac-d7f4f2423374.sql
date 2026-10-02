@@ -89,3 +89,4 @@ CREATE POLICY "Admins podem gerenciar impactos"
 CREATE TRIGGER trg_radar_impactos_leis_updated_at
   BEFORE UPDATE ON public.radar_impactos_leis
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

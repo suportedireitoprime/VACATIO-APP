@@ -62,3 +62,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_bulk_runs_uf_active
 
 CREATE INDEX IF NOT EXISTS idx_catalog_status_uf
   ON public.vade_mecum_leis_estaduais_catalog(uf, status);
+

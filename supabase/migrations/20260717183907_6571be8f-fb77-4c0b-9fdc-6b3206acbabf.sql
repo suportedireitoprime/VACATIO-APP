@@ -76,3 +76,4 @@ GRANT ALL ON public.horus_outbound_log TO service_role;
 ALTER TABLE public.horus_outbound_log ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own outbound" ON public.horus_outbound_log FOR SELECT
   USING (auth.uid() = user_id);
+

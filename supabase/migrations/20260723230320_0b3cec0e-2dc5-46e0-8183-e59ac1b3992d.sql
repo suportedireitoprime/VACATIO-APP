@@ -32,3 +32,4 @@ ON public.app_events
 FOR SELECT
 TO authenticated
 USING (public.is_admin_email());
+

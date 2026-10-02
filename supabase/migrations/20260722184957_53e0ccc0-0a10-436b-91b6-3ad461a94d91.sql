@@ -269,3 +269,4 @@ END;
 $function$;
 
 GRANT EXECUTE ON FUNCTION public.registrar_busca_click(text, text, text, text, text, text, text, text) TO anon, authenticated, service_role;
+

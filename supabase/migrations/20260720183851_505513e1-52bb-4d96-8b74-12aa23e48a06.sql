@@ -1,1 +1,2 @@
 DELETE FROM public.biblioteca_leitura_nativa; DELETE FROM public.biblioteca_leitura_jobs;
+

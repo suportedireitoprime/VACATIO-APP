@@ -20,3 +20,4 @@ $$;
 
 REVOKE ALL ON FUNCTION public.admin_user_auth_providers(uuid[]) FROM public;
 GRANT EXECUTE ON FUNCTION public.admin_user_auth_providers(uuid[]) TO authenticated;
+

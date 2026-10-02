@@ -15,3 +15,4 @@ VALUES (
   60
 )
 ON CONFLICT (key) DO NOTHING;
+

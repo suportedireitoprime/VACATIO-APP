@@ -198,6 +198,10 @@ export default function AdminOmniRoute() {
                     className="w-full h-11 px-4 rounded-xl bg-black/30 border border-white/15 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-mono text-sm appearance-none"
                   >
                     <option value="omniroute/auto">omniroute/auto</option>
+                    <option value="antigravity/gemini-3.7-flash-high">antigravity/gemini-3.7-flash-high</option>
+                    <option value="antigravity/gemini-3.7-flash-medium">antigravity/gemini-3.7-flash-medium</option>
+                    <option value="antigravity/gemini-3.7-flash-low">antigravity/gemini-3.7-flash-low</option>
+                    <option value="antigravity/gemini-3.7-flash-tiered">antigravity/gemini-3.7-flash-tiered</option>
                     <option value="gemini-2.5-pro">gemini-2.5-pro (Antigravity)</option>
                     <option value="gemini-2.0-flash-thinking-exp">gemini-2.0-flash-thinking (Antigravity)</option>
                     <option value="gemini-2.0-flash-exp">gemini-2.0-flash (Antigravity)</option>

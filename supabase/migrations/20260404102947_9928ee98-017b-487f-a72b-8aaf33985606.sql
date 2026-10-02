@@ -6,3 +6,4 @@ WHERE capa_livro LIKE '%.png';
 UPDATE biblioteca_fora_da_toga
 SET capa_livro = regexp_replace(capa_livro, '\.png$', '.webp')
 WHERE capa_livro LIKE '%.png';
+

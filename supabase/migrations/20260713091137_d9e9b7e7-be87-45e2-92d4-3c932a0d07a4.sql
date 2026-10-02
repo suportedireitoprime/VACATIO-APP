@@ -101,6 +101,7 @@ CREATE POLICY "Public read kanban" ON public.kanban_proposicoes FOR SELECT USING
 CREATE POLICY "Auth write kanban" ON public.kanban_proposicoes FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- RPC estatisticas_estudo
+DROP FUNCTION IF EXISTS public.estatisticas_estudo(uuid);
 CREATE OR REPLACE FUNCTION public.estatisticas_estudo(p_user_id uuid)
 RETURNS TABLE(tabela_nome text, total_sessoes bigint, total_questoes bigint, total_corretas bigint, pct_acerto integer)
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
@@ -116,3 +117,4 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   WHERE user_id = p_user_id
   GROUP BY tabela_nome;
 $$;
+

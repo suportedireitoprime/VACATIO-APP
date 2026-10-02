@@ -1,1 +1,2 @@
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS desktop_onboarding_done_at timestamptz;
+

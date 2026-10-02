@@ -42,3 +42,4 @@ CREATE POLICY "own prefs write" ON public.user_reminder_preferences
 CREATE TRIGGER trg_user_reminder_prefs_updated
   BEFORE UPDATE ON public.user_reminder_preferences
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+

@@ -109,3 +109,4 @@ INSERT INTO public.horus_poderes (slug, nome, categoria, descricao, tipo, ativo,
 ('langfuse', 'Langfuse (Traces)', 'observabilidade',
  'Traces do Horus — você vê o que ele pensou, que ferramenta chamou, quanto custou. Requer instância self-host.',
  'open_source', false, NULL, 'https://github.com/langfuse/langfuse', 'Activity', '#EF4444', 6, '{}'::jsonb);
+
