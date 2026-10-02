@@ -19,7 +19,7 @@ type Anot = {
 
 const CK = "anotacoes";
 
-export default function AnotacoesPage() {
+export default function AnotacoesPage({ onClose }: { onClose?: () => void }) {
   const navigate = useNavigate();
   const [items, setItems] = useState<Anot[]>(() => getCache<Anot[]>(CK) ?? []);
   const [loading, setLoading] = useState(items.length === 0);
@@ -79,6 +79,7 @@ export default function AnotacoesPage() {
           </div>
         ) : null
       }
+      onClose={onClose}
     >
       {items.length > 0 && (
         <div className="space-y-6">

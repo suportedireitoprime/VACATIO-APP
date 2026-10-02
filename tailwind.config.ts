@@ -90,6 +90,34 @@ export default {
         body: ['"Barlow"', 'system-ui', 'sans-serif'],
         legal: ['"Barlow"', 'Georgia', 'serif'],
       },
+      /* ==============================================================
+       * Typography scale — Material Design 3 + Apple HIG convergence
+       * M3: https://m3.material.io/styles/typography
+       * Apple HIG: developer.apple.com/design/human-interface-guidelines/typography
+       * Sizes in rem (1rem = 16px base). line-height tuned for mobile.
+       * ============================================================== */
+      fontSize: {
+        // Display — hero banners, onboarding
+        'display-lg': ['3.5625rem', { lineHeight: '1.12', letterSpacing: '-0.02em' }],  // 57px (M3)
+        'display-md': ['2.8125rem', { lineHeight: '1.15', letterSpacing: '-0.01em' }],  // 45px
+        'display-sm': ['2.25rem',   { lineHeight: '1.2' }],                              // 36px
+        // Headline — page hero, prominent sections
+        'headline-lg': ['2rem',     { lineHeight: '1.25' }],                             // 32px
+        'headline-md': ['1.75rem',  { lineHeight: '1.28' }],                             // 28px
+        'headline-sm': ['1.5rem',   { lineHeight: '1.33' }],                             // 24px
+        // Title — nav bar titles, section titles, card titles
+        'title-lg':  ['1.375rem', { lineHeight: '1.27' }],                               // 22px (M3) ≈ Apple Title 2
+        'title-md':  ['1.0625rem',{ lineHeight: '1.5', letterSpacing: '0.01em' }],       // 17px — Apple Headline / Body
+        'title-sm':  ['0.875rem', { lineHeight: '1.43', letterSpacing: '0.01em' }],      // 14px — M3 Title Small
+        // Body — paragraphs, long content
+        'body-lg':  ['1.0625rem', { lineHeight: '1.5' }],                                // 17px — Apple Body
+        'body-md':  ['0.9375rem', { lineHeight: '1.5' }],                                // 15px — Apple Subheadline
+        'body-sm':  ['0.8125rem', { lineHeight: '1.45' }],                               // 13px — Apple Footnote
+        // Label — buttons, captions, metadata
+        'label-lg': ['0.875rem',  { lineHeight: '1.43', letterSpacing: '0.01em' }],      // 14px — M3 Label Large
+        'label-md': ['0.75rem',   { lineHeight: '1.33', letterSpacing: '0.02em' }],      // 12px — Apple Caption 1
+        'label-sm': ['0.6875rem', { lineHeight: '1.45', letterSpacing: '0.03em' }],      // 11px — Apple Caption 2 / M3 Label Small
+      },
       colors: {
         ...MONO_COLOR_ALIASES,
         border: "hsl(var(--border))",

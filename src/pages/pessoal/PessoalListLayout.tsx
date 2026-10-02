@@ -11,7 +11,9 @@ interface Props {
   children: ReactNode;
   isOffline?: boolean;
   emptyState?: ReactNode;
+  emptyState?: ReactNode;
   loading?: boolean;
+  onClose?: () => void;
 }
 
 export default function PessoalListLayout({
@@ -23,14 +25,15 @@ export default function PessoalListLayout({
   isOffline,
   emptyState,
   loading,
+  onClose,
 }: Props) {
   const navigate = useNavigate();
   return (
-    <div className="min-h-dvh bg-background text-foreground pb-[calc(6rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
+    <div className={onClose ? "pb-6" : "min-h-dvh bg-background text-foreground pb-[calc(6rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]"}>
       <PageHeader
         title={title}
         subtitle={typeof count === "number" ? `${count} ${count === 1 ? "item" : "itens"}` : undefined}
-        onBack={() => navigate(-1)}
+        onBack={onClose || (() => navigate(-1))}
         leading={
           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${accentClass}`}>
             <Icon className="w-5 h-5" />

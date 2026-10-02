@@ -1,7 +1,13 @@
 import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Search, X, BookMarked, Gavel, ArrowRight, Zap, MessageCircle, ScrollText, Feather, Heart, Wrench } from 'lucide-react';
+import { Search, X, BookMarked, Gavel, ArrowRight, Zap, MessageCircle, ScrollText, Feather, Heart, Wrench, ShieldAlert, House, CircleDollarSign, Landmark, FileText, ShieldCheck, Briefcase, Store, Building, Vote, HeartPulse, TreePine, ShoppingCart, Baby, Shield, Globe, ChevronLeft } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import FavoritosPage from './pessoal/Favoritos';
+import AnotacoesPage from './pessoal/Anotacoes';
+import GrifosPage from './pessoal/Grifos';
+import FerramentasPage from './Ferramentas';
 
 import DesktopTopHeader from '@/components/vademecum/DesktopTopHeader';
 import ShapeGrid from '@/components/ui/ShapeGrid';
@@ -30,12 +36,34 @@ const EM_ALTA_IDS = ['constituicao', 'codigo-civil', 'codigo-penal', 'clt', 'cpc
 
 type TabType = 'todos' | 'constituicao' | 'codigo' | 'estatuto' | 'leis-especiais' | 'leis-complementares';
 
+interface AreaCat { id: string; label: string; sublabel: string; icon: LucideIcon; color: string; leiIds: string[]; }
+const AREA_CATS: AreaCat[] = [
+  { id: 'area-penal',          label: 'Penal',          sublabel: 'CP, CPP, LEP, Lei Maria da Penha…',          icon: ShieldAlert, color: '#EF4444', leiIds: ['cp','cpp','lep','lmp','ld','loc','laa','lcp','lch','ltort','lcsf','lpt','laa'] },
+  { id: 'area-civil',          label: 'Civil',          sublabel: 'CC, LI, LRP, alimentos, alienação…',          icon: House,       color: '#3B82F6', leiIds: ['cc','li','lrp','lalim','lalp','lgpd','mci','ld','laa'] },
+  { id: 'area-tributario',     label: 'Tributário',     sublabel: 'CTN, LRF, Reforma Tributária…',              icon: CircleDollarSign, color: '#10B981', leiIds: ['ctn','lrf','lrt'] },
+  { id: 'area-constitucional', label: 'Constitucional', sublabel: 'CF/88, LINDB, LPAF, LAI…',                  icon: Landmark,    color: '#FACC15', leiIds: ['cf88','lindb','lpaf','lai','lap','lap','lmi','lms','lhd'] },
+  { id: 'area-processual-civil',  label: 'Processual Civil',  sublabel: 'CPC, LJE, mandado de segurança…',       icon: FileText,    color: '#F59E0B', leiIds: ['cpc','lje','lms','lmi','lhd'] },
+  { id: 'area-processual-penal',  label: 'Processual Penal',  sublabel: 'CPP, interceptação, mandado…',        icon: ShieldCheck, color: '#F97316', leiIds: ['cpp','lit','lpt','lms'] },
+  { id: 'area-trabalho',       label: 'Trabalho',    sublabel: 'CLT, legislação trabalhista…',              icon: Briefcase,   color: '#8B5CF6', leiIds: ['clt'] },
+  { id: 'area-empresarial',    label: 'Empresarial',    sublabel: 'CCom, LSA, LF, arbitragem, startups…',      icon: Store,       color: '#A855F7', leiIds: ['ccom','lsa','lf','la','lpi','lace','lcon','lppp','lmls','lda','eme','lfl'] },
+  { id: 'area-administrativo', label: 'Administrativo', sublabel: 'LIA, LPAF, licitações, improbidade…',       icon: Building,    color: '#06B6D4', leiIds: ['lia','lpaf','nll','lai','lms','l8112','loman','lotcu','ces'] },
+  { id: 'area-eleitoral',      label: 'Eleitoral',      sublabel: 'CE, LPP, Lei das Eleições, Ficha Limpa…',   icon: Vote,        color: '#6366F1', leiIds: ['ce','lpp','lele','lfl','line'] },
+  { id: 'area-previdenciario', label: 'Previdenciário', sublabel: 'LBPS, LCSS, LPC, LOAS…',                    icon: HeartPulse,  color: '#14B8A6', leiIds: ['lbps','lcss','lpc','loas'] },
+  { id: 'area-ambiental',      label: 'Ambiental',      sublabel: 'Código Florestal, crimes ambientais, biossegurança…', icon: TreePine, color: '#16A34A', leiIds: ['cflor','lca','lbio'] },
+  { id: 'area-consumidor',     label: 'Consumidor',  sublabel: 'CDC, defesa do consumidor…',                icon: ShoppingCart, color: '#EC4899', leiIds: ['cdc'] },
+  { id: 'area-crianca-idoso',  label: 'Criança, Idoso e PCD',   sublabel: 'ECA, Estatuto do Idoso, EPD…',              icon: Baby,        color: '#F43F5E', leiIds: ['eca','ei','epd'] },
+  { id: 'area-militar',        label: 'Militar',        sublabel: 'CPM, CPPM, Estatuto dos Militares…',        icon: Shield,      color: '#64748B', leiIds: ['cpm','cppm','em'] },
+  { id: 'area-internacional',  label: 'Internacional',  sublabel: 'Estatuto da Migração, Refugiado…',          icon: Globe,       color: '#0891B2', leiIds: ['emig','eref'] },
+];
+
 const IndexDesktop = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [assistenteOpen, setAssistenteOpen] = useState(false);
+  const [activeArea, setActiveArea] = useState<AreaCat | null>(null);
+  const [modalOpen, setModalOpen] = useState<'favoritos' | 'anotacoes' | 'grifos' | 'ferramentas' | null>(null);
 
   useHotkeys('mod+k', (e) => { e.preventDefault(); setSearchOpen(true); }, { enableOnFormTags: true });
   useHotkeys('escape', () => { setSearchOpen(false); setAssistenteOpen(false); });
@@ -87,6 +115,9 @@ const IndexDesktop = () => {
       base = base.filter(l => l.tipo === 'codigo');
     } else if (activeTab === 'estatuto') {
       base = base.filter(l => l.tipo === 'estatuto');
+    } else if (activeTab === 'todos' && activeArea) {
+      const ids = new Set(activeArea.leiIds);
+      base = base.filter(l => ids.has(l.id));
     }
 
     const query = normalizeText(searchQuery.trim());
@@ -130,11 +161,11 @@ const IndexDesktop = () => {
           <div className="w-full bg-black/20 border-b border-white/5 relative z-30 mb-2">
             <div className="max-w-7xl mx-auto px-8 py-4 flex items-center gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {[
-                { label: 'Favoritos', icon: Heart, color: 'text-red-400', bg: 'bg-red-400/10', action: () => navigate('/pessoal/favoritos') },
-                { label: 'Anotações', icon: ScrollText, color: 'text-sky-400', bg: 'bg-sky-400/10', action: () => navigate('/pessoal/anotacoes') },
-                { label: 'Grifos', icon: Feather, color: 'text-emerald-400', bg: 'bg-emerald-400/10', action: () => navigate('/pessoal/grifos') },
+                { label: 'Favoritos', icon: Heart, color: 'text-red-400', bg: 'bg-red-400/10', action: () => setModalOpen('favoritos') },
+                { label: 'Anotações', icon: ScrollText, color: 'text-sky-400', bg: 'bg-sky-400/10', action: () => setModalOpen('anotacoes') },
+                { label: 'Grifos', icon: Feather, color: 'text-emerald-400', bg: 'bg-emerald-400/10', action: () => setModalOpen('grifos') },
                 { label: 'Chat', icon: MessageCircle, color: 'text-yellow-400', bg: 'bg-yellow-400/10', action: () => setAssistenteOpen(true) },
-                { label: 'Ferramentas', icon: Wrench, color: 'text-purple-400', bg: 'bg-purple-400/10', action: () => navigate('/ferramentas') },
+                { label: 'Ferramentas', icon: Wrench, color: 'text-purple-400', bg: 'bg-purple-400/10', action: () => setModalOpen('ferramentas') },
               ].map(item => (
                 <button
                   key={item.label}
@@ -276,7 +307,7 @@ const IndexDesktop = () => {
               ].map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as TabType)}
+                  onClick={() => { setActiveTab(tab.id as TabType); setActiveArea(null); setSearchQuery(''); }}
                   className={`px-5 py-2.5 text-[14px] font-display font-bold uppercase tracking-wider rounded-full transition-all border ${
                     activeTab === tab.id
                       ? 'bg-primary border-primary text-primary-foreground shadow-md'
@@ -304,10 +335,47 @@ const IndexDesktop = () => {
               </div>
             </div>
 
-            {/* Grid de Cards */}
-            {filteredItems.length > 0 ? (
+            {/* Áreas do Direito (se Todos e nenhuma área selecionada) */}
+            {activeTab === 'todos' && !activeArea && !searchQuery ? (
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredItems.map((lei, i) => {
+                {AREA_CATS.map((area, i) => (
+                  <HomeCard
+                    key={area.id}
+                    icon={area.icon}
+                    label={area.label}
+                    sublabel={`${area.leiIds.length} leis disponíveis`}
+                    color={area.color}
+                    delay={Math.min(i * 0.015, 0.2)}
+                    className="min-h-[116px] py-4 px-4"
+                    onClick={() => setActiveArea(area)}
+                    data-track="desktop_home_area_click"
+                    data-track-name={area.label}
+                  />
+                ))}
+              </div>
+            ) : (
+              <>
+                {activeArea && (
+                  <div className="mb-6 flex items-center gap-3 border-b border-white/10 pb-4">
+                    <button
+                      onClick={() => setActiveArea(null)}
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-white/80 hover:text-white"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <div>
+                      <h2 className="font-display font-bold text-xl text-white flex items-center gap-2">
+                        <activeArea.icon className="w-5 h-5" style={{ color: activeArea.color }} />
+                        {activeArea.label}
+                      </h2>
+                      <p className="font-body text-sm text-white/50 mt-0.5">{activeArea.sublabel}</p>
+                    </div>
+                  </div>
+                )}
+                {/* Grid de Cards das Leis */}
+                {filteredItems.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {filteredItems.map((lei, i) => {
                   const Icon = LAW_ICON_MAP[lei.id] || (lei.tipo === 'codigo' ? Gavel : BookMarked);
                   const isCodigo = lei.tipo === 'codigo';
                   const displayNames = isCodigo ? CODIGO_DISPLAY_NAMES : ESTATUTO_DISPLAY_NAMES;
@@ -343,6 +411,8 @@ const IndexDesktop = () => {
                 </p>
               </div>
             )}
+            </>
+            )}
           </main>
         </div>
 
@@ -354,6 +424,32 @@ const IndexDesktop = () => {
             <AssistenteOverlay open={assistenteOpen} onClose={() => setAssistenteOpen(false)} />
           )}
         </Suspense>
+
+        {/* Modals de Funcionalidades */}
+        <Dialog open={modalOpen === 'favoritos'} onOpenChange={(v) => !v && setModalOpen(null)}>
+          <DialogContent className="max-w-2xl p-0 overflow-hidden bg-background border-border max-h-[85vh] overflow-y-auto">
+            <FavoritosPage onClose={() => setModalOpen(null)} />
+          </DialogContent>
+        </Dialog>
+        
+        <Dialog open={modalOpen === 'anotacoes'} onOpenChange={(v) => !v && setModalOpen(null)}>
+          <DialogContent className="max-w-2xl p-0 overflow-hidden bg-background border-border max-h-[85vh] overflow-y-auto">
+            <AnotacoesPage onClose={() => setModalOpen(null)} />
+          </DialogContent>
+        </Dialog>
+        
+        <Dialog open={modalOpen === 'grifos'} onOpenChange={(v) => !v && setModalOpen(null)}>
+          <DialogContent className="max-w-2xl p-0 overflow-hidden bg-background border-border max-h-[85vh] overflow-y-auto">
+            <GrifosPage onClose={() => setModalOpen(null)} />
+          </DialogContent>
+        </Dialog>
+        
+        <Dialog open={modalOpen === 'ferramentas'} onOpenChange={(v) => !v && setModalOpen(null)}>
+          <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background border-border max-h-[85vh] overflow-y-auto">
+            <FerramentasPage />
+          </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   );

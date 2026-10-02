@@ -15,7 +15,7 @@ type Grifo = {
   updated_at: string;
 };
 
-const GrifosPage = () => {
+const GrifosPage = ({ onClose }: { onClose?: () => void }) => {
   const navigate = useNavigate();
   const [grifos, setGrifos] = useState<Grifo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,10 +43,10 @@ const GrifosPage = () => {
   for (const g of grifos) (grupos[g.tabela_codigo] ||= []).push(g);
 
   return (
-    <div className="min-h-dvh bg-background text-foreground pb-24">
+    <div className={onClose ? "pb-6" : "min-h-dvh bg-background text-foreground pb-24"}>
       <PageHeader
         title="Meus grifos"
-        onBack={() => navigate(-1)}
+        onBack={onClose || (() => navigate(-1))}
         leading={
           <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center">
             <Highlighter className="w-5 h-5 text-primary" />

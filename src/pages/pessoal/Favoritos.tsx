@@ -14,7 +14,7 @@ type Favorito = {
   created_at: string;
 };
 
-const FavoritosPage = () => {
+const FavoritosPage = ({ onClose }: { onClose?: () => void }) => {
   const navigate = useNavigate();
   const [favoritos, setFavoritos] = useState<Favorito[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,10 +42,10 @@ const FavoritosPage = () => {
   for (const f of favoritos) (grupos[f.tabela_codigo] ||= []).push(f);
 
   return (
-    <div className="min-h-dvh bg-background text-foreground pb-24">
+    <div className={onClose ? "pb-6" : "min-h-dvh bg-background text-foreground pb-24"}>
       <PageHeader
         title="Meus Favoritos"
-        onBack={() => navigate(-1)}
+        onBack={onClose || (() => navigate(-1))}
         leading={
           <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center">
             <Bookmark className="w-5 h-5 text-primary" />
