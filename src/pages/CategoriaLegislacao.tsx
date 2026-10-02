@@ -31,6 +31,7 @@ const brasaoImg = brasaoImgAsset;
 import { useIsDesktop } from '@/hooks/use-desktop';
 import RadarLegislacaoContent, { prefetchRadarData } from '@/components/vademecum/RadarLegislacaoContent';
 import { getLeiColor, getLeiCover, shade } from '@/lib/leiTheme';
+import { pushRecente } from '@/lib/leisRecentes';
 import { warmCoverCache } from '@/lib/coverLoader';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 import { slugToTipo, tipoToSlug, leiToSlug, leiPath, findLeiBySlug, CATEGORIAS_FIXAS } from '@/lib/legislacaoSlugs';
@@ -360,6 +361,22 @@ const CategoriaLegislacao = () => {
   const openArtigoWithRecent = useCallback((artigo: ArtigoLei) => {
     track('legislacao_artigo_opened', { lei_id: selectedLeiId, lei_nome: selectedLeiNome, tabela: selectedTabelaNome, artigo_id: artigo.id, artigo_numero: artigo.numero });
     setOpenArtigo(artigo);
+
+    // Save article in recent laws so it shows on Home as "Continuar Leitura"
+    if (selectedLeiId) {
+      const leiCat = LEIS_CATALOG.find(l => l.id === selectedLeiId);
+      if (leiCat) {
+        pushRecente({
+          tipo: leiCat.tipo,
+          leiId: leiCat.id,
+          nome: leiCat.nome,
+          descricao: leiCat.descricao,
+          tabela_nome: leiCat.tabela_nome,
+          artigoNumero: artigo.numero,
+        });
+      }
+    }
+
     if (!selectedTabelaNome) return;
     setRecentIds(prev => {
       const next = [String(artigo.id), ...prev.filter(id => id !== String(artigo.id))].slice(0, 30);

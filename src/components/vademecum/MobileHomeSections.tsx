@@ -18,6 +18,7 @@ import { ESTADOS } from '@/pages/LegislacaoEstadual';
 
 import { PillarIcon } from '@/components/icons/PillarIcon';
 import { leiPath, tipoToSlug, leiToSlug } from '@/lib/legislacaoSlugs';
+import { getLeiColor, shade } from '@/lib/leiTheme';
 import { pushRecente } from '@/lib/leisRecentes';
 import { getFavoritos, LEIS_FAVORITOS_EVENT } from '@/lib/leisFavoritos';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
@@ -259,11 +260,6 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
     setUltimaLei(recentes[0] || null);
   }, []);
 
-  // #38 — Banner dismissível
-  const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
-    try { return localStorage.getItem('banner_novidade_v1_dismissed') === '1'; } catch { return false; }
-  });
-
   useEffect(() => {
     if (!categoryOpen) return;
     setListFilter('todos');
@@ -375,53 +371,46 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             const lei = { id: ultimaLei.leiId, nome: ultimaLei.nome };
             navigate(`/legislacao/${tipoToSlug(ultimaLei.tipo)}/${leiToSlug(lei)}`);
           }}
-          className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl bg-gradient-to-r from-primary/20 to-primary/5 border border-primary/30 text-left active:scale-[0.98] transition-transform"
+          style={{
+            background: `linear-gradient(to right, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}33, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}0D)`,
+            borderColor: `${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}4D`
+          }}
+          className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl border text-left active:scale-[0.98] transition-transform overflow-hidden relative"
         >
-          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-            <BookOpen className="w-5 h-5 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-bold text-primary uppercase tracking-wider mb-0.5">Continuar Leitura</p>
-            <p className="font-display text-[14px] font-bold text-foreground truncate">{ultimaLei.nome}</p>
-            <p className="text-[11px] text-muted-foreground truncate">{ultimaLei.descricao}</p>
-          </div>
-          <ArrowRight className="w-5 h-5 text-primary shrink-0" />
+          {(() => {
+            const bgCor = getLeiColor(ultimaLei.leiId, ultimaLei.tipo);
+            const IconeLei = LAW_ICON_MAP[ultimaLei.leiId] || BookOpen;
+            return (
+              <>
+                <div 
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
+                  style={{ backgroundColor: `${bgCor}33` }}
+                >
+                  <IconeLei className="w-5 h-5 drop-shadow-sm" style={{ color: shade(bgCor, 0.2) }} />
+                </div>
+                <div className="flex-1 min-w-0 z-10">
+                  <p className="text-[11px] font-bold uppercase tracking-wider mb-0.5" style={{ color: shade(bgCor, 0.2) }}>Continuar Leitura</p>
+                  <p className="font-display text-[14px] font-bold text-foreground truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{ultimaLei.nome}</p>
+                  {ultimaLei.artigoNumero ? (
+                    <p className="text-[11.5px] font-medium truncate mt-0.5" style={{ color: shade(bgCor, 0.3) }}>
+                      Parou em: {ultimaLei.artigoNumero}
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground truncate drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]">{ultimaLei.descricao}</p>
+                  )}
+                </div>
+                <ArrowRight className="w-5 h-5 shrink-0" style={{ color: shade(bgCor, 0.2) }} />
+                
+                {/* Bg decoration */}
+                <IconeLei 
+                  className="absolute -right-4 -bottom-4 w-24 h-24 opacity-[0.04] pointer-events-none" 
+                  style={{ color: bgCor }} 
+                />
+              </>
+            );
+          })()}
         </motion.button>
       )}
-
-      {/* #38 — Banner dismissível de novidades */}
-      <AnimatePresence>
-        {!bannerDismissed && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden"
-          >
-            <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-sky-500/10 border border-sky-400/25 text-sky-100">
-              <span className="relative flex h-2.5 w-2.5 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500" />
-              </span>
-              <p className="flex-1 text-[12px] font-medium text-sky-200">
-                ✨ Novidade: busca por voz agora disponível no Vade Mecum!
-              </p>
-              <button
-                type="button"
-                aria-label="Dispensar aviso"
-                onClick={() => {
-                  setBannerDismissed(true);
-                  try { localStorage.setItem('banner_novidade_v1_dismissed', '1'); } catch {}
-                }}
-                className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sky-300 hover:bg-sky-400/20 transition-colors active:scale-95"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* 1. NO LUGAR DE NOTÍCIAS: CARROSSEL DO EM ALTA (Cards vermelhos com degradê + Personalizar) */}
       <HomeAtalhosLeisCarousel onOpenLei={handleOpenLei} />

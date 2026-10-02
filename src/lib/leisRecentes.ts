@@ -6,6 +6,7 @@ export type LeiRecente = {
   nome: string;
   descricao: string;
   tabela_nome: string;
+  artigoNumero?: string;
   openedAt: number;
 };
 
