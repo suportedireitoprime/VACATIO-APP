@@ -200,6 +200,7 @@ const AdminLegislacaoEditar = lazy(() => import("./pages/AdminLegislacaoEditar.t
 const AdminBuscadorLeis = lazy(() => import("./pages/AdminBuscadorLeis.tsx"));
 import NovidadesRadarOverlay from "./components/NovidadesRadarOverlay";
 import GlobalDesktopHeader from "./components/layout/GlobalDesktopHeader";
+import { DesktopSidebar } from "./components/layout/DesktopSidebar";
 import DesktopFileDropOverlay from "./components/desktop/DesktopFileDropOverlay";
 const ModoOffline = lazy(() => import("./pages/ModoOffline.tsx"));
 const ModoOfflineLeis = lazy(() => import("./pages/ModoOfflineLeis.tsx"));
@@ -520,12 +521,13 @@ function AnimatedRoutes() {
 
 
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-hidden lg:pl-[80px] transition-all duration-300">
       <NativeBootstrap />
       <PushNavListener />
       <DeepLinkBootstrap />
       {user && <PresenceWrapper />}
       {user && <NovidadesRadarOverlay />}
+      <DesktopSidebar />
       <GlobalDesktopHeader />
       <DesktopFileDropOverlay />
       <PersistentHome />
