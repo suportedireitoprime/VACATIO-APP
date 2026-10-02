@@ -1855,6 +1855,31 @@ const ArtigoBottomSheet = ({
   const isRevogado = processedLines.length === 0 && rawLines.length > 0;
   const displayLines = isRevogado ? rawLines : processedLines;
 
+  const navChips = useMemo(() => {
+    if (!displayLines || displayLines.length <= 1) return [];
+    const chips: { chip: string; index: number }[] = [];
+    displayLines.forEach((line, i) => {
+      if (i === 0) {
+        chips.push({ chip: 'Caput', index: i });
+        return;
+      }
+      const t = line.trim();
+      if (/^[a-z]\)\s*/i.test(t)) {
+        const m = t.match(/^([a-z]\))/i);
+        if (m) chips.push({ chip: m[1].toLowerCase(), index: i });
+      } else if (/^§\s*(\d+)/i.test(t)) {
+        const m = t.match(/^§\s*(\d+)/i);
+        if (m) chips.push({ chip: `§ ${m[1]}º`, index: i });
+      } else if (/^Par[áa]grafo\s+[úu]nico/i.test(t)) {
+        chips.push({ chip: 'Par. único', index: i });
+      } else if (/^([IVXLCDM]+)\s*[-–.)]/i.test(t)) {
+        const m = t.match(/^([IVXLCDM]+)/i);
+        if (m) chips.push({ chip: m[1].toUpperCase(), index: i });
+      }
+    });
+    return chips;
+  }, [displayLines]);
+
   const getRenderedLineText = (line: string, lineIndex: number, isFirst: boolean) => {
     const isModifiedLine = modificationInfo && modificationInfo.linhasModificadas.includes(lineIndex);
     const displayText = modificationInfo
@@ -2518,6 +2543,50 @@ const ArtigoBottomSheet = ({
                 </p>
               )}
 
+
+              {/* Menu de alternância (Chips para alínea, caput, etc.) */}
+              {navChips.length > 1 && !narracaoPlaying && (
+                <div className="mb-4 -mx-5 px-5">
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {navChips.map((chip, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          const el = containerRef.current?.querySelector(`[data-line-index="${chip.index}"]`);
+                          if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }
+                        }}
+                        className="shrink-0 rounded-full px-3 py-1.5 text-[12px] font-bold bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                      >
+                        {chip.chip}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Menu de alternância (Chips para alínea, caput, etc.) */}
+              {navChips.length > 1 && !narracaoPlaying && (
+                <div className="mb-4 -mx-5 px-5">
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {navChips.map((chip, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          const el = containerRef.current?.querySelector(`[data-line-index="${chip.index}"]`);
+                          if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }
+                        }}
+                        className="shrink-0 rounded-full px-3 py-1.5 text-[12px] font-bold bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                      >
+                        {chip.chip}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div
                 ref={containerRef}
