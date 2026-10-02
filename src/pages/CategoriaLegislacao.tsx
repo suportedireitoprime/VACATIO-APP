@@ -2427,7 +2427,7 @@ const CategoriaLegislacao = () => {
         </Dialog>
 
 
-        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-28 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-7xl' : 'max-w-5xl'}`}>
+        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-28 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-[800px]' : 'max-w-5xl'}`}>
 
           {/* Mini-Sumário Flutuante removido */}
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Search, X, BookMarked, Gavel, ArrowRight, Zap, MessageCircle, ScrollText, Feather, Heart, Wrench, ShieldAlert, House, CircleDollarSign, Landmark, FileText, ShieldCheck, Briefcase, Store, Building, Vote, HeartPulse, TreePine, ShoppingCart, Baby, Shield, Globe, ChevronLeft } from 'lucide-react';
+import { Search, X, BookMarked, Gavel, ArrowRight, Zap, MessageCircle, ScrollText, Feather, Heart, Wrench, ShieldAlert, House, CircleDollarSign, Landmark, FileText, ShieldCheck, Briefcase, Store, Building, Vote, HeartPulse, TreePine, ShoppingCart, Baby, Shield, Globe, ChevronLeft, Clock, BookOpen, ChevronRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import FavoritosPage from './pessoal/Favoritos';
@@ -16,7 +16,7 @@ import HomeCard from '@/components/vademecum/HomeCard';
 
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 import { LAW_ICON_MAP, CODIGO_DISPLAY_NAMES, ESTATUTO_DISPLAY_NAMES } from '@/data/lawDisplay';
-import { pushRecente } from '@/lib/leisRecentes';
+import { pushRecente, getRecentes, type LeiRecente } from '@/lib/leisRecentes';
 import { leiPath, leiToSlug, tipoToSlug } from '@/lib/legislacaoSlugs';
 import { prefetchAllArtigos } from '@/services/legislacaoService';
 import { prefetchResenha } from '@/services/atualizacaoService';
@@ -66,6 +66,14 @@ const IndexDesktop = () => {
   const [activeArea, setActiveArea] = useState<AreaCat | null>(null);
   const [modalOpen, setModalOpen] = useState<'favoritos' | 'anotacoes' | 'grifos' | 'ferramentas' | null>(null);
 
+  const [recentes, setRecentes] = useState<LeiRecente[]>([]);
+
+  useEffect(() => {
+    const carregar = () => setRecentes(getRecentes().slice(0, 3));
+    carregar();
+    window.addEventListener('LEIS_RECENTES_UPDATED', carregar);
+    return () => window.removeEventListener('LEIS_RECENTES_UPDATED', carregar);
+  }, []);
   useHotkeys('mod+k', (e) => { e.preventDefault(); setSearchOpen(true); }, { enableOnFormTags: true });
   useHotkeys('escape', () => { setSearchOpen(false); setAssistenteOpen(false); });
 
@@ -137,7 +145,23 @@ const IndexDesktop = () => {
       );
       return haystack.includes(query);
     });
-  }, [searchQuery, activeTab]);
+  }, [searchQuery, activeTab, activeArea]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+      const key = e.key;
+      const tabs = ['todos', 'constituicao', 'codigo', 'estatuto', 'leis-especiais', 'leis-complementares'];
+      if (key >= '1' && key <= '6') {
+        const index = parseInt(key) - 1;
+        setActiveTab(tabs[index] as TabType);
+        setActiveArea(null);
+        setSearchQuery('');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div className="min-h-dvh bg-[#050505] flex flex-col relative overflow-hidden">
@@ -174,7 +198,7 @@ const IndexDesktop = () => {
                   className="group flex items-center gap-3 px-5 py-2.5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 backdrop-blur-md transition-all cursor-pointer shrink-0"
                 >
                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${item.bg}`}>
-                     <item.icon className={`w-4 h-4 ${item.color} group-hover:scale-110 transition-transform`} strokeWidth={2.5} />
+                     <item.icon className={`w-4 h-4 ${item.color} group-hover:scale-110 transition-transform`} strokeWidth={1.5} />
                    </div>
                    <span className="font-display font-bold text-[14px] text-white/90 uppercase tracking-wider group-hover:text-white pr-1">{item.label}</span>
                 </button>
@@ -226,7 +250,7 @@ const IndexDesktop = () => {
               <div className="flex-1 flex flex-col">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-full border-2 border-white/90 bg-primary flex items-center justify-center overflow-hidden shadow-[0_8px_20px_rgba(0,0,0,0.5)] logo-shine">
-                    <BookMarked className="w-6 h-6 text-primary-foreground" strokeWidth={2.2} />
+                    <BookMarked className="w-6 h-6 text-primary-foreground" strokeWidth={1.5} />
                   </div>
                   <div>
                     <h1 className="font-serif italic text-white text-[28px] leading-[1.05] font-bold tracking-tight drop-shadow-md">
@@ -245,7 +269,7 @@ const IndexDesktop = () => {
                 <button autoFocus className="relative w-full max-w-2xl text-left flex items-center h-16 pl-14 pr-[116px] rounded-2xl bg-black/65 backdrop-blur-md border border-white/15 shadow-lg shadow-black/30 search-bar-shine cursor-pointer group hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-colors" onClick={() => setSearchOpen(true)}>
                   <Search
                     className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-primary shrink-0 pointer-events-none group-hover:scale-110 transition-transform"
-                    strokeWidth={2.2}
+                    strokeWidth={1.5}
                   />
                   <span className="w-full text-white/50 text-[15px] font-body">Buscar lei ou artigo (ex: Código Penal, CLT)...</span>
                   <div
@@ -292,12 +316,55 @@ const IndexDesktop = () => {
                     })}
                   </div>
                 </div>
+
+                {/* Widget Estatísticas */}
+                <div className="mt-4 bg-black/40 backdrop-blur-xl border border-white/15 rounded-3xl p-5 shadow-2xl flex items-center justify-between">
+                  <div>
+                    <h4 className="text-white/60 font-body text-xs uppercase tracking-wider font-bold mb-1">
+                      Seu Progresso Hoje
+                    </h4>
+                    <p className="text-white font-display text-2xl font-black">
+                      15 <span className="text-base font-medium text-white/50">artigos lidos</span>
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trending-up text-emerald-400"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           {/* CATÁLOGO ABAIXO DO HERO */}
           <main className="max-w-7xl mx-auto px-8 py-8">
+            {/* CONTINUAR DE ONDE PAROU */}
+            {recentes.length > 0 && !searchQuery && activeTab === 'todos' && !activeArea && (
+              <div className="mb-10">
+                <h2 className="font-display font-bold text-xl text-white mb-4 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-primary" />
+                  Continuar de onde parou
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {recentes.map((rec) => (
+                    <button
+                      key={`${rec.leiId}-${rec.tabela_nome}`}
+                      onClick={() => navigate(leiPath(rec as any))}
+                      className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-left group"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 group-hover:bg-primary transition-colors">
+                        <BookOpen className="w-6 h-6 text-primary group-hover:text-black transition-colors" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-display font-bold text-[15px] text-white truncate">{rec.nome || rec.leiId}</h4>
+                        <p className="font-body text-xs text-white/50 truncate mt-0.5">{rec.descricao}</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-white/60 transition-colors shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* TABS */}
             <div className="flex flex-wrap items-center gap-2 mb-8 border-b border-white/5 pb-4">
               {[

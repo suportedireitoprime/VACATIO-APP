@@ -60,7 +60,7 @@ const HomeCardImpl = ({
                 color,
                 filter: 'saturate(1.25) drop-shadow(0 2px 6px rgba(0,0,0,0.5))',
               }}
-              strokeWidth={1.75}
+              strokeWidth={1.5}
             />
             <p
               className={`font-display text-foreground font-bold uppercase leading-[1.15] line-clamp-2 ${
