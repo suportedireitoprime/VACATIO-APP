@@ -9,6 +9,8 @@ import {
   Plus,
   RotateCcw,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   X,
   Scale,
   BookMarked,
@@ -250,6 +252,24 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
     toast.success('Atalhos restaurados para o padrão.');
   }, []);
 
+  const moveLei = useCallback((id: string, direction: 'up' | 'down') => {
+    setSelectedIds((prev) => {
+      const idx = prev.indexOf(id);
+      if (idx === -1) return prev;
+      if (direction === 'up' && idx === 0) return prev;
+      if (direction === 'down' && idx === prev.length - 1) return prev;
+
+      const next = [...prev];
+      const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+      [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
   return (
     <section className="space-y-3">
       {/* Cabeçalho da Seção com alinhamento px-1 idêntico a Legislação Brasileira */}
@@ -291,7 +311,8 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
             const baseColor = getLeiColor(lei.id, lei.tipo);
             
             let coverImage = null;
-            if (lei.id === 'cdc') coverImage = '/assets/cdc-worker.webp';
+            if (lei.id === 'cdc') coverImage = '/assets/cdc-girl.webp';
+            else if (lei.id === 'clt') coverImage = '/assets/cdc-worker.webp';
             else if (lei.id === 'cpp') coverImage = '/assets/cpp-court.webp';
             else if (lei.id === 'cf88') coverImage = '/assets/cf88-cover.webp';
             else if (['cp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.webp';
@@ -510,18 +531,40 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                             </div>
                           </div>
 
-                          <div
-                            className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all shrink-0 ${
-                              isSelected
-                                ? 'bg-white border-white text-black shadow-sm'
-                                : 'border-white/20 bg-white/5 text-transparent group-hover:border-white/40'
-                            }`}
-                          >
-                            {isSelected ? (
-                              <Check className="w-3.5 h-3.5 stroke-[3]" />
-                            ) : (
-                              <Plus className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
+                          <div className="flex items-center gap-2 shrink-0">
+                            {activeTab === 'em-alta' && isSelected && (
+                              <div className="flex flex-col gap-1 mr-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); moveLei(lei.id, 'up'); }}
+                                  disabled={filteredCatalog.indexOf(lei) === 0}
+                                  className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                                >
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); moveLei(lei.id, 'down'); }}
+                                  disabled={filteredCatalog.indexOf(lei) === filteredCatalog.length - 1}
+                                  className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                                >
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             )}
+                            <div
+                              className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all shrink-0 ${
+                                isSelected
+                                  ? 'bg-white border-white text-black shadow-sm'
+                                  : 'border-white/20 bg-white/5 text-transparent group-hover:border-white/40'
+                              }`}
+                            >
+                              {isSelected ? (
+                                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              ) : (
+                                <Plus className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
+                              )}
+                            </div>
                           </div>
                         </button>
                       );
@@ -530,7 +573,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                 </div>
 
                 {/* Footer neutro e informativo */}
-                <div className="p-3 sm:p-4 border-t border-white/10 flex items-center justify-between bg-[#141416] shrink-0">
+                <div className="p-3 pb-8 sm:p-4 sm:pb-4 border-t border-white/10 flex items-center justify-between bg-[#141416] shrink-0">
                   <div className="flex flex-col">
                     <span className="text-[12px] text-neutral-400">
                       <strong className="text-white font-bold">{selectedIds.length}</strong> de <strong className="text-white font-bold">{MAX_ATALHOS}</strong> selecionadas
