@@ -323,7 +323,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                   <img
                     src={coverImage}
                     alt={`Capa da lei ${lei.sigla}`}
-                    className="absolute -top-6 right-0 h-[118px] w-auto object-contain pointer-events-none z-10 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
+                    className="absolute -top-6 right-0 h-[118px] w-auto object-contain pointer-events-none z-10 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] group-hover:drop-shadow-[0_12px_20px_rgba(0,0,0,0.7)] group-hover:scale-105 transition-all duration-300"
                   />
                 )}
 
