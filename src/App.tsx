@@ -47,7 +47,11 @@ import { useHorusStatsSync } from "@/hooks/useHorusStatsSync";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useDesktopSessionGuard } from "@/hooks/useDesktopSessionGuard";
 import { useProfileSummary } from "@/hooks/useProfileSummary";
+import { useIsDesktop } from "@/hooks/use-desktop";
 import { useLeituraStore } from "@/stores/useLeituraStore";
+import { useDesktopPaneStore } from "@/stores/useDesktopPaneStore";
+import DesktopSupportingPane from "@/components/desktop/DesktopSupportingPane";
+import DesktopStatusBar from "@/components/desktop/DesktopStatusBar";
 import brasaoImgAsset from '@/assets/brasao-republica.webp';
 const brasaoImg = brasaoImgAsset;
 import { Loader2 } from "lucide-react";
@@ -397,6 +401,16 @@ function EstudosRouter() {
 }
 
 function LazyFallback() {
+  const isDesktop = useIsDesktop();
+
+  if (isDesktop) {
+    return (
+      <div className="fixed top-0 left-0 w-full h-[3px] z-[9999] overflow-hidden bg-transparent">
+        <div className="h-full bg-primary/80 w-1/3 rounded-r-full shadow-[0_0_10px_rgba(225,29,72,0.8)] animate-pulse" style={{ animationDuration: '0.8s' }} />
+      </div>
+    );
+  }
+
   return (
     <div
       className="min-h-dvh bg-background p-4 pt-16 space-y-4 animate-in fade-in duration-300"
@@ -523,9 +537,10 @@ function AnimatedRoutes() {
 
 
   const { focusMode } = useLeituraStore();
+  const { isOpen: isPaneOpen } = useDesktopPaneStore();
 
   return (
-    <div className={`overflow-x-hidden transition-all duration-300 min-h-dvh flex flex-col ${focusMode ? '' : 'lg:pl-[80px]'}`}>
+    <div className={`overflow-x-hidden transition-all duration-300 min-h-dvh flex flex-col ${focusMode ? '' : 'lg:pl-[80px]'} ${isPaneOpen ? 'lg:pr-[320px]' : ''}`}>
       <NativeBootstrap />
       <PushNavListener />
       <DeepLinkBootstrap />
@@ -534,6 +549,8 @@ function AnimatedRoutes() {
       {!focusMode && <DesktopSidebar />}
       {!focusMode && <GlobalDesktopHeader />}
       <DesktopFileDropOverlay />
+      <DesktopStatusBar />
+      <DesktopSupportingPane />
       <PersistentHome />
       <Suspense fallback={<LazyFallback />}>
         <Routes>
