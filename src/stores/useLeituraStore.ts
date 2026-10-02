@@ -10,6 +10,8 @@ interface LeituraStore {
   paintColor: string;
   togglePaintMode: () => void;
   setPaintColor: (color: string) => void;
+  fontSizeScale: number;
+  setFontSizeScale: (val: number) => void;
 }
 
 export const useLeituraStore = create<LeituraStore>()(
@@ -23,6 +25,8 @@ export const useLeituraStore = create<LeituraStore>()(
       paintColor: 'rgba(250, 204, 21, 0.42)',
       togglePaintMode: () => set((state) => ({ isPaintMode: !state.isPaintMode })),
       setPaintColor: (color) => set({ paintColor: color }),
+      fontSizeScale: 1,
+      setFontSizeScale: (val) => set({ fontSizeScale: val }),
     }),
     { name: 'leitura-preferences' }
   )

@@ -56,9 +56,11 @@ export function parseCrossReferences(text: string): CrossReference[] {
 export function linkifyCrossReferences(
   text: string, 
   onClick?: (artigoNum: string) => void,
-  bionicMode?: boolean
+  bionicMode?: boolean,
+  onHoverEnter?: (artigoNum: string, e: React.MouseEvent) => void,
+  onHoverLeave?: () => void
 ): React.ReactNode[] {
-  if (!onClick && !bionicMode) return [text];
+  if (!onClick && !bionicMode && !onHoverEnter) return [text];
 
   const references = parseCrossReferences(text);
   if (references.length === 0) {
@@ -80,7 +82,13 @@ export function linkifyCrossReferences(
         key={`ref-${i}`}
         onClick={(e) => {
           e.stopPropagation();
-          onClick(ref.artigoNum);
+          if (onClick) onClick(ref.artigoNum);
+        }}
+        onMouseEnter={(e) => {
+          if (onHoverEnter) onHoverEnter(ref.artigoNum, e);
+        }}
+        onMouseLeave={() => {
+          if (onHoverLeave) onHoverLeave();
         }}
         className="text-primary font-semibold hover:underline cursor-pointer active:scale-95 transition-transform inline-flex rounded mx-0.5 align-baseline"
         title={`Ver artigo ${ref.artigoNum}`}

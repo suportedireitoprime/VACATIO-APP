@@ -21,6 +21,8 @@ interface ArtigoCardProps {
   withShine?: boolean;
   /** Tag indicators (favorito / grifado / anotado) rendered under the number badge. */
   tags?: { favorito?: boolean; grifado?: boolean; anotado?: boolean };
+  /** Text of the user annotation, if any. */
+  anotacaoTexto?: string;
 }
 
 const normalizeArtigoLabel = (value: string) => value
@@ -40,7 +42,7 @@ const planaltoAnnotationRe = /\s*[\(\[]?\s*(?:Redação\s+dada|Incluíd[oa]|Acre
 
 const cleanStructuralText = (value: string) => value.replace(planaltoAnnotationRe, '').replace(/\s+/g, ' ').trim();
 
-const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, withShine, tags }: ArtigoCardProps) => {
+const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, withShine, tags, anotacaoTexto }: ArtigoCardProps) => {
   const { bionicReading } = useLeituraStore();
   const displayNumero = normalizeArtigoLabel(artigo.numero);
 
@@ -154,12 +156,12 @@ const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, with
           } catch {}
           onClick();
         }}
-        className={`group w-full min-h-[84px] text-left px-3 py-2.5 rounded-2xl bg-card/70 border transition-colors active:scale-[0.997] relative overflow-hidden flex items-stretch gap-3 ${
+        className={`group w-full min-h-[84px] text-left px-3 py-2.5 rounded-2xl bg-card/70 border transition-all duration-200 active:scale-[0.997] relative overflow-hidden flex items-stretch gap-3 ${
           isHighlighted
             ? 'border-primary ring-2 ring-primary shadow-[0_0_20px_4px_hsl(var(--primary)/0.3)]'
             : isADCT
-              ? 'border-sky-400/40 hover:border-sky-300/60 hover:bg-card'
-              : 'border-border/60 hover:border-amber-400/40 hover:bg-card'
+              ? 'border-sky-400/40 hover:border-sky-300/60 hover:bg-card hover:shadow-md hover:-translate-y-[1px]'
+              : 'border-border/60 hover:border-amber-400/40 hover:bg-card hover:shadow-md hover:-translate-y-[1px]'
         }`}
       >
         {withShine && (
@@ -199,7 +201,7 @@ const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, with
               ADCT · Disposições Transitórias
             </span>
           )}
-          <p className={`text-[12.5px] leading-snug line-clamp-2 ${isRevogado ? 'text-purple-300 italic' : 'text-muted-foreground'}`}>
+          <p className={`text-[12.5px] leading-snug md:leading-relaxed md:text-[14px] line-clamp-2 ${isRevogado ? 'text-purple-300 italic' : 'text-muted-foreground'}`}>
             {!isRevogado && (
               <>
                 <span className="font-bold text-foreground">{artLabel}</span>
@@ -209,10 +211,28 @@ const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, with
             {renderCaput}
           </p>
         </div>
-        <div className="shrink-0 flex items-start pt-1">
+        <div className="shrink-0 flex items-center pt-1 gap-2">
+          {/\s*\((?:Redação|Incluído|Acrescido|Alterado|Nova\s+redação)[^)]*\)/gi.test(artigo.caput) && !isRevogado && (
+            <span className="hidden md:inline-flex items-center rounded-sm bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-400 ring-1 ring-inset ring-blue-500/20">
+              Nova Redação
+            </span>
+          )}
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
         </div>
       </button>
+      
+      {/* Nota na margem direita (visível apenas em telas muito largas) */}
+      {anotacaoTexto && (
+        <div className="hidden xl:flex absolute left-full top-0 ml-8 w-[280px] p-4 rounded-2xl bg-sky-900/20 border border-sky-400/20 text-sky-100/90 text-[13px] leading-relaxed max-h-[140px] overflow-hidden flex-col gap-2 shadow-xl backdrop-blur-md transition-all hover:bg-sky-900/30">
+          <div className="flex items-center gap-2 opacity-80 shrink-0">
+            <StickyNote className="w-3.5 h-3.5 text-sky-400" />
+            <span className="font-bold text-[10px] uppercase tracking-wider text-sky-300">Anotação</span>
+          </div>
+          <p className="line-clamp-4 overflow-hidden text-ellipsis italic font-serif">
+            "{anotacaoTexto}"
+          </p>
+        </div>
+      )}
     </div>
   );
 };

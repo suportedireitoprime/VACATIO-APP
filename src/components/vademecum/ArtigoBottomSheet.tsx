@@ -1,7 +1,7 @@
 import { cloneElement, isValidElement, useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronRight, ExternalLink, Volume2, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Layers, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2, Lock } from 'lucide-react';
+import { Search, X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronRight, ExternalLink, Volume2, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Layers, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2, Lock } from 'lucide-react';
 const LembretesArtigoSheet = lazy(() => import('./LembretesArtigoSheet'));
 const BaixarArtigoSheet = lazy(() => import('./BaixarArtigoSheet'));
 // Sheets/overlays pesados são carregados sob demanda: o chunk só desce
@@ -146,7 +146,14 @@ function normalizeLegalLineBreaks(text: string): string {
 }
 
 
-function highlightTermos(text: string, showRedacao?: boolean, onCrossReferenceClick?: (artigoNum: string) => void, bionicMode?: boolean): React.ReactNode[] {
+function highlightTermos(
+  text: string, 
+  showRedacao?: boolean, 
+  onCrossReferenceClick?: (artigoNum: string) => void, 
+  bionicMode?: boolean,
+  onHoverEnter?: (artigoNum: string, e: React.MouseEvent) => void,
+  onHoverLeave?: () => void
+): React.ReactNode[] {
   // Pattern for ALL metadata references (shown in yellow, togglable via eye icon)
   const redacaoPattern = /\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Revogado|Vetado)[^)]*\)/gi;
 
@@ -156,7 +163,7 @@ function highlightTermos(text: string, showRedacao?: boolean, onCrossReferenceCl
     let m: RegExpExecArray | null;
     redacaoPattern.lastIndex = 0;
     while ((m = redacaoPattern.exec(text)) !== null) {
-      if (m.index > lastIndex) parts.push(...highlightTermosOnly(text.slice(lastIndex, m.index), onCrossReferenceClick, bionicMode));
+      if (m.index > lastIndex) parts.push(...highlightTermosOnly(text.slice(lastIndex, m.index), onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave));
       parts.push(
         <span key={`r${m.index}`} className="text-yellow-400 text-xs font-normal bg-yellow-400/10 rounded px-0.5">
           {m[0]}
@@ -164,15 +171,21 @@ function highlightTermos(text: string, showRedacao?: boolean, onCrossReferenceCl
       );
       lastIndex = m.index + m[0].length;
     }
-    if (lastIndex < text.length) parts.push(...highlightTermosOnly(text.slice(lastIndex), onCrossReferenceClick, bionicMode));
-    return parts.length > 0 ? parts : highlightTermosOnly(text, onCrossReferenceClick, bionicMode);
+    if (lastIndex < text.length) parts.push(...highlightTermosOnly(text.slice(lastIndex), onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave));
+    return parts.length > 0 ? parts : highlightTermosOnly(text, onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave);
   }
-  return highlightTermosOnly(text, onCrossReferenceClick, bionicMode);
+  return highlightTermosOnly(text, onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave);
 }
 
 import { applyBionicReading } from '@/lib/bionicReading';
 
-function highlightTermosOnly(text: string, onCrossReferenceClick?: (artigoNum: string) => void, bionicMode?: boolean): React.ReactNode[] {
+function highlightTermosOnly(
+  text: string, 
+  onCrossReferenceClick?: (artigoNum: string) => void, 
+  bionicMode?: boolean,
+  onHoverEnter?: (artigoNum: string, e: React.MouseEvent) => void,
+  onHoverLeave?: () => void
+): React.ReactNode[] {
   const patterns = [
     /^(Art\.\s*\d+[º°]?(?:-[A-Z])?)(\s*[–-]\s*)?/i,
     /^(§\s*\d+[º°]?(?:-[A-Z])?)(\s*[.–-]?\s*)?/i,
@@ -190,10 +203,10 @@ function highlightTermosOnly(text: string, onCrossReferenceClick?: (artigoNum: s
     const parts: React.ReactNode[] = [];
     parts.push(<span key="token" className="text-primary-light font-bold">{leadingToken}</span>);
     if (separator) parts.push(<span key="sep">{separator}</span>);
-    if (rest) parts.push(...linkifyCrossReferences(rest, onCrossReferenceClick, bionicMode));
+    if (rest) parts.push(...linkifyCrossReferences(rest, onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave));
     return parts;
   }
-  return linkifyCrossReferences(text, onCrossReferenceClick, bionicMode);
+  return linkifyCrossReferences(text, onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave);
 }
 
 function classifyLine(line: string): { type: 'nomen' | 'caput' | 'inciso' | 'alinea' | 'paragrafo' | 'text'; text: string } {
@@ -384,6 +397,8 @@ const ArtigoBottomSheet = ({
   const [showBaixarSheet, setShowBaixarSheet] = useState(false);
   
   const [crossRefArtigo, setCrossRefArtigo] = useState<ArtigoLei | null>(null);
+  const [hoveredCrossRef, setHoveredCrossRef] = useState<{ artigoNum: string; rect: DOMRect; artigo: ArtigoLei } | null>(null);
+
   const handleCrossReferenceClick = (artigoNum: string) => {
     if (!tabelaNome) return;
     const artigos = getCachedArtigos(tabelaNome);
@@ -391,10 +406,27 @@ const ArtigoBottomSheet = ({
       const found = artigos.find(a => a.numero === artigoNum || a.numero === `Art. ${artigoNum}` || a.numero === `Art. ${artigoNum}º` || a.numero === `Art. ${artigoNum}°`);
       if (found) {
         setCrossRefArtigo(found);
+        setHoveredCrossRef(null);
         return;
       }
     }
     toast.error('Artigo não encontrado para visualização rápida.');
+  };
+
+  const handleCrossReferenceHover = (artigoNum: string, e: React.MouseEvent) => {
+    if (!tabelaNome || !isDesktop) return;
+    const artigos = getCachedArtigos(tabelaNome);
+    if (artigos) {
+      const found = artigos.find(a => a.numero === artigoNum || a.numero === `Art. ${artigoNum}` || a.numero === `Art. ${artigoNum}º` || a.numero === `Art. ${artigoNum}°`);
+      if (found) {
+        const rect = (e.target as HTMLElement).getBoundingClientRect();
+        setHoveredCrossRef({ artigoNum, rect, artigo: found });
+      }
+    }
+  };
+
+  const handleCrossReferenceLeave = () => {
+    setHoveredCrossRef(null);
   };
 
   useEffect(() => { setShowLembretesLocal(false); }, [artigo?.numero, tabelaNome]);
@@ -414,6 +446,21 @@ const ArtigoBottomSheet = ({
     document.addEventListener('selectionchange', handler);
     return () => document.removeEventListener('selectionchange', handler);
   }, [isDesktop, artigo?.numero]);
+
+  // Desktop: Navegação por setas de teclado (Item 40)
+  useEffect(() => {
+    if (!isDesktop || !artigo) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowRight' && onNext) {
+        onNext();
+      } else if (e.key === 'ArrowLeft' && onPrev) {
+        onPrev();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDesktop, artigo, onNext, onPrev]);
   // Prefetch do sheet de Lembretes assim que o menu Funções abre,
   // para que o clique em "Lembretes" seja instantâneo.
   useEffect(() => {
@@ -1964,9 +2011,9 @@ const ArtigoBottomSheet = ({
       // Remove the article number prefix from the first line since the header already shows it
       const cleanedText = displayText.replace(/^Art\s*\.\s*\d+[º°]?(?:-[A-Z])?\s*[–-]?\s*/i, '');
       offsetShift = displayText.length - cleanedText.length;
-      baseNodes = highlightTermos(cleanedText, modificationInfo ? isModifiedLine && showRedacao : showRedacao, handleCrossReferenceClick);
+      baseNodes = highlightTermos(cleanedText, modificationInfo ? isModifiedLine && showRedacao : showRedacao, handleCrossReferenceClick, undefined, handleCrossReferenceHover, handleCrossReferenceLeave);
     } else {
-      baseNodes = highlightTermos(displayText, modificationInfo ? isModifiedLine && showRedacao : showRedacao, handleCrossReferenceClick);
+      baseNodes = highlightTermos(displayText, modificationInfo ? isModifiedLine && showRedacao : showRedacao, handleCrossReferenceClick, undefined, handleCrossReferenceHover, handleCrossReferenceLeave);
     }
 
     // Adjust highlight offsets to match rendered (prefix-stripped) text.
@@ -2158,9 +2205,9 @@ const ArtigoBottomSheet = ({
     }
 
     const extra =
-      classified.type === 'inciso' ? 'pl-4 border-l-2 border-primary/30' :
-      classified.type === 'alinea' ? 'pl-8' :
-      classified.type === 'paragrafo' ? 'mt-2' : '';
+      classified.type === 'inciso' ? 'mt-2.5 pl-4 border-l-2 border-primary/30' :
+      classified.type === 'alinea' ? 'mt-1.5 pl-8' :
+      classified.type === 'paragrafo' ? 'mt-3.5' : '';
 
     const highlightBg = isModifiedLine
       ? 'bg-violet-500/20 border-l-3 border-violet-400 pl-3 rounded-r-lg'
@@ -3726,7 +3773,7 @@ const ArtigoBottomSheet = ({
           className="fixed z-[10002] -translate-x-1/2 -translate-y-full"
           style={{ left: selectionPill.x, top: selectionPill.y - 8 }}
         >
-          <div className="flex items-center gap-1 rounded-full bg-card/95 backdrop-blur-md border border-border shadow-xl shadow-black/40 px-1.5 py-1">
+          <div className="flex items-center gap-1 rounded-full bg-[#1C1C1E] backdrop-blur-md border border-white/10 shadow-2xl shadow-black/50 px-1.5 py-1">
             <button
               onClick={(e) => { handleNarrarButtonPress(e as any); }}
               className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
@@ -3734,7 +3781,7 @@ const ArtigoBottomSheet = ({
               <Volume2 className="w-4 h-4" />
               <span>Narrar</span>
             </button>
-            <span className="w-px h-5 bg-border" />
+            <span className="w-px h-5 bg-white/10" />
             <button
               onClick={() => setActiveActionMenu('grifar')}
               className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-amber-400 hover:bg-amber-400/10 transition-colors"
@@ -3742,6 +3789,49 @@ const ArtigoBottomSheet = ({
               <Feather className="w-4 h-4" />
               <span>Grifar</span>
             </button>
+            <span className="w-px h-5 bg-white/10" />
+            <button
+              onClick={() => setActiveActionMenu('anotacoes')}
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-sky-400 hover:bg-sky-400/10 transition-colors"
+            >
+              <StickyNote className="w-4 h-4" />
+              <span>Anotar</span>
+            </button>
+            <span className="w-px h-5 bg-white/10" />
+            <button
+              onClick={() => {
+                const sel = window.getSelection();
+                if (sel && !sel.isCollapsed) {
+                  window.open(`https://www.google.com/search?q=${encodeURIComponent(sel.toString())}`, '_blank');
+                  setSelectionPill(null);
+                }
+              }}
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <Search className="w-4 h-4" />
+              <span>Pesquisar</span>
+            </button>
+          </div>
+        </motion.div>,
+        document.body
+      )}
+
+      {isDesktop && hoveredCrossRef && createPortal(
+        <motion.div
+          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.15 }}
+          className="fixed z-[10005] pointer-events-none"
+          style={{ 
+            left: Math.min(hoveredCrossRef.rect.left, window.innerWidth - 320), 
+            top: hoveredCrossRef.rect.top > 250 ? hoveredCrossRef.rect.top - 10 : hoveredCrossRef.rect.bottom + 10,
+            transform: hoveredCrossRef.rect.top > 250 ? 'translateY(-100%)' : 'none'
+          }}
+        >
+          <div className="w-[300px] p-4 rounded-xl border border-border/50 bg-popover/95 backdrop-blur-md shadow-2xl text-popover-foreground">
+            <h4 className="font-bold text-sm text-primary mb-1">{hoveredCrossRef.artigo.numero}</h4>
+            <p className="text-xs leading-relaxed line-clamp-4 text-foreground/80">{hoveredCrossRef.artigo.caput}</p>
           </div>
         </motion.div>,
         document.body

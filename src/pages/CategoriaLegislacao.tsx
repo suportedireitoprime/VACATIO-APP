@@ -163,7 +163,7 @@ const CategoriaLegislacao = () => {
   const [ocrOpen, setOcrOpen] = useState(false);
   const [showSearchRecents, setShowSearchRecents] = useState(false);
   
-  const { focusMode, setFocusMode } = useLeituraStore();
+  const { focusMode, setFocusMode, fontSizeScale, setFontSizeScale } = useLeituraStore();
   
   // Coreografia de entrada: search+abas → lista → rodapé
   const [showFooter, setShowFooter] = useState(false);
@@ -238,25 +238,31 @@ const CategoriaLegislacao = () => {
   const [dbAlteracoes, setDbAlteracoes] = useState<{ artigo_numero: string; tipo_alteracao: string; texto_anterior: string | null; texto_atual: string | null; detectado_em: string }[]>([]);
   const [loadingDbAlteracoes, setLoadingDbAlteracoes] = useState(false);
   const [grifadoNumeros, setGrifadoNumeros] = useState<Set<string>>(new Set());
-  const [anotadoNumeros, setAnotadoNumeros] = useState<Set<string>>(new Set());
+  const [anotadoNumeros, setAnotadoNumeros] = useState<Map<string, string>>(new Map());
   const [favArtigoNumeros, setFavArtigoNumeros] = useState<Set<string>>(new Set());
   const [leiFavToggle, setLeiFavToggle] = useState(0);
 
   // Load user's grifos & anotacoes for the selected lei (for tag indicators)
   useEffect(() => {
-    if (!selectedTabelaNome) { setGrifadoNumeros(new Set()); setAnotadoNumeros(new Set()); return; }
+    if (!selectedTabelaNome) { setGrifadoNumeros(new Set()); setAnotadoNumeros(new Map()); return; }
     let cancelled = false;
     (async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setGrifadoNumeros(new Set()); setAnotadoNumeros(new Set()); return; }
+        if (!user) { setGrifadoNumeros(new Set()); setAnotadoNumeros(new Map()); return; }
         const [{ data: grifos }, { data: notas }] = await Promise.all([
           supabase.from('artigos_grifos').select('numero_artigo').eq('tabela_codigo', selectedTabelaNome).eq('user_id', user.id),
-          supabase.from('artigos_anotacoes').select('artigo_id').eq('user_id', user.id).like('artigo_id', `${selectedTabelaNome}::%`),
+          supabase.from('artigos_anotacoes').select('artigo_id, texto').eq('user_id', user.id).like('artigo_id', `${selectedTabelaNome}::%`),
         ]);
         if (cancelled) return;
         setGrifadoNumeros(new Set((grifos || []).map((g: any) => String(g.numero_artigo))));
-        setAnotadoNumeros(new Set((notas || []).map((n: any) => String(n.artigo_id).split('::')[1]).filter(Boolean)));
+        
+        const mapNotas = new Map<string, string>();
+        (notas || []).forEach((n: any) => {
+          const num = String(n.artigo_id).split('::')[1];
+          if (num) mapNotas.set(num, n.texto || '');
+        });
+        setAnotadoNumeros(mapNotas);
       } catch { /* silent */ }
     })();
     return () => { cancelled = true; };
@@ -902,8 +908,51 @@ const CategoriaLegislacao = () => {
     return capituloGroups.reduce((sum, g) => sum + g.capitulos.length, 0);
   }, [capituloGroups]);
 
+  useEffect(() => {
+    if (!isDesktop || capituloGroups.length === 0) return;
+
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          let activeCapKey: string | null = null;
+
+          for (const tGroup of capituloGroups) {
+            for (const capGroup of tGroup.capitulos) {
+              if (capGroup.artigos.length > 0) {
+                const el = document.getElementById(`artigo-${capGroup.artigos[0].id}`);
+                if (el) {
+                  const rect = el.getBoundingClientRect();
+                  // Se o topo do primeiro artigo do capítulo passou da linha de 300px, 
+                  // consideramos ele como o "ativo" mais recente.
+                  if (rect.top <= 350) {
+                    activeCapKey = `${tGroup.titulo}__${capGroup.capitulo}`;
+                  }
+                }
+              }
+            }
+          }
+          
+          // Se estivermos no topo absoluto e nenhum bateu, pega o primeiro
+          if (!activeCapKey && capituloGroups[0]?.capitulos[0]) {
+             activeCapKey = `${capituloGroups[0].titulo}__${capituloGroups[0].capitulos[0].capitulo}`;
+          }
+
+          if (activeCapKey) {
+            setExpandedTitulo(prev => prev !== activeCapKey ? activeCapKey : prev);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isDesktop, capituloGroups]);
+
   const visibleArtigos = useMemo(() => {
-    if (!isDesktop || !expandedTitulo) return filteredArtigos;
+    if (isDesktop || !expandedTitulo) return filteredArtigos;
 
     const ids = new Set<string>();
     for (const tg of capituloGroups) {
@@ -1483,7 +1532,16 @@ const CategoriaLegislacao = () => {
               return (
                 <button
                   key={ci}
-                  onClick={() => setExpandedTitulo(isExpanded ? null : capKey)}
+                  onClick={() => {
+                    setExpandedTitulo(isExpanded && !isDesktop ? null : capKey);
+                    if (isDesktop && capGroup.artigos.length > 0) {
+                      const el = document.getElementById(`artigo-${capGroup.artigos[0].id}`);
+                      if (el) {
+                        const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      }
+                    }
+                  }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-xs font-body transition-colors ${
                     isExpanded ? 'bg-primary/15 text-primary font-semibold' : 'text-foreground/70 hover:bg-secondary'
                   }`}
@@ -1551,6 +1609,7 @@ const CategoriaLegislacao = () => {
                     accentColor={leiAccent}
                     withShine={virtualItem.index < 6}
                     tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }}
+                    anotacaoTexto={anotadoNumeros.get(artigo.numero)}
                   />
                 </div>
               );
@@ -1567,6 +1626,7 @@ const CategoriaLegislacao = () => {
             accentColor={leiAccent}
             withShine={i < 6}
             tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }}
+            anotacaoTexto={anotadoNumeros.get(artigo.numero)}
           />
         ))}
         {visibleArtigos.length === 0 && loadedKey === selectedTabelaNome && !loadingArtigos && (
@@ -1610,7 +1670,7 @@ const CategoriaLegislacao = () => {
                     <div className="p-4 md:p-5 flex-1 min-w-0 flex flex-col justify-center">
                       <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300/90">{capHead}</p>
                       {capSub ? (
-                        <h5 className="font-serif text-sm md:text-base font-semibold text-foreground leading-snug mt-0.5">{toTitleCase(capSub)}</h5>
+                        <h5 className="font-serif text-base md:text-2xl font-bold text-foreground leading-snug mt-0.5">{toTitleCase(capSub)}</h5>
                       ) : null}
                       <p className="text-muted-foreground text-xs md:text-sm mt-1">
                         {capGroup.artigos.length} artigos{fA && lA ? ` (${fA} – ${lA})` : ''}
@@ -1623,7 +1683,7 @@ const CategoriaLegislacao = () => {
                   {isCapExpanded && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="pl-3 mt-2 space-y-2">
                       {capGroup.artigos.map((artigo, i) => (
-                        <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => setOpenArtigo(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} />
+                        <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => setOpenArtigo(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
                       ))}
                     </motion.div>
                   )}
@@ -1661,7 +1721,7 @@ const CategoriaLegislacao = () => {
                   <div className="p-4 md:p-5 flex-1 min-w-0 flex flex-col justify-center">
                     <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300/90">{titHead}</p>
                     {titSub ? (
-                      <h5 className="font-serif text-base md:text-lg font-semibold text-foreground leading-snug mt-1 line-clamp-2">
+                      <h5 className="font-serif text-lg md:text-3xl font-bold text-foreground leading-snug mt-1 line-clamp-2">
                         {toTitleCase(titSub)}
                       </h5>
                     ) : (
@@ -1709,12 +1769,12 @@ const CategoriaLegislacao = () => {
                                 {capSub ? (
                                   <>
                                     <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/80">{capHead}</p>
-                                    <h6 className="font-serif text-sm md:text-base font-semibold text-foreground leading-snug mt-0.5 line-clamp-2">
+                                    <h6 className="font-serif text-base md:text-2xl font-bold text-foreground leading-snug mt-0.5 line-clamp-2">
                                       {toTitleCase(capSub)}
                                     </h6>
                                   </>
                                 ) : (
-                                  <h6 className="font-display text-sm md:text-base font-bold text-foreground leading-snug">{capHead}</h6>
+                                  <h6 className="font-display text-base md:text-2xl font-bold text-foreground leading-snug">{capHead}</h6>
                                 )}
                                 <p className="text-muted-foreground text-[11px] md:text-xs mt-1">{capGroup.artigos.length} artigos ({fA} – {lA})</p>
                               </div>
@@ -1729,7 +1789,7 @@ const CategoriaLegislacao = () => {
                             {isCapExpanded && (
                               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="pl-3 mt-2 space-y-2">
                                 {capGroup.artigos.map((artigo, i) => (
-                                  <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => setOpenArtigo(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} />
+                                  <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => setOpenArtigo(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
                                 ))}
                               </motion.div>
                             )}
@@ -1738,7 +1798,7 @@ const CategoriaLegislacao = () => {
                       })
                     ) : (
                       allArts.map((artigo, i) => (
-                        <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => setOpenArtigo(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} />
+                        <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => setOpenArtigo(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
                       ))
                     )}
                   </motion.div>
@@ -1822,7 +1882,7 @@ const CategoriaLegislacao = () => {
       <div className="space-y-2 pb-8">
         {artigos.filter(a => isArtigoFav(a)).length > 0 ? (
           artigos.filter(a => isArtigoFav(a)).map((artigo, i) => (
-            <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => { setOverlayPanel(null); setOpenArtigo(artigo); }} accentColor={leiAccent} tags={{ favorito: true, grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} />
+            <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => { setOverlayPanel(null); setOpenArtigo(artigo); }} accentColor={leiAccent} tags={{ favorito: true, grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
           ))
         ) : (
           <div className="flex flex-col items-center py-16 gap-3">
@@ -2420,14 +2480,14 @@ const CategoriaLegislacao = () => {
                 Ementa
               </DialogTitle>
             </DialogHeader>
-            <p className="text-sm md:text-[15px] italic leading-relaxed text-red-100/95 whitespace-pre-line">
+            <p className="text-sm md:text-[15px] italic leading-relaxed text-red-100/95 whitespace-pre-line first-letter:float-left first-letter:text-5xl first-letter:pr-2 first-letter:font-serif first-letter:text-amber-400 first-letter:leading-none">
               {selectedLeiEmenta}
             </p>
           </DialogContent>
         </Dialog>
 
 
-        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-28 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-[800px]' : 'max-w-5xl'}`}>
+        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-28 space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-[800px]' : 'max-w-5xl'}`} style={{ fontSize: `${fontSizeScale || 1}rem` }}>
 
           {/* Mini-Sumário Flutuante removido */}
 
@@ -2651,13 +2711,32 @@ const CategoriaLegislacao = () => {
         </AnimatePresence>
 
         {isDesktop && (
-          <button
-            onClick={() => setFocusMode(!focusMode)}
-            title={focusMode ? "Sair do Modo Foco" : "Modo Foco"}
-            className={`fixed z-50 w-11 h-11 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-lg text-white hover:bg-white/20 transition-all ${focusMode ? 'top-4 right-4' : 'top-[120px] right-4'}`}
-          >
-            {focusMode ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-          </button>
+          <div className={`fixed z-50 flex flex-col gap-2 transition-all ${focusMode ? 'top-4 right-4' : 'top-[120px] right-4'}`}>
+            <div className="flex bg-white/10 backdrop-blur-xl border border-white/25 shadow-lg rounded-xl overflow-hidden">
+              <button
+                onClick={() => setFontSizeScale(Math.max(0.8, (fontSizeScale || 1) - 0.1))}
+                className="w-11 h-11 flex items-center justify-center text-white hover:bg-white/20 transition-all font-display font-bold text-sm"
+                title="Diminuir Fonte"
+              >
+                A-
+              </button>
+              <div className="w-px bg-white/10" />
+              <button
+                onClick={() => setFontSizeScale(Math.min(1.5, (fontSizeScale || 1) + 0.1))}
+                className="w-11 h-11 flex items-center justify-center text-white hover:bg-white/20 transition-all font-display font-bold text-lg"
+                title="Aumentar Fonte"
+              >
+                A+
+              </button>
+            </div>
+            <button
+              onClick={() => setFocusMode(!focusMode)}
+              title={focusMode ? "Sair do Modo Foco" : "Modo Foco"}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-lg text-white hover:bg-white/20 transition-all ml-auto`}
+            >
+              {focusMode ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+            </button>
+          </div>
         )}
 
         <ArtigoBottomSheet
