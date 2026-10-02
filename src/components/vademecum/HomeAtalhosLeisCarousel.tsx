@@ -47,8 +47,8 @@ import {
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 import { getLeiColor, shade } from '@/lib/leiTheme';
 
-const STORAGE_KEY = 'home_atalhos_leis_v3';
-const MAX_ATALHOS = 10;
+const STORAGE_KEY = 'home_atalhos_leis_v4';
+const MAX_ATALHOS = 12;
 
 /** Ordem padrão solicitada: CF, CPC, CC, CP, CPP, CLT + restantes */
 const DEFAULT_ATALHOS_IDS = [
@@ -62,6 +62,7 @@ const DEFAULT_ATALHOS_IDS = [
   'ctn',  // 8. CTN
   'eoab', // 9. EOAB
   'eca',  // 10. ECA
+  'epd',  // 11. Estatuto PCD
 ];
 
 interface AlternanciaTab {
@@ -316,8 +317,10 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
             else if (lei.id === 'cpp') coverImage = '/assets/cpp-court.webp';
             else if (lei.id === 'cf88') coverImage = '/assets/cf88-cover.webp';
             else if (['cp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.webp';
-            // Default para outras se houver no futuro
-            else if (['ctn'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.webp'; 
+            else if (lei.id === 'ctn') coverImage = '/assets/ctn-taxes.webp';
+            else if (lei.id === 'eca') coverImage = '/assets/eca-kids.webp';
+            else if (lei.id === 'eoab') coverImage = '/assets/eoab-woman.webp';
+            else if (lei.id === 'epd') coverImage = '/assets/epd-wheelchair.webp';
 
             return (
               <button
