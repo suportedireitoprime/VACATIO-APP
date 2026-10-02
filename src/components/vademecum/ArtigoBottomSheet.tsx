@@ -2217,10 +2217,10 @@ const ArtigoBottomSheet = ({
     <>
       <Sheet open={Boolean(artigo)} onOpenChange={(open) => { if (!open) handleSheetClose(); }}>
         <SheetContent
-          side={isDesktop ? "right" : "bottom"}
+          side={isDesktop ? "center" : "bottom"}
           className={
             isDesktop
-              ? "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border-l border-white/5 bg-background p-0 shadow-2xl [&>button:last-child]:hidden top-0 right-0 h-full w-[460px] max-w-[90vw]"
+              ? "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border border-white/10 bg-background p-0 shadow-2xl [&>button:last-child]:hidden rounded-2xl h-[85vh] w-[640px] max-w-[90vw]"
               : "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-t-3xl border-t border-white/5 bg-background p-0 [&>button:last-child]:hidden top-auto bottom-0 h-[96dvh] max-h-[96dvh]"
           }
 
@@ -3670,41 +3670,50 @@ const ArtigoBottomSheet = ({
         )}
       </Suspense>
 
-      {/* Desktop: barras laterais retráteis (Funções/Praticar à esquerda, Anotações à direita) */}
+      {/* Desktop: barra lateral única com todas as ações à direita */}
       {isDesktop && artigo && (activeTab ?? 'artigo') === 'artigo' && createPortal(
-        <>
-          <div className="fixed left-4 top-1/2 -translate-y-1/2 z-[10000] flex flex-col gap-2 rounded-2xl bg-card/95 backdrop-blur-md border border-border p-2 shadow-xl shadow-black/40">
-            <button
-              onClick={() => setActiveActionMenu('funcoes')}
-              className={`group flex items-center gap-2 rounded-xl px-3 py-2.5 transition-colors ${activeActionMenu === 'funcoes' ? 'bg-primary/15 text-primary' : 'text-foreground hover:bg-secondary'}`}
-              title="Funções"
-              aria-label="Funções"
-            >
-              <LayoutGrid className="w-6 h-6 shrink-0" />
-              <span className="font-body text-sm font-medium max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-0">Funções</span>
-            </button>
-            <button
-              onClick={() => setShowPraticarSheet(true)}
-              className="group flex items-center gap-2 rounded-xl px-3 py-2.5 text-foreground hover:bg-secondary transition-colors"
-              title="Praticar"
-              aria-label="Praticar"
-            >
-              <Target className="w-6 h-6 shrink-0" />
-              <span className="font-body text-sm font-medium max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:max-w-[140px] group-hover:opacity-100">Praticar</span>
-            </button>
-          </div>
-          <div className="fixed right-4 top-1/2 -translate-y-1/2 z-[10000] flex flex-col gap-2 rounded-2xl bg-card/95 backdrop-blur-md border border-border p-2 shadow-xl shadow-black/40">
-            <button
-              onClick={() => setShowAnotacoesSheet(true)}
-              className="group flex items-center gap-2 rounded-xl px-3 py-2.5 text-foreground hover:bg-secondary transition-colors"
-              title="Anotações"
-              aria-label="Anotações"
-            >
-              <StickyNote className="w-6 h-6 shrink-0" />
-              <span className="font-body text-sm font-medium max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:max-w-[140px] group-hover:opacity-100">Anotações</span>
-            </button>
-          </div>
-        </>,
+        <div className="fixed right-8 top-1/2 -translate-y-1/2 z-[10000] flex flex-col gap-3">
+          <button
+            onClick={(e) => { handleNarrarButtonPress(e as any); }}
+            className={`group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md transition-all ${narracaoPlaying ? 'bg-primary text-black scale-105' : 'bg-card/95 text-foreground hover:bg-secondary'}`}
+            title="Narrar"
+          >
+            <Volume2 className="w-5 h-5 shrink-0" />
+            <span className="font-display text-[13px] font-bold tracking-wider max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-1">Narrar</span>
+          </button>
+          <button
+            onClick={() => setShowPraticarSheet(true)}
+            className="group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md bg-card/95 text-foreground hover:bg-secondary transition-all"
+            title="Praticar"
+          >
+            <Target className="w-5 h-5 shrink-0" />
+            <span className="font-display text-[13px] font-bold tracking-wider max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-1">Praticar</span>
+          </button>
+          <button
+            onClick={() => setShowAnotacoesSheet(true)}
+            className="group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md bg-card/95 text-foreground hover:bg-secondary transition-all"
+            title="Anotações"
+          >
+            <StickyNote className="w-5 h-5 shrink-0" />
+            <span className="font-display text-[13px] font-bold tracking-wider max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-1">Anotações</span>
+          </button>
+          <button
+            onClick={() => setActiveActionMenu('grifar')}
+            className="group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md bg-card/95 text-foreground hover:bg-secondary transition-all"
+            title="Grifar"
+          >
+            <Feather className="w-5 h-5 shrink-0" />
+            <span className="font-display text-[13px] font-bold tracking-wider max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-1">Grifar</span>
+          </button>
+          <button
+            onClick={() => setActiveActionMenu('funcoes')}
+            className={`group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md transition-all ${activeActionMenu === 'funcoes' ? 'bg-primary/20 text-primary' : 'bg-card/95 text-foreground hover:bg-secondary'}`}
+            title="Mais Funções"
+          >
+            <LayoutGrid className="w-5 h-5 shrink-0" />
+            <span className="font-display text-[13px] font-bold tracking-wider max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-1">Mais Funções</span>
+          </button>
+        </div>,
         document.body
       )}
 
