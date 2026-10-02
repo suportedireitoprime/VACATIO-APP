@@ -23,21 +23,22 @@ jobs:
       - name: Checkout do Repositório
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Instalar Dependências (Bun)
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
+          cache: 'pnpm'
 
       - name: Instalar pacotes
-        run: bun install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build do Projeto (Vite)
-        run: bun run build
+        run: pnpm run build
         env:
           VITE_BASE_URL: /VACATIO-APP/
           # Adicione as variáveis de ambiente necessárias para o build do PWA aqui, caso necessário

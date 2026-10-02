@@ -53,6 +53,7 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+
       - name: Remove Lovable hot-reload from capacitor.config.ts
         run: |
           node -e "
@@ -105,6 +106,49 @@ jobs:
           bunx cap add android
           chmod +x android/gradlew
 
+      - name: Disable R8 minification + add ProGuard keep rules
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # --- 1. Desabilitar minifyEnabled no build.gradle do app ---
+          # O Capacitor gera com minifyEnabled true por padrão para release.
+          # O R8 remove informações de pacote das classes, fazendo
+          # Class.getPackage() retornar null → NullPointerException fatal.
+          app_gradle = Path('android/app/build.gradle')
+          if app_gradle.exists():
+              s = app_gradle.read_text()
+              s = s.replace('minifyEnabled true', 'minifyEnabled false')
+              # Também desabilitar shrinkResources se estiver habilitado
+              s = s.replace('shrinkResources true', 'shrinkResources false')
+              app_gradle.write_text(s)
+              print('✅ minifyEnabled e shrinkResources desabilitados no app/build.gradle')
+          else:
+              print('⚠️ android/app/build.gradle não encontrado')
+
+          # --- 2. Adicionar regras ProGuard como safety net ---
+          proguard = Path('android/app/proguard-rules.pro')
+          rules = """
+          # Keep @capgo/background-geolocation classes to prevent R8 from
+          # stripping package info (getPackage() returns null otherwise)
+          -keep class com.capgo.capacitor_background_geolocation.** { *; }
+          -keepnames class com.capgo.capacitor_background_geolocation.** { *; }
+          """
+          if proguard.exists():
+              existing = proguard.read_text()
+              if 'capgo' not in existing:
+                  proguard.write_text(existing + '\n' + rules)
+                  print('✅ ProGuard keep rules adicionadas')
+              else:
+                  print('ProGuard rules para capgo já presentes')
+          else:
+              proguard.write_text(rules)
+              print('✅ proguard-rules.pro criado com keep rules')
+          PY
+
+      - name: Patch @capgo/background-geolocation getPackage() NPE
+        run: node scripts/patch-capgo-background-geolocation.mjs
+
       - name: Bump AGP + Gradle wrapper + force modern Android deps
         run: |
           # ----------------------------------------------------------------
@@ -152,14 +196,8 @@ jobs:
                       force 'androidx.camera:camera-camera2:1.5.0'
                       force 'androidx.camera:camera-lifecycle:1.5.0'
                       force 'androidx.camera:camera-view:1.5.0'
-                      // ML Kit barcode + code scanner (pull transitivo do plugin
-                      // @capacitor-mlkit/barcode-scanning). Versões mais novas
-                      // migram para APIs modernas de janela.
                       force 'com.google.mlkit:barcode-scanning:17.3.0'
                       force 'com.google.android.gms:play-services-code-scanner:16.1.0'
-                      // Play Services base — origem de zza.onStart deprecado.
-                      force 'com.google.android.gms:play-services-base:18.5.0'
-                      force 'com.google.android.gms:play-services-basement:18.4.0'
                   }
               }
           }
@@ -305,7 +343,7 @@ jobs:
             if [ -d node_modules/@capacitor/assets/node_modules/sharp ]; then
               (cd node_modules/@capacitor/assets/node_modules/sharp && npm install --platform=linux --arch=x64 --no-save)
             fi
-            npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#8C1220' --iconBackgroundColorDark '#8C1220' --splashBackgroundColor '#8C1220' --splashBackgroundColorDark '#8C1220'
+            npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor '#EFE039' --iconBackgroundColorDark '#EFE039' --splashBackgroundColor '#FFD500' --splashBackgroundColorDark '#FFD500'
           else
             echo "No native image assets found; skipping capacitor-assets."
           fi
@@ -328,7 +366,7 @@ jobs:
               p.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n')
           s = p.read_text()
           if 'name="splash_bg"' not in s:
-              s = s.replace('</resources>', '    <color name="splash_bg">#8C1220</color>\n</resources>')
+              s = s.replace('</resources>', '    <color name="splash_bg">#FFD500</color>\n</resources>')
               print('splash_bg color added')
           else:
               print('splash_bg color already present')
@@ -348,13 +386,14 @@ jobs:
           cat > android/app/src/main/res/values-v31/styles.xml <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+              <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
                   <item name="android:background">@color/splash_bg</item>
                   <item name="android:windowBackground">@color/splash_bg</item>
                   <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
                   <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
                   <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_bg</item>
                   <item name="android:windowSplashScreenBrandingImage">@null</item>
+                  <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
                   <item name="windowActionBar">false</item>
                   <item name="windowNoTitle">true</item>
                   <item name="android:windowNoTitle">true</item>
@@ -366,13 +405,14 @@ jobs:
           cat > android/app/src/main/res/values-night-v31/styles.xml <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+              <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
                   <item name="android:background">@color/splash_bg</item>
                   <item name="android:windowBackground">@color/splash_bg</item>
                   <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
                   <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
                   <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_bg</item>
                   <item name="android:windowSplashScreenBrandingImage">@null</item>
+                  <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
                   <item name="windowActionBar">false</item>
                   <item name="windowNoTitle">true</item>
                   <item name="android:windowNoTitle">true</item>
@@ -413,9 +453,10 @@ jobs:
                   ('android:windowContentOverlay', '@null'),
                   ('android:windowBackground', '@color/app_bg'),
               ])
-              s2 = replace_or_add_style(s2, 'AppTheme.NoActionBarLaunch', 'AppTheme.NoActionBar', [
+              s2 = replace_or_add_style(s2, 'AppTheme.NoActionBarLaunch', 'Theme.SplashScreen', [
                   ('android:background', '@color/splash_bg'),
                   ('android:windowBackground', '@color/splash_bg'),
+                  ('postSplashScreenTheme', '@style/AppTheme.NoActionBar'),
                   ('windowActionBar', 'false'),
                   ('windowNoTitle', 'true'),
                   ('android:windowActionBar', 'false'),
@@ -457,9 +498,10 @@ jobs:
                   '    </style>\n'
               )
               launch = (
-                  '    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">\n'
+                  '    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">\n'
                   '        <item name="android:background">@color/splash_bg</item>\n'
                   '        <item name="android:windowBackground">@color/splash_bg</item>\n'
+                  '        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>\n'
                   '        <item name="windowActionBar">false</item>\n'
                   '        <item name="windowNoTitle">true</item>\n'
                   '        <item name="android:windowActionBar">false</item>\n'
@@ -711,6 +753,40 @@ jobs:
           #  - displayCutoutMode = ALWAYS (substitui SHORT_EDGES deprecado no Android 15).
           PKG_DIR="android/app/src/main/java/br/com/vacatio/app"
           mkdir -p "$PKG_DIR"
+          cat > "$PKG_DIR/CrashActivity.java" <<'JAVA'
+          package br.com.vacatio.app;
+
+          import android.app.Activity;
+          import android.content.Intent;
+          import android.os.Bundle;
+          import android.widget.ScrollView;
+          import android.widget.TextView;
+
+          public class CrashActivity extends Activity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  String stackTrace = getIntent().getStringExtra("STACK_TRACE");
+                  if (stackTrace == null) {
+                      stackTrace = "No stack trace provided.";
+                  }
+
+                  ScrollView scrollView = new ScrollView(this);
+                  TextView textView = new TextView(this);
+                  textView.setText("O aplicativo encontrou um erro:\n\nPor favor tire um print desta tela e envie ao desenvolvedor:\n\n" + stackTrace);
+                  textView.setPadding(32, 32, 32, 32);
+                  textView.setTextSize(14);
+                  textView.setTextColor(0xFF000000);
+                  scrollView.setBackgroundColor(0xFFFFFFFF);
+                  scrollView.addView(textView);
+
+                  setContentView(scrollView);
+              }
+          }
+          JAVA
+          echo "✅ CrashActivity.java escrita"
+
           cat > "$PKG_DIR/MainActivity.java" <<'JAVA'
           package br.com.vacatio.app;
 
@@ -739,11 +815,28 @@ jobs:
 
               @Override
               public void onCreate(Bundle savedInstanceState) {
-                  // Tem que vir ANTES do super.onCreate(): se a Activity nasce com
-                  // AppTheme.NoActionBarLaunch antigo/compat, o Android pode desenhar
-                  // uma ActionBar preta com o label "Vacatio" antes da WebView.
-                  setTheme(R.style.AppTheme_NoActionBar);
-                  getApplication().setTheme(R.style.AppTheme_NoActionBar);
+                  final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
+                  Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
+                      try {
+                          android.util.Log.e("FATAL_CRASH", "Crash fatal capturado", ex);
+                          java.io.StringWriter sw = new java.io.StringWriter();
+                          ex.printStackTrace(new java.io.PrintWriter(sw));
+
+                          android.content.Intent intent = new android.content.Intent(this, CrashActivity.class);
+                          intent.putExtra("STACK_TRACE", sw.toString());
+                          intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                          startActivity(intent);
+
+                          android.os.Process.killProcess(android.os.Process.myPid());
+                          System.exit(10);
+                      } catch (Throwable ignored) {}
+                      if (defaultHandler != null) {
+                          defaultHandler.uncaughtException(thread, ex);
+                      }
+                  });
+
+                  // O AndroidX SplashScreen gerencia a transição de tema via postSplashScreenTheme.
+                  // Chamar setTheme aqui antes do super.onCreate quebra o plugin SplashScreen no Android 12+.
 
                   // Antes do super.onCreate por causa do BridgeActivity/ComponentActivity.
                   EdgeToEdge.enable(this);
@@ -920,6 +1013,15 @@ jobs:
                   count=1,
               )
               print('configChanges/resizeable aplicados à MainActivity')
+
+          # 6) Registra CrashActivity caso ocorra crash nativo
+          if 'CrashActivity' not in s:
+              crash_tag = (
+                  '        <activity android:name=".CrashActivity" android:exported="false" android:theme="@style/AppTheme" />\n'
+                  '    </application>'
+              )
+              s = s.replace('</application>', crash_tag, 1)
+              print('CrashActivity adicionada ao AndroidManifest')
 
           p.write_text(s)
           PY
@@ -1642,20 +1744,22 @@ jobs:
           -keep class * extends com.getcapacitor.Plugin { *; }
 
           # Firebase Messaging + GMS (Google Sign-In) — invoked via reflection.
-          # allowobfuscation/allowshrinking permite R8 renomear/remover classes
-          # não usadas, elevando as taxas de otimização/ofuscação/redução
-          # (recomendação Play #4).
+          # Cannot use allowobfuscation/allowshrinking for core GMS/Firebase packages
+          # as they use internal reflection, JNI, and IPC which breaks when repackaged.
           -keep class * extends com.google.firebase.messaging.FirebaseMessagingService { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.iid.** { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.android.gms.** { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.** { *; }
+          -keep class com.google.firebase.iid.** { *; }
+          -keep class com.google.android.gms.** { *; }
+          -keep class com.google.firebase.** { *; }
 
           # Firebase Kotlin extensions (ktx) — required for Firebase Installations
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.ktx.** { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.installations.ktx.** { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.messaging.ktx.** { *; }
-          -keep,allowobfuscation,allowshrinking class com.google.firebase.common.ktx.** { *; }
+          -keep class com.google.firebase.ktx.** { *; }
+          -keep class com.google.firebase.installations.ktx.** { *; }
+          -keep class com.google.firebase.messaging.ktx.** { *; }
+          -keep class com.google.firebase.common.ktx.** { *; }
 
+          # Facebook SDK
+          -keep class com.facebook.** { *; }
+          -keepclassmembers class com.facebook.** { *; }
 
           # WebView JS bridge
           -keepclassmembers class * { @android.webkit.JavascriptInterface <methods>; }
@@ -1663,10 +1767,6 @@ jobs:
           # Symbolication attributes for Play Console / Crashlytics
           -keepattributes SourceFile,LineNumberTable,*Annotation*,Signature,InnerClasses,EnclosingMethod
           -renamesourcefileattribute SourceFile
-
-          # Aggressive optimizations
-          -allowaccessmodification
-          -repackageclasses ''
 
           # Silence warnings from optional transitive deps
           -dontwarn org.slf4j.**
@@ -2152,9 +2252,7 @@ jobs:
           # pra outro repositório e quebrava a continuidade da numeração
           # publicada na Play Store. Agora o número vive no código: cada
           # build lê o último valor, incrementa, aplica no build.gradle e o
-          # próximo step commita o arquivo de volta. Assim, remix → clone →
-          # build continua de onde parou, sem colisão de versionCode.
-          # ------------------------------------------------------------------
+          # próximo step commita o arquivo de volta. Assim
           state_path = Path('.build-version.json')
           if state_path.exists():
               state = json.loads(state_path.read_text())
@@ -2162,6 +2260,16 @@ jobs:
               state = {'buildNumber': 2, 'versionCode': 0, 'versionName': '1.0.64'}
 
           build_number = int(state.get('buildNumber', 2)) + 1
+
+          BASE_BUILD = 3
+          BASE_MINOR = 65
+          k = max(build_number - BASE_BUILD, 0)
+          
+          total_minor = BASE_MINOR + k
+          major = 1 + (total_minor // 100)
+          minor = total_minor % 100
+          
+          version_name = f"{major}.0.{minor}"
 
           # versionCode: sempre cresce. max(timestamp UTC, ultimo+1) cobre
           # o caso normal (timestamp maior) e o caso de relógio adiantado
@@ -2171,19 +2279,6 @@ jobs:
           last_code = int(state.get('versionCode', 0) or 0)
           version_code = max(ts_code, last_code + 1, FLOOR)
           assert version_code < 2_100_000_000, f'versionCode {version_code} excede o limite do Android'
-
-          # versionName derivado do buildNumber persistente. Mesma regra do
-          # esquema antigo (que usava run_number) — só a fonte mudou.
-          #   build #3   → 1.0.65        build #38  → 1.1.0
-          #   build #37  → 1.0.99        build #138 → 1.2.0
-          BASE_BUILD = 3
-          BASE_PATCH = 65
-          k = max(build_number - BASE_BUILD, 0)
-          total_patch = BASE_PATCH + k
-          
-          major = 1 + (total_patch // 100)
-          minor = total_patch % 100
-          version_name = f"{major}.{minor}"
 
 
           p = Path('android/app/build.gradle')
@@ -2483,14 +2578,14 @@ jobs:
                   print(f'✅ <monochrome> injetado em {xml}')
           PY
 
-      - name: FCM default notification icon + color (red #8C1220)
+      - name: FCM default notification icon + color (yellow #FFD500)
         run: |
           # Instala o ícone monocromático da status bar (V branco em canvas
           # transparente) como res/drawable/notification_icon.png e registra
-          # ele + a cor de accent vermelha (#8C1220) como padrão do FCM via
+          # ele + a cor de accent amarela (#FFD500) como padrão do FCM via
           # meta-data no AndroidManifest. Assim, quando o payload FCM manda
           # `notification.icon = "notification_icon"` e `notification.color`,
-          # o Android usa esses recursos e tinge o ícone pequeno de vermelho.
+          # o Android usa esses recursos e tinge o ícone pequeno de amarelo.
           # Ref: https://firebase.google.com/docs/cloud-messaging/android/client
           python3 - <<'PY'
           from pathlib import Path
@@ -2509,15 +2604,15 @@ jobs:
           shutil.copy(src, dst)
           print(f'✅ notification_icon copiado -> {dst}')
 
-          # colors.xml — adiciona notification_color=#8C1220 (idempotente)
+          # colors.xml — adiciona notification_color=#FFD500 (idempotente)
           colors = Path('android/app/src/main/res/values/colors.xml')
           if not colors.exists():
               colors.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n')
           c = colors.read_text()
           if 'name="notification_color"' not in c:
-              c = c.replace('</resources>', '    <color name="notification_color">#8C1220</color>\n</resources>')
+              c = c.replace('</resources>', '    <color name="notification_color">#FFD500</color>\n</resources>')
               colors.write_text(c)
-              print('✅ notification_color=#8C1220 adicionado a colors.xml')
+              print('✅ notification_color=#FFD500 adicionado a colors.xml')
           else:
               print('notification_color já presente')
 
@@ -2938,13 +3033,22 @@ jobs:
 
 
 
+      - name: Reapply and verify background geolocation crash patch
+        run: |
+          node scripts/patch-capgo-background-geolocation.mjs
+          node scripts/patch-capgo-background-geolocation.mjs --check
+
+      - name: Increase Gradle Memory
+        working-directory: android
+        run: echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
+
       - name: Build .aab (bundleRelease)
         working-directory: android
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-        run: ./gradlew bundleRelease --no-daemon --stacktrace
+        run: ./gradlew clean bundleRelease --no-daemon --stacktrace
 
       - name: Build .apk (assembleRelease)
         working-directory: android
