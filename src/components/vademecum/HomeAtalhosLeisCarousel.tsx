@@ -292,7 +292,8 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
             
             let coverImage = null;
             if (lei.id === 'cdc') coverImage = '/assets/cdc-worker.png';
-            else if (['cp', 'cpp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.png';
+            else if (lei.id === 'cpp') coverImage = '/assets/cpp-court.png';
+            else if (['cp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.png';
             // Default para outras se houver no futuro
             else if (['ctn'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.png'; 
 
