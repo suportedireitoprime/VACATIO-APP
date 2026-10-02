@@ -392,7 +392,7 @@ const ArtigoBottomSheet = ({
   const [showPremiumGate, setShowPremiumGate] = useState(false);
   const [premiumGateDesc, setPremiumGateDesc] = useState<string | undefined>(undefined);
   const [premiumGateFeature, setPremiumGateFeature] = useState<PremiumFeatureKey>('default');
-  const [showTermosSheet, setShowTermosSheet] = useState(false);
+  const [showHistoricoSheet, setShowHistoricoSheet] = useState(false);
   const [showLembretesLocal, setShowLembretesLocal] = useState(false);
   const [showBaixarSheet, setShowBaixarSheet] = useState(false);
   
@@ -1776,7 +1776,7 @@ const ArtigoBottomSheet = ({
         }
 
         // Generate with AI — mostra overlay animado
-        const mode = activeTab as 'explicacao' | 'exemplo';
+        const mode = activeTab as 'explicacao' | 'exemplo' | 'termos';
         setAiGeneratingMode(mode);
         setAiGeneratingStep(0);
         const stepInterval = setInterval(() => {
@@ -1814,66 +1814,7 @@ const ArtigoBottomSheet = ({
     });
   }, [activeTab, artigo?.id]);
 
-  // Fetch termos when the Termos sheet is opened (independent of tab selection)
-  useEffect(() => {
-    if (!showTermosSheet || !artigo) return;
-    if (aiContent.termos || aiLoading.termos) return;
-    const cacheKey = { tabela: tabelaNome || 'unknown', numero: artigo.numero };
-    setAiLoading(prev => ({ ...prev, termos: true }));
-    import('@/lib/aiCacheLocal').then(({ getLocalAiCache, setLocalAiCache }) => {
-      const localVal = getLocalAiCache(cacheKey.tabela, cacheKey.numero, 'termos');
-      if (localVal) {
-        setAiContent(prev => ({ ...prev, termos: localVal }));
-        setAiLoading(prev => ({ ...prev, termos: false }));
-        return;
-      }
-      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-        setAiContent(prev => ({ ...prev, termos: 'Sem internet — termos ainda não gerados.' }));
-        setAiLoading(prev => ({ ...prev, termos: false }));
-        return;
-      }
-      supabase
-      .from('artigo_ai_cache')
-      .select('conteudo')
-      .eq('tabela_codigo', cacheKey.tabela)
-      .eq('numero_artigo', cacheKey.numero)
-      .eq('tipo', 'termos')
-      .maybeSingle()
-      .then(({ data: cached }) => {
-        if (cached?.conteudo) {
-          setLocalAiCache(cacheKey.tabela, cacheKey.numero, 'termos', cached.conteudo as string);
-          setAiContent(prev => ({ ...prev, termos: cached.conteudo as string }));
-          setAiLoading(prev => ({ ...prev, termos: false }));
-          return;
-        }
-        setAiGeneratingMode('termos');
-        setAiGeneratingStep(0);
-        const stepInterval = setInterval(() => {
-          setAiGeneratingStep(prev => (prev < 2 ? prev + 1 : prev));
-        }, 1800);
-        supabase.functions.invoke('assistente-juridica', {
-          body: { mode: 'termos', artigoTexto: artigo.caput, artigoNumero: artigo.numero, leiNome: tabelaNome || '' },
-        }).then(({ data, error }) => {
-          clearInterval(stepInterval);
-          if (!error && data?.reply) {
-            setAiGeneratingStep(3);
-            setAiContent(prev => ({ ...prev, termos: data.reply }));
-            setLocalAiCache(cacheKey.tabela, cacheKey.numero, 'termos', data.reply);
-            supabase.from('artigo_ai_cache').upsert({
-              tabela_codigo: cacheKey.tabela,
-              numero_artigo: cacheKey.numero,
-              tipo: 'termos',
-              conteudo: data.reply,
-            }, { onConflict: 'tabela_codigo,numero_artigo,tipo' }).then(() => {});
-          } else {
-            setAiContent(prev => ({ ...prev, termos: 'Não foi possível gerar os termos. Tente novamente.' }));
-          }
-          setAiLoading(prev => ({ ...prev, termos: false }));
-          setTimeout(() => setAiGeneratingMode(null), 500);
-        });
-      });
-    });
-  }, [showTermosSheet, artigo?.id]);
+
 
 
   if (!artigo) return null;
@@ -2502,7 +2443,7 @@ const ArtigoBottomSheet = ({
               <TabsTrigger value="exemplo" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1">
                 Exemplo {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
               </TabsTrigger>
-              <TabsTrigger value="historico" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Histórico</TabsTrigger>
+              <TabsTrigger value="termos" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Termos</TabsTrigger>
             </TabsList>
 
           )}
@@ -2967,52 +2908,46 @@ const ArtigoBottomSheet = ({
             )}
           </TabsContent>
 
-          <TabsContent value="historico" className="px-5 pb-[calc(8rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4">
-            {(() => {
-              const modRegex = /\(((?:Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Regulamento|Renumerado|Transformado|Suprimido|Restabelecido|Produção de efeito)[^)]*)\)/gi;
-              const found: { texto: string; ano: number }[] = [];
-              const seen = new Set<string>();
-              let m: RegExpExecArray | null;
-              const src = artigo?.caput || '';
-              while ((m = modRegex.exec(src)) !== null) {
-                const t = m[1].trim();
-                if (seen.has(t)) continue;
-                seen.add(t);
-                const y = t.match(/\b(1\d{3}|20\d{2})\b/);
-                found.push({ texto: t, ano: y ? Number(y[1]) : 0 });
-              }
-              found.sort((a, b) => b.ano - a.ano);
-
-              return (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-primary">
-                    <History className="w-4 h-4" />
-                    <p className="text-sm font-semibold uppercase tracking-wider">Histórico de alterações</p>
-                  </div>
-                  {found.length === 0 ? (
-                    <p className="text-muted-foreground text-sm py-8 text-center">
-                      Este artigo não possui alterações registradas em seu texto oficial.
-                    </p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {found.map((item, i) => (
-                        <li key={i} className="rounded-xl bg-secondary/40 border border-border/60 border-l-4 border-l-primary/70 px-4 py-3">
-                          {item.ano > 0 && (
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-primary mb-1">
-                              {item.ano}
-                            </p>
-                          )}
-                          <p className="text-[14px] text-foreground/90 leading-relaxed">{item.texto}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <p className="text-[11px] text-muted-foreground/70 text-center pt-2">
-                    Fonte: metadados oficiais do dispositivo.
-                  </p>
-                </div>
-              );
-            })()}
+          <TabsContent value="termos" className="px-5 pb-[calc(8rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4">
+            {aiLoading.termos ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground font-body">Analisando termos jurídicos com IA...</p>
+              </div>
+            ) : aiContent.termos ? (
+              (() => {
+                const sections = splitSections(aiContent.termos, '---TERMO---');
+                if (sections.length <= 1) {
+                  return (
+                    <div className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:font-bold [&_h2]:text-foreground [&_h3]:font-bold [&_strong]:text-foreground" style={{ fontSize: `${fontSize}px` }}>
+                      <ReactMarkdown>{aiContent.termos}</ReactMarkdown>
+                    </div>
+                  );
+                }
+                return (
+                  <Accordion type="single" collapsible className="space-y-2">
+                    {sections.map((sec, i) => {
+                      const borderColors = ['border-l-pink-500/70', 'border-l-orange-500/70', 'border-l-cyan-500/70', 'border-l-red-500/70', 'border-l-indigo-500/70', 'border-l-lime-500/70'];
+                      const strongColors = ['[&_strong]:text-pink-400', '[&_strong]:text-orange-400', '[&_strong]:text-cyan-400', '[&_strong]:text-red-400', '[&_strong]:text-indigo-400', '[&_strong]:text-lime-400'];
+                      return (
+                        <AccordionItem key={i} value={`term-${i}`} className={`border border-border rounded-xl overflow-hidden bg-secondary/30 border-l-4 ${borderColors[i % borderColors.length]}`}>
+                          <AccordionTrigger className="px-4 py-4 text-base font-semibold text-foreground text-left hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                            {sec.title}
+                          </AccordionTrigger>
+                          <AccordionContent className="px-4 pb-4">
+                            <div className={`prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 ${strongColors[i % strongColors.length]}`} style={{ fontSize: `${fontSize}px` }}>
+                              <ReactMarkdown>{sec.body}</ReactMarkdown>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
+                );
+              })()
+            ) : (
+              <p className="text-muted-foreground text-sm text-center py-8">Carregando termos...</p>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -3067,7 +3002,7 @@ const ArtigoBottomSheet = ({
                       strictGateFeature('videoaula', () => setShowVideoaulasListSheet(true));
                     } },
                     
-                    { icon: BookOpen, label: 'Termos jurídicos', desc: 'Vocabulário do artigo explicado', color: '#F97316', onClick: () => { setActiveActionMenu(null); if (!requireOnline('Termos jurídicos')) return; strictGateFeature('termos', () => setShowTermosSheet(true)); } },
+                    { icon: History, label: 'Histórico', desc: 'Histórico de alterações', color: '#F97316', onClick: () => { setActiveActionMenu(null); setShowHistoricoSheet(true); } },
                     { icon: MessageCircle, label: 'Perguntar', desc: 'Tire dúvidas com a IA', color: '#A855F7', onClick: () => { setActiveActionMenu(null); if (!requireOnline('Perguntar à IA')) return; strictGateFeature('perguntar', () => setShowPerguntarSheet(true)); } },
                     ...(tabelaNome ? [{ icon: Network, label: 'Grafo de conexões', desc: 'Ver relações do artigo', color: '#10B981', onClick: () => { setActiveActionMenu(null); strictGateFeature('grafo', () => setShowGrafo(true)); } }] : []),
                     { icon: Copy, label: 'Copiar artigo', desc: 'Texto para a área de transferência', color: '#8B5CF6', onClick: () => { setActiveActionMenu(null); handleCopy(); } },
@@ -3596,56 +3531,58 @@ const ArtigoBottomSheet = ({
           )}
         </Suspense>
 
-        {/* Termos jurídicos Sheet (aberto pelo menu Grifar) */}
-        <Sheet open={showTermosSheet} onOpenChange={(open) => setShowTermosSheet(open)}>
+        {/* Histórico Sheet (aberto pelo menu Funções) */}
+        <Sheet open={showHistoricoSheet} onOpenChange={(open) => setShowHistoricoSheet(open)}>
           <SheetContent side="bottom" className="h-[90vh] max-w-lg mx-auto rounded-t-3xl p-0 flex flex-col">
             <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
-              <BookOpen className="w-5 h-5 text-orange-400" />
-              <h3 className="font-heading text-base font-semibold text-foreground flex-1">Termos jurídicos</h3>
-              <button onClick={() => setShowTermosSheet(false)} className="w-8 h-8 rounded-full hover:bg-secondary flex items-center justify-center text-foreground/70" aria-label="Fechar">
+              <History className="w-5 h-5 text-orange-400" />
+              <h3 className="font-heading text-base font-semibold text-foreground flex-1">Histórico</h3>
+              <button onClick={() => setShowHistoricoSheet(false)} className="w-8 h-8 rounded-full hover:bg-secondary flex items-center justify-center text-foreground/70" aria-label="Fechar">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-4">
-              {aiLoading.termos ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground font-body">Analisando termos jurídicos com IA...</p>
+            {(() => {
+              const modRegex = /\(((?:Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Regulamento|Renumerado|Transformado|Suprimido|Restabelecido|Produção de efeito)[^)]*)\)/gi;
+              const found: { texto: string; ano: number }[] = [];
+              const seen = new Set<string>();
+              let m: RegExpExecArray | null;
+              const src = artigo?.caput || '';
+              while ((m = modRegex.exec(src)) !== null) {
+                const t = m[1].trim();
+                if (seen.has(t)) continue;
+                seen.add(t);
+                const y = t.match(/\b(1\d{3}|20\d{2})\b/);
+                found.push({ texto: t, ano: y ? Number(y[1]) : 0 });
+              }
+              found.sort((a, b) => b.ano - a.ano);
+
+              return (
+                <div className="space-y-3">
+                  {found.length === 0 ? (
+                    <p className="text-muted-foreground text-sm py-8 text-center">
+                      Este artigo não possui alterações registradas em seu texto oficial.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {found.map((item, i) => (
+                        <li key={i} className="rounded-xl bg-secondary/40 border border-border/60 border-l-4 border-l-primary/70 px-4 py-3">
+                          {item.ano > 0 && (
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-primary mb-1">
+                              {item.ano}
+                            </p>
+                          )}
+                          <p className="text-[14px] text-foreground/90 leading-relaxed">{item.texto}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="text-[11px] text-muted-foreground/70 text-center pt-2">
+                    Fonte: metadados oficiais do dispositivo.
+                  </p>
                 </div>
-              ) : aiContent.termos ? (
-                (() => {
-                  const sections = splitSections(aiContent.termos, '---TERMO---');
-                  if (sections.length <= 1) {
-                    return (
-                      <div className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:font-bold [&_h2]:text-foreground [&_h3]:font-bold [&_strong]:text-foreground" style={{ fontSize: `${fontSize}px` }}>
-                        <ReactMarkdown>{aiContent.termos}</ReactMarkdown>
-                      </div>
-                    );
-                  }
-                  return (
-                    <Accordion type="single" collapsible className="space-y-2">
-                      {sections.map((sec, i) => {
-                        const borderColors = ['border-l-pink-500/70', 'border-l-orange-500/70', 'border-l-cyan-500/70', 'border-l-red-500/70', 'border-l-indigo-500/70', 'border-l-lime-500/70'];
-                        const strongColors = ['[&_strong]:text-pink-400', '[&_strong]:text-orange-400', '[&_strong]:text-cyan-400', '[&_strong]:text-red-400', '[&_strong]:text-indigo-400', '[&_strong]:text-lime-400'];
-                        return (
-                          <AccordionItem key={i} value={`term-${i}`} className={`border border-border rounded-xl overflow-hidden bg-secondary/30 border-l-4 ${borderColors[i % borderColors.length]}`}>
-                            <AccordionTrigger className="px-4 py-4 text-base font-semibold text-foreground text-left hover:no-underline [&[data-state=open]>svg]:rotate-180">
-                              {sec.title}
-                            </AccordionTrigger>
-                            <AccordionContent className="px-4 pb-4">
-                              <div className={`prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 ${strongColors[i % strongColors.length]}`} style={{ fontSize: `${fontSize}px` }}>
-                                <ReactMarkdown>{sec.body}</ReactMarkdown>
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        );
-                      })}
-                    </Accordion>
-                  );
-                })()
-              ) : (
-                <p className="text-muted-foreground text-sm text-center py-8">Carregando termos...</p>
-              )}
+              );
+            })()}
             </div>
           </SheetContent>
         </Sheet>
