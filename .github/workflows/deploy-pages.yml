@@ -39,6 +39,7 @@ jobs:
       - name: Build do Projeto (Vite)
         run: bun run build
         env:
+          VITE_BASE_URL: /VACATIO-APP/
           # Adicione as variáveis de ambiente necessárias para o build do PWA aqui, caso necessário
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}

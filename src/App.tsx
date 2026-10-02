@@ -28,6 +28,8 @@ const Router = typeof window !== "undefined" && (window as any).desktopApp?.isEl
   ? HashRouter
   : BrowserRouter;
 
+const routerBasename = import.meta.env.VITE_BASE_URL || "/";
+
 import PageTransition from "@/components/PageTransition";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { routePrefetch } from "@/lib/routePrefetch";
@@ -731,7 +733,7 @@ const App = () => (
         },
       }}
     >
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Router basename={routerBasename} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <ThemeProvider>
             <TooltipProvider>
