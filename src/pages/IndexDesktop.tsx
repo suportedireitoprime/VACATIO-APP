@@ -316,21 +316,6 @@ const IndexDesktop = () => {
                     })}
                   </div>
                 </div>
-
-                {/* Widget Estatísticas */}
-                <div className="mt-4 bg-black/40 backdrop-blur-xl border border-white/15 rounded-3xl p-5 shadow-2xl flex items-center justify-between">
-                  <div>
-                    <h4 className="text-white/60 font-body text-xs uppercase tracking-wider font-bold mb-1">
-                      Seu Progresso Hoje
-                    </h4>
-                    <p className="text-white font-display text-2xl font-black">
-                      15 <span className="text-base font-medium text-white/50">artigos lidos</span>
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trending-up text-emerald-400"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

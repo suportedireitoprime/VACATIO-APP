@@ -1,17 +1,14 @@
 import { useIsDesktop } from '@/hooks/use-desktop';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Search, Bookmark, Settings, MessageCircle, Gavel } from 'lucide-react';
+import { Home, BookOpen, Search, Bookmark, Settings, MessageCircle, Gavel, User2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import vacatioLogoBundled from '@/assets/bundled/logo-vacatio-v2.webp';
-import { pickAsset } from '@/lib/assetUrl';
-import vacatioLogoAsset from '@/assets/logo-vacatio-v2.png.asset.json';
-
-const vacatioLogo = pickAsset(vacatioLogoBundled, vacatioLogoAsset.url);
+import { useProfileSummary } from '@/hooks/useProfileSummary';
 
 export const DesktopSidebar = () => {
   const isDesktop = useIsDesktop();
   const navigate = useNavigate();
   const location = useLocation();
+  const { data: profile } = useProfileSummary();
 
   if (!isDesktop) return null;
 
@@ -43,12 +40,19 @@ export const DesktopSidebar = () => {
   return (
     <div className="fixed top-0 left-0 h-screen w-[80px] hover:w-[240px] bg-background border-r border-white/5 transition-all duration-300 z-50 flex flex-col group overflow-hidden shrink-0">
       <div className="h-[104px] flex items-center px-4 shrink-0 border-b border-white/5">
-        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-primary/20 cursor-pointer" onClick={() => navigate('/')}>
-          <img src={vacatioLogo} alt="Logo" className="w-full h-full object-cover" />
+        <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 bg-primary/20 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-primary/50 transition-colors" onClick={() => navigate('/perfil')}>
+          {profile?.avatarUrl ? (
+            <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            <User2 className="w-6 h-6 text-primary" />
+          )}
         </div>
-        <span className="ml-4 font-display font-bold text-xl text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap cursor-pointer" onClick={() => navigate('/')}>
-          Vacatio
-        </span>
+        <div className="ml-4 flex flex-col opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap cursor-pointer" onClick={() => navigate('/perfil')}>
+          <span className="font-display font-bold text-[15px] text-white leading-tight">
+            {profile?.displayName || 'Usuário'}
+          </span>
+          <span className="text-[11px] text-white/50 leading-tight">Meu Perfil</span>
+        </div>
       </div>
       <div className="flex-1 py-6 flex flex-col gap-2 overflow-y-auto [scrollbar-width:none]">
         {links.map((link) => {
