@@ -16,7 +16,7 @@ const HomeActionShortcuts = () => {
   const shortcutBadges = useShortcutBadges();
 
   return (
-    <div className="flex items-center justify-between mx-1 mt-1 bg-black/65 backdrop-blur-md border border-white/15 rounded-[20px] p-1.5 shadow-lg shadow-black/30">
+    <div className="flex items-center justify-between gap-2 mx-1 mt-1 bg-black/40 backdrop-blur-md border border-white/10 rounded-3xl p-2 shadow-2xl">
       {SHORTCUT_ITEMS.map((item, index) => {
         const Icon = item.icon;
         const badgeCount = item.badgeKey ? shortcutBadges.counts[item.badgeKey] : 0;
