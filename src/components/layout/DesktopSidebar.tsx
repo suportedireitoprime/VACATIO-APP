@@ -1,6 +1,7 @@
 import { useIsDesktop } from '@/hooks/use-desktop';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, BookOpen, Search, Bookmark, Settings, MessageCircle, Gavel } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import vacatioLogoBundled from '@/assets/bundled/logo-vacatio-v2.webp';
 import { pickAsset } from '@/lib/assetUrl';
 import vacatioLogoAsset from '@/assets/logo-vacatio-v2.png.asset.json';
@@ -30,13 +31,13 @@ export const DesktopSidebar = () => {
   if (EXCLUDED_PREFIXES.some((p) => location.pathname.startsWith(p))) return null;
 
   const links = [
-    { label: 'Início', icon: Home, path: '/' },
-    { label: 'Códigos', icon: Gavel, path: '/legislacao/codigos' },
-    { label: 'Estatutos', icon: BookOpen, path: '/legislacao/estatutos' },
-    { label: 'Busca', icon: Search, path: '/buscador' },
-    { label: 'Assistente', icon: MessageCircle, path: '/assistente-horus' },
-    { label: 'Favoritos', icon: Bookmark, path: '/pessoal/favoritos' },
-    { label: 'Configurações', icon: Settings, path: '/configuracoes' },
+    { label: 'Início', icon: Home, path: '/', shortcut: '' },
+    { label: 'Códigos', icon: Gavel, path: '/legislacao/codigos', shortcut: '' },
+    { label: 'Estatutos', icon: BookOpen, path: '/legislacao/estatutos', shortcut: '' },
+    { label: 'Busca', icon: Search, path: '/buscador', shortcut: 'Ctrl+K' },
+    { label: 'Assistente', icon: MessageCircle, path: '/assistente-horus', shortcut: '' },
+    { label: 'Favoritos', icon: Bookmark, path: '/pessoal/favoritos', shortcut: '' },
+    { label: 'Configurações', icon: Settings, path: '/configuracoes', shortcut: '' },
   ];
 
   return (
@@ -53,17 +54,23 @@ export const DesktopSidebar = () => {
         {links.map((link) => {
           const isActive = location.pathname === link.path;
           return (
-            <button
-              key={link.path}
-              onClick={() => navigate(link.path)}
-              className={`w-full flex items-center px-6 py-4 transition-colors hover:bg-white/5 ${isActive ? 'text-primary border-r-2 border-primary bg-primary/5' : 'text-white/60 hover:text-white'}`}
-              title={link.label}
-            >
-              <link.icon className="w-6 h-6 shrink-0" />
-              <span className="ml-6 font-display font-bold text-[15px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap tracking-wide">
+            <Tooltip delayDuration={300} key={link.path}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => navigate(link.path)}
+                  className={`w-full flex items-center px-6 py-4 transition-colors hover:bg-white/5 ${isActive ? 'text-primary border-r-2 border-primary bg-primary/5' : 'text-white/60 hover:text-white'}`}
+                >
+                  <link.icon className="w-6 h-6 shrink-0" />
+                  <span className="ml-6 font-display font-bold text-[15px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap tracking-wide">
+                    {link.label}
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="ml-2 flex items-center gap-2">
                 {link.label}
-              </span>
-            </button>
+                {link.shortcut && <span className="text-xs text-muted-foreground bg-white/10 px-1.5 py-0.5 rounded">{link.shortcut}</span>}
+              </TooltipContent>
+            </Tooltip>
           );
         })}
       </div>

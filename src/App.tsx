@@ -47,6 +47,7 @@ import { useHorusStatsSync } from "@/hooks/useHorusStatsSync";
 import { useSessionTracker } from "@/hooks/useSessionTracker";
 import { useDesktopSessionGuard } from "@/hooks/useDesktopSessionGuard";
 import { useProfileSummary } from "@/hooks/useProfileSummary";
+import { useLeituraStore } from "@/stores/useLeituraStore";
 import brasaoImgAsset from '@/assets/brasao-republica.webp';
 const brasaoImg = brasaoImgAsset;
 import { Loader2 } from "lucide-react";
@@ -200,6 +201,7 @@ const AdminLegislacaoEditar = lazy(() => import("./pages/AdminLegislacaoEditar.t
 const AdminBuscadorLeis = lazy(() => import("./pages/AdminBuscadorLeis.tsx"));
 import NovidadesRadarOverlay from "./components/NovidadesRadarOverlay";
 import GlobalDesktopHeader from "./components/layout/GlobalDesktopHeader";
+import GlobalDesktopFooter from "./components/layout/GlobalDesktopFooter";
 import { DesktopSidebar } from "./components/layout/DesktopSidebar";
 import DesktopFileDropOverlay from "./components/desktop/DesktopFileDropOverlay";
 const ModoOffline = lazy(() => import("./pages/ModoOffline.tsx"));
@@ -520,15 +522,17 @@ function AnimatedRoutes() {
 
 
 
+  const { focusMode } = useLeituraStore();
+
   return (
-    <div className="overflow-x-hidden lg:pl-[80px] transition-all duration-300">
+    <div className={`overflow-x-hidden transition-all duration-300 min-h-dvh flex flex-col ${focusMode ? '' : 'lg:pl-[80px]'}`}>
       <NativeBootstrap />
       <PushNavListener />
       <DeepLinkBootstrap />
       {user && <PresenceWrapper />}
       {user && <NovidadesRadarOverlay />}
-      <DesktopSidebar />
-      <GlobalDesktopHeader />
+      {!focusMode && <DesktopSidebar />}
+      {!focusMode && <GlobalDesktopHeader />}
       <DesktopFileDropOverlay />
       <PersistentHome />
       <Suspense fallback={<LazyFallback />}>
@@ -715,6 +719,7 @@ function AnimatedRoutes() {
 
         </Routes>
       </Suspense>
+      <GlobalDesktopFooter />
     </div>
   );
 }

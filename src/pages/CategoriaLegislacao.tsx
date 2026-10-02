@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
-import { Search, BookOpen, ChevronRight, ChevronDown, Scale, ArrowLeft, Landmark, Shield, FileText, ScrollText, Loader2, Star, Heart, Gavel, Building2, Briefcase, ShieldCheck, DollarSign, Car, Vote, Droplets, Plane, Bus, ListMusic, Sparkles, StickyNote, Calendar, ExternalLink, ArrowUp, BadgeCheck, Ban, Play, Pause, CheckCircle2, Radar, GitBranch, Info, BookMarked, HeartPulse, History, Mic, MicOff, Volume2, Camera, LayoutGrid, X as XIcon } from 'lucide-react';
+import { Search, BookOpen, ChevronRight, ChevronDown, Scale, ArrowLeft, Landmark, Shield, FileText, ScrollText, Loader2, Star, Heart, Gavel, Building2, Briefcase, ShieldCheck, DollarSign, Car, Vote, Droplets, Plane, Bus, ListMusic, Sparkles, StickyNote, Calendar, ExternalLink, ArrowUp, BadgeCheck, Ban, Play, Pause, CheckCircle2, Radar, GitBranch, Info, BookMarked, HeartPulse, History, Mic, MicOff, Volume2, Camera, LayoutGrid, Maximize2, Minimize2, X as XIcon } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { supabase } from '@/integrations/supabase/client';
 import { LEIS_SUPABASE_URL, leisAuthHeaders } from '@/lib/legislacaoBackend';
@@ -163,7 +163,7 @@ const CategoriaLegislacao = () => {
   const [ocrOpen, setOcrOpen] = useState(false);
   const [showSearchRecents, setShowSearchRecents] = useState(false);
   
-  const { focusMode } = useLeituraStore();
+  const { focusMode, setFocusMode } = useLeituraStore();
   
   // Coreografia de entrada: search+abas → lista → rodapé
   const [showFooter, setShowFooter] = useState(false);
@@ -2649,6 +2649,16 @@ const CategoriaLegislacao = () => {
             </>
           )}
         </AnimatePresence>
+
+        {isDesktop && (
+          <button
+            onClick={() => setFocusMode(!focusMode)}
+            title={focusMode ? "Sair do Modo Foco" : "Modo Foco"}
+            className={`fixed z-50 w-11 h-11 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-lg text-white hover:bg-white/20 transition-all ${focusMode ? 'top-4 right-4' : 'top-[120px] right-4'}`}
+          >
+            {focusMode ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+          </button>
+        )}
 
         <ArtigoBottomSheet
           artigo={openArtigo}

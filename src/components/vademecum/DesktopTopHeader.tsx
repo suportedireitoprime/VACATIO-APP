@@ -5,6 +5,7 @@ import { pickAsset } from '@/lib/assetUrl';
 import vacatioLogoAsset from '@/assets/logo-vacatio-v2.png.asset.json';
 import vacatioLogoBundled from '@/assets/bundled/logo-vacatio-v2.webp';
 import NotificationsSheet, { useUnreadNotifCount } from './NotificationsSheet';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const vacatioLogo = pickAsset(vacatioLogoBundled, vacatioLogoAsset.url);
 
@@ -75,31 +76,45 @@ const DesktopTopHeader = ({ onAssistenteClick }: Props) => {
         <div className="flex-1" />
 
         {/* Assistente Horus */}
-        <button
-          onClick={() => onAssistenteClick ? onAssistenteClick() : navigate('/assistente-horus')}
-          className="relative shrink-0 w-11 h-11 rounded-xl bg-neutral-900/70 backdrop-blur border border-primary-foreground/40 hover:border-primary-foreground/70 hover:bg-neutral-900 flex items-center justify-center transition-colors group"
-          aria-label="Assistente Horus"
-          title="Assistente Horus"
-        >
-          <Bird className="w-5 h-5 text-primary drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform" />
-        </button>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => onAssistenteClick ? onAssistenteClick() : navigate('/assistente-horus')}
+              className="relative shrink-0 w-11 h-11 rounded-xl bg-neutral-900/70 backdrop-blur border border-primary-foreground/40 hover:border-primary-foreground/70 hover:bg-neutral-900 flex items-center justify-center transition-colors group"
+              aria-label="Assistente Horus"
+            >
+              <Bird className="w-5 h-5 text-primary drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="flex items-center gap-2">
+            Assistente Horus
+            <span className="text-xs text-muted-foreground bg-white/10 px-1.5 py-0.5 rounded">Alt+A</span>
+          </TooltipContent>
+        </Tooltip>
 
         {/* Botão de notificações */}
-        <button
-          onClick={() => setNotifOpen(true)}
-          className="relative shrink-0 w-11 h-11 rounded-xl bg-neutral-900/70 backdrop-blur border border-primary-foreground/40 hover:border-primary-foreground/70 hover:bg-neutral-900 flex items-center justify-center transition-colors group"
-          aria-label={unreadCount > 0 ? `Notificações (${unreadCount} novas)` : 'Notificações'}
-        >
-          <Bell className="w-5 h-5 text-primary drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform" />
-          {unreadCount > 0 && (
-            <span
-              className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-neutral-900 text-[10px] font-black flex items-center justify-center border-2 border-neutral-900 shadow-lg"
-              aria-hidden
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => setNotifOpen(true)}
+              className="relative shrink-0 w-11 h-11 rounded-xl bg-neutral-900/70 backdrop-blur border border-primary-foreground/40 hover:border-primary-foreground/70 hover:bg-neutral-900 flex items-center justify-center transition-colors group"
+              aria-label={unreadCount > 0 ? `Notificações (${unreadCount} novas)` : 'Notificações'}
             >
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
-        </button>
+              <Bell className="w-5 h-5 text-primary drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform" />
+              {unreadCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-neutral-900 text-[10px] font-black flex items-center justify-center border-2 border-neutral-900 shadow-lg"
+                  aria-hidden
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {unreadCount > 0 ? `Notificações (${unreadCount})` : 'Notificações'}
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
