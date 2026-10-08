@@ -2,22 +2,21 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, ArrowUpRight, Scale, ChevronRight } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { getResenhaCache, prefetchResenha, type ResenhaItem } from '@/services/atualizacaoService';
 
 const AUTOPLAY_MS = 6000;
 const MAX_ITEMS = 10;
 
-function formatTime(dateStr: string) {
+function formatTime(dateStr: string | null) {
+  if (!dateStr) return 'Recente';
   try {
     const d = new Date(dateStr);
     const now = new Date();
     const sameDay = d.toDateString() === now.toDateString();
-    const hh = d.getHours().toString().padStart(2, '0');
-    const mm = d.getMinutes().toString().padStart(2, '0');
-    if (sameDay) return `Hoje · ${hh}:${mm}`;
+    if (sameDay) return 'Hoje';
     const day = d.getDate().toString().padStart(2, '0');
     const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    return `${day} ${months[d.getMonth()]} · ${hh}:${mm}`;
+    return `${day} ${months[d.getMonth()]}`;
   } catch {
     return 'Recente';
   }
@@ -29,30 +28,19 @@ export default function HomeRadarCarousel() {
   const autoplayRef = useRef<number | null>(null);
   const userInteractingRef = useRef(false);
   
-  const [leis, setLeis] = useState<any[]>([]);
+  const [leis, setLeis] = useState<ResenhaItem[]>(() => (getResenhaCache() ?? []).slice(0, MAX_ITEMS));
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    const carregarRadar = async () => {
-      const { data } = await supabase
-        .from('radar_impactos_leis')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(MAX_ITEMS);
-      
-      if (data && data.length > 0) {
-        setLeis(data);
-      } else {
-        // Fallback for visual demonstration
-        setLeis([
-          { id: '1', tipo: 'Lei Ordinária', ato_ementa: 'Altera o Código Civil para atualizar diretrizes de proteção.', created_at: new Date().toISOString() },
-          { id: '2', tipo: 'Decreto', ato_ementa: 'Regulamenta normas sobre transição energética.', created_at: new Date(Date.now() - 86400000).toISOString() },
-          { id: '3', tipo: 'Lei Complementar', ato_ementa: 'Estabelece novas regras para o sistema tributário.', created_at: new Date(Date.now() - 172800000).toISOString() },
-        ]);
-      }
-    };
-    carregarRadar();
-  }, []);
+    if (leis.length === 0) {
+      prefetchResenha().then(() => {
+        const cached = getResenhaCache();
+        if (cached) {
+          setLeis(cached.slice(0, MAX_ITEMS));
+        }
+      });
+    }
+  }, [leis.length]);
 
   const scrollToIndex = useCallback((idx: number, behavior: ScrollBehavior = 'smooth') => {
     const scroller = scrollerRef.current;
@@ -116,7 +104,7 @@ export default function HomeRadarCarousel() {
 
       <button
         type="button"
-        onClick={() => navigate('/normas/leis')}
+        onClick={() => navigate('/radar-360')}
         className="shrink-0 inline-flex items-center gap-1 rounded-full border border-white/10 bg-card hover:bg-muted/80 px-3 py-1.5 text-[12px] font-semibold text-foreground active:scale-[0.96] transition-all shadow-sm"
       >
         <span>Ver radar</span>
@@ -149,12 +137,13 @@ export default function HomeRadarCarousel() {
       >
         {leis.map((item, i) => {
           const isActive = i === activeIndex;
-          const meta = `${formatTime(item.created_at)} · ${item.tipo || 'Norma'}`;
+          const dataPublicacao = item.data_dou || item.data_publicacao;
+          const meta = `${formatTime(dataPublicacao)} · ${item.tipo_ato || 'Norma'}`;
 
           return (
             <motion.button
               key={item.id}
-              onClick={() => navigate('/normas/leis')}
+              onClick={() => navigate('/radar-360')}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(i * 0.04, 0.2) }}
@@ -180,7 +169,7 @@ export default function HomeRadarCarousel() {
                     <span className="truncate uppercase tracking-wider">{meta}</span>
                   </div>
                   <p className="font-display text-white text-[14px] sm:text-[15px] font-bold leading-snug line-clamp-2">
-                    {item.ato_ementa || item.resumo_ia || 'Atualização legislativa'}
+                    {item.ementa || item.numero_ato || 'Atualização legislativa'}
                   </p>
                 </div>
               </div>
