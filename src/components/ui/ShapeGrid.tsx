@@ -15,13 +15,13 @@ interface ShapeGridProps {
 }
 
 const ShapeGrid = ({
-  direction = 'right',
-  speed = 1,
+  direction = 'diagonal',
+  speed = 0.5,
   borderColor = 'rgba(255, 255, 255, 0.05)',
   squareSize = 40,
-  hoverFillColor = 'rgba(255, 255, 255, 0.08)',
+  hoverFillColor = 'rgba(255, 255, 255, 0.1)',
   shape = 'square',
-  hoverTrailAmount = 0,
+  hoverTrailAmount = 5,
   active = true,
   className = ''
 }: ShapeGridProps) => {
@@ -606,10 +606,11 @@ const ShapeGrid = ({
   return (
     <canvas
       ref={canvasRef}
-      className={`shapegrid-canvas ${pointerClass} ${className}`}
+      className={`shapegrid-canvas opacity-50 ${pointerClass} ${className}`}
       style={{ touchAction: isInteractive ? 'none' : 'auto' }}
     />
   );
 };
 
 export default ShapeGrid;
+export { ShapeGrid };
