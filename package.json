@@ -5,7 +5,7 @@
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
-    "predev": "bunx tsx scripts/generate-sitemap.ts",
+    "predev": "npx tsx scripts/generate-sitemap.ts",
     "dev": "vite",
     "prebuild": "node scripts/copy-build-assets.mjs && npx tsx scripts/generate-sitemap.ts",
     "build": "vite build",

@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Loader2, Search, ChevronRight, FileText, Bell, RefreshCw, Clock, Radar,
-  History, ArrowRight, BookOpen
+  History, ArrowRight, BookOpen, Scale, Landmark, ScrollText
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -90,6 +90,17 @@ export default function AdminLegislacaoEditar() {
     constituicao: 'Constituição'
   };
 
+  const getCatInfo = (catName: string) => {
+    switch (catName) {
+      case 'Códigos': return { icon: BookOpen, color: '#f43f5e', desc: 'Leis fundamentais e estruturais' };
+      case 'Estatutos': return { icon: ScrollText, color: '#8b5cf6', desc: 'Direitos e deveres específicos' };
+      case 'Legislação Especial': return { icon: Scale, color: '#10b981', desc: 'Leis esparsas e normativas' };
+      case 'Estadual (SP)': return { icon: Landmark, color: '#3b82f6', desc: 'Leis do Estado de São Paulo' };
+      case 'Constituição': return { icon: FileText, color: '#f59e0b', desc: 'Lei maior e normas fundamentais' };
+      default: return { icon: BookOpen, color: '#64748b', desc: 'Outras legislações' };
+    }
+  };
+
   const getCatName = (cat: string) => CATEGORIA_LABELS[cat] || cat;
 
   const categoriasMap = useMemo(() => {
@@ -135,24 +146,36 @@ export default function AdminLegislacaoEditar() {
               <p className="text-center text-muted-foreground text-sm py-8">Nenhum resultado encontrado.</p>
             )}
             
-            {categoriasKeys.map(cat => {
-              const itens = categoriasMap[cat];
-              
-              return (
-                <Card key={cat} className="overflow-hidden">
-                  <button
-                    onClick={() => setCategoriaAtiva(cat)}
-                    className="w-full px-4 py-3 bg-secondary/20 hover:bg-secondary/40 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm">{cat}</span>
-                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{itens.length}</Badge>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground transition-transform" />
-                  </button>
-                </Card>
-              );
-            })}
+            {categoriasKeys.length > 0 && (
+              <div className="rounded-2xl border border-border/60 bg-secondary/30 divide-y divide-border/50 overflow-hidden">
+                {categoriasKeys.map(cat => {
+                  const itens = categoriasMap[cat];
+                  const { icon: Icon, color, desc } = getCatInfo(cat);
+                  
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setCategoriaAtiva(cat)}
+                      className="w-full flex items-center gap-4 px-4 py-5 min-h-[84px] text-left hover:bg-secondary/60 active:bg-secondary transition-colors"
+                    >
+                      <div className="w-12 h-12 flex items-center justify-center shrink-0">
+                        <Icon className="w-6 h-6" style={{ color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-body text-base font-semibold text-foreground truncate">{cat}</span>
+                          <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{itens.length}</Badge>
+                        </div>
+                        <div className="font-body text-[12px] text-muted-foreground truncate mt-0.5">
+                          {desc}
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>

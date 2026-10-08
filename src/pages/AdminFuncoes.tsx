@@ -98,6 +98,7 @@ type Category = {
   icon: any;
   items: Item[];
   route?: string;
+  color?: string;
 };
 
 const CATEGORIES: Category[] = [
@@ -106,6 +107,7 @@ const CATEGORIES: Category[] = [
     title: 'Funções exclusivas (Admin)',
     desc: 'Ferramentas em testes, visíveis apenas para admins',
     icon: Crown,
+    color: '#f43f5e',
     items: [
       { id: 'admin-newsletter', label: 'Newsletter', icon: Mail, desc: 'Receba um resumo jurídico diário no e-mail', route: '/newsletter' },
       { id: 'admin-horus-congelado', label: 'Assistente Horus (Congelado)', icon: MessageCircle, desc: 'Assistente virtual por IA (oculto do app principal)', route: '/assistente-horus' },
@@ -117,6 +119,7 @@ const CATEGORIES: Category[] = [
     title: 'Notificações Push',
     desc: 'Campanhas, agendamento e métricas',
     icon: Send,
+    color: '#8b5cf6',
     items: [
       { id: 'admin-push', label: 'Painel de Push', icon: BellRing, desc: 'Compor, agendar, campanhas e métricas', route: '/admin-push' },
     ],
@@ -126,6 +129,7 @@ const CATEGORIES: Category[] = [
     title: 'OmniRoute Gateway',
     desc: 'Configurar roteador LLM unificado local/remoto',
     icon: Server,
+    color: '#10b981',
     items: [
       { id: 'admin-omniroute', label: 'OmniRoute Gateway', icon: Server, desc: 'Configurar roteador LLM', route: '/admin-omniroute' },
     ],
@@ -135,6 +139,7 @@ const CATEGORIES: Category[] = [
     title: 'Legislação Editar',
     desc: 'Extrair leis do Planalto, verificar novidades e gerenciar Vade Mecum',
     icon: BookOpen,
+    color: '#3b82f6',
     items: [
       { id: 'admin-legislacao-editar', label: 'Legislação Editar', icon: Search, desc: 'Extrair leis e ver atualizações em ordem cronológica', route: '/admin-legislacao-editar' },
     ],
@@ -144,6 +149,7 @@ const CATEGORIES: Category[] = [
     title: 'Lembretes',
     desc: 'Funções do app que oferecem lembretes ao usuário',
     icon: BellRing,
+    color: '#f59e0b',
     route: '/admin-lembretes',
     items: [
       { id: 'admin-lembretes-biblioteca', label: 'Biblioteca', icon: BookOpen, desc: 'Lembretes de leitura: métricas, canais e disparos', route: '/admin-lembretes/biblioteca' },
@@ -154,6 +160,7 @@ const CATEGORIES: Category[] = [
     title: 'Narração de Conteúdo',
     desc: 'Narrar livros da biblioteca e artigos do blog com vozes do Gemini',
     icon: Mic,
+    color: '#06b6d4',
     route: '/admin-narracao',
     items: [
       { id: 'admin-narracao-biblioteca', label: 'Narração Biblioteca', icon: BookOpen, desc: 'Escolha o livro, a voz e narre página por página ou em fila', route: '/admin-narracao/biblioteca' },
@@ -165,6 +172,7 @@ const CATEGORIES: Category[] = [
     title: 'Aprender',
     desc: 'Gerar aulas por IA a partir dos resumos e publicar',
     icon: GraduationCap,
+    color: '#14b8a6',
     route: '/admin-aprender',
     items: [
       { id: 'admin-aprender', label: 'Gerar conteúdo das aulas', icon: Sparkles, desc: 'Gera/regera aulas a partir dos resumos e publica no app', route: '/admin-aprender' },
@@ -175,6 +183,7 @@ const CATEGORIES: Category[] = [
     title: 'Jurisprudência',
     desc: 'Mapear leis do Vade Mecum ao Corpus927 (Enfam/STJ)',
     icon: Scale,
+    color: '#6366f1',
     route: '/admin-jurisprudencia',
     items: [
       { id: 'admin-jurisprudencia', label: 'Mapeamento de leis', icon: Scale, desc: 'Cadastra o ID Corpus927 de cada lei; acompanha cache de artigos', route: '/admin-jurisprudencia' },
@@ -185,6 +194,7 @@ const CATEGORIES: Category[] = [
     title: 'Monitoramento',
     desc: 'Saúde do sistema, usuários e APIs de IA',
     icon: Monitor,
+    color: '#ef4444',
     route: '/admin-monitoramento',
     items: [
       { id: 'admin-monitor', label: 'Monitoramento', icon: Activity, desc: 'Status e saúde do sistema', route: '/admin-monitor' },
@@ -192,14 +202,12 @@ const CATEGORIES: Category[] = [
       { id: 'monitor-apis', label: 'APIs e Custos', icon: Activity, desc: 'Funções que usam IA (custo, manual/auto)', route: '/admin-monitor-apis' },
     ],
   },
-
-
-
   {
     id: 'triagem',
     title: 'Triagem',
     desc: 'Intro do app e triagem de cadastro',
     icon: Sparkles,
+    color: '#d946ef',
     route: '/admin-triagem-hub',
     items: [
       { id: 'admin-triagem-entrada', label: 'Triagem de Entrada', icon: Sparkles, desc: 'Intro Vade Mecum · Vacatio ao abrir o app (MP4 Remotion)', route: '/admin-triagem-entrada' },
@@ -211,6 +219,7 @@ const CATEGORIES: Category[] = [
     title: 'Feedback e Suporte',
     desc: 'Mensagens e opiniões dos usuários',
     icon: MessageCircle,
+    color: '#f97316',
     items: [
       { id: 'admin-feedbacks', label: 'Ver Feedbacks e Suporte', icon: MessageCircle, desc: 'Acompanhe as opiniões e suporte solicitados', route: '/admin-feedbacks' },
     ],
@@ -220,6 +229,7 @@ const CATEGORIES: Category[] = [
     title: 'Horus (Exclusivo)',
     desc: 'Assistente Horus no WhatsApp — instância, usuários e conversas',
     icon: MessageCircle,
+    color: '#10b981',
     items: [
       { id: 'admin-horus', label: 'Painel do Horus', icon: MessageCircle, desc: 'Instância, QR Code, usuários vinculados e conversas', route: '/admin-horus' },
     ],
@@ -229,6 +239,7 @@ const CATEGORIES: Category[] = [
     title: 'Geração de Conteúdo',
     desc: 'IA, biblioteca, radar e estudos',
     icon: Newspaper,
+    color: '#3b82f6',
     items: [
       // Conteúdo & IA
       { id: 'blog-edicao', label: 'Blog Editar', icon: Newspaper, desc: 'Geração automática de artigos + push', route: '/admin-blog-edicao' },
@@ -254,6 +265,7 @@ const CATEGORIES: Category[] = [
     title: 'Passo a passo — Atualização',
     desc: 'Build, ícone, splash e Firebase',
     icon: RefreshCcw,
+    color: '#8b5cf6',
     items: [
       { id: 'admin-atualizacao', label: 'Atualizar app no GitHub', icon: GitBranch, desc: 'Guia completo: repositório, secrets e build', route: '/admin-atualizacao' },
       { id: 'admin-native-assets', label: 'Ícone, Splash e Firebase', icon: ImageIcon, desc: 'Upload de ícones, splash e google-services.json', route: '/admin-native-assets' },
@@ -266,6 +278,7 @@ const CATEGORIES: Category[] = [
     title: 'Secrets & Credenciais',
     desc: 'Keystore e credenciais Android',
     icon: Lock,
+    color: '#f43f5e',
     items: [
       { id: 'admin-secrets', label: 'Secrets Android (download)', icon: KeyRound, desc: 'Baixar keystore e senhas como .txt', route: '/admin-secrets' },
     ],
@@ -275,6 +288,7 @@ const CATEGORIES: Category[] = [
     title: 'Radares',
     desc: 'Radar de Leis, cron e histórico',
     icon: Rss,
+    color: '#eab308',
     items: [
       { id: 'admin-radares-leis', label: 'Radar de Leis (Editar)', icon: Rss, desc: 'Cron 10h e 20h, histórico das raspagens, reenvio de push', route: '/admin-radares-leis' },
       { id: 'admin-legislacao-editar', label: 'Legislação Editar', icon: BookOpen, desc: 'Gestão detalhada, Raspagem, Histórico de Atualização', route: '/admin-legislacao-editar' },
@@ -282,12 +296,12 @@ const CATEGORIES: Category[] = [
       { id: 'admin-buscador-leis', label: 'Buscador de Leis', icon: Search, desc: 'IA busca na web leis faltantes e sugere para adicionar à Biblioteca', route: '/admin-buscador-leis' },
     ],
   },
-
   {
     id: 'locais-juridicos',
     title: 'Locais Jurídicos',
     desc: 'Tribunais, cartórios, delegacias e museus via OpenStreetMap',
     icon: MapPin,
+    color: '#06b6d4',
     items: [
       { id: 'admin-locais', label: 'Locais Jurídicos', icon: MapPin, desc: 'Sincronizar OSM por UF e categoria (custo zero)', route: '/admin/locais' },
     ],
@@ -297,6 +311,7 @@ const CATEGORIES: Category[] = [
     title: 'Boletins Jurídicos',
     desc: 'Geração diária de boletins em áudio e vídeo',
     icon: Mic,
+    color: '#f97316',
     items: [
       { id: 'admin-boletins', label: 'Boletins (Admin)', icon: Mic, desc: 'Gerar, renderizar MP4 e configurar cron 9h', route: '/admin-boletins' },
       { id: 'boletins-player', label: 'Player de Boletins', icon: Rss, desc: 'Visualizar boletins publicados no app', route: '/boletins' },
@@ -307,6 +322,7 @@ const CATEGORIES: Category[] = [
     title: 'Monetização & Paywall',
     desc: 'Limites free por função (editável)',
     icon: Crown,
+    color: '#f59e0b',
     items: [
       { id: 'admin-funcoes-assinantes', label: 'Funções Assinantes', icon: Crown, desc: 'Limite de uso free por função (blog, narração, biblioteca, IA…)', route: '/admin-funcoes-assinantes' },
       { id: 'admin-assinantes', label: 'Assinantes Play', icon: Users, desc: 'Métricas do Google Play + lista de quem assinou', route: '/admin-assinantes' },
@@ -317,6 +333,7 @@ const CATEGORIES: Category[] = [
     title: 'Modelos de IA',
     desc: 'Modelos Gemini usados no app',
     icon: Brain,
+    color: '#8b5cf6',
     items: [
       { id: 'admin-modelos', label: 'Modelos de Geração', icon: Brain, desc: 'Texto, imagem e áudio — cataloga funções e limites', route: '/admin-modelos' },
     ],
@@ -326,16 +343,17 @@ const CATEGORIES: Category[] = [
     title: 'Distribuição',
     desc: 'Apps instaláveis (Android, Desktop)',
     icon: Monitor,
+    color: '#3b82f6',
     items: [
       { id: 'admin-desktop', label: 'App para computador', icon: Monitor, desc: 'Gerar .exe / .dmg / .AppImage via GitHub Actions', route: '/admin-desktop' },
     ],
   },
-
   {
     id: 'configuracoes',
     title: 'Configurações',
     desc: 'Paleta, tema e preferências',
     icon: Wrench,
+    color: '#64748b',
     items: [
       { id: 'paleta-cores', label: 'Paleta de Cores', icon: Palette, desc: 'Configurações visuais', route: '/configuracoes' },
     ],
@@ -345,6 +363,7 @@ const CATEGORIES: Category[] = [
     title: 'Depuração',
     desc: 'Ferramentas de teste e diagnóstico',
     icon: Bug,
+    color: '#ef4444',
     items: [
       { id: 'crashlytics-test', label: 'Disparar crash de teste', icon: Bug, desc: 'Envia crash pro Firebase Crashlytics (só native)' },
     ],
@@ -424,8 +443,8 @@ const AdminFuncoes = () => {
                 }}
                 className="w-full flex items-center gap-4 px-4 py-5 min-h-[84px] text-left hover:bg-secondary/60 active:bg-secondary transition-colors"
               >
-                <div className="w-14 h-14 rounded-2xl bg-background flex items-center justify-center text-primary shrink-0">
-                  <Icon className="w-6 h-6" />
+                <div className="w-12 h-12 flex items-center justify-center shrink-0">
+                  <Icon className="w-6 h-6" style={{ color: cat.color }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-body text-base font-semibold text-foreground truncate">
