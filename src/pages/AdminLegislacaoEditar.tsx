@@ -59,6 +59,7 @@ export default function AdminLegislacaoEditar() {
   const [loading, setLoading] = useState(true);
   const [leis, setLeis] = useState<LeiRow[]>([]);
   const [busca, setBusca] = useState('');
+  const [viewMode, setViewMode] = useState<'categorias' | 'areas'>('categorias');
   
   const [categoriaAtiva, setCategoriaAtiva] = useState<string | null>(null);
   const [selecionada, setSelecionada] = useState<LeiRow | null>(null);
@@ -103,7 +104,55 @@ export default function AdminLegislacaoEditar() {
 
   const getCatName = (cat: string) => CATEGORIA_LABELS[cat] || cat;
 
-  const categoriasMap = useMemo(() => {
+  const getAreaName = (lei: LeiRow): string => {
+    const text = `${lei.nome} ${lei.nome_curto || ''} ${lei.slug}`.toLowerCase();
+    
+    if (text.includes('penal') || text.includes('crime') || text.includes('tráfico') || text.includes('drogas') || text.includes('abuso') || text.includes('hediondo') || text.includes('execução penal') || text.includes('prisão')) {
+      return 'Direito Penal e Processual Penal';
+    }
+    if (text.includes('trabalh') || text.includes('clt') || text.includes('sindicato') || text.includes('fgts')) {
+      return 'Direito do Trabalho';
+    }
+    if (text.includes('tribut') || text.includes('imposto') || text.includes('taxa') || text.includes('aduaneir') || text.includes('receita')) {
+      return 'Direito Tributário';
+    }
+    if (text.includes('administ') || text.includes('licitaç') || text.includes('servidor') || text.includes('improbidade') || text.includes('desapropriaç')) {
+      return 'Direito Administrativo';
+    }
+    if (text.includes('constituiç') || text.includes('eleitoral') || text.includes('partido') || text.includes('eleiç')) {
+      return 'Direito Constitucional e Eleitoral';
+    }
+    if (text.includes('previdenc') || text.includes('inss') || text.includes('loas')) {
+      return 'Direito Previdenciário';
+    }
+    if (text.includes('ambiental') || text.includes('florest') || text.includes('água') || text.includes('fauna')) {
+      return 'Direito Ambiental';
+    }
+    if (text.includes('civil') || text.includes('consumidor') || text.includes('cdc') || text.includes('locaç') || text.includes('inquilinato') || text.includes('família') || text.includes('registros') || text.includes('criança e adolescente') || text.includes('idoso') || text.includes('deficiência')) {
+      return 'Direito Civil e Processual Civil';
+    }
+    if (text.includes('empresar') || text.includes('s.a') || text.includes('sociedade') || text.includes('falência') || text.includes('recuperação') || text.includes('cheque') || text.includes('título')) {
+      return 'Direito Empresarial';
+    }
+    
+    return 'Outras Áreas';
+  };
+
+  const getAreaInfo = (area: string) => {
+    switch (area) {
+      case 'Direito Penal e Processual Penal': return { icon: Scale, color: '#f43f5e', desc: 'Crimes, penas e processo' };
+      case 'Direito Civil e Processual Civil': return { icon: BookOpen, color: '#3b82f6', desc: 'Relações privadas, consumidor e processo' };
+      case 'Direito Administrativo': return { icon: Landmark, color: '#10b981', desc: 'Estado, servidores e licitações' };
+      case 'Direito Constitucional e Eleitoral': return { icon: FileText, color: '#f59e0b', desc: 'CF, direitos fundamentais e eleições' };
+      case 'Direito do Trabalho': return { icon: ScrollText, color: '#8b5cf6', desc: 'Relações de trabalho e CLT' };
+      case 'Direito Tributário': return { icon: Landmark, color: '#ec4899', desc: 'Impostos, taxas e contribuições' };
+      case 'Direito Ambiental': return { icon: BookOpen, color: '#84cc16', desc: 'Meio ambiente e recursos' };
+      case 'Direito Empresarial': return { icon: Scale, color: '#6366f1', desc: 'Empresas, sociedades e falências' };
+      default: return { icon: FileText, color: '#64748b', desc: 'Legislações diversas' };
+    }
+  };
+
+  const agrupamentoMap = useMemo(() => {
     const map: Record<string, LeiRow[]> = {};
     const q = busca.trim().toLowerCase();
     
@@ -111,15 +160,15 @@ export default function AdminLegislacaoEditar() {
       if (q && !`${l.nome} ${l.nome_curto ?? ''} ${l.categoria}`.toLowerCase().includes(q)) {
         continue;
       }
-      const rawCat = l.categoria || 'sem_categoria';
-      const catName = getCatName(rawCat);
-      if (!map[catName]) map[catName] = [];
-      map[catName].push(l);
+      const key = viewMode === 'categorias' ? getCatName(l.categoria || 'sem_categoria') : getAreaName(l);
+      
+      if (!map[key]) map[key] = [];
+      map[key].push(l);
     }
     return map;
-  }, [leis, busca]);
+  }, [leis, busca, viewMode]);
 
-  const categoriasKeys = Object.keys(categoriasMap).sort();
+  const agrupamentoKeys = Object.keys(agrupamentoMap).sort();
 
   return (
     <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
@@ -136,26 +185,41 @@ export default function AdminLegislacaoEditar() {
           />
         </div>
 
+        <div className="flex bg-secondary/30 p-1 rounded-xl w-full border border-border/50">
+          <button
+            onClick={() => setViewMode('categorias')}
+            className={`flex-1 text-sm font-semibold py-2 rounded-lg transition-all ${viewMode === 'categorias' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
+          >
+            Categorias
+          </button>
+          <button
+            onClick={() => setViewMode('areas')}
+            className={`flex-1 text-sm font-semibold py-2 rounded-lg transition-all ${viewMode === 'areas' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}`}
+          >
+            Áreas
+          </button>
+        </div>
+
         {loading ? (
           <div className="py-10 flex items-center justify-center text-muted-foreground">
             <Loader2 className="w-5 h-5 animate-spin mr-2" /> Carregando base...
           </div>
         ) : (
           <div className="space-y-4">
-            {categoriasKeys.length === 0 && (
+            {agrupamentoKeys.length === 0 && (
               <p className="text-center text-muted-foreground text-sm py-8">Nenhum resultado encontrado.</p>
             )}
             
-            {categoriasKeys.length > 0 && (
+            {agrupamentoKeys.length > 0 && (
               <div className="rounded-2xl border border-border/60 bg-secondary/30 divide-y divide-border/50 overflow-hidden">
-                {categoriasKeys.map(cat => {
-                  const itens = categoriasMap[cat];
-                  const { icon: Icon, color, desc } = getCatInfo(cat);
+                {agrupamentoKeys.map(key => {
+                  const itens = agrupamentoMap[key];
+                  const { icon: Icon, color, desc } = viewMode === 'categorias' ? getCatInfo(key) : getAreaInfo(key);
                   
                   return (
                     <button
-                      key={cat}
-                      onClick={() => setCategoriaAtiva(cat)}
+                      key={key}
+                      onClick={() => setCategoriaAtiva(key)}
                       className="w-full flex items-center gap-4 px-4 py-5 min-h-[84px] text-left hover:bg-secondary/60 active:bg-secondary transition-colors"
                     >
                       <div className="w-12 h-12 flex items-center justify-center shrink-0">
@@ -163,7 +227,7 @@ export default function AdminLegislacaoEditar() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-body text-base font-semibold text-foreground truncate">{cat}</span>
+                          <span className="font-body text-base font-semibold text-foreground truncate">{key}</span>
                           <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{itens.length}</Badge>
                         </div>
                         <div className="font-body text-[12px] text-muted-foreground truncate mt-0.5">
@@ -186,7 +250,7 @@ export default function AdminLegislacaoEditar() {
             <SheetTitle className="font-display font-bold text-xl">{categoriaAtiva}</SheetTitle>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto px-2 py-2 divide-y divide-border/60">
-            {categoriaAtiva && categoriasMap[categoriaAtiva]?.map(lei => (
+            {categoriaAtiva && agrupamentoMap[categoriaAtiva]?.map(lei => (
               <button
                 key={lei.id}
                 onClick={() => {
