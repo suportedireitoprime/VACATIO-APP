@@ -16,7 +16,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: remotion
-        run: npm install
+        run: npm install --force
 
       - name: Install Chrome dependencies (for Puppeteer/Remotion)
         run: |
