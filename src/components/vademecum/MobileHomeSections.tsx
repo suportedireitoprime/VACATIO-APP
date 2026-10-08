@@ -23,10 +23,9 @@ import { pushRecente } from '@/lib/leisRecentes';
 import { getFavoritos, LEIS_FAVORITOS_EVENT } from '@/lib/leisFavoritos';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import VoiceCaptureOverlay from './VoiceCaptureOverlay';
-import HomeNoticiasCarousel from './HomeNoticiasCarousel';
+import HomeRadarCarousel from './HomeRadarCarousel';
 import HomeAtalhosLeisCarousel from './HomeAtalhosLeisCarousel';
 import HomeCard from './HomeCard';
-import { useOutrasNormasCounts } from '@/hooks/useOutrasNormasCounts';
 import JurisprudenciaSheet from './JurisprudenciaSheet';
 import { bandeiraUF } from '@/data/estadoFlags';
 
@@ -274,18 +273,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   }, []);
   const voiceSearch = useVoiceInput(handleVoiceSearch);
 
-  const { counts: radarCounts } = useOutrasNormasCounts();
-
-  const [seenCounts, setSeenCounts] = useState<Record<string, number>>(() => {
-    try { return JSON.parse(localStorage.getItem('outras_normas_seen') || '{}'); } catch { return {}; }
-  });
-
   const handle = useCallback((id: string) => {
-    const radarCat = RADAR_CATS.find(c => c.id === id);
-    if (radarCat) {
-      navigate(`/normas/${radarCat.normaSlug}`);
-      return;
-    }
     if (id === 'jurisprudencia') { navigate('/jurisprudencia'); return; }
     const cat = ALL_CATS.find(c => c.id === id);
     if (cat) {
@@ -412,9 +400,9 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       {/* 1. NO LUGAR DE NOTÍCIAS: CARROSSEL DO EM ALTA (Cards vermelhos com degradê + Personalizar) */}
       <HomeAtalhosLeisCarousel onOpenLei={handleOpenLei} />
 
-      {/* CARROSSEL DE NOTÍCIAS JURÍDICAS */}
+      {/* CARROSSEL DE RADAR (NOVAS LEIS) */}
       <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen my-2">
-        <HomeNoticiasCarousel onOpenChange={onNewsOpenChange} />
+        <HomeRadarCarousel />
       </div>
 
       {/* 2. LEGISLAÇÃO BRASILEIRA — ÁREAS DO DIREITO (COM ABAS) */}
@@ -586,96 +574,6 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           <ChevronRight className="relative z-10 w-5 h-5 text-black/80 shrink-0" />
         </button>
       </div>
-
-      {/* 6. OUTRAS NORMAS */}
-      <div className="px-1 pb-24">
-        <h3 className="font-display text-foreground text-[18px] font-bold mb-3 flex items-center gap-2">
-          <span className="w-1 h-5 rounded-full bg-primary" />
-          Outras normas
-        </h3>
-        <p className="font-body text-muted-foreground text-[12.5px] leading-snug mb-3 ml-3">
-          Publicações mais recentes do Diário Oficial da União (últimos 7 dias).
-        </p>
-        <div className="space-y-2.5">
-          {RADAR_CATS.map((c) => {
-            const Icon = c.icon;
-            const n = radarCounts[c.radarTipo] ?? 0;
-            const seen = seenCounts[c.id] || 0;
-            const isNew = n > seen;
-
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => {
-                  if (isNew) {
-                    const next = { ...seenCounts, [c.id]: n };
-                    setSeenCounts(next);
-                    try { localStorage.setItem('outras_normas_seen', JSON.stringify(next)); } catch {}
-                  }
-                  handle(c.id);
-                }}
-                data-track="home_outras_normas_click"
-                data-track-name={c.label}
-                className="w-full flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm active:scale-[0.99] transition cursor-pointer"
-              >
-                <Icon
-                  className="w-8 h-8 shrink-0 text-white"
-                  style={{
-                    filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.3)) drop-shadow(0 2px 4px rgba(0,0,0,0.4))',
-                  }}
-                  strokeWidth={1.3}
-                />
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="font-display text-foreground text-[15.5px] font-bold leading-tight truncate">
-                    {c.label}
-                  </p>
-                  <p className="font-body text-muted-foreground text-[12px] leading-tight truncate mt-0.5">
-                    {c.sublabel}
-                  </p>
-                </div>
-                {isNew && (
-                  <span className="shrink-0 text-[11px] font-body font-semibold px-2 py-0.5 rounded-full border bg-primary/15 text-primary border-primary/25">
-                    {n} nova{n === 1 ? '' : 's'}
-                  </span>
-                )}
-                <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-              </button>
-            );
-          })}
-          {LIST_CATS.map((c) => {
-            const Icon = c.icon;
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => handle(c.id)}
-                data-track="home_outras_normas_click"
-                data-track-name={c.label}
-                className="w-full flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-[#1C1C1E] hover:bg-[#242426] border border-white/[0.08] shadow-sm active:scale-[0.99] transition cursor-pointer"
-              >
-                <Icon
-                  className="w-8 h-8 shrink-0 text-white"
-                  style={{
-                    filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.3)) drop-shadow(0 2px 4px rgba(0,0,0,0.4))',
-                  }}
-                  strokeWidth={1.3}
-                />
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="font-display text-foreground text-[15.5px] font-bold leading-tight truncate">
-                    {c.label}
-                  </p>
-                  <p className="font-body text-muted-foreground text-[12px] leading-tight truncate mt-0.5">
-                    {c.sublabel}
-                  </p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
 
       {/* Category bottom sheet — opens categories from bottom to top */}
       {createPortal(

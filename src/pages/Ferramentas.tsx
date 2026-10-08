@@ -6,12 +6,26 @@ import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { DESKTOP_TOOL_GROUPS, DESKTOP_TOOLS_FLAT } from '@/config/desktopTools';
 import TematicaCarrossel from '@/components/ferramentas/TematicaCarrossel';
+import HomeNoticiasCarousel from '@/components/vademecum/HomeNoticiasCarousel';
+import { useOutrasNormasCounts } from '@/hooks/useOutrasNormasCounts';
+import { Scroll, ScrollText, Stamp, FileWarning } from 'lucide-react';
 
 const DicionarioJuridico = lazy(() => import('@/components/ferramentas/DicionarioJuridico'));
+
+const RADAR_CATS = [
+  { id: 'radar-lei',       label: 'Leis Ordinárias',     sublabel: 'Leis ordinárias publicadas no DOU',   icon: Scroll,     radarTipo: 'Lei',                normaSlug: 'leis' },
+  { id: 'radar-lc',        label: 'Leis Complementares', sublabel: 'Complementares à Constituição',       icon: ScrollText, radarTipo: 'Lei Complementar',   normaSlug: 'leis-complementares' },
+  { id: 'radar-decreto',   label: 'Decretos',            sublabel: 'Regulamentos do Executivo',           icon: Stamp,      radarTipo: 'Decreto',            normaSlug: 'decretos' },
+  { id: 'radar-mp',        label: 'Medidas Provisórias', sublabel: 'Editadas pelo Presidente',            icon: FileWarning,radarTipo: 'Medida Provisória',  normaSlug: 'medidas-provisorias' },
+];
 
 const Ferramentas = () => {
   const navigate = useNavigate();
   const [dicionarioOpen, setDicionarioOpen] = useState(false);
+  const { counts: radarCounts } = useOutrasNormasCounts();
+  const [seenCounts, setSeenCounts] = useState<Record<string, number>>(() => {
+    try { return JSON.parse(localStorage.getItem('outras_normas_seen') || '{}'); } catch { return {}; }
+  });
 
   const handleToolClick = (id: string, route: string) => {
     navigate(route);
@@ -85,6 +99,58 @@ const Ferramentas = () => {
 
       <section className="mt-2 -mx-2">
         <TematicaCarrossel />
+      </section>
+
+      <section className="mt-6 -mx-4 pb-2">
+        <HomeNoticiasCarousel />
+      </section>
+
+      <section className="space-y-3 mt-4">
+        <div className="flex items-baseline gap-2 pb-1 border-b border-border/40 px-1">
+          <h2 className="font-display text-lg font-bold text-foreground uppercase">Radar Legislativo</h2>
+        </div>
+        <div className="space-y-3">
+          {RADAR_CATS.map((c) => {
+            const Icon = c.icon;
+            const n = radarCounts[c.radarTipo] ?? 0;
+            const seen = seenCounts[c.id] || 0;
+            const isNew = n > seen;
+
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => {
+                  if (isNew) {
+                    const next = { ...seenCounts, [c.id]: n };
+                    setSeenCounts(next);
+                    try { localStorage.setItem('outras_normas_seen', JSON.stringify(next)); } catch {}
+                  }
+                  navigate(`/normas/${c.normaSlug}`);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-card border border-border/60 shadow-sm hover:border-primary/40 active:scale-[0.99] transition cursor-pointer group"
+              >
+                <div className="w-10 h-10 shrink-0 bg-secondary/50 rounded-xl flex items-center justify-center border border-border/50 shadow-sm group-hover:bg-primary/10 transition-colors">
+                  <Icon className="w-5 h-5 text-foreground group-hover:text-primary transition-colors" strokeWidth={1.5} />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="font-display text-foreground text-[15.5px] font-bold leading-tight truncate group-hover:text-primary transition-colors">
+                    {c.label}
+                  </p>
+                  <p className="font-body text-muted-foreground text-[12px] leading-tight truncate mt-0.5">
+                    {c.sublabel}
+                  </p>
+                </div>
+                {isNew && (
+                  <span className="shrink-0 text-[11px] font-body font-semibold px-2 py-0.5 rounded-full border bg-primary/15 text-primary border-primary/25">
+                    {n} nova{n === 1 ? '' : 's'}
+                  </span>
+                )}
+                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+              </button>
+            );
+          })}
+        </div>
       </section>
 
       <section className="space-y-3 mt-4">
