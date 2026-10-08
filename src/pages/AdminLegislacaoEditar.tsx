@@ -107,32 +107,49 @@ export default function AdminLegislacaoEditar() {
   const getAreaName = (lei: LeiRow): string => {
     const text = `${lei.nome} ${lei.nome_curto || ''} ${lei.slug}`.toLowerCase();
     
-    if (text.includes('penal') || text.includes('crime') || text.includes('tráfico') || text.includes('drogas') || text.includes('abuso') || text.includes('hediondo') || text.includes('execução penal') || text.includes('prisão')) {
+    // Penal
+    if (text.includes('penal') || text.includes('crime') || text.includes('tráfico') || text.includes('drogas') || text.includes('abuso') || text.includes('hediondo') || text.includes('execução penal') || text.includes('prisão') || text.includes('penha') || text.includes('tortura') || text.includes('anticrime') || text.includes('racismo') || text.includes('interceptação') || text.includes('informáticos') || text.includes('henry borel')) {
       return 'Direito Penal e Processual Penal';
     }
-    if (text.includes('trabalh') || text.includes('clt') || text.includes('sindicato') || text.includes('fgts')) {
+    // Trabalho
+    if (text.includes('trabalh') || text.includes('clt') || text.includes('sindicato') || text.includes('fgts') || text.includes('greve') || text.includes('doméstico')) {
       return 'Direito do Trabalho';
     }
-    if (text.includes('tribut') || text.includes('imposto') || text.includes('taxa') || text.includes('aduaneir') || text.includes('receita')) {
+    // Tributário
+    if (text.includes('tribut') || text.includes('imposto') || text.includes('taxa') || text.includes('aduaneir') || text.includes('receita') || text.includes('kandir') || text.includes('iss') || text.includes('simples')) {
       return 'Direito Tributário';
     }
-    if (text.includes('administ') || text.includes('licitaç') || text.includes('servidor') || text.includes('improbidade') || text.includes('desapropriaç')) {
-      return 'Direito Administrativo';
-    }
-    if (text.includes('constituiç') || text.includes('eleitoral') || text.includes('partido') || text.includes('eleiç')) {
-      return 'Direito Constitucional e Eleitoral';
-    }
-    if (text.includes('previdenc') || text.includes('inss') || text.includes('loas')) {
-      return 'Direito Previdenciário';
-    }
-    if (text.includes('ambiental') || text.includes('florest') || text.includes('água') || text.includes('fauna')) {
+    // Ambiental
+    if (text.includes('ambiental') || text.includes('florest') || text.includes('água') || text.includes('fauna') || text.includes('resíduos') || text.includes('mata atlântica') || text.includes('meio ambiente') || text.includes('snuc') || text.includes('hídricos') || text.includes('caça') || text.includes('pesca')) {
       return 'Direito Ambiental';
     }
-    if (text.includes('civil') || text.includes('consumidor') || text.includes('cdc') || text.includes('locaç') || text.includes('inquilinato') || text.includes('família') || text.includes('registros') || text.includes('criança e adolescente') || text.includes('idoso') || text.includes('deficiência')) {
-      return 'Direito Civil e Processual Civil';
-    }
-    if (text.includes('empresar') || text.includes('s.a') || text.includes('sociedade') || text.includes('falência') || text.includes('recuperação') || text.includes('cheque') || text.includes('título')) {
+    // Empresarial
+    if (text.includes('empresar') || text.includes('s.a') || text.includes('sociedade') || text.includes('falência') || text.includes('recuperação') || text.includes('cheque') || text.includes('título') || text.includes('comercial') || text.includes('propriedade industrial') || text.includes('microempresa') || text.includes('cade') || text.includes('mpe')) {
       return 'Direito Empresarial';
+    }
+    // Internacional / Humanos
+    if (text.includes('san josé') || text.includes('migração') || text.includes('refugiado') || text.includes('racial') || text.includes('índio') || text.includes('direitos humanos')) {
+      return 'Direito Internacional e Direitos Humanos';
+    }
+    // Digital
+    if (text.includes('digital') || text.includes('internet') || text.includes('marco civil') || text.includes('lgpd') || text.includes('e-commerce') || text.includes('startups')) {
+      return 'Direito Digital';
+    }
+    // Previdenciário
+    if (text.includes('previdenc') || text.includes('inss') || text.includes('loas') || text.includes('assistência social')) {
+      return 'Direito Previdenciário';
+    }
+    // Constitucional / Eleitoral
+    if (text.includes('constituiç') || text.includes('eleitoral') || text.includes('partido') || text.includes('eleiç') || text.includes('inelegib') || text.includes('ação popular') || text.includes('injunção') || text.includes('adi') || text.includes('adc')) {
+      return 'Direito Constitucional e Eleitoral';
+    }
+    // Administrativo
+    if (text.includes('administ') || text.includes('licitaç') || text.includes('servidor') || text.includes('improbidade') || text.includes('desapropriaç') || text.includes('pregão') || text.includes('estatais') || text.includes('anticorrupção') || text.includes('acesso à informação') || text.includes('lai') || text.includes('trânsito') || text.includes('ctb') || text.includes('telecomunicações') || text.includes('minas') || text.includes('aeronáutica') || text.includes('oab') || text.includes('mpu') || text.includes('magistratura') || text.includes('tcu') || text.includes('ppp') || text.includes('oscip') || text.includes('segurança privada') || text.includes('cidade') || text.includes('metrópole') || text.includes('solo urbano')) {
+      return 'Direito Administrativo';
+    }
+    // Civil / Processo Civil (Fallthrough for the rest of major statutes)
+    if (text.includes('civil') || text.includes('consumidor') || text.includes('cdc') || text.includes('locaç') || text.includes('inquilinato') || text.includes('família') || text.includes('registros') || text.includes('criança') || text.includes('eca') || text.includes('idoso') || text.includes('deficiência') || text.includes('lindb') || text.includes('alimentos') || text.includes('juizados') || text.includes('lje') || text.includes('mediação') || text.includes('ação civil pública') || text.includes('acp') || text.includes('terra') || text.includes('torcedor') || text.includes('desporto') || text.includes('câncer') || text.includes('direitos autorais') || text.includes('alienação parental') || text.includes('superendividamento') || text.includes('processos originários') || text.includes('escuta protegida') || text.includes('sinase')) {
+      return 'Direito Civil e Processual Civil';
     }
     
     return 'Outras Áreas';
@@ -148,6 +165,9 @@ export default function AdminLegislacaoEditar() {
       case 'Direito Tributário': return { icon: Landmark, color: '#ec4899', desc: 'Impostos, taxas e contribuições' };
       case 'Direito Ambiental': return { icon: BookOpen, color: '#84cc16', desc: 'Meio ambiente e recursos' };
       case 'Direito Empresarial': return { icon: Scale, color: '#6366f1', desc: 'Empresas, sociedades e falências' };
+      case 'Direito Digital': return { icon: Radar, color: '#06b6d4', desc: 'Internet, LGPD e tecnologia' };
+      case 'Direito Internacional e Direitos Humanos': return { icon: History, color: '#d946ef', desc: 'Tratados e garantias' };
+      case 'Direito Previdenciário': return { icon: Clock, color: '#f97316', desc: 'INSS, benefícios e seguridade' };
       default: return { icon: FileText, color: '#64748b', desc: 'Legislações diversas' };
     }
   };
