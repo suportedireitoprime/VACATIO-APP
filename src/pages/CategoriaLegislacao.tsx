@@ -2537,20 +2537,6 @@ const CategoriaLegislacao = () => {
                   </p>
                 )}
 
-                {/* Botão Ver no Planalto movido para debaixo do título */}
-                {planaltoUrl && (
-                  <div className="mt-3">
-                    <a
-                      href={planaltoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] text-white/90 hover:text-white font-medium bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10 shadow-lg transition-colors active:scale-95"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      <span>{/^(estadual|municipal)_/.test(tipo || '') ? 'Ver legislação' : 'Ver no Planalto'}</span>
-                    </a>
-                  </div>
-                )}
               </div>
 
               {/* Barra de ações (quadradinhos tipo Home) */}
@@ -2577,20 +2563,20 @@ const CategoriaLegislacao = () => {
                         }}
                         type="button"
                         style={{ '--shimmer-delay': `${index * 150}ms` } as React.CSSProperties}
-                        className={`group flex-1 flex flex-col md:flex-row items-center justify-center py-2.5 px-2 rounded-2xl transition-all duration-300 active:scale-95 gap-2 text-center select-none cursor-pointer overflow-hidden ${
+                        className={`group flex-1 flex flex-col md:flex-row items-center justify-center py-2 px-1 rounded-[14px] transition-all duration-300 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden ${
                           active
                             ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
                             : 'hover:bg-white/10'
                         }`}
                       >
                         <tab.icon
-                          className={`w-4 h-4 md:w-5 md:h-5 shrink-0 transition-transform group-hover:scale-110 ${active ? 'text-black' : ''}`}
-                          style={active ? {} : { color: tab.color }}
-                          strokeWidth={2.5}
+                          className={`w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-110 ${active ? 'text-black' : ''}`}
+                          style={active ? {} : { color: tab.color, filter: 'saturate(1.25) drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}
+                          strokeWidth={2}
                         />
                         <span
-                          className={`text-[9px] md:text-[11px] font-extrabold leading-tight uppercase tracking-wider ${
-                            active ? 'text-black' : 'text-white/80 group-hover:text-white'
+                          className={`text-[10px] font-extrabold tracking-[0.08em] uppercase drop-shadow-md whitespace-nowrap ${
+                            active ? 'text-black' : 'text-white/90 group-hover:text-white'
                           }`}
                         >
                           {tab.label}
