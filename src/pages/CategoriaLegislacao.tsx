@@ -24,6 +24,7 @@ import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
 import HistoricoAtualizacaoCarousel from '@/components/vademecum/HistoricoAtualizacaoCarousel';
+import SearchOverlay from '@/components/vademecum/SearchOverlay';
 import NovidadeDetalheSheet from '@/components/vademecum/NovidadeDetalheSheet';
 import type { ArtigoLei } from '@/data/mockData';
 import brasaoImgAsset from '@/assets/brasao-republica.webp';
@@ -162,6 +163,7 @@ const CategoriaLegislacao = () => {
   const [overlayPanel, setOverlayPanel] = useState<'fav' | 'playlist' | 'novidades' | 'anotacoes' | 'radar' | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [stickySearch, setStickySearch] = useState(false);
+  const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
   const [showSearchRecents, setShowSearchRecents] = useState(false);
   
@@ -2274,8 +2276,7 @@ const CategoriaLegislacao = () => {
           {/* Pesquisar */}
           <button
             onClick={() => {
-              if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
-              setStickySearch(!stickySearch);
+              setIsGlobalSearchOpen(true);
             }}
             className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 min-h-[6.25rem] min-w-[5.75rem] touch-manipulation select-none"
           >
@@ -2625,51 +2626,6 @@ const CategoriaLegislacao = () => {
           >
             {/* Search bar agora fica dentro do hero panel */}
 
-            {/* Cabecalho Compacto (Brasão, Nome, Numero) antes dos cards */}
-            {!focusMode && (() => {
-              const selectedLei = leis.find(l => l.id === selectedLeiId);
-              const planaltoUrl = (selectedLei as any)?.url_planalto;
-              return (
-                <div className="relative z-10 px-0 sm:px-5 w-full pb-2 pt-2">
-                  <div className="flex flex-col gap-3 px-4 sm:px-0">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 shrink-0 bg-white/5 rounded-full flex items-center justify-center p-1.5 shadow-inner border border-white/10">
-                        <img src={brasaoImg} alt="Brasão da República" className="w-full h-full object-contain drop-shadow-md" />
-                      </div>
-                      <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <h1 className="text-white font-display font-bold text-[15px] sm:text-base leading-tight truncate drop-shadow-sm">
-                            {selectedLeiNome}
-                          </h1>
-                          {selectedLei && (selectedLei as any).sigla && (
-                            <p className="text-white/60 text-[11px] font-semibold tracking-wide uppercase mt-0.5">
-                              Lei nº {(selectedLei as any).sigla}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => setShowEmentaDialog(true)} className="flex-1 flex items-center justify-center gap-1.5 bg-[#1C1C1E] border border-white/10 hover:bg-[#2C2C2E] rounded-xl py-2 px-3 text-[11px] font-bold tracking-wide uppercase text-white/90 transition-all shadow-sm active:scale-95">
-                        <ScrollText className="w-3.5 h-3.5 opacity-80" />
-                        Ementa
-                      </button>
-                      <button onClick={() => { setActiveTab('cap'); setTimeout(() => { window.scrollTo({ top: 300, behavior: 'smooth' }); }, 100); }} className="flex-1 flex items-center justify-center gap-1.5 bg-[#1C1C1E] border border-white/10 hover:bg-[#2C2C2E] rounded-xl py-2 px-3 text-[11px] font-bold tracking-wide uppercase text-white/90 transition-all shadow-sm active:scale-95">
-                        <BookOpen className="w-3.5 h-3.5 opacity-80" />
-                        Capítulos
-                      </button>
-                      {planaltoUrl && (
-                        <a href={planaltoUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 bg-primary/10 border border-primary/20 hover:bg-primary/20 rounded-xl py-2 px-3 text-[11px] font-bold tracking-wide uppercase text-primary transition-all shadow-sm active:scale-95">
-                          <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                          Planalto
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
             {/* NOVO CARROSSEL DE HISTÓRICO DE ATUALIZAÇÃO */}
             <HistoricoAtualizacaoCarousel 
               artigos={artigos} 
@@ -2688,6 +2644,50 @@ const CategoriaLegislacao = () => {
               }} 
               onViewAll={() => setOverlayPanel('novidades')}
             />
+
+            {/* Cabecalho Compacto (Brasão, Nome, Numero) ABAIXO dos cards */}
+            {!focusMode && (() => {
+              const selectedLei = leis.find(l => l.id === selectedLeiId);
+              const planaltoUrl = (selectedLei as any)?.url_planalto;
+              return (
+                <div className="relative z-10 px-0 sm:px-5 w-full pb-4 pt-6">
+                  <div className="flex flex-col items-center justify-center text-center gap-6 px-4 sm:px-0 mt-2 mb-2">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-20 h-20 shrink-0 bg-white/5 rounded-full flex items-center justify-center p-3 shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/10 relative">
+                        <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl opacity-50" />
+                        <img src={brasaoImg} alt="Brasão da República" className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] relative z-10" />
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col items-center justify-center">
+                        <h1 className="text-white font-display font-black text-[22px] sm:text-[24px] tracking-tight leading-tight drop-shadow-md text-center uppercase">
+                          {selectedLeiNome}
+                        </h1>
+                        {selectedLei && (selectedLei as any).sigla && (
+                          <p className="text-white/70 text-[12px] font-bold tracking-[0.25em] uppercase mt-1.5 text-center drop-shadow-sm">
+                            Lei nº {(selectedLei as any).sigla}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center w-full max-w-sm gap-2.5">
+                      <button onClick={() => setShowEmentaDialog(true)} className="flex-1 flex items-center justify-center gap-1.5 bg-[#1C1C1E]/80 border border-white/10 hover:bg-[#2C2C2E] hover:border-white/20 rounded-xl py-3 px-3 text-[11px] font-extrabold tracking-widest uppercase text-white/90 transition-all shadow-md hover:shadow-lg active:scale-95">
+                        <ScrollText className="w-4 h-4 opacity-70" />
+                        Ementa
+                      </button>
+                      <button onClick={() => { setActiveTab('cap'); setTimeout(() => { window.scrollTo({ top: 400, behavior: 'smooth' }); }, 100); }} className="flex-1 flex items-center justify-center gap-1.5 bg-[#1C1C1E]/80 border border-white/10 hover:bg-[#2C2C2E] hover:border-white/20 rounded-xl py-3 px-3 text-[11px] font-extrabold tracking-widest uppercase text-white/90 transition-all shadow-md hover:shadow-lg active:scale-95">
+                        <BookOpen className="w-4 h-4 opacity-70" />
+                        Capítulos
+                      </button>
+                      {planaltoUrl && (
+                        <a href={planaltoUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 bg-primary/15 border border-primary/20 hover:bg-primary/25 rounded-xl py-3 px-3 text-[11px] font-extrabold tracking-widest uppercase text-primary transition-all shadow-md hover:shadow-lg hover:shadow-primary/10 active:scale-95">
+                          <ExternalLink className="w-4 h-4 opacity-70" />
+                          Planalto
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Linha divisória fina */}
             <div className="mx-4 sm:mx-0 py-1">
@@ -2979,6 +2979,13 @@ const CategoriaLegislacao = () => {
           }}
         />
 
+        {isGlobalSearchOpen && (
+          <SearchOverlay 
+            open={isGlobalSearchOpen} 
+            onClose={() => setIsGlobalSearchOpen(false)} 
+            onSelectLei={handleSearchSelectLei} 
+          />
+        )}
       </div>
     );
   }
