@@ -2697,23 +2697,26 @@ const CategoriaLegislacao = () => {
                 <div className="mb-3 px-4 flex items-center justify-between">
                   <div className="min-w-0 flex-1">
                     <h3 className="font-display text-foreground text-[16px] sm:text-[18px] font-black uppercase mb-0 flex items-center gap-2">
-                      <span className="w-1 h-5 rounded-full shrink-0 bg-blue-500" />
+                      <span className="w-1 h-5 rounded-full shrink-0" style={{ backgroundColor: '#60a5fa' }} />
                       <span className="truncate">Recentes</span>
                     </h3>
                   </div>
                 </div>
-                <div className="flex gap-5 overflow-x-auto px-4 pb-2 snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <div className="flex gap-2.5 overflow-x-auto px-4 pb-2 snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
                   {recentIds.slice(0, 15).map(id => {
                     const artigo = artigos.find(a => a.id === id);
                     if (!artigo) return null;
+                    
+                    const numText = artigo.numero.toLowerCase().includes('art') ? artigo.numero : `Art. ${artigo.numero}`;
+                    
                     return (
                       <button
                         key={id}
                         onClick={() => openArtigoWithRecent(artigo)}
-                        className="snap-start shrink-0 flex items-center justify-center active:scale-95 transition-transform"
+                        className="snap-start shrink-0 flex items-center justify-center active:scale-95 transition-transform bg-[#60a5fa]/10 hover:bg-[#60a5fa]/20 border border-[#60a5fa]/20 rounded-xl px-4 py-2.5"
                       >
-                        <span className="text-blue-300 hover:text-blue-200 font-display font-bold text-[15px] md:text-[16px] whitespace-nowrap">
-                          {artigo.numero}
+                        <span className="text-[#93c5fd] font-display font-bold text-[14px] whitespace-nowrap">
+                          {numText}
                         </span>
                       </button>
                     );
