@@ -327,6 +327,9 @@ function DetalheLeiOverlay({
   const [loadingArts, setLoadingArts] = useState(true);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
   const [reextraindo, setReextraindo] = useState(false);
+  const [atualizacoesEncontradas, setAtualizacoesEncontradas] = useState<any[]>([]);
+  const [expandidos, setExpandidos] = useState<Record<string, boolean>>({});
+  const [viewModes, setViewModes] = useState<Record<string, 'novo' | 'antigo'>>({});
 
   const [previewMode, setPreviewMode] = useState<'inicio' | 'recentes'>('inicio');
   const [pushTitulo, setPushTitulo] = useState(`Atualização: ${lei.nome_curto || lei.nome}`);
@@ -405,13 +408,81 @@ function DetalheLeiOverlay({
 
   const buscarAtualizacoesMistral = async () => {
     setReextraindo(true);
+    
+    // Also load historico to have the old text available for toggle
+    if (historico.length === 0) {
+      carregarHistorico();
+    }
+    
+    // Save to local history log
+    try {
+      const logs = JSON.parse(localStorage.getItem('historico_buscas_lei') || '[]');
+      logs.unshift({ lei_id: lei.id, data: new Date().toISOString() });
+      localStorage.setItem('historico_buscas_lei', JSON.stringify(logs.slice(0, 50)));
+    } catch (e) {}
+
     const tid = toast.loading('Buscando atualizações via Mistral...');
     try {
-      const { error } = await supabase.functions.invoke('buscar-atualizacao-mistral', {
+      const { data, error } = await supabase.functions.invoke('buscar-atualizacao-mistral', {
         body: { lei_id: lei.id, planalto_url: lei.planalto_url }
       });
       if (error) throw new Error(error.message);
-      toast.success('Busca de atualizações concluída!', { id: tid });
+      
+      let achados = data?.artigos || [];
+      
+      // Enriquecer e ordenar por mais recente
+      const extractDateFromText = (text: string) => {
+        let bestDate = 0, bestMonth = 0, bestYear = 0;
+        const regex = /(?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]|Revogad[oa]).*?de\s+(?:(\d{1,2})\.(\d{1,2})\.(\d{4})|(\d{4}))/gi;
+        let match, hasMonthFound = false;
+        while ((match = regex.exec(text)) !== null) {
+          let y = 0, m = 0, hm = false;
+          if (match[4]) {
+            y = parseInt(match[4], 10);
+          } else if (match[3]) {
+            y = parseInt(match[3], 10);
+            m = parseInt(match[2], 10) - 1;
+            hm = true;
+          }
+          if (y > 1900 && y <= new Date().getFullYear()) {
+            const score = y * 100 + m;
+            if (score > bestDate) {
+              bestDate = score; bestYear = y; bestMonth = m; hasMonthFound = hm;
+            }
+          }
+        }
+        return bestYear > 0 ? { year: bestYear, month: bestMonth, hasMonth: hasMonthFound, score: bestDate } : null;
+      };
+
+      const detectTag = (text: string) => {
+         const m = text.match(/\((Reda[çc][ãa]o\s+dada|Inclu[íi]d[oa]|Revogad[oa]|Acrescid[oa]|Alterad[oa])/i);
+         if (m) {
+           const type = m[1].toLowerCase();
+           if (type.includes('revogad')) return { label: 'Revogado', color: 'bg-red-500/15 text-red-400 border-red-500/30' };
+           if (type.includes('inclu')) return { label: 'Incluído', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' };
+           return { label: 'Alterado', color: 'bg-blue-500/15 text-blue-400 border-blue-500/30' };
+         }
+         return null;
+      };
+
+      achados = achados.map((a: any) => ({
+        ...a,
+        parsedDate: extractDateFromText(a.texto),
+        tag: detectTag(a.texto)
+      })).sort((a: any, b: any) => {
+         const sa = a.parsedDate ? a.parsedDate.score : 0;
+         const sb = b.parsedDate ? b.parsedDate.score : 0;
+         return sb - sa;
+      });
+
+      setAtualizacoesEncontradas(achados);
+      
+      if (achados.length > 0) {
+        toast.success(`Busca concluída! ${achados.length} artigos atualizados encontrados.`, { id: tid });
+      } else {
+        toast.success('Busca concluída! Nenhuma atualização recente detectada.', { id: tid });
+      }
+      
       await carregarBasico();
     } catch (e: any) {
       toast.error('Erro na busca via Mistral: ' + e.message, { id: tid });
@@ -479,16 +550,155 @@ function DetalheLeiOverlay({
                   <div className="flex flex-col items-center text-center space-y-4">
                     <Wand2 className={`w-8 h-8 text-primary ${reextraindo ? 'animate-pulse' : ''}`} />
                     <div className="text-sm">
-                      <p>O Mistral irá varrer o conteúdo buscando por atualizações recentes.</p>
+                      <p>O robô irá varrer o conteúdo via Browserless buscando por atualizações recentes.</p>
                     </div>
                     <Button onClick={buscarAtualizacoesMistral} disabled={reextraindo || !lei.planalto_url} className="w-full max-w-xs">
-                      {reextraindo ? 'Analisando via Mistral...' : 'Buscar Atualização'}
+                      {reextraindo ? 'Analisando via Browserless...' : 'Buscar Atualização'}
                     </Button>
                     {!lei.planalto_url && (
                       <p className="text-xs text-destructive mt-2">URL do Planalto não configurada no banco.</p>
                     )}
                   </div>
                 </Card>
+
+                {(() => {
+                  try {
+                    const logs = JSON.parse(localStorage.getItem('historico_buscas_lei') || '[]').filter((l: any) => l.lei_id === lei.id);
+                    if (logs.length > 0) {
+                      return (
+                        <div className="mt-4 px-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Histórico de Buscas Desta Lei</p>
+                          <div className="space-y-1.5">
+                            {logs.slice(0, 5).map((log: any, i: number) => (
+                              <div key={i} className="flex items-center gap-2 text-[11px] text-muted-foreground bg-secondary/20 p-2 rounded border border-border/40">
+                                <Clock className="w-3 h-3 text-primary/70" />
+                                <span>Busca realizada em: <span className="font-medium text-foreground">{new Date(log.data).toLocaleString('pt-BR')}</span></span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                  } catch (e) {}
+                  return null;
+                })()}
+
+                {atualizacoesEncontradas.length > 0 && (
+                  <div className="space-y-3 mt-6">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="font-semibold text-sm text-foreground shrink-0">
+                        Resultados da Busca · <span className="text-primary">{atualizacoesEncontradas.length} artigos modificados</span>
+                      </h4>
+                    </div>
+                    <div className="space-y-1.5 mt-4">
+                      {atualizacoesEncontradas.map((art: any, i: number) => {
+                        const badgeLabel = art.numero.replace(/^Art\.?\s*/i, '').trim() || art.numero;
+                        const isExpanded = !!expandidos[art.numero];
+                        const antigo = artigos.find(a => a.numero === art.numero);
+                        
+                        return (
+                          <div
+                            key={i}
+                            className="w-full text-left rounded-xl bg-card/70 border border-border/60 overflow-hidden"
+                          >
+                            <div 
+                              className="px-3 py-2 flex items-stretch gap-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                              onClick={() => setExpandidos(prev => ({ ...prev, [art.numero]: !prev[art.numero] }))}
+                            >
+                              <div className="shrink-0 flex flex-col items-center">
+                                <span className="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-300/25 to-amber-600/10 border border-amber-400/30 flex flex-col items-center justify-center leading-none">
+                                  <span className="text-[14px] font-bold text-amber-200 leading-none">{badgeLabel}</span>
+                                  <span className="mt-0.5 text-[7px] uppercase tracking-[0.16em] font-bold text-amber-300/80 leading-none">Art</span>
+                                </span>
+                              </div>
+                              <div className="min-w-0 flex-1 flex flex-col justify-center gap-1">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 mb-0.5">
+                                    {art.tag && (
+                                      <span className={`px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded border ${art.tag.color}`}>
+                                        {art.tag.label}
+                                      </span>
+                                    )}
+                                    {art.parsedDate && (
+                                      <span className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground">
+                                        <Clock className="w-3 h-3" />
+                                        {art.parsedDate.hasMonth ? `${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][art.parsedDate.month]}/` : ''}{art.parsedDate.year}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                                </div>
+                                {art.titulo_hierarquico && (
+                                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                                    {art.titulo_hierarquico.split('\n')[0]}
+                                  </p>
+                                )}
+                                <p className={`text-[12px] leading-snug text-muted-foreground ${!isExpanded ? 'line-clamp-2' : ''}`}>
+                                  <span className="font-bold text-foreground">Art. {badgeLabel}</span>
+                                  <span className="mx-1 text-muted-foreground/60">—</span>
+                                  {(!isExpanded && (art.texto.split('\n')[0].replace(/^Art\.?\s*\d+[º°]?(-[A-Z])?\s*[.\-]?\s*/i, '').replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '').trim())) || (isExpanded ? '' : '(sem texto)')}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {isExpanded && (
+                              <div className="p-3 border-t border-border/50 bg-background/50 flex flex-col gap-3">
+                                {(() => {
+                                  const hist = historico.find((h: any) => h.artigo_numero === art.numero);
+                                  const oldText = (antigo && antigo.texto !== art.texto) ? antigo.texto : (hist ? hist.texto_antigo : null);
+                                  const currentMode = viewModes[art.numero] || 'novo';
+
+                                  return (
+                                    <>
+                                      {oldText && (
+                                        <div className="flex bg-muted/50 rounded-lg p-1 w-max border border-border/50">
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); setViewModes(prev => ({...prev, [art.numero]: 'antigo'})); }}
+                                            className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-colors ${currentMode === 'antigo' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                                          >
+                                            Texto Antigo
+                                          </button>
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); setViewModes(prev => ({...prev, [art.numero]: 'novo'})); }}
+                                            className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-colors ${currentMode === 'novo' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                                          >
+                                            Nova Redação
+                                          </button>
+                                        </div>
+                                      )}
+
+                                      {currentMode === 'novo' ? (
+                                        <div>
+                                          {!oldText && <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Nova Redação (partes alteradas em destaque):</p>}
+                                          <div className="text-[11px] text-foreground leading-relaxed border-l-2 border-primary/40 pl-2">
+                                            {art.texto.split('\n').map((linha: string, idx: number) => {
+                                              const isModificada = /\((?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Revogad[oa]|Acrescid[oa]|Alterad[oa])/i.test(linha);
+                                              return (
+                                                <div key={idx} className={isModificada ? 'bg-primary/10 text-primary font-semibold px-1 rounded my-0.5' : ''}>
+                                                  {linha}
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div>
+                                          <div className="text-[11px] text-muted-foreground whitespace-pre-wrap leading-relaxed opacity-70 border-l-2 border-border pl-2 line-through decoration-destructive/50">
+                                            {oldText}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="raspagem" className="mt-0 space-y-6">
