@@ -311,6 +311,7 @@ const ArtigoBottomSheet = ({
   forceShowRedacao, 
   modificationInfo, 
   breadcrumb,
+  initialTab,
   onNext,
   onPrev,
 }: ArtigoBottomSheetProps) => {
