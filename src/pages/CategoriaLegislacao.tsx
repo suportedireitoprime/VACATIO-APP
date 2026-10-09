@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
-import { Search, BookOpen, ChevronRight, ChevronDown, Scale, ArrowLeft, Landmark, Shield, FileText, ScrollText, Loader2, Star, Heart, Gavel, Building2, Briefcase, ShieldCheck, DollarSign, Car, Vote, Droplets, Plane, Bus, ListMusic, Sparkles, StickyNote, Calendar, ExternalLink, ArrowUp, BadgeCheck, Ban, Play, Pause, CheckCircle2, Radar, GitBranch, Info, BookMarked, HeartPulse, History, Mic, MicOff, Volume2, Camera, LayoutGrid, Maximize2, Minimize2, X as XIcon } from 'lucide-react';
+import { Search, BookOpen, ChevronRight, ChevronDown, Scale, ArrowLeft, Landmark, Shield, FileText, ScrollText, Loader2, Star, Heart, Gavel, Building2, Briefcase, ShieldCheck, DollarSign, Car, Vote, Droplets, Plane, Bus, ListMusic, Sparkles, StickyNote, Calendar, ExternalLink, ArrowUp, BadgeCheck, Ban, Play, Pause, CheckCircle2, Radar, GitBranch, Info, BookMarked, HeartPulse, History, Mic, MicOff, Volume2, Camera, LayoutGrid, Maximize2, Minimize2, X as XIcon , GraduationCap, Layers, Target } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { supabase } from '@/integrations/supabase/client';
 import { LEIS_SUPABASE_URL, leisAuthHeaders } from '@/lib/legislacaoBackend';
@@ -2241,29 +2241,68 @@ const CategoriaLegislacao = () => {
 
     // Menu de alternância no rodapé
     const footerBottomNav = !focusMode && !isDesktop && !showSearchRecents ? (
-      <div className="fixed bottom-0 left-0 right-0 z-[60] bg-background/95 backdrop-blur-md border-t border-white/5 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] px-3 pt-3">
-        <div className={`mx-auto grid grid-cols-3 gap-2 ${isDesktop ? 'max-w-xl' : 'w-full'}`}>
-          {[
-            { key: 'art' as const, icon: FileText, label: 'Artigos' },
-            { key: 'cap' as const, icon: BookOpen, label: 'Capítulos' },
-            { key: 'lot' as const, icon: LayoutGrid, label: 'Lotes' },
-          ].map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              disabled={loadingArtigos}
-              className={`flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-[22px] transition-all ${
-                activeTab === tab.key
-                  ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
-                  : 'bg-[#1C1C1E] text-white/80 hover:bg-[#2C2C2E] hover:text-white'
-              } ${loadingArtigos ? 'opacity-70' : ''}`}
-            >
-              <tab.icon className="w-5 h-5 shrink-0" strokeWidth={2.5} />
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase">{tab.label}</span>
-            </button>
-          ))}
+      <nav
+        aria-label="Navegação principal"
+        role="navigation"
+        data-bottom-nav
+        className={`fixed bottom-0 left-0 right-0 z-[60] lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-out`}
+      >
+        <div
+          aria-hidden="true"
+          className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
+        />
+        <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
+          {/* Lições */}
+          <button
+            onClick={() => {}}
+            className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
+          >
+            <GraduationCap className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Lições</span>
+          </button>
+          
+          {/* Flashcards */}
+          <button
+            onClick={() => {}}
+            className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
+          >
+            <Layers className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Flashcards</span>
+          </button>
+
+          {/* Pesquisar */}
+          <button
+            onClick={() => {
+              if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+              setStickySearch(!stickySearch);
+            }}
+            className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 min-h-[6.25rem] min-w-[5.75rem] touch-manipulation select-none"
+          >
+            <span className="relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden bg-primary shadow-[0_8px_30px_rgba(0,0,0,0.6)] ring-1 ring-black/5 transition-transform active:scale-95">
+              <Search className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground drop-shadow-sm" strokeWidth={1.5} />
+            </span>
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white drop-shadow-sm truncate px-0.5">Pesquisar</span>
+          </button>
+
+          {/* Questões */}
+          <button
+            onClick={() => {}}
+            className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
+          >
+            <Target className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Questões</span>
+          </button>
+
+          {/* Sobre */}
+          <button
+            onClick={() => {}}
+            className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
+          >
+            <Info className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Sobre</span>
+          </button>
         </div>
-      </div>
+      </nav>
     ) : null;
 
     const footerOverlayPanels = (
@@ -2609,164 +2648,7 @@ const CategoriaLegislacao = () => {
               <div className="h-px bg-white/5 w-full rounded-full" />
             </div>
 
-            {/* Nova Barra de Pesquisa */}
-            {(() => {
-              const searchContent = (
-                <div ref={searchBarRef} className={`mx-auto w-full ${isDesktop ? 'max-w-full' : ''}`}>
-                  <form
-                    className="flex items-center gap-2.5 min-w-0"
-                    onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
-                  >
-                    <div className="relative flex-1 min-w-0">
-                      <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50 ${isDesktop ? 'w-4 h-4' : 'w-[18px] h-[18px]'}`} />
-                      <Input
-                        value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Pesquisar artigo..."
-                        inputMode="search"
-                        enterKeyHint="search"
-                        className={`rounded-2xl bg-[#1C1C1E] text-white placeholder:text-white/50 border-transparent shadow-xl pl-10 pr-20 font-bold transition-colors focus:bg-[#1C1C1E] focus-visible:ring-2 focus-visible:ring-white/20 ${isDesktop ? 'h-10 text-xs' : 'h-[52px] text-[14px]'}`}
-                        onFocus={(e) => {
-                          setShowSearchRecents(true);
-                          setTimeout(() => {
-                            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                          }, 150);
-                        }}
-                        onBlur={() => setTimeout(() => setShowSearchRecents(false), 200)}
-                      />
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                        {searchQuery && !voiceSearch.listening && (
-                          <button
-                            type="button"
-                            onClick={() => { setSearchQuery(''); handleSearch(''); }}
-                            className="p-1.5 rounded-full hover:bg-white/10 text-white/50 transition-colors"
-                            aria-label="Limpar busca"
-                          >
-                            <XIcon className="w-4 h-4" />
-                          </button>
-                        )}
-                        {!isDesktop && (
-                          <button
-                            type="button"
-                            onClick={() => setOcrOpen(true)}
-                            aria-label="Fotografar artigo (OCR)"
-                            className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 text-white hover:bg-white/10 transition-colors shrink-0"
-                          >
-                            <Camera className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => voiceSearch.toggle()}
-                      aria-label={voiceSearch.listening ? 'Parar gravação' : 'Buscar por voz'}
-                      className={`relative overflow-hidden shrink-0 rounded-full flex items-center justify-center shadow-xl active:scale-[0.95] transition ${
-                        isDesktop ? 'w-9 h-9' : 'w-12 h-12'
-                      } ${
-                        voiceSearch.listening
-                          ? 'bg-red-500 text-white animate-pulse shadow-red-500/40'
-                          : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/30'
-                      }`}
-                    >
-                      {voiceSearch.listening && <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}
-                      {voiceSearch.listening
-                        ? <MicOff className={`relative z-[2] ${isDesktop ? 'w-4 h-4' : 'w-5 h-5'}`} strokeWidth={2.5} />
-                        : <Mic className={`relative z-[2] ${isDesktop ? 'w-4 h-4' : 'w-5 h-5'}`} strokeWidth={2.5} />}
-                    </button>
-                  </form>
-
-                  {/* Dropdown de recentes (Pesquisas) */}
-                  <AnimatePresence>
-                    {showSearchRecents && recentIds.length > 0 && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute left-0 right-0 top-[110%] bg-[#1C1C1E] border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-50 flex flex-col"
-                      >
-                        <div className="p-2 max-h-64 overflow-y-auto flex flex-col no-scrollbar">
-                          <p className="text-[10px] font-bold text-white/50 uppercase px-3 py-2 tracking-wider">Artigos Recentes</p>
-                          {(() => {
-                            const map = new Map(artigos.map(a => [String(a.id), a]));
-                            const recents = recentIds.map(id => map.get(id)).filter(Boolean) as ArtigoLei[];
-                            return recents.slice(0, 10).map((artigo) => (
-                              <button
-                                key={artigo.id}
-                                type="button"
-                                onClick={() => openArtigoWithRecent(artigo)}
-                                className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 transition-colors text-left rounded-xl active:scale-[0.98]"
-                              >
-                                <History className="w-4 h-4 shrink-0 text-white/50" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-[13px] font-bold text-white truncate">{artigo.numero}</p>
-                                  <p className="text-[11px] text-white/60 truncate">{artigo.caput}</p>
-                                </div>
-                              </button>
-                            ));
-                          })()}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-
-              if (isDesktop && typeof document !== 'undefined') {
-                const portalTarget = document.getElementById('breadcrumb-actions-portal');
-                if (portalTarget) {
-                  return createPortal(searchContent, portalTarget);
-                }
-              }
-
-              return (
-                <div className="relative z-10 px-0 sm:px-5 w-full pb-4">
-                  {searchContent}
-                </div>
-              );
-            })()}
-          </motion.div>
-          )}
-
-
-
-
-
-          {/* Sticky floating audio search */}
-          <AnimatePresence>
-            {stickySearch && !focusMode && !isDesktop && (
-              <motion.div
-                initial={{ y: -60, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -60, opacity: 0 }}
-                transition={{ type: 'spring', damping: 24, stiffness: 300 }}
-                className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 px-4 py-2.5 shadow-lg"
-              >
-                <div className={`mx-auto ${isDesktop ? 'max-w-xl w-full' : 'w-full'}`}>
-                  <form className="relative min-w-0" onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Pesquisar artigo"
-                      inputMode="search"
-                      enterKeyHint="search"
-                      className="h-11 rounded-xl bg-secondary border-border pl-9 pr-12 text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => voiceSearch.toggle()}
-                      aria-label={voiceSearch.listening ? 'Parar gravação' : 'Buscar por voz'}
-                      className={`absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center ${voiceSearch.listening ? 'bg-red-500/20 text-red-500' : 'bg-primary/10 text-primary'}`}
-                    >
-                      {voiceSearch.listening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                    </button>
-                  </form>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            {/* Search and Sticky Search removed */}
 
           {/* Lista entra depois de search+abas, com fade curto */}
           <motion.div
@@ -3032,3 +2914,7 @@ const CategoriaLegislacao = () => {
   };
 
 export default CategoriaLegislacao;
+
+
+
+
