@@ -2406,6 +2406,27 @@ const CategoriaLegislacao = () => {
           </>
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {isAulasOpen && (
+          <motion.div
+            initial={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            animate={isDesktop ? { opacity: 1, y: 0 } : { y: 0, opacity: 1 }}
+            exit={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[100] bg-background lg:w-[480px] lg:h-[80vh] lg:m-auto lg:rounded-3xl lg:shadow-2xl lg:border lg:border-white/10 overflow-hidden"
+          >
+            <AulasOverlay
+              capituloGroups={capituloGroups}
+              leiNome={selectedLeiNome}
+              onClose={() => setIsAulasOpen(false)}
+              onArtigoSelect={(artigo) => {
+                setIsAulasOpen(false);
+                openArtigoWithRecent(artigo);
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <LocalSearchOverlay
         open={isLocalSearchOpen}
         onClose={() => setIsLocalSearchOpen(false)}
