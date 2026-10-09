@@ -776,6 +776,15 @@ const CategoriaLegislacao = () => {
 
   const [highlightedArtigoId, setHighlightedArtigoId] = useState<string | null>(null);
 
+  const handleSearchSelectLei = (lei: { tipo: string; leiId: string; nome: string; descricao: string; tabela_nome: string; artigoNumero?: string }) => {
+    track('lei_search_selected', { tipo: lei.tipo, lei_id: lei.leiId, lei_nome: lei.nome, has_artigo: Boolean(lei.artigoNumero) });
+    pushRecente({ tipo: lei.tipo, leiId: lei.leiId, nome: lei.nome, descricao: lei.descricao, tabela_nome: lei.tabela_nome });
+    const slug = leiToSlug({ id: lei.leiId, nome: lei.nome });
+    const base = `/legislacao/${tipoToSlug(lei.tipo)}/${slug}`;
+    navigate(lei.artigoNumero ? `${base}/${encodeURIComponent(lei.artigoNumero)}` : base);
+    setIsGlobalSearchOpen(false);
+  };
+
   const handleSearch = (override?: string) => {
     const raw = (override ?? searchQuery).trim();
     if (!raw) return;
@@ -2653,17 +2662,17 @@ const CategoriaLegislacao = () => {
                 <div className="relative z-10 px-0 sm:px-5 w-full pb-4 pt-6">
                   <div className="flex flex-col items-center justify-center text-center gap-6 px-4 sm:px-0 mt-2 mb-2">
                     <div className="flex flex-col items-center gap-4">
-                      <div className="w-20 h-20 shrink-0 bg-white/5 rounded-full flex items-center justify-center p-3 shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/10 relative">
-                        <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl opacity-50" />
+                      {/* Brasão vazado sem bolha e maior */}
+                      <div className="w-24 h-24 shrink-0 flex items-center justify-center relative">
                         <img src={brasaoImg} alt="Brasão da República" className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] relative z-10" />
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col items-center justify-center">
                         <h1 className="text-white font-display font-black text-[22px] sm:text-[24px] tracking-tight leading-tight drop-shadow-md text-center uppercase">
                           {selectedLeiNome}
                         </h1>
-                        {selectedLei && (selectedLei as any).sigla && (
+                        {selectedLei && (selectedLei as any).descricao && (
                           <p className="text-white/70 text-[12px] font-bold tracking-[0.25em] uppercase mt-1.5 text-center drop-shadow-sm">
-                            Lei nº {(selectedLei as any).sigla}
+                            {(selectedLei as any).descricao}
                           </p>
                         )}
                       </div>
@@ -2673,12 +2682,22 @@ const CategoriaLegislacao = () => {
                         <ScrollText className="w-4 h-4 opacity-70" />
                         Ementa
                       </button>
-                      <button onClick={() => { setActiveTab('cap'); setTimeout(() => { window.scrollTo({ top: 400, behavior: 'smooth' }); }, 100); }} className="flex-1 flex items-center justify-center gap-1.5 bg-[#1C1C1E]/80 border border-white/10 hover:bg-[#2C2C2E] hover:border-white/20 rounded-xl py-3 px-3 text-[11px] font-extrabold tracking-widest uppercase text-white/90 transition-all shadow-md hover:shadow-lg active:scale-95">
-                        <BookOpen className="w-4 h-4 opacity-70" />
-                        Capítulos
+                      <button 
+                        onClick={() => { 
+                          if (activeTab === 'cap') {
+                            setActiveTab('art');
+                          } else {
+                            setActiveTab('cap'); 
+                            setTimeout(() => { window.scrollTo({ top: 400, behavior: 'smooth' }); }, 100); 
+                          }
+                        }} 
+                        className={`flex-1 flex items-center justify-center gap-1.5 border rounded-xl py-3 px-3 text-[11px] font-extrabold tracking-widest uppercase transition-all shadow-md hover:shadow-lg active:scale-95 ${activeTab === 'cap' ? 'bg-primary text-primary-foreground border-primary/50' : 'bg-[#1C1C1E]/80 border-white/10 text-white/90 hover:bg-[#2C2C2E] hover:border-white/20'}`}
+                      >
+                        <BookOpen className={`w-4 h-4 ${activeTab === 'cap' ? 'opacity-100' : 'opacity-70'}`} />
+                        {activeTab === 'cap' ? 'Artigos' : 'Capítulos'}
                       </button>
                       {planaltoUrl && (
-                        <a href={planaltoUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 bg-primary/15 border border-primary/20 hover:bg-primary/25 rounded-xl py-3 px-3 text-[11px] font-extrabold tracking-widest uppercase text-primary transition-all shadow-md hover:shadow-lg hover:shadow-primary/10 active:scale-95">
+                        <a href={planaltoUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 bg-[#1C1C1E]/80 border border-white/10 hover:bg-[#2C2C2E] hover:border-white/20 rounded-xl py-3 px-3 text-[11px] font-extrabold tracking-widest uppercase text-white/90 transition-all shadow-md hover:shadow-lg active:scale-95">
                           <ExternalLink className="w-4 h-4 opacity-70" />
                           Planalto
                         </a>
