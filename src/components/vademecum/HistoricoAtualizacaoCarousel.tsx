@@ -137,9 +137,15 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
         className="flex gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 pt-1 px-[5%] md:px-[4%] lg:px-[3%] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         {historicoAlteracoes.map((item, i) => {
-          const typeColor = item.tipo === 'Revogado' ? 'text-red-400 border-red-400/20 bg-red-400/10'
-            : item.tipo === 'Incluído' ? 'text-emerald-400 border-emerald-400/20 bg-emerald-400/10'
-            : 'text-amber-400 border-amber-400/20 bg-amber-400/10';
+          const t = item.tipo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          let typeColor = 'text-muted-foreground border-white/10 bg-white/5';
+          if (t.startsWith('revogad') || t.startsWith('vetad') || t.startsWith('suprimid')) typeColor = 'text-red-500 border-red-500/20 bg-red-500/10';
+          else if (t.startsWith('incluid') || t.startsWith('acrescid')) typeColor = 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10';
+          else if (t.startsWith('redacao') || t.startsWith('alterad')) typeColor = 'text-[#60a5fa] border-[#3b82f6]/20 bg-[#3b82f6]/10';
+
+          const previewText = item.artigo.caput
+            .replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi, '')
+            .split('\n').filter(l => l.trim())[0] || '';
 
           return (
             <motion.button
@@ -150,27 +156,30 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
               transition={{ delay: Math.min(i * 0.04, 0.2) }}
               className="snap-center shrink-0 w-[85%] sm:w-[60%] md:w-[45%] lg:w-[30%] text-left"
             >
-              <div className="relative w-full h-[140px] overflow-hidden rounded-2xl transition-all duration-300 bg-[#141414] shadow-sm hover:shadow-md group-active:scale-[0.98]">
-                {/* Imagem de Fundo (genérica p/ legislação) ou gradiente */}
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/40 via-background to-background" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-
-                <div className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/80"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
-                </div>
-
-                <span className={`absolute top-2.5 left-2.5 inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${typeColor.replace('/10', '/20')} backdrop-blur-md`}>
-                  {item.tipo} {item.ano ? `EM ${item.ano}` : ''}
-                </span>
-
-                <div className="absolute inset-0 flex flex-col justify-end px-4 pb-3 pt-4">
-                  <div className="flex items-center gap-2 mb-1 text-[11.5px] text-white/90">
-                    <span className="text-[10px] uppercase font-bold tracking-wider opacity-70">O QUE MUDOU:</span>
+              <div className="w-full h-[140px] flex flex-col p-4 rounded-2xl transition-all duration-300 bg-card hover:bg-secondary/60 shadow-sm border border-white/5 group-active:scale-[0.98]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${typeColor.replace('/10', '/20')}`}>
+                    {item.tipo} {item.ano ? `EM ${item.ano}` : ''}
+                  </span>
+                  <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
                   </div>
-                  <p className="font-display text-white text-[15px] font-normal leading-snug line-clamp-2 drop-shadow-sm">
-                    {item.parteModificada} no <strong style={{ color: leiAccent }}>{item.artigo.numero.replace(/^Art\.\s*/i, '')}</strong>
-                  </p>
                 </div>
+
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="font-display text-[15.5px] font-bold text-primary-light">Art. {item.artigo.numero.replace(/^Art\.\s*/i, '')}</span>
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground">
+                    {item.parteModificada}
+                  </span>
+                </div>
+
+                {previewText && (
+                  <div className="bg-black/20 rounded-lg px-2.5 py-1.5 flex-1 overflow-hidden flex flex-col justify-center border border-white/[0.02]">
+                    <p className="text-[11.5px] text-muted-foreground/80 leading-[1.4] line-clamp-2 italic font-medium">
+                      "{previewText}"
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.button>
           );
