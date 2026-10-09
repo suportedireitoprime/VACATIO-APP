@@ -2158,6 +2158,7 @@ const CategoriaLegislacao = () => {
               <div className="space-y-2">
                 {group.map((item, i) => {
                   const displayNumero = `Art. ${item.artigo.numero}`;
+                  const totalAlt = (item.artigo.caput.match(/\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi) || []).length;
                   const previewText = item.artigo.caput
                     .replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi, '')
                     .split('\n').filter(l => l.trim())[0] || '';
@@ -2196,7 +2197,14 @@ const CategoriaLegislacao = () => {
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-muted-foreground mb-1 italic line-clamp-1">{item.referencia}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-[11px] text-muted-foreground italic line-clamp-1">{item.referencia}</p>
+                          {totalAlt > 0 && (
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-secondary text-muted-foreground shrink-0">
+                              {totalAlt} {totalAlt === 1 ? 'alteração total' : 'alterações totais'}
+                            </span>
+                          )}
+                        </div>
                         {previewText && (
                           <p className="text-[13px] leading-relaxed line-clamp-2 text-foreground/80">{previewText}</p>
                         )}
@@ -2849,6 +2857,7 @@ const CategoriaLegislacao = () => {
           initialTab={openFromNovidades ? 'historico' : 'artigo'}
           onClose={() => { setOpenArtigo(null); setOpenFromNovidades(false); setOpenModInfo(null); setSearchQuery(''); }}
           forceShowRedacao={openFromNovidades}
+          isFromNovidades={openFromNovidades}
           modificationInfo={openModInfo}
           isFavorito={openArtigo ? isArtigoFav(openArtigo) : false}
           onToggleFavorito={() => openArtigo && toggleFavorito(openArtigo.id)}

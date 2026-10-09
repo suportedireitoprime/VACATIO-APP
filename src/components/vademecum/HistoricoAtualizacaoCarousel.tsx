@@ -147,6 +147,8 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
             .replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi, '')
             .split('\n').filter(l => l.trim())[0] || '';
 
+          const totalAlt = (item.artigo.caput.match(/\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi) || []).length;
+
           return (
             <motion.button
               key={`${item.artigo.id}-${i}`}
@@ -171,6 +173,11 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
                   <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground">
                     {item.parteModificada}
                   </span>
+                  {totalAlt > 0 && (
+                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-secondary text-muted-foreground/80 shrink-0">
+                      {totalAlt} {totalAlt === 1 ? 'alt. total' : 'alts. totais'}
+                    </span>
+                  )}
                 </div>
 
                 {previewText && (

@@ -90,6 +90,7 @@ interface ArtigoBottomSheetProps {
   initialTab?: string;
   onNext?: () => void;
   onPrev?: () => void;
+  isFromNovidades?: boolean;
 }
 
 function stripRedacao(text: string): string {
@@ -314,6 +315,7 @@ const ArtigoBottomSheet = ({
   initialTab,
   onNext,
   onPrev,
+  isFromNovidades = false,
 }: ArtigoBottomSheetProps) => {
   const [showRedacao, setShowRedacao] = useState(forceShowRedacao ?? false);
 
@@ -2274,7 +2276,7 @@ const ArtigoBottomSheet = ({
         {/* Top bar: heart/eye (left) + online count + close (right) */}
         <div className="px-4 pt-1 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {!highlightMode && (
+            {!highlightMode && !isFromNovidades && (
               <>
                 <motion.button
                   onClick={() => {
