@@ -32,7 +32,7 @@ function post(metric: Metric) {
       ts: Date.now(),
     });
     // sendBeacon: entrega mesmo em pagehide/unload; sem afetar main thread
-    const url = 'https://iftdrbxvekrhzstayjwp.supabase.co/functions/v1/web-vitals-collect';
+    const url = 'https://tlpxubeagmxapkysgobk.supabase.co/functions/v1/web-vitals-collect';
     if ('sendBeacon' in navigator) {
       navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
     } else {

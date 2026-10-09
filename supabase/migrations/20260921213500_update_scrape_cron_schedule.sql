@@ -19,10 +19,10 @@ SELECT cron.schedule(
   '0 10 * * *',
   $$
   SELECT net.http_post(
-    url:='https://iftdrbxvekrhzstayjwp.supabase.co/functions/v1/scrape-resenha-diaria',
+    url:='https://tlpxubeagmxapkysgobk.supabase.co/functions/v1/scrape-resenha-diaria',
     headers:=jsonb_build_object(
       'Content-Type','application/json',
-      'Authorization','Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmdGRyYnh2ZWtyaHpzdGF5andwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4Mzc5OTksImV4cCI6MjA5OTQxMzk5OX0.7nyvQlO5IDI6E4dLYHl6yrqqaNd53RxJcDOTQ7yNh40'
+      'Authorization','Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRscHh1YmVhZ214YXBreXNnb2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTMzOTYsImV4cCI6MjEwNzA2OTM5Nn0.3qKySrhlG6Kw1ZQYEaK4cELtzG2JlIi_CNHH4FV2ELo'
     ),
     body:=jsonb_build_object('origem','cron','notify',true)
   );
@@ -34,10 +34,10 @@ SELECT cron.schedule(
   '0 14 * * *',
   $$
   SELECT net.http_post(
-    url:='https://iftdrbxvekrhzstayjwp.supabase.co/functions/v1/scrape-resenha-diaria',
+    url:='https://tlpxubeagmxapkysgobk.supabase.co/functions/v1/scrape-resenha-diaria',
     headers:=jsonb_build_object(
       'Content-Type','application/json',
-      'Authorization','Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmdGRyYnh2ZWtyaHpzdGF5andwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4Mzc5OTksImV4cCI6MjA5OTQxMzk5OX0.7nyvQlO5IDI6E4dLYHl6yrqqaNd53RxJcDOTQ7yNh40'
+      'Authorization','Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRscHh1YmVhZ214YXBreXNnb2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTMzOTYsImV4cCI6MjEwNzA2OTM5Nn0.3qKySrhlG6Kw1ZQYEaK4cELtzG2JlIi_CNHH4FV2ELo'
     ),
     body:=jsonb_build_object('origem','cron','notify',true)
   );
@@ -49,10 +49,10 @@ SELECT cron.schedule(
   '0 0 * * *',
   $$
   SELECT net.http_post(
-    url:='https://iftdrbxvekrhzstayjwp.supabase.co/functions/v1/scrape-resenha-diaria',
+    url:='https://tlpxubeagmxapkysgobk.supabase.co/functions/v1/scrape-resenha-diaria',
     headers:=jsonb_build_object(
       'Content-Type','application/json',
-      'Authorization','Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmdGRyYnh2ZWtyaHpzdGF5andwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4Mzc5OTksImV4cCI6MjA5OTQxMzk5OX0.7nyvQlO5IDI6E4dLYHl6yrqqaNd53RxJcDOTQ7yNh40'
+      'Authorization','Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRscHh1YmVhZ214YXBreXNnb2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTMzOTYsImV4cCI6MjEwNzA2OTM5Nn0.3qKySrhlG6Kw1ZQYEaK4cELtzG2JlIi_CNHH4FV2ELo'
     ),
     body:=jsonb_build_object('origem','cron','notify',true)
   );

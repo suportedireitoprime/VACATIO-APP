@@ -22,7 +22,7 @@
 | Frontend | Vite 5 + React 18 + TypeScript 5 + Tailwind v3 + shadcn/ui |
 | Animações | framer-motion (spring 200/25, slide right-to-left) |
 | Native | Capacitor Android (iOS **não** está configurado) |
-| Backend | Supabase (projeto `iftdrbxvekrhzstayjwp`) |
+| Backend | Supabase (projeto `tlpxubeagmxapkysgobk`) |
 | Edge Functions | ~60 funções em Deno + `npm:` imports |
 | Banco | Postgres com RLS estrito, pg_cron, ~60 tabelas, ~160 migrations |
 | Offline device | Dexie (IndexedDB), TanStack Virtual, Fuse.js |
@@ -201,7 +201,7 @@ Acesso: via `user_roles` com role `admin`, checado por `has_role(auth.uid(), 'ad
 
 - **Preview Lovable:** https://id-preview--c0fdbf4f-89ce-48d8-98f3-a34af8f74615.lovable.app
 - **Produção:** https://vade-comenta-legal.lovable.app
-- **Supabase Dashboard:** https://supabase.com/dashboard/project/iftdrbxvekrhzstayjwp
+- **Supabase Dashboard:** https://supabase.com/dashboard/project/tlpxubeagmxapkysgobk
 - **GitHub:** repositório vinculado (ver botão "Abrir repositório" em `/admin-funcoes`)
 - **Docs Lovable:** https://docs.lovable.dev
 

@@ -84,7 +84,7 @@ jobs:
 
       - name: Export laws bundle (native offline data)
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://iftdrbxvekrhzstayjwp.supabase.co' }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://tlpxubeagmxapkysgobk.supabase.co' }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           LAWS_BUNDLE_OUT: dist/laws-bundle
         run: |
