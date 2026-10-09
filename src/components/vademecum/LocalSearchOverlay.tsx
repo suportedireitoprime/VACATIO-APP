@@ -60,13 +60,21 @@ export const LocalSearchOverlay: React.FC<LocalSearchOverlayProps> = ({
     }
 
     const raw = query.trim().toLowerCase();
-    if (!raw) return source;
+    
+    // Se estiver em 'todos' e sem query, não mostra a lista inteira de artigos
+    if (activeTab === 'todos' && !raw) return [];
 
-    // Lógica simples de busca no texto e no número do artigo
-    return source.filter(a => 
-      (a.caput || '').toLowerCase().includes(raw) || 
-      (a.numero || '').toLowerCase().includes(raw)
-    );
+    let filtered = source;
+    if (raw) {
+      filtered = source.filter(a => 
+        (a.caput || '').toLowerCase().includes(raw) || 
+        (a.numero || '').toLowerCase().includes(raw)
+      );
+    }
+    
+    // Remove os itens que são apenas títulos estruturais (Livro, Título, Capítulo, etc.)
+    // Assumimos que artigos reais têm `tipo === 'artigo'` ou o número começa com 'Art.'
+    return filtered.filter(a => a.tipo === 'artigo' || (a.numero && a.numero.toLowerCase().includes('art.')));
   }, [artigos, allCapitulos, activeTab, query, recentes]);
 
   return (
@@ -131,7 +139,7 @@ export const LocalSearchOverlay: React.FC<LocalSearchOverlayProps> = ({
 
               <button
                 onClick={() => setActiveTab('todos')}
-                className={`shrink-0 h-[34px] px-4 rounded-full flex items-center justify-center font-bold text-[11px] uppercase tracking-wider transition-colors border ${
+                className={`shrink-0 h-[40px] px-4 rounded-xl flex items-center justify-center font-bold text-[11px] uppercase tracking-wider transition-colors border ${
                   activeTab === 'todos' 
                     ? 'bg-white text-black border-white' 
                     : 'bg-transparent text-white/80 border-white/30 hover:bg-white/10'
@@ -140,19 +148,30 @@ export const LocalSearchOverlay: React.FC<LocalSearchOverlayProps> = ({
                 Todos
               </button>
 
-              {allCapitulos.map(cap => (
-                <button
-                  key={cap.capitulo}
-                  onClick={() => setActiveTab(cap.capitulo)}
-                  className={`shrink-0 h-[34px] px-4 rounded-full flex items-center justify-center font-bold text-[11px] uppercase tracking-wider transition-colors border ${
-                    activeTab === cap.capitulo 
-                      ? 'bg-white text-black border-white' 
-                      : 'bg-transparent text-white/80 border-white/30 hover:bg-white/10'
-                  }`}
-                >
-                  {cap.capitulo}
-                </button>
-              ))}
+              {allCapitulos.map(cap => {
+                const parts = cap.capitulo.split(' - ');
+                const title = parts[0];
+                const subtitle = parts.slice(1).join(' - ');
+                
+                return (
+                  <button
+                    key={cap.capitulo}
+                    onClick={() => setActiveTab(cap.capitulo)}
+                    className={`shrink-0 h-[40px] px-3.5 rounded-xl flex flex-col items-start justify-center transition-colors border ${
+                      activeTab === cap.capitulo 
+                        ? 'bg-white text-black border-white' 
+                        : 'bg-transparent text-white/80 border-white/30 hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="font-bold text-[11px] uppercase tracking-wider">{title}</span>
+                    {subtitle && (
+                      <span className={`text-[9px] max-w-[140px] truncate ${activeTab === cap.capitulo ? 'text-black/70' : 'text-white/60'}`}>
+                        {subtitle}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -170,6 +189,8 @@ export const LocalSearchOverlay: React.FC<LocalSearchOverlayProps> = ({
                 <div className="text-center text-muted-foreground text-sm font-body py-10">
                   {activeTab === 'recentes' 
                     ? 'Nenhum artigo acessado recentemente.' 
+                    : activeTab === 'todos' && !query.trim()
+                    ? 'Pesquise pelo nmero do artigo ou texto.'
                     : 'Nenhum resultado encontrado.'}
                 </div>
               ) : (
