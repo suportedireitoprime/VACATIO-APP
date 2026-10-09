@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
-import { Search, BookOpen, ChevronRight, ChevronDown, Scale, ArrowLeft, Landmark, Shield, FileText, ScrollText, Loader2, Star, Heart, Gavel, Building2, Briefcase, ShieldCheck, DollarSign, Car, Vote, Droplets, Plane, Bus, ListMusic, Sparkles, StickyNote, Calendar, ExternalLink, ArrowUp, BadgeCheck, Ban, Play, Pause, CheckCircle2, Radar, GitBranch, Info, BookMarked, HeartPulse, History, Mic, MicOff, Volume2, Camera, LayoutGrid, Maximize2, Minimize2, GraduationCap, Layers, Target, X as XIcon } from 'lucide-react';
+import { Search, BookOpen, ChevronRight, ChevronDown, Scale, ArrowLeft, Landmark, Shield, FileText, ScrollText, Loader2, Star, Heart, Gavel, Building2, Briefcase, ShieldCheck, DollarSign, Car, Vote, Droplets, Plane, Bus, ListMusic, Sparkles, StickyNote, Calendar, ExternalLink, ArrowUp, BadgeCheck, Ban, Play, Pause, CheckCircle2, Radar, GitBranch, Info, BookMarked, HeartPulse, History, Mic, MicOff, Volume2, Camera, LayoutGrid, Maximize2, Minimize2, GraduationCap, Layers, Target, Pencil, X as XIcon } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { supabase } from '@/integrations/supabase/client';
 import { LEIS_SUPABASE_URL, leisAuthHeaders } from '@/lib/legislacaoBackend';
@@ -2264,22 +2264,22 @@ const CategoriaLegislacao = () => {
           className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
         />
         <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
-          {/* Lições */}
+          {/* Aulas */}
           <button
             onClick={() => {}}
             className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
           >
             <GraduationCap className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Lições</span>
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Aulas</span>
           </button>
           
-          {/* Flashcards */}
+          {/* Lições */}
           <button
             onClick={() => {}}
             className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
           >
-            <Layers className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Flashcards</span>
+            <Pencil className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Lições</span>
           </button>
 
           {/* Pesquisar */}
@@ -2295,6 +2295,15 @@ const CategoriaLegislacao = () => {
             <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white drop-shadow-sm truncate px-0.5">Pesquisar</span>
           </button>
 
+          {/* Flashcards */}
+          <button
+            onClick={() => {}}
+            className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
+          >
+            <Layers className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Flashcards</span>
+          </button>
+
           {/* Questões */}
           <button
             onClick={() => {}}
@@ -2302,15 +2311,6 @@ const CategoriaLegislacao = () => {
           >
             <Target className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
             <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Questões</span>
-          </button>
-
-          {/* Sobre */}
-          <button
-            onClick={() => {}}
-            className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
-          >
-            <Info className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Sobre</span>
           </button>
         </div>
       </nav>
@@ -2513,6 +2513,16 @@ const CategoriaLegislacao = () => {
                   </button>
                 );
               })()}
+
+              {/* Botão flutuante — Sobre */}
+              <button
+                type="button"
+                onClick={() => {}}
+                aria-label="Sobre a lei"
+                className="absolute right-4 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
+              >
+                <Info className="w-6 h-6 text-white drop-shadow" />
+              </button>
 
               {/* Conteúdo: Título da lei no lado esquerdo (sobre o amarelo) */}
               <div className="relative z-10 pt-16 sm:pt-20 flex-1 flex flex-col justify-end px-5 sm:px-6 pb-2 max-w-[55%]">
