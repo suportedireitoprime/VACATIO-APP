@@ -1855,7 +1855,17 @@ const ArtigoBottomSheet = ({
     return showRedacao ? l : stripRedacao(l);
   }).filter(l => l.trim() !== '');
   const isRevogado = processedLines.length === 0 && rawLines.length > 0;
-  const displayLines = isRevogado ? rawLines : processedLines;
+  const initialDisplayLines = isRevogado ? rawLines : processedLines;
+  const displayLines: string[] = [];
+  initialDisplayLines.forEach(line => {
+    if (isLineRevogado(line) && line.trim().startsWith('(')) {
+      if (displayLines.length > 0) {
+        displayLines[displayLines.length - 1] += ` ${line.trim()}`;
+        return;
+      }
+    }
+    displayLines.push(line);
+  });
 
   const navChips: { chip: string; index: number }[] = [];
   if (displayLines && displayLines.length > 1) {
@@ -1964,6 +1974,17 @@ const ArtigoBottomSheet = ({
     // If this specific line is revoked (inciso/paragraph with only "(Revogado...)"), show it styled
     if (lineIsRevogado && !isRevogado) {
       const revogadoDisplay = showRedacao ? line : line;
+      const noteMatch = revogadoDisplay.match(/^(.*?)(\(Revogado.*\))$/i);
+      
+      if (noteMatch && noteMatch[1].trim()) {
+        return (
+          <p key={lineIndex} data-line-index={lineIndex} className={`leading-[1.8] ${classified.type === 'inciso' ? 'mt-2.5 pl-4 border-l-2 border-primary/30' : classified.type === 'alinea' ? 'mt-1.5 pl-8' : classified.type === 'paragrafo' ? 'mt-2' : ''}`} style={{ fontSize: `${fontSize}px` }}>
+            <span className="text-foreground mr-1.5 font-semibold">{noteMatch[1]}</span>
+            <span className="bg-purple-500/20 text-purple-300 rounded px-1.5 py-0.5 italic" style={{ fontSize: `${Math.max(fontSize - 2, 10)}px` }}>{noteMatch[2]}</span>
+          </p>
+        );
+      }
+
       return (
         <p key={lineIndex} data-line-index={lineIndex} className={`italic leading-[1.8] ${classified.type === 'inciso' ? 'pl-4 border-l-2 border-purple-400/30' : classified.type === 'alinea' ? 'pl-8' : classified.type === 'paragrafo' ? 'mt-2' : ''}`} style={{ fontSize: `${Math.max(fontSize - 1, 10)}px` }}>
           <span className="bg-purple-500/20 text-purple-300 rounded px-1 py-0.5">{revogadoDisplay}</span>
