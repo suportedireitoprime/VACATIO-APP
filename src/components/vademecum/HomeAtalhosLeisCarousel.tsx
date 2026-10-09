@@ -1,4 +1,6 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -183,6 +185,33 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<string>('em-alta');
 
+  const autoplayPlugin = useRef(
+    Autoplay({ delay: 3500, stopOnInteraction: true, stopOnMouseEnter: true })
+  );
+
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: 'center', skipSnaps: false },
+    [autoplayPlugin.current]
+  );
+
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+    return () => { 
+      emblaApi.off('select', onSelect); 
+      emblaApi.off('reInit', onSelect); 
+    };
+  }, [emblaApi, onSelect]);
+
   const activeLeis = useMemo(() => {
     const map = new Map<string, LeiCatalogItem>();
     LEIS_CATALOG.forEach((lei) => map.set(lei.id, lei));
@@ -300,85 +329,93 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
         </button>
       </div>
 
-      {/* Carrossel Horizontal de Cards Vermelhos Bordô (Design APP.PRIME) — Sem margem lateral à direita */}
+      {/* Carrossel de Atalhos com Embla Autoplay + Center Zoom */}
       <div className="relative -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 -mt-10">
-        <div
-          tabIndex={0}
-          aria-label="Carrossel de atalhos de leis em alta"
-          className="flex items-center gap-2.5 overflow-x-auto px-4 sm:px-6 md:px-8 lg:px-12 pb-4 pt-10 scrollbar-none focus:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-          style={{ WebkitOverflowScrolling: 'touch' }}
-        >
-          {activeLeis.map((lei) => {
-            const LawIcon = getLawIcon(lei.id, lei.tipo);
-            const baseColor = getLeiColor(lei.id, lei.tipo);
-            
-            let coverImage = null;
-            if (lei.id === 'cdc') coverImage = '/assets/cdc-girl.webp';
-            else if (lei.id === 'clt') coverImage = '/assets/cdc-worker.webp';
-            else if (lei.id === 'cpp') coverImage = '/assets/cpp-court.webp';
-            else if (lei.id === 'cpc') coverImage = '/assets/cpc-lawyer.webp';
-            else if (lei.id === 'cc') coverImage = '/assets/cc-couple.webp';
-            else if (lei.id === 'cf88') coverImage = '/assets/cf88-cover.webp';
-            else if (['cp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.webp';
-            else if (lei.id === 'ctn') coverImage = '/assets/ctn-taxes.webp';
-            else if (lei.id === 'eca') coverImage = '/assets/eca-kids.webp';
-            else if (lei.id === 'eoab') coverImage = '/assets/eoab-woman.webp';
-            else if (lei.id === 'epd') coverImage = '/assets/epd-wheelchair.webp';
-            else if (lei.id === 'ce') coverImage = '/assets/ce-vote.webp';
+        <div ref={emblaRef} className="overflow-hidden pb-4 pt-10" tabIndex={0} aria-label="Carrossel de atalhos de leis em alta">
+          <div className="flex items-center touch-pan-y">
+            {activeLeis.map((lei, index) => {
+              const LawIcon = getLawIcon(lei.id, lei.tipo);
+              const baseColor = getLeiColor(lei.id, lei.tipo);
+              const isCenter = index === selectedIndex;
+              
+              let coverImage = null;
+              if (lei.id === 'cdc') coverImage = '/assets/cdc-girl.webp';
+              else if (lei.id === 'clt') coverImage = '/assets/cdc-worker.webp';
+              else if (lei.id === 'cpp') coverImage = '/assets/cpp-court.webp';
+              else if (lei.id === 'cpc') coverImage = '/assets/cpc-lawyer.webp';
+              else if (lei.id === 'cc') coverImage = '/assets/cc-couple.webp';
+              else if (lei.id === 'cf88') coverImage = '/assets/cf88-cover.webp';
+              else if (['cp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.webp';
+              else if (lei.id === 'ctn') coverImage = '/assets/ctn-taxes.webp';
+              else if (lei.id === 'eca') coverImage = '/assets/eca-kids.webp';
+              else if (lei.id === 'eoab') coverImage = '/assets/eoab-woman.webp';
+              else if (lei.id === 'epd') coverImage = '/assets/epd-wheelchair.webp';
+              else if (lei.id === 'ce') coverImage = '/assets/ce-vote.webp';
 
-            return (
-              <button
-                key={lei.id}
-                type="button"
-                onClick={() => onOpenLei(lei.id)}
-                className="border-0 min-w-[138px] max-w-[148px] sm:min-w-[152px] sm:max-w-[162px] h-[116px] sm:h-[122px] shrink-0 rounded-2xl relative flex flex-col text-left cursor-pointer select-none active:scale-[0.96] transition-all shadow-md group outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                {/* Fundo com clip para a cor e o ícone de marca d'água */}
-                <div 
-                  className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-                  style={{ background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.3)} 100%)` }}
-                >
-                  {/* Ícone temático no fundo transparente */}
-                  <LawIcon
-                    className="absolute -right-2 -bottom-2 w-20 h-20 sm:w-22 sm:h-22 text-white/[0.15] drop-shadow-md group-hover:scale-105 group-hover:text-white/[0.2] transition-all duration-300"
-                    strokeWidth={1.3}
-                  />
-                  {/* Brilho suave no topo do card */}
-                  <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
+              return (
+                <div key={lei.id} className="flex-[0_0_auto] min-w-0 pl-3 sm:pl-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isCenter && emblaApi) {
+                        emblaApi.scrollTo(index);
+                      } else {
+                        onOpenLei(lei.id);
+                      }
+                    }}
+                    className={`border-0 w-[124px] sm:w-[136px] h-[106px] sm:h-[114px] shrink-0 rounded-2xl relative flex flex-col text-left cursor-pointer select-none transition-all duration-300 shadow-md group outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${isCenter ? 'scale-105 z-20 shadow-xl' : 'scale-95 opacity-80 z-10'}`}
+                  >
+                    {/* Fundo com clip para a cor e o ícone de marca d'água */}
+                    <div 
+                      className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
+                      style={{ background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.3)} 100%)` }}
+                    >
+                      <LawIcon
+                        className="absolute -right-2 -bottom-2 w-16 h-16 sm:w-20 sm:h-20 text-white/[0.15] drop-shadow-md group-hover:scale-105 group-hover:text-white/[0.2] transition-all duration-300"
+                        strokeWidth={1.3}
+                      />
+                      <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
+                    </div>
+
+                    {coverImage && (
+                      <img
+                        src={coverImage}
+                        alt={`Capa da lei ${lei.sigla}`}
+                        className={`absolute -top-5 right-0 h-[104px] w-auto max-w-none object-contain pointer-events-none z-10 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] transition-all duration-300 ${isCenter ? 'scale-110 drop-shadow-[0_12px_20px_rgba(0,0,0,0.7)]' : 'scale-100'}`}
+                      />
+                    )}
+
+                    {/* Conteúdo visível (Sigla da lei no fundo e ícone no canto superior) */}
+                    <div className="relative z-20 flex flex-col justify-between w-full h-full p-2.5 pointer-events-none">
+                      <div className="flex justify-between items-start">
+                        <LawIcon
+                          className="w-4 h-4 sm:w-5 sm:h-5 text-white shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-200"
+                          strokeWidth={1.8}
+                        />
+                      </div>
+                      
+                      <div className="flex justify-between items-end mt-auto">
+                        <div className="flex flex-col">
+                          <span className="font-display text-white text-[22px] sm:text-[24px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] leading-none">
+                            {lei.sigla}
+                          </span>
+                          {lei.tipo && (
+                            <span className="text-white/80 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mt-0.5">
+                              {lei.tipo}
+                            </span>
+                          )}
+                        </div>
+                        <ChevronRight
+                          className="w-3.5 h-3.5 text-white/70 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200 shrink-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] mb-0.5"
+                          strokeWidth={2.4}
+                        />
+                      </div>
+                    </div>
+                  </button>
                 </div>
-
-                {coverImage && (
-                  <img
-                    src={coverImage}
-                    alt={`Capa da lei ${lei.sigla}`}
-                    className="absolute -top-6 right-0 h-[118px] w-auto max-w-none object-contain pointer-events-none z-10 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] group-hover:drop-shadow-[0_12px_20px_rgba(0,0,0,0.7)] group-hover:scale-105 transition-all duration-300"
-                  />
-                )}
-
-                {/* Conteúdo visível (Sigla da lei no fundo e ícone no canto superior) */}
-                <div className="relative z-20 flex flex-col justify-between w-full h-full p-3 pointer-events-none">
-                  {/* Canto superior (Opcional, apenas um pequeno destaque) */}
-                  <div className="flex justify-between items-start">
-                    <LawIcon
-                      className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-white shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-200"
-                      strokeWidth={1.8}
-                    />
-                  </div>
-                  
-                  {/* Canto inferior (Abreviatura) */}
-                  <div className="flex justify-between items-end mt-auto">
-                    <span className="font-display text-white text-[24px] sm:text-[26px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
-                      {lei.sigla}
-                    </span>
-                    <ChevronRight
-                      className="w-4 h-4 text-white/70 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200 shrink-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] mb-1"
-                      strokeWidth={2.4}
-                    />
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
