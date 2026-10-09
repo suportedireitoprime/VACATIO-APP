@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Loader2, Search, ChevronRight, FileText, Bell, RefreshCw, Clock, Radar,
-  History, ArrowRight, BookOpen, Scale, Landmark, ScrollText, Globe
+  History, ArrowRight, BookOpen, Scale, Landmark, ScrollText, Globe, X, Wand2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -299,7 +299,7 @@ export default function AdminLegislacaoEditar() {
       </Sheet>
 
       {selecionada && (
-        <DetalheLeiSheet
+        <DetalheLeiOverlay
           lei={selecionada}
           onClose={() => setSelecionada(null)}
           onReloadLista={carregar}
@@ -309,7 +309,7 @@ export default function AdminLegislacaoEditar() {
   );
 }
 
-function DetalheLeiSheet({
+function DetalheLeiOverlay({
   lei,
   onClose,
   onReloadLista,
@@ -403,30 +403,49 @@ function DetalheLeiSheet({
     }
   };
 
+  const buscarAtualizacoesMistral = async () => {
+    setReextraindo(true);
+    const tid = toast.loading('Buscando atualizações via Mistral...');
+    try {
+      const { error } = await supabase.functions.invoke('buscar-atualizacao-mistral', {
+        body: { lei_id: lei.id, planalto_url: lei.planalto_url }
+      });
+      if (error) throw new Error(error.message);
+      toast.success('Busca de atualizações concluída!', { id: tid });
+      await carregarBasico();
+    } catch (e: any) {
+      toast.error('Erro na busca via Mistral: ' + e.message, { id: tid });
+    } finally {
+      setReextraindo(false);
+    }
+  };
+
   return (
-    <Sheet open={true} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col rounded-t-xl bg-background">
-        <SheetHeader className="p-4 border-b text-left space-y-1 flex-shrink-0">
-          <SheetTitle className="text-lg leading-tight flex items-center gap-2">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+      <div className="p-4 border-b border-border/50 flex items-center justify-between shrink-0 bg-secondary/20">
+        <div className="flex flex-col min-w-0 pr-4">
+          <h2 className="text-xl font-display font-bold truncate flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-primary flex-shrink-0" />
             <span className="truncate">{lei.nome_curto || lei.nome}</span>
-          </SheetTitle>
-          <p className="text-xs text-muted-foreground truncate">{lei.categoria}</p>
-        </SheetHeader>
+          </h2>
+          <p className="text-xs text-muted-foreground truncate mt-0.5">{lei.categoria}</p>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0"><X className="w-5 h-5"/></Button>
+      </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <Tabs value={tab} onValueChange={(v) => {
-            setTab(v);
-            if (v === 'historico') carregarHistorico();
-          }} className="w-full">
-            <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-background h-auto flex-wrap p-0">
-              <TabsTrigger value="legislacao" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Legislação</TabsTrigger>
-              <TabsTrigger value="atualizacoes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Últimas Atualizações</TabsTrigger>
-              <TabsTrigger value="raspagem" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Raspagem</TabsTrigger>
-            </TabsList>
+      <div className="flex-1 overflow-y-auto">
+        <Tabs value={tab} onValueChange={(v) => {
+          setTab(v);
+          if (v === 'historico') carregarHistorico();
+        }} className="w-full">
+          <TabsList className="w-full justify-start rounded-none border-b border-border/50 bg-background h-auto flex-wrap p-0">
+            <TabsTrigger value="legislacao" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">A Legislação</TabsTrigger>
+            <TabsTrigger value="raspagem" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Última Raspagem</TabsTrigger>
+            <TabsTrigger value="buscar_atualizacao" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary py-3">Buscar Atualização</TabsTrigger>
+          </TabsList>
 
-            <div className="p-4">
-              <TabsContent value="legislacao" className="mt-0">
+          <div className="p-4">
+            <TabsContent value="legislacao" className="mt-0">
                 {loadingArts ? (
                   <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
                 ) : (
@@ -448,28 +467,28 @@ function DetalheLeiSheet({
                 )}
               </TabsContent>
 
-              <TabsContent value="atualizacoes" className="mt-0 space-y-4">
-                <h3 className="font-semibold text-sm">Monitoramento Diário (Radar)</h3>
-                <p className="text-xs text-muted-foreground mb-4">Atualizações detectadas pelo robô do Diário Oficial nos últimos dias.</p>
+              <TabsContent value="buscar_atualizacao" className="mt-0 space-y-6">
+                <div>
+                  <h3 className="font-semibold text-sm mb-1">Buscar Atualizações (Mistral IA)</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Utiliza a inteligência artificial do Mistral para baixar a lei, analisar o texto buscando alterações (como textos azuis "incluído pela lei...", "revogado por...") e atualizar apenas os artigos modificados. Mantém toda a formatação de incisos, alíneas e títulos.
+                  </p>
+                </div>
                 
-                {loadingArts ? (
-                  <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></div>
-                ) : impactos.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">Nenhuma atualização pendente ou recente no Radar.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {impactos.map(imp => (
-                      <Card key={imp.id} className="p-3 border-l-4 border-l-amber-500">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge variant="secondary" className="text-[10px]">{imp.tipo}</Badge>
-                          <span className="text-[10px] text-muted-foreground">{new Date(imp.created_at).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                        <p className="text-sm font-medium mb-1">{imp.ato_ementa}</p>
-                        {imp.resumo_ia && <p className="text-xs text-muted-foreground bg-secondary/20 p-2 rounded">{imp.resumo_ia}</p>}
-                      </Card>
-                    ))}
+                <Card className="p-4 bg-secondary/10 border border-primary/20">
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <Wand2 className={`w-8 h-8 text-primary ${reextraindo ? 'animate-pulse' : ''}`} />
+                    <div className="text-sm">
+                      <p>O Mistral irá varrer o conteúdo buscando por atualizações recentes.</p>
+                    </div>
+                    <Button onClick={buscarAtualizacoesMistral} disabled={reextraindo || !lei.planalto_url} className="w-full max-w-xs">
+                      {reextraindo ? 'Analisando via Mistral...' : 'Buscar Atualização'}
+                    </Button>
+                    {!lei.planalto_url && (
+                      <p className="text-xs text-destructive mt-2">URL do Planalto não configurada no banco.</p>
+                    )}
                   </div>
-                )}
+                </Card>
               </TabsContent>
 
               <TabsContent value="raspagem" className="mt-0 space-y-6">
@@ -655,7 +674,6 @@ function DetalheLeiSheet({
             </div>
           </Tabs>
         </div>
-      </SheetContent>
-    </Sheet>
+    </div>
   );
 }
