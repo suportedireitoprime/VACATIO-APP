@@ -125,11 +125,27 @@ Mantenha o texto bem formatado, didático e vá direto ao ponto, não fique enro
                   </div>
                 )}
               </div>
-              <div className="p-4">
+              <div className="p-4 space-y-1">
                 {viewMode === 'novo' ? (
-                  <p className="text-[15px] leading-relaxed text-foreground/90 whitespace-pre-wrap">{artigo.caput}</p>
+                  artigo.caput.split('\n').map((linha, idx) => {
+                    if (!linha.trim()) return null;
+                    // Highlight if the line contains the reference
+                    const isModificada = referencia && linha.includes(referencia);
+                    return (
+                      <div key={idx} className={`text-[15px] leading-relaxed whitespace-pre-wrap ${isModificada ? 'bg-primary/15 text-primary font-medium px-2 py-1 rounded-md border-l-2 border-primary' : 'text-foreground/90 px-2 py-1'}`}>
+                        {linha}
+                      </div>
+                    );
+                  })
                 ) : (
-                  <p className="text-[15px] leading-relaxed text-muted-foreground whitespace-pre-wrap line-through opacity-80">{textoAnterior || 'Sem registro do texto anterior.'}</p>
+                  textoAnterior ? textoAnterior.split('\n').map((linha, idx) => {
+                    if (!linha.trim()) return null;
+                    return (
+                      <div key={idx} className="text-[15px] leading-relaxed text-muted-foreground whitespace-pre-wrap line-through opacity-80 px-2 py-1">
+                        {linha}
+                      </div>
+                    );
+                  }) : <p className="text-[15px] leading-relaxed text-muted-foreground opacity-80 px-2 py-1">Sem registro do texto anterior.</p>
                 )}
               </div>
             </div>
