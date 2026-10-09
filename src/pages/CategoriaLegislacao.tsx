@@ -2549,13 +2549,14 @@ const CategoriaLegislacao = () => {
               dbAlteracoes={dbAlteracoes} 
               leiAccent={leiAccent} 
               onOpenNovidade={(item) => {
-                setSelectedNovidade({
-                  artigo: item.artigo,
+                setOpenFromNovidades(true);
+                setOpenArtigo(item.artigo);
+                setOpenModInfo({
                   tipo: item.tipo,
                   referencia: item.referencia,
                   leiNome: item.leiNome || selectedLeiNome,
                   parteModificada: item.parteModificada,
-                  textoAnterior: item.textoAnterior
+                  linhasModificadas: item.linhasModificadas || []
                 });
               }} 
               onViewAll={() => setOverlayPanel('novidades')}
@@ -2811,6 +2812,7 @@ const CategoriaLegislacao = () => {
 
         <ArtigoBottomSheet
           artigo={openArtigo}
+          initialTab={openFromNovidades ? 'historico' : 'artigo'}
           onClose={() => { setOpenArtigo(null); setOpenFromNovidades(false); setOpenModInfo(null); setSearchQuery(''); }}
           forceShowRedacao={openFromNovidades}
           modificationInfo={openModInfo}

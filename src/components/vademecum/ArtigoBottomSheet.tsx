@@ -87,6 +87,7 @@ interface ArtigoBottomSheetProps {
   forceShowRedacao?: boolean;
   modificationInfo?: ModificationInfo | null;
   breadcrumb?: { parte?: string; titulo?: string; tituloDesc?: string } | null;
+  initialTab?: string;
   onNext?: () => void;
   onPrev?: () => void;
 }
@@ -370,7 +371,7 @@ const ArtigoBottomSheet = ({
   
   const [showAnotacoesSheet, setShowAnotacoesSheet] = useState(false);
   const [showPerguntarSheet, setShowPerguntarSheet] = useState(false);
-  const [activeTab, setActiveTab] = useState('artigo');
+  const [activeTab, setActiveTab] = useState(initialTab || 'artigo');
   const [aiContent, setAiContent] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
   const [aiGeneratingMode, setAiGeneratingMode] = useState<null | 'explicacao' | 'exemplo' | 'termos'>(null);
@@ -1685,7 +1686,7 @@ const ArtigoBottomSheet = ({
   useEffect(() => {
     setAiContent({});
     setAiLoading({});
-    setActiveTab('artigo');
+    setActiveTab(initialTab || 'artigo');
 
     if (!artigo || !tabelaNome) return;
 

@@ -150,18 +150,26 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
               transition={{ delay: Math.min(i * 0.04, 0.2) }}
               className="snap-center shrink-0 w-[85%] sm:w-[60%] md:w-[45%] lg:w-[30%] text-left"
             >
-              <div className="relative w-full h-[120px] rounded-2xl bg-card border border-white/[0.04] p-4 flex flex-col hover:bg-secondary/60 transition-colors">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <h4 className="font-display text-[15px] font-bold" style={{ color: leiAccent }}>
-                    {item.artigo.numero}
-                  </h4>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${typeColor}`}>
-                    {item.tipo} {item.ano ? `em ${item.ano}` : ''}
-                  </span>
+              <div className="relative w-full h-[140px] overflow-hidden rounded-2xl transition-all duration-300 bg-[#141414] shadow-sm hover:shadow-md group-active:scale-[0.98]">
+                {/* Imagem de Fundo (genérica p/ legislação) ou gradiente */}
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/40 via-background to-background" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+
+                <div className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/80"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
                 </div>
-                <div className="text-sm text-foreground/80 leading-snug flex-1 flex flex-col justify-center">
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-1">O que mudou:</span>
-                  <span className="font-semibold text-foreground line-clamp-2">{item.parteModificada}</span>
+
+                <span className={`absolute top-2.5 left-2.5 inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${typeColor.replace('/10', '/20')} backdrop-blur-md`}>
+                  {item.tipo} {item.ano ? `EM ${item.ano}` : ''}
+                </span>
+
+                <div className="absolute inset-0 flex flex-col justify-end px-4 pb-3 pt-4">
+                  <div className="flex items-center gap-2 mb-1 text-[11.5px] text-white/90">
+                    <span className="text-[10px] uppercase font-bold tracking-wider opacity-70">O QUE MUDOU:</span>
+                  </div>
+                  <p className="font-display text-white text-[15px] font-normal leading-snug line-clamp-2 drop-shadow-sm">
+                    {item.parteModificada} no <strong style={{ color: leiAccent }}>{item.artigo.numero.replace(/^Art\.\s*/i, '')}</strong>
+                  </p>
                 </div>
               </div>
             </motion.button>
