@@ -176,9 +176,6 @@ const MeExplique = lazy(() => import("./pages/MeExplique.tsx"));
 const AdminMonitorUsuarios = lazy(() => import("./pages/AdminMonitorUsuarios.tsx"));
 const AdminMonitoramento = lazy(() => import("./pages/AdminMonitoramento.tsx"));
 const AdminMonitorApis = lazy(() => import("./pages/AdminMonitorApis.tsx"));
-const AdminOmniRoute = lazy(() => import("./pages/AdminOmniRoute.tsx"));
-const AdminAtualizacao = lazy(() => import("./pages/AdminAtualizacao.tsx"));
-const AdminNativeAssets = lazy(() => import("./pages/AdminNativeAssets.tsx"));
 const AdminAprender = lazy(() => import("./pages/AdminAprender.tsx"));
 const AdminAprenderArea = lazy(() => import("./pages/AdminAprenderArea.tsx"));
 const AdminJurisprudencia = lazy(() => import("./pages/AdminJurisprudencia.tsx"));
@@ -213,11 +210,8 @@ const ModoOfflineLeis = lazy(() => import("./pages/ModoOfflineLeis.tsx"));
 const ModoOfflineLivros = lazy(() => import("./pages/ModoOfflineLivros.tsx"));
 const AdminSecretsDownload = lazy(() => import("./pages/AdminSecretsDownload.tsx"));
 const AdminAppleCsr = lazy(() => import("./pages/AdminAppleCsr.tsx"));
-const AdminHandoffIA = lazy(() => import("./pages/AdminHandoffIA.tsx"));
 const BoletinsJuridicos = lazy(routePrefetch.boletins);
 const AdminBoletins = lazy(() => import("./pages/AdminBoletins.tsx"));
-const AdminModelos = lazy(() => import("./pages/AdminModelos.tsx"));
-const AdminDesktop = lazy(() => import("./pages/AdminDesktop.tsx"));
 const AdminFeedbacks = lazy(() => import("./pages/AdminFeedbacks.tsx"));
 
 const Privacidade = lazy(() => import("./pages/Privacidade.tsx"));
@@ -673,8 +667,6 @@ function AnimatedRoutes() {
           <Route path="/suporte" element={<ProtectedRoute><PageTransition><Suporte /></PageTransition></ProtectedRoute>} />
           <Route path="/opiniao" element={<ProtectedRoute><PageTransition><Opiniao /></PageTransition></ProtectedRoute>} />
           <Route path="/planos/ativos" element={<ProtectedRoute><PageTransition><PlanosAtivos /></PageTransition></ProtectedRoute>} />
-          <Route path="/admin-atualizacao" element={<ProtectedRoute><PageTransition><AdminAtualizacao /></PageTransition></ProtectedRoute>} />
-          <Route path="/admin-native-assets" element={<ProtectedRoute><PageTransition><AdminNativeAssets /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-aprender" element={<ProtectedRoute><PageTransition><AdminAprender /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-aprender/:area" element={<ProtectedRoute><PageTransition><AdminAprenderArea /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-jurisprudencia" element={<ProtectedRoute><PageTransition><AdminJurisprudencia /></PageTransition></ProtectedRoute>} />
@@ -686,10 +678,8 @@ function AnimatedRoutes() {
           <Route path="/admin-triagem-entrada" element={<ProtectedRoute><PageTransition><AdminTriagemEntrada /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-triagem-hub" element={<ProtectedRoute><PageTransition><AdminTriagemHub /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-boletins" element={<ProtectedRoute><PageTransition><AdminBoletins /></PageTransition></ProtectedRoute>} />
-          <Route path="/admin-desktop" element={<ProtectedRoute><PageTransition><AdminDesktop /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-feedbacks" element={<ProtectedRoute><PageTransition><AdminFeedbacks /></PageTransition></ProtectedRoute>} />
 
-          <Route path="/admin-modelos" element={<ProtectedRoute><PageTransition><AdminModelos /></PageTransition></ProtectedRoute>} />
           <Route path="/boletins" element={<ProtectedRoute><PageTransition><BoletinsJuridicos /></PageTransition></ProtectedRoute>} />
           <Route path="/boletins/:id" element={<ProtectedRoute><PageTransition><BoletinsJuridicos /></PageTransition></ProtectedRoute>} />
           <Route path="/boletins-noticias" element={<ProtectedRoute><PageTransition><BoletinsJuridicos tipo="noticias" /></PageTransition></ProtectedRoute>} />
@@ -717,7 +707,6 @@ function AnimatedRoutes() {
           <Route path="/modo-offline/livros" element={<ProtectedRoute><PageTransition><ModoOfflineLivros /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-secrets" element={<ProtectedRoute><PageTransition><AdminSecretsDownload /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-apple-csr" element={<ProtectedRoute><PageTransition><AdminAppleCsr /></PageTransition></ProtectedRoute>} />
-          <Route path="/admin-handoff" element={<ProtectedRoute><PageTransition><AdminHandoffIA /></PageTransition></ProtectedRoute>} />
           <Route path="/assistente" element={<ProtectedRoute><PageTransition><AssistenteApp /></PageTransition></ProtectedRoute>} />
           <Route path="/assistente-horus" element={<ProtectedRoute><PageTransition><AssistenteHorus /></PageTransition></ProtectedRoute>} />
 

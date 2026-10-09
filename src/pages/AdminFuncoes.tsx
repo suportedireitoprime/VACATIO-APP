@@ -24,9 +24,6 @@ const PREFETCH: Record<string, () => Promise<unknown>> = {
   '/admin-triagem': () => import('./AdminTriagem'),
   '/admin-triagem-entrada': () => import('./AdminTriagemEntrada'),
   '/teste-push': () => import('./TestePush'),
-  '/admin-atualizacao': () => import('./AdminAtualizacao'),
-  '/admin-native-assets': () => import('./AdminNativeAssets'),
-  '/admin-handoff': () => import('./AdminHandoffIA'),
   '/admin-secrets': () => import('./AdminSecretsDownload'),
   '/admin-blog-edicao': () => import('./AdminBlogEdicao'),
   '/admin-design-imagens': () => import('./AdminDesignImagens'),
@@ -37,8 +34,6 @@ const PREFETCH: Record<string, () => Promise<unknown>> = {
   '/admin-funcoes-assinantes': () => import('./AdminFuncoesAssinantes'),
   '/admin-assinantes': () => import('./AdminAssinantes'),
   '/admin-boletins': () => import('./AdminBoletins'),
-  '/admin-modelos': () => import('./AdminModelos'),
-  '/admin-desktop': () => import('./AdminDesktop'),
   '/admin-jurisprudencia': () => import('./AdminJurisprudencia'),
   '/admin-radares-leis': () => import('./AdminRadaresLeis'),
   '/admin/locais': () => import('./AdminLocais'),
@@ -261,19 +256,6 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'atualizacao',
-    title: 'Passo a passo — Atualização',
-    desc: 'Build, ícone, splash e Firebase',
-    icon: RefreshCcw,
-    color: '#8b5cf6',
-    items: [
-      { id: 'admin-atualizacao', label: 'Atualizar app no GitHub', icon: GitBranch, desc: 'Guia completo: repositório, secrets e build', route: '/admin-atualizacao' },
-      { id: 'admin-native-assets', label: 'Ícone, Splash e Firebase', icon: ImageIcon, desc: 'Upload de ícones, splash e google-services.json', route: '/admin-native-assets' },
-      { id: 'admin-handoff', label: 'Handoff para IA (Remix)', icon: FileText, desc: 'Documento pronto pra colar em qualquer IA após remix', route: '/admin-handoff' },
-      { id: 'github-abrir', label: 'Abrir repositório vinculado', icon: Github, desc: 'Vai direto pro repositório configurado' },
-    ],
-  },
-  {
     id: 'secrets',
     title: 'Secrets & Credenciais',
     desc: 'Keystore e credenciais Android',
@@ -329,26 +311,6 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'ia-modelos',
-    title: 'Modelos de IA',
-    desc: 'Modelos Gemini usados no app',
-    icon: Brain,
-    color: '#8b5cf6',
-    items: [
-      { id: 'admin-modelos', label: 'Modelos de Geração', icon: Brain, desc: 'Texto, imagem e áudio — cataloga funções e limites', route: '/admin-modelos' },
-    ],
-  },
-  {
-    id: 'distribuicao',
-    title: 'Distribuição',
-    desc: 'Apps instaláveis (Android, Desktop)',
-    icon: Monitor,
-    color: '#3b82f6',
-    items: [
-      { id: 'admin-desktop', label: 'App para computador', icon: Monitor, desc: 'Gerar .exe / .dmg / .AppImage via GitHub Actions', route: '/admin-desktop' },
-    ],
-  },
-  {
     id: 'configuracoes',
     title: 'Configurações',
     desc: 'Paleta, tema e preferências',
@@ -356,16 +318,6 @@ const CATEGORIES: Category[] = [
     color: '#64748b',
     items: [
       { id: 'paleta-cores', label: 'Paleta de Cores', icon: Palette, desc: 'Configurações visuais', route: '/configuracoes' },
-    ],
-  },
-  {
-    id: 'depuracao',
-    title: 'Depuração',
-    desc: 'Ferramentas de teste e diagnóstico',
-    icon: Bug,
-    color: '#ef4444',
-    items: [
-      { id: 'crashlytics-test', label: 'Disparar crash de teste', icon: Bug, desc: 'Envia crash pro Firebase Crashlytics (só native)' },
     ],
   },
 ];
