@@ -2649,6 +2649,8 @@ const CategoriaLegislacao = () => {
             </div>
 
             {/* Search and Sticky Search removed */}
+          </motion.div>
+          )}
 
           {/* Lista entra depois de search+abas, com fade curto */}
           <motion.div
@@ -2914,6 +2916,7 @@ const CategoriaLegislacao = () => {
   };
 
 export default CategoriaLegislacao;
+
 
 
 
