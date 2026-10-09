@@ -669,16 +669,89 @@ function DetalheLeiOverlay({
 
                                       {currentMode === 'novo' ? (
                                         <div>
-                                          {!oldText && <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Nova Redação (partes alteradas em destaque):</p>}
-                                          <div className="text-[11px] text-foreground leading-relaxed border-l-2 border-primary/40 pl-2">
-                                            {art.texto.split('\n').map((linha: string, idx: number) => {
-                                              const isModificada = /\((?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Revogad[oa]|Acrescid[oa]|Alterad[oa])/i.test(linha);
-                                              return (
-                                                <div key={idx} className={isModificada ? 'bg-primary/10 text-primary font-semibold px-1 rounded my-0.5' : ''}>
-                                                  {linha}
+                                          {!oldText && <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-3">Histórico de Alterações:</p>}
+                                          <div className="flex flex-col gap-4 pl-1">
+                                            {(() => {
+                                              const linhas = art.texto.split('\n');
+                                              let mapAnos: Record<string, { contexto: string, nota: string }[]> = {};
+                                              
+                                              let contextQueue: string[] = [];
+                                              
+                                              for (let j = 0; j < linhas.length; j++) {
+                                                const linha = linhas[j].trim();
+                                                if (!linha) continue;
+                                                
+                                                const isModificada = /\((?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Revogad[oa]|Acrescid[oa]|Alterad[oa])/i.test(linha);
+                                                
+                                                if (isModificada) {
+                                                  const m = /(?:de\s+(?:\d{1,2}\.\d{1,2}\.(\d{4})|(\d{4})))/i.exec(linha);
+                                                  const year = m ? (m[1] || m[2]) : "Outros";
+                                                  
+                                                  if (!mapAnos[year]) mapAnos[year] = [];
+                                                  
+                                                  // O contexto geralmente é a linha imediatamente anterior (ex: "VII - ...")
+                                                  let ctx = contextQueue.length > 0 ? contextQueue[contextQueue.length - 1] : "Caput";
+                                                  
+                                                  // Evita pegar um bloco vazio ou sujeira
+                                                  if (ctx.length < 3 && contextQueue.length > 1) {
+                                                    ctx = contextQueue[contextQueue.length - 2] + ' ' + ctx;
+                                                  }
+                                                  
+                                                  mapAnos[year].push({ contexto: ctx, nota: linha });
+                                                  contextQueue = []; // Limpa fila após achar nota
+                                                } else {
+                                                  contextQueue.push(linha);
+                                                }
+                                              }
+                                              
+                                              const anosOrd = Object.keys(mapAnos).sort((a,b) => b.localeCompare(a));
+                                              
+                                              if (anosOrd.length === 0) {
+                                                // Fallback se não detectar histórico estruturado
+                                                return (
+                                                  <div className="text-[11px] text-foreground leading-relaxed border-l-2 border-primary/40 pl-2">
+                                                    {linhas.map((linha: string, idx: number) => {
+                                                      const isMod = /\((?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Revogad[oa]|Acrescid[oa]|Alterad[oa])/i.test(linha);
+                                                      return (
+                                                        <div key={idx} className={isMod ? 'bg-primary/10 text-primary font-semibold px-1 rounded my-0.5' : ''}>
+                                                          {linha}
+                                                        </div>
+                                                      );
+                                                    })}
+                                                  </div>
+                                                );
+                                              }
+
+                                              return anosOrd.map(ano => (
+                                                <div key={ano} className="relative border-l-2 border-border pl-4 pb-2">
+                                                  <div className="absolute -left-[5px] top-0.5 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-background" />
+                                                  <p className="text-[12px] font-extrabold text-primary mb-2 leading-none">{ano}</p>
+                                                  <div className="flex flex-col gap-2">
+                                                    {mapAnos[ano].map((item, idx) => {
+                                                      let blockId = "";
+                                                      let blockText = item.contexto;
+                                                      const matchId = /^(Art\.\s*\d+[a-zº°]*|[IVXLCDM]+\s*-|§\s*\d+[º°]*|Parágrafo único)\s*(.*)/i.exec(item.contexto);
+                                                      if (matchId) {
+                                                        blockId = matchId[1];
+                                                        blockText = matchId[2] || "";
+                                                      }
+
+                                                      return (
+                                                        <div key={idx} className="bg-secondary/30 rounded-lg border border-border/60 p-2.5 shadow-sm">
+                                                          <p className="text-[11px] text-foreground leading-snug mb-1.5">
+                                                            {blockId && <span className="font-bold mr-1.5 text-primary/80">{blockId}</span>}
+                                                            <span className="opacity-95">{blockText}</span>
+                                                          </p>
+                                                          <p className="text-[10px] text-muted-foreground font-medium italic border-l-2 border-muted-foreground/30 pl-2">
+                                                            {item.nota}
+                                                          </p>
+                                                        </div>
+                                                      );
+                                                    })}
+                                                  </div>
                                                 </div>
-                                              );
-                                            })}
+                                              ));
+                                            })()}
                                           </div>
                                         </div>
                                       ) : (
