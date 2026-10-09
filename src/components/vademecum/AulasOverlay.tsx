@@ -65,6 +65,7 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
           <ul className="flex flex-col items-center gap-4 py-8">
             {selectedCapitulo.artigos.map((artigo, idx) => {
               const offset = OFFSETS[idx % OFFSETS.length];
+              const isRightSide = offset > 0;
               
               return (
                 <li
@@ -72,14 +73,26 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
                   className="w-full flex justify-center relative"
                   style={{ transform: `translateX(${offset}px)` }}
                 >
-                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 pointer-events-none">
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 pointer-events-none z-20">
                     <div className="bg-black/40 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white/90 border border-white/20 whitespace-nowrap">
                       Aula {idx + 1}
                     </div>
                   </div>
+
+                  <div className={`absolute top-1/2 -translate-y-1/2 pointer-events-none z-10 flex items-center ${isRightSide ? 'right-1/2 mr-[72px]' : 'left-1/2 ml-[72px]'}`}>
+                    {/* Linha tracejada conectando ao botão */}
+                    <div className={`absolute top-1/2 -translate-y-1/2 w-10 border-t-[1.5px] border-dashed border-white/40 ${isRightSide ? '-right-10' : '-left-10'}`} />
+                    
+                    <div className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 shadow-lg whitespace-nowrap">
+                      <span className="text-[12px] font-display font-black text-white/90 drop-shadow-md">
+                        {artigo.numero.toLowerCase().includes('art') ? artigo.numero : `Art. ${artigo.numero}`}
+                      </span>
+                    </div>
+                  </div>
+
                   <button
                     onClick={() => onArtigoSelect(artigo)}
-                    className="relative w-16 h-16 rounded-full flex items-center justify-center font-black text-white text-lg bg-red-500 ring-red-200 ring-4 ring-offset-2 ring-offset-transparent active:scale-95 transition-transform"
+                    className="relative w-16 h-16 z-10 rounded-full flex items-center justify-center font-black text-white text-lg bg-red-500 ring-red-200 ring-4 ring-offset-2 ring-offset-transparent active:scale-95 transition-transform"
                     style={{
                       boxShadow: '0 10px 22px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.25), inset 0 -4px 0 rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.18)',
                     }}
