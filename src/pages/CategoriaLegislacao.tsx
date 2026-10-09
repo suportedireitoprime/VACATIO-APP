@@ -2693,14 +2693,16 @@ const CategoriaLegislacao = () => {
 
             {/* CARROSSEL RECENTES */}
             {recentIds.length > 0 && (
-              <div className="pt-2 px-0 bg-background relative z-10 w-full mb-6">
-                <div className="mb-3 px-4 flex items-center gap-2">
-                  <div className="w-1 h-4 bg-blue-500 rounded-full" />
-                  <h2 className="text-[13px] font-display font-black tracking-wide uppercase text-white/95">
-                    RECENTES
-                  </h2>
+              <div className="pt-0 px-0 bg-background relative z-10 w-full mb-6 mt-2">
+                <div className="mb-3 px-4 flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-display text-foreground text-[16px] sm:text-[18px] font-black uppercase mb-0 flex items-center gap-2">
+                      <span className="w-1 h-5 rounded-full shrink-0 bg-blue-500" />
+                      <span className="truncate">Recentes</span>
+                    </h3>
+                  </div>
                 </div>
-                <div className="flex gap-2.5 overflow-x-auto px-4 pb-4 pt-1 snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <div className="flex gap-5 overflow-x-auto px-4 pb-2 snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
                   {recentIds.slice(0, 15).map(id => {
                     const artigo = artigos.find(a => a.id === id);
                     if (!artigo) return null;
@@ -2708,16 +2710,11 @@ const CategoriaLegislacao = () => {
                       <button
                         key={id}
                         onClick={() => openArtigoWithRecent(artigo)}
-                        className="snap-start shrink-0 w-[140px] bg-blue-500/10 hover:bg-blue-500/20 active:scale-95 border border-blue-500/20 rounded-xl p-3 flex flex-col items-start justify-center gap-1 transition-all"
+                        className="snap-start shrink-0 flex items-center justify-center active:scale-95 transition-transform"
                       >
-                        <span className="text-blue-400 font-display font-bold text-[14px]">
+                        <span className="text-blue-300 hover:text-blue-200 font-display font-bold text-[15px] md:text-[16px] whitespace-nowrap">
                           {artigo.numero}
                         </span>
-                        {artigo.caput && (
-                          <span className="text-white/60 font-body text-[10px] line-clamp-2 text-left leading-tight">
-                            {artigo.caput}
-                          </span>
-                        )}
                       </button>
                     );
                   })}
