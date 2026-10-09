@@ -2029,26 +2029,32 @@ const CategoriaLegislacao = () => {
         }
         if (refGroups.size === 0) continue;
         for (const [refKey, group] of refGroups) {
-          let parteModificada = 'Artigo inteiro';
-          if (group.indices.length < lines.length) {
-            const firstModLine = lines[group.indices[0]];
-            if (/^§\s*\d+[º°]?/i.test(firstModLine)) {
-              const pMatch = firstModLine.match(/^(§\s*\d+[º°]?)/i);
-              parteModificada = pMatch ? pMatch[1].replace(/°/g, 'º') : '§';
-            } else if (/^[IVXLC]+\s*[-–.]/i.test(firstModLine)) {
-              const iMatch = firstModLine.match(/^([IVXLC]+)/i);
-              parteModificada = iMatch ? `Inciso ${iMatch[1]}` : 'Inciso';
-            } else if (/^[a-z]\)/i.test(firstModLine)) {
-              const aMatch = firstModLine.match(/^([a-z]\))/i);
-              parteModificada = aMatch ? `Alínea ${aMatch[1]}` : 'Alínea';
-            } else if (/^Parágrafo\s+único/i.test(firstModLine)) {
-              parteModificada = 'Parágrafo único';
-            } else if (/caput/i.test(refKey)) {
-              parteModificada = 'Caput';
-            }
-            if (group.indices.length > 1) {
-              parteModificada += ` (+${group.indices.length - 1})`;
-            }
+          let parteModificada = 'Caput';
+          const firstModLine = lines[group.indices[0]];
+
+          if (/^§\s*\d+[º°]?/i.test(firstModLine)) {
+            const pMatch = firstModLine.match(/^(§\s*\d+[º°]?)/i);
+            parteModificada = pMatch ? pMatch[1].replace(/°/g, 'º') : '§';
+          } else if (/^[IVXLC]+\s*[-–.]/i.test(firstModLine)) {
+            const iMatch = firstModLine.match(/^([IVXLC]+)/i);
+            parteModificada = iMatch ? `Inciso ${iMatch[1]}` : 'Inciso';
+          } else if (/^[a-z]\)\s/i.test(firstModLine)) {
+            const aMatch = firstModLine.match(/^([a-z]\))/i);
+            parteModificada = aMatch ? `Alínea ${aMatch[1]}` : 'Alínea';
+          } else if (/^Parágrafo\s+único/i.test(firstModLine)) {
+            parteModificada = 'Parágrafo único';
+          } else if (group.indices.length === lines.length && lines.length === 1) {
+            parteModificada = 'Artigo inteiro';
+          } else if (group.indices.includes(0)) {
+            parteModificada = 'Caput';
+          } else if (/caput/i.test(refKey)) {
+            parteModificada = 'Caput';
+          } else {
+            parteModificada = 'Trecho';
+          }
+
+          if (group.indices.length > 1) {
+            parteModificada += ` (+${group.indices.length - 1})`;
           }
           const leiMatch = refKey.match(/(?:Lei(?:\s+Complementar)?|Decreto(?:-Lei)?|Emenda\s+Constitucional|Medida\s+Provisória)\s+n[º°]?\s*[\d.]+(?:,\s*de\s*\d{4})?/i);
           const leiNome = leiMatch ? leiMatch[0] : refKey;
@@ -2088,7 +2094,7 @@ const CategoriaLegislacao = () => {
         if (t.startsWith('suprimid')) return 'bg-red-500/20 text-red-500';
         if (t.startsWith('incluid')) return 'bg-emerald-500/20 text-emerald-500';
         if (t.startsWith('acrescid')) return 'bg-emerald-500/20 text-emerald-500';
-        if (t.startsWith('redacao') || t.startsWith('alterad')) return 'bg-blue-500/20 text-blue-400';
+        if (t.startsWith('redacao') || t.startsWith('alterad')) return 'bg-[#3b82f6]/20 text-[#60a5fa]';
         if (t.startsWith('renumerad')) return 'bg-sky-500/20 text-sky-400';
         if (t.startsWith('vigencia') || t.startsWith('producao')) return 'bg-violet-500/20 text-violet-400';
         return 'bg-muted text-muted-foreground';
@@ -2151,7 +2157,7 @@ const CategoriaLegislacao = () => {
               </div>
               <div className="space-y-2">
                 {group.map((item, i) => {
-                  const displayNumero = item.artigo.numero;
+                  const displayNumero = `Art. ${item.artigo.numero}`;
                   const previewText = item.artigo.caput
                     .replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi, '')
                     .split('\n').filter(l => l.trim())[0] || '';
