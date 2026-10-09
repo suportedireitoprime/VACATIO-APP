@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, Menu as MenuIcon, Layers, Clock, Eye, Lightbulb, ScrollText, Quote } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfileSummary } from '@/hooks/useProfileSummary';
-import heroEstudanteImg from '@/assets/covers/hero-justice.webp';
+import heroEstudanteImg from '@/assets/covers/hero-leiseca-justica.webp';
 import HeroMotifs from './HeroMotifs';
 import HomeBrandBanner from './HomeBrandBanner';
 import HomeActionShortcuts from './HomeActionShortcuts';
@@ -78,7 +78,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
     <>
       {/* Shell sólido, opaco e com blindagem contra culling e overscroll — amarelo ouro elegante */}
       <div
-        className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 pt-[var(--sai-top)] flex flex-col z-20"
+        className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[2rem] pt-[var(--sai-top)] flex flex-col z-20 shadow-xl"
         style={{
           transform: 'translateZ(0)',
           backgroundColor: '#1C1C1E',

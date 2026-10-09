@@ -3,7 +3,7 @@ export interface Lei {
   nome: string;
   sigla: string;
   categoria: string;
-  tipo: 'constituicao' | 'codigo' | 'estatuto' | 'lei-ordinaria' | 'decreto' | 'sumula';
+  tipo: 'constituicao' | 'codigo' | 'estatuto' | 'lei-ordinaria' | 'decreto' | 'sumula' | 'tratados-convencoes';
   descricao: string;
   dataPublicacao: string;
   artigos: ArtigoLei[];

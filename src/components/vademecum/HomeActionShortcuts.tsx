@@ -1,14 +1,35 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Scroll, Headphones, BookOpen } from 'lucide-react';
+import { Scroll, Headphones, BookOpen, AlertTriangle } from 'lucide-react';
 import { useShortcutBadges } from '@/hooks/useShortcutBadges';
 import { prefetchRoute, type PrefetchKey } from '@/lib/routePrefetch';
 
+const UserSpeakingIcon = (props: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={props.strokeWidth || 2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={props.className}
+    style={props.style}
+  >
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M17.5 6a5 5 0 0 1 0 6" />
+    <path d="M20.5 3a9 9 0 0 1 0 12" />
+  </svg>
+);
+
 const SHORTCUT_ITEMS = [
+  { label: 'Me Explique', icon: UserSpeakingIcon, to: '/me-explique' as string | null, action: null as (() => void) | null, color: '#A78BFA', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
   { label: 'Blog', icon: Scroll, to: '/blog' as string | null, action: null as (() => void) | null, color: '#F87171', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
   { label: 'Boletins', icon: Headphones, to: '/boletins' as string | null, action: null as (() => void) | null, color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-  { label: 'Dicionário', icon: BookOpen, to: '/ferramentas/dicionario' as string | null, action: null as (() => void) | null, color: '#34D399', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-  { label: 'Chat', icon: MessageCircle, to: null as string | null, action: () => window.dispatchEvent(new CustomEvent('vacatio:open-chat')), color: '#FACC15', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+  { label: 'Novidades', icon: AlertTriangle, to: '/noticias' as string | null, action: null as (() => void) | null, color: '#FACC15', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
 ];
 
 const HomeActionShortcuts = () => {

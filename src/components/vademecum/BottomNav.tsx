@@ -249,18 +249,16 @@ const BottomNav = () => {
           <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white drop-shadow-sm truncate px-0.5">Pesquisar</span>
         </button>
 
-        {/* Anotações */}
+        {/* Chat */}
         <button
-          onClick={() => { haptic.selection(); navigate('/pessoal/anotacoes'); }}
+          onClick={() => { haptic.selection(); window.dispatchEvent(new CustomEvent('vacatio:open-chat')); }}
           data-track="bottom_nav_click"
-          data-track-destino="anotacoes"
-          className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
-            path.startsWith('/pessoal/anotacoes') ? 'text-white' : 'text-white/80 hover:text-white'
-          }`}
-          aria-label="Anotações"
+          data-track-destino="chat"
+          className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white`}
+          aria-label="Chat"
         >
-          <StickyNote className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${path.startsWith('/pessoal/anotacoes') ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
-          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Anotações</span>
+          <MessageCircle className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform drop-shadow-sm`} strokeWidth={1.5} />
+          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Chat</span>
         </button>
 
         {/* Ferramentas */}

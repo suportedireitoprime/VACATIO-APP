@@ -3,7 +3,7 @@ const { Client } = require('pg');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const oldClient = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+const oldClient = createClient('https://iftdrbxvekrhzstayjwp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmdGRyYnh2ZWtyaHpzdGF5andwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4Mzc5OTksImV4cCI6MjA5OTQxMzk5OX0.7nyvQlO5IDI6E4dLYHl6yrqqaNd53RxJcDOTQ7yNh40');
 const newClient = createClient('https://vooaldsmaddplxhcaouw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvb2FsZHNtYWRkcGx4aGNhb3V3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDg5MzY4OSwiZXhwIjoyMTA2NDY5Njg5fQ.tCWbou0an9sWEjpp3XJnIud5VafBS8roeVvigWU2Nyc');
 
 const pgClient = new Client({ connectionString: 'postgresql://postgres:39433679Wes%23@db.vooaldsmaddplxhcaouw.supabase.co:5432/postgres' });

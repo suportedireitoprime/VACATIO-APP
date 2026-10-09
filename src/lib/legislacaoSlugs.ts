@@ -19,6 +19,7 @@ export const TIPO_TO_SLUG: Record<string, string> = {
   sumula: 'sumulas',
   'lei-especial': 'leis-especiais',
   previdenciario: 'previdenciario',
+  'tratados-convencoes': 'tratados-convencoes',
 };
 
 /** Inverso: aceita tanto plural quanto singular (compat) e devolve tipo interno. */

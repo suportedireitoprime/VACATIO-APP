@@ -8,6 +8,7 @@ import {
   Columns3,
   Stamp,
   Clock,
+  Globe,
   type LucideIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -43,6 +44,8 @@ const CATEGORIAS_FOCO: Categoria[] = [
 ];
 
 const CATEGORIAS_DEMAIS: Categoria[] = [
+  { id: 'tratados-convencoes', tag: 'INTERNACIONAL', label: 'TRATADOS E CONVENÇÕES', sublabel: 'Pactos, tratados e convenções internacionais',
+    icon: Globe, bg: GRAY_BG, fg: GRAY_FG },
   { id: 'lei-ordinaria', tag: 'ORDINÁRIAS', label: 'LEIS ORDINÁRIAS', sublabel: 'Legislação federal complementar',
     icon: Columns3, bg: GRAY_BG, fg: GRAY_FG },
   { id: 'decreto', tag: 'DECRETOS', label: 'DECRETOS', sublabel: 'Regulamentos do Executivo',

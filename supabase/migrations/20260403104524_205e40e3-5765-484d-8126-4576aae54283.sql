@@ -1,2 +1,2 @@
-DROP POLICY "Service role full access" ON public.newsletter_subscriptions;
+DROP POLICY IF EXISTS "Service role full access" ON public.newsletter_subscriptions;
 

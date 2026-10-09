@@ -104,6 +104,16 @@ const GrifosPage = ({ onClose }: { onClose?: () => void }) => {
           </div>
         )}
       </div>
+
+      {/* FAB para Anotações */}
+      <button
+        onClick={() => navigate('/pessoal/anotacoes')}
+        className="fixed bottom-[calc(var(--sai-bottom,0px)+5rem)] right-5 z-50 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.5)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+        aria-label="Minhas Anotações"
+      >
+        <div className="absolute inset-0 rounded-full bg-white/20" />
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sticky-note relative z-10"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z"/><path d="M15 3v4a2 2 0 0 0 2 2h4"/></svg>
+      </button>
     </div>
   );
 };

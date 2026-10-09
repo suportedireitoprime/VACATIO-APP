@@ -6,7 +6,7 @@ import { getRecentes } from '@/lib/leisRecentes';
 import {
   Accessibility, Baby, Banknote, BookMarked, Briefcase, BriefcaseBusiness, Building,
   Cannabis, Car, ChevronRight, CircleDollarSign, Clock, Columns3, Cross, Drama,
-  Droplets, Factory, FileCheck, FileLock, FileText, FileWarning, Flame, Gavel,
+  Droplets, Factory, FileCheck, FileLock, FilePlus, FileText, FileWarning, Flame, Gavel,
   Globe, GraduationCap, HandCoins, Handshake, HeartPulse, Hospital, House, IdCard,
   Landmark, LandPlot, LayoutGrid, Leaf, List, Map, Mic, MicOff, Network, NotebookPen,
   PiggyBank, Plane, PocketKnife, RadioTower, ReceiptText, Scale, Scroll, ScrollText, Search,
@@ -23,7 +23,7 @@ import { pushRecente } from '@/lib/leisRecentes';
 import { getFavoritos, LEIS_FAVORITOS_EVENT } from '@/lib/leisFavoritos';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import VoiceCaptureOverlay from './VoiceCaptureOverlay';
-import HomeRadarCarousel from './HomeRadarCarousel';
+
 import HomeAtalhosLeisCarousel from './HomeAtalhosLeisCarousel';
 import HomeCard from './HomeCard';
 import JurisprudenciaSheet from './JurisprudenciaSheet';
@@ -105,6 +105,17 @@ const CATEGORIA_CATS: CategoriaFormal[] = [
   { id: 'cat-jurisprudencia',label: 'Jurisprudência',      sublabel: 'STF, STJ, Súmulas Vinculantes',     icon: Gavel,      color: '#EC4899' },
   { id: 'cat-oab',           label: 'OAB',                 sublabel: 'Estatuto, ética e advocacia',       icon: Scale,      color: '#1D4ED8' },
   { id: 'cat-decretos',      label: 'Decretos',            sublabel: 'Regulamentos do Executivo',         icon: Stamp,      color: '#FBBF24', route: '/normas/decretos' },
+];
+
+const CATEGORIA_CARDS: AreaCat[] = [
+  { id: 'cat-cf', label: 'Constituição Federal', sublabel: 'Constituição de 1988', icon: Landmark, color: '#FACC15', leiIds: ['cf88'] },
+  { id: 'cat-codigo', label: 'Códigos', sublabel: 'CP, CC, CPC, CPP...', icon: BookOpen, color: '#3B82F6', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'codigo').map(l => l.id) },
+  { id: 'cat-estatuto', label: 'Estatutos', sublabel: 'ECA, Estatuto do Idoso...', icon: Shield, color: '#10B981', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'estatuto').map(l => l.id) },
+  { id: 'cat-lei', label: 'Leis Ordinárias', sublabel: 'Leis Federais Comuns', icon: FileText, color: '#F59E0B', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'lei-especial' && !l.descricao.includes('Decreto') && !l.descricao.includes('Complementar') && !l.descricao.includes('LC')).map(l => l.id) },
+  { id: 'cat-lei-complementar', label: 'Leis Complementares', sublabel: 'LC 101, etc', icon: FilePlus, color: '#8B5CF6', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Complementar') || l.descricao.includes('LC nº')).map(l => l.id) },
+  { id: 'cat-decreto', label: 'Decretos', sublabel: 'Regulamentos Executivos', icon: Stamp, color: '#06B6D4', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto nº') && !l.descricao.includes('Decreto-Lei')).map(l => l.id) },
+  { id: 'cat-decreto-lei', label: 'Decretos-Leis', sublabel: 'Decretos-Leis', icon: Stamp, color: '#F97316', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto-Lei')).map(l => l.id) },
+  { id: 'cat-mp', label: 'Medidas Provisórias', sublabel: 'MPs em tramitação', icon: FileWarning, color: '#EF4444', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Medida Provisória') || l.descricao.includes('MPv')).map(l => l.id) },
 ];
 
 const JURI_OPCOES = [
@@ -245,7 +256,7 @@ interface Props {
 
 const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('todas');
+  const [activeTab, setActiveTab] = useState('categorias');
   const [juriOpen, setJuriOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState<Cat | AreaCat | CategoriaFormal | null>(null);
   const [categorySearch, setCategorySearch] = useState('');
@@ -400,23 +411,22 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       {/* 1. NO LUGAR DE NOTÍCIAS: CARROSSEL DO EM ALTA (Cards vermelhos com degradê + Personalizar) */}
       <HomeAtalhosLeisCarousel onOpenLei={handleOpenLei} />
 
-      {/* CARROSSEL DE RADAR (NOVAS LEIS) */}
-      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen my-2">
-        <HomeRadarCarousel />
-      </div>
 
       {/* 2. LEGISLAÇÃO BRASILEIRA — ÁREAS DO DIREITO (COM ABAS) */}
       <section className="space-y-3 px-1 pt-1">
         {/* Menu de Alternância (Tabs) */}
         <div className="flex overflow-x-auto no-scrollbar gap-2 pb-1 -mr-4 pr-6">
           {[
-            { id: 'todas', label: 'Todas' },
-            { id: 'codigo', label: 'Códigos' },
-            { id: 'estatuto', label: 'Estatutos' },
+            { id: 'categorias', label: 'Categorias' },
+            { id: 'areas', label: 'Áreas' },
+            { id: 'cat-codigo', label: 'Códigos' },
+            { id: 'cat-estatuto', label: 'Estatutos' },
             { id: 'jurisprudencia', label: 'Jurisprudência' },
-            { id: 'lei-ordinaria', label: 'Leis Ordinárias' },
-            { id: 'lei-especial', label: 'Penal Especial' },
-            { id: 'decreto', label: 'Decretos' },
+            { id: 'cat-lei', label: 'Leis Ordinárias' },
+            { id: 'cat-lei-complementar', label: 'Leis Complementares' },
+            { id: 'cat-decreto', label: 'Decretos' },
+            { id: 'cat-decreto-lei', label: 'Decretos-Leis' },
+            { id: 'cat-mp', label: 'Medidas Provisórias' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -436,28 +446,23 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           <h3 className="font-display text-foreground text-[18px] font-bold uppercase flex items-center gap-2">
             <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
             <span className="truncate">
-              {activeTab === 'todas' ? 'Legislação Brasileira' : 
-               activeTab === 'codigo' ? 'Códigos' :
-               activeTab === 'estatuto' ? 'Estatutos' :
-               activeTab === 'jurisprudencia' ? 'Jurisprudência' :
-               activeTab === 'lei-ordinaria' ? 'Leis Ordinárias' :
-               activeTab === 'lei-especial' ? 'Penal Especial' : 'Decretos'}
+              {activeTab === 'categorias' ? 'Legislação Brasileira' : 
+               activeTab === 'areas' ? 'Áreas do Direito' :
+               activeTab === 'jurisprudencia' ? 'Jurisprudência' : 
+               CATEGORIA_CARDS.find(c => c.id === activeTab)?.label || ''}
             </span>
           </h3>
           <p className="font-body text-muted-foreground text-[12.5px] leading-snug ml-3 truncate mt-0.5">
-            {activeTab === 'todas' && 'Principais áreas: Penal, Civil, Constitucional e mais.'}
-            {activeTab === 'codigo' && 'Principais códigos jurídicos brasileiros.'}
-            {activeTab === 'estatuto' && 'Estatutos de proteção e garantias.'}
+            {activeTab === 'categorias' && 'Constituição, Códigos, Estatutos e mais.'}
+            {activeTab === 'areas' && 'Penal, Civil, Constitucional e mais.'}
             {activeTab === 'jurisprudencia' && 'Súmulas STF, STJ e Vinculantes.'}
-            {activeTab === 'lei-ordinaria' && 'Consolidações e leis federais.'}
-            {activeTab === 'lei-especial' && 'Legislação penal extravagante.'}
-            {activeTab === 'decreto' && 'Regulamentações executivas federais.'}
+            {activeTab.startsWith('cat-') && CATEGORIA_CARDS.find(c => c.id === activeTab)?.sublabel}
           </p>
         </div>
 
         <div className="h-[1.5px] bg-border/70 w-full mb-2" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 min-h-[200px] content-start">
-          {activeTab === 'todas' && AREA_CATS.map((c, i) => (
+          {activeTab === 'areas' && AREA_CATS.map((c, i) => (
             <HomeCard
               key={c.id}
               icon={c.icon}
@@ -474,6 +479,65 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               data-track-section="areas"
             />
           ))}
+
+          {activeTab === 'categorias' && CATEGORIA_CARDS.map((c, i) => (
+            <HomeCard
+              key={c.id}
+              icon={c.icon}
+              label={c.label}
+              sublabel={c.sublabel}
+              color={c.color}
+              delay={i * 0.04}
+              onClick={() => {
+                setCategorySearch('');
+                setCategoryOpen(c);
+              }}
+              data-track="home_card_click"
+              data-track-name={c.label}
+              data-track-section="categorias"
+            />
+          ))}
+
+          {activeTab.startsWith('cat-') && activeTab !== 'categorias' && (() => {
+            const currentCat = CATEGORIA_CARDS.find(c => c.id === activeTab);
+            if (!currentCat) return null;
+            return currentCat.leiIds.map((leiId, i) => {
+              const lei = LEIS_CATALOG.find(l => l.id === leiId);
+              if (!lei) return null;
+              
+              const LawIcon = LAW_ICON_MAP[lei.id] || BookMarked;
+              
+              let displayLabel = lei.sigla || lei.nome;
+              let displaySublabel = lei.nome;
+              
+              if (lei.tipo === 'estatuto') {
+                if (lei.id === 'eca') {
+                  displayLabel = 'ECA';
+                } else if (lei.id === 'epd') {
+                  displayLabel = 'PCD';
+                } else {
+                  displayLabel = lei.nome.replace(/^Estatuto (da|do|de|dos|das|nacional da) /i, '').trim();
+                }
+                displaySublabel = lei.descricao;
+              }
+
+              return (
+                <HomeCard
+                  key={lei.id}
+                  icon={LawIcon}
+                  label={displayLabel}
+                  sublabel={displaySublabel}
+                  color={lei.iconColor || currentCat.color || '#38BDF8'}
+                  inlineTitle={true}
+                  delay={i * 0.03}
+                  onClick={() => handleOpenLei(lei.id)}
+                  data-track="home_card_click"
+                  data-track-name={lei.sigla || lei.nome}
+                  data-track-section={activeTab}
+                />
+              );
+            });
+          })()}
 
           {activeTab === 'jurisprudencia' && [
             { id: 'juri-stf-vinc', label: 'Súmulas Vinculantes', sublabel: 'STF', icon: ScrollText, color: '#EC4899' },
@@ -493,87 +557,10 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               data-track-section="jurisprudencia"
             />
           ))}
-
-          {activeTab !== 'todas' && activeTab !== 'jurisprudencia' && LEIS_CATALOG.filter(l => l.tipo === activeTab).map((lei, i) => {
-            const LawIcon = LAW_ICON_MAP[lei.id] || BookMarked;
-            
-            let displayLabel = lei.sigla || lei.nome;
-            let displaySublabel = lei.nome;
-            
-            if (lei.tipo === 'estatuto') {
-              if (lei.id === 'eca') {
-                displayLabel = 'ECA';
-              } else if (lei.id === 'epd') {
-                displayLabel = 'PCD';
-              } else {
-                displayLabel = lei.nome.replace(/^Estatuto (da|do|de|dos|das|nacional da) /i, '').trim();
-              }
-              displaySublabel = lei.descricao;
-            }
-
-            return (
-              <HomeCard
-                key={lei.id}
-                icon={LawIcon}
-                label={displayLabel}
-                sublabel={displaySublabel}
-                color={lei.iconColor || '#38BDF8'}
-                inlineTitle={true}
-                delay={i * 0.03}
-                onClick={() => handleOpenLei(lei.id)}
-                data-track="home_card_click"
-                data-track-name={lei.sigla || lei.nome}
-                data-track-section={activeTab}
-              />
-            );
-          })}
         </div>
       </section>
 
       {/* ESTATUTOS E CARROSSEL ACABARAM AQUI */}
-
-      {/* 5. CHAT JURÍDICO */}
-      <div className="px-1">
-        <button
-          type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent('vacatio:open-chat'))}
-          data-track="home_chat_juridico_click"
-          className="w-full relative overflow-hidden flex items-center gap-3 px-4 py-5 min-h-[76px] rounded-2xl bg-[#10B981] border border-[#10B981]/30 shadow-sm active:scale-[0.99] transition cursor-pointer"
-        >
-          <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.15] text-black">
-            <motion.div
-              animate={{ x: [0, 10, 0], y: [0, 5, 0], rotate: [-12, -16, -12] }}
-              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute right-12 -top-4"
-            >
-              <Gavel className="w-12 h-12" strokeWidth={1.5} />
-            </motion.div>
-            <motion.div
-              animate={{ x: [0, 5, 0], y: [0, -8, 0], rotate: [6, 10, 6] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -right-2 -bottom-2"
-            >
-              <BookOpen className="w-12 h-12" strokeWidth={1.5} />
-            </motion.div>
-          </div>
-
-          <span aria-hidden className="pointer-events-none absolute inset-0 icon-shine" />
-          <MessageCircle
-            className="relative z-10 w-8 h-8 shrink-0 text-black"
-            style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
-            strokeWidth={1.5}
-          />
-          <div className="relative z-10 flex-1 min-w-0 text-left">
-            <p className="font-display text-black text-[16px] font-bold leading-tight truncate tracking-[0.02em]">
-              Chat Jurídico
-            </p>
-            <p className="font-body text-black/80 text-[12px] sm:text-[12.5px] leading-tight mt-0.5 min-h-[15px]">
-              <TypewriterText hints={CHAT_HINTS} />
-            </p>
-          </div>
-          <ChevronRight className="relative z-10 w-5 h-5 text-black/80 shrink-0" />
-        </button>
-      </div>
 
       {/* Category bottom sheet — opens categories from bottom to top */}
       {createPortal(

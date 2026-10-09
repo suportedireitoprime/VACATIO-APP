@@ -15,7 +15,7 @@ on:
 jobs:
   build:
     name: Build iOS release
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 60
     permissions:
       contents: read
@@ -64,12 +64,12 @@ jobs:
             exit 1
           fi
 
-      - name: Select Xcode 26+
+      - name: Select Xcode 16+
         run: |
           set -euo pipefail
-          XCODE_PATH="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1 || true)"
+          XCODE_PATH="$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1 || true)"
           if [ -z "$XCODE_PATH" ]; then
-            echo "::error::Xcode 26+ is required by App Store Connect (iOS 26 SDK)."
+            echo "::error::Xcode 16+ is required by App Store Connect (iOS 18 SDK)."
             ls -1 /Applications | grep '^Xcode' || true
             exit 1
           fi
@@ -77,7 +77,7 @@ jobs:
           xcodebuild -version
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Remove Lovable hot-reload from capacitor.config.ts
         run: |

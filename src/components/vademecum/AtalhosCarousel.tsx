@@ -822,7 +822,7 @@ export function CategoryPickerSheet({
         </div>
 
         {/* Lista */}
-        <div className="px-4 pt-1 pb-4 flex flex-col gap-2.5">
+        <div className="px-4 pt-1 pb-4">
           {filtered.length === 0 && (
             <p className="text-center text-muted-foreground text-sm py-8">
               {scope === 'favoritos'
@@ -830,43 +830,52 @@ export function CategoryPickerSheet({
                 : 'Nenhuma lei encontrada.'}
             </p>
           )}
-          {filtered.map((lei, i) => {
-            const fav = isFav(lei.id);
-            const ItemIcon = getIcon(lei.id, lei.tipo);
-            const itemColor = getColor(lei.id, lei.tipo);
-            return (
-              <motion.div
-                key={lei.id}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: Math.min(i, 12) * 0.03 }}
-                className="group flex items-center gap-2 rounded-xl bg-secondary/60 border border-border hover:border-primary/50 hover:bg-secondary transition-all shadow-sm shadow-black/5 hover:shadow-md hover:shadow-primary/10"
-              >
-                <button
-                  onClick={() => onSelectLei(lei.id)}
-                  className="flex-1 flex items-center gap-3 px-3.5 py-5 text-left min-w-0 min-h-[76px]"
-                >
-                  <FrostedIcon icon={ItemIcon} color={itemColor} size="sm" sweep sweepIndex={i} sweepStagger />
-
-                  <div className="flex-1 min-w-0">
-                    <p className="font-body text-[14.5px] font-bold text-foreground leading-tight truncate">
-                      {formatLeiDisplayName(lei.nome, lei.sigla, tipo)}
-                    </p>
-                    <p className="font-body text-[12px] text-muted-foreground leading-snug mt-1 line-clamp-2">
-                      {lei.descricao}
-                    </p>
-                  </div>
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onToggleFav(lei.id); }}
-                  aria-label={fav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                  className="mr-2 w-9 h-9 rounded-full bg-muted/60 border border-border/60 flex items-center justify-center shrink-0 hover:bg-primary/20 hover:border-primary/50 transition-colors"
-                >
-                  <Heart className={`w-4 h-4 transition-colors ${fav ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
-                </button>
-              </motion.div>
-            );
-          })}
+          
+          {filtered.length > 0 && (
+            <div className="rounded-2xl border border-border/60 bg-secondary/30 divide-y divide-border/50 overflow-hidden shadow-sm">
+              {filtered.map((lei, i) => {
+                const fav = isFav(lei.id);
+                const ItemIcon = getIcon(lei.id, lei.tipo);
+                const itemColor = getColor(lei.id, lei.tipo);
+                return (
+                  <motion.div
+                    key={lei.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(i, 12) * 0.03 }}
+                    className="group relative flex items-center gap-3 px-4 py-3 bg-transparent hover:bg-secondary/60 active:bg-secondary transition-colors w-full"
+                  >
+                    <button
+                      onClick={() => onSelectLei(lei.id)}
+                      className="flex-1 flex items-center gap-4 text-left min-w-0"
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                        <FrostedIcon icon={ItemIcon} color={itemColor} size="sm" sweep sweepIndex={i} sweepStagger />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-body text-[14px] sm:text-[15px] font-bold text-foreground leading-tight truncate">
+                          {formatLeiDisplayName(lei.nome, lei.sigla, tipo)}
+                        </p>
+                        <p className="font-body text-[11.5px] text-muted-foreground leading-snug mt-0.5 truncate">
+                          {lei.descricao}
+                        </p>
+                      </div>
+                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onToggleFav(lei.id); }}
+                        aria-label={fav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                        className="w-8 h-8 rounded-full bg-muted/40 border border-border/40 flex items-center justify-center hover:bg-primary/20 hover:border-primary/50 transition-colors"
+                      >
+                        <Heart className={`w-3.5 h-3.5 transition-colors ${fav ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+                      </button>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground/60 shrink-0" />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </motion.div>
     </>

@@ -1,8 +1,15 @@
 import React from 'react';
 import ReactMarkdown, { Options } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { PremiumBadge, BadgeType } from './PremiumBadge';
+export type BadgeType = string;
 
+export const PremiumBadge: React.FC<{ type: string }> = ({ type }) => {
+  return (
+    <span className="inline-flex items-center rounded-md bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary ring-1 ring-inset ring-primary/30 mr-1.5 align-middle">
+      {type}
+    </span>
+  );
+};
 interface PremiumMarkdownProps extends Options {
   children: string;
 }

@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Loader2, Search, ChevronRight, FileText, Bell, RefreshCw, Clock, Radar,
-  History, ArrowRight, BookOpen, Scale, Landmark, ScrollText
+  History, ArrowRight, BookOpen, Scale, Landmark, ScrollText, Globe
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -88,7 +88,8 @@ export default function AdminLegislacaoEditar() {
     estatuto: 'Estatutos',
     lei: 'Legislação Especial',
     estadual_sp: 'Estadual (SP)',
-    constituicao: 'Constituição'
+    constituicao: 'Constituição',
+    'tratados-convencoes': 'Tratados e Convenções'
   };
 
   const getCatInfo = (catName: string) => {
@@ -98,6 +99,7 @@ export default function AdminLegislacaoEditar() {
       case 'Legislação Especial': return { icon: Scale, color: '#10b981', desc: 'Leis esparsas e normativas' };
       case 'Estadual (SP)': return { icon: Landmark, color: '#3b82f6', desc: 'Leis do Estado de São Paulo' };
       case 'Constituição': return { icon: FileText, color: '#f59e0b', desc: 'Lei maior e normas fundamentais' };
+      case 'Tratados e Convenções': return { icon: Globe, color: '#0ea5e9', desc: 'Pactos, tratados e convenções internacionais' };
       default: return { icon: BookOpen, color: '#64748b', desc: 'Outras legislações' };
     }
   };
@@ -185,6 +187,12 @@ export default function AdminLegislacaoEditar() {
       if (!map[key]) map[key] = [];
       map[key].push(l);
     }
+    
+    // Forçar a exibição de categorias vazias que o admin quer ver
+    if (viewMode === 'categorias' && !map['Tratados e Convenções'] && !q) {
+      map['Tratados e Convenções'] = [];
+    }
+    
     return map;
   }, [leis, busca, viewMode]);
 
