@@ -42,14 +42,14 @@ import { toggleArtigoFavorito, listNumerosFavoritosByTabela, ARTIGOS_FAV_EVENT }
 import { isFavorito as isLeiFavorita, toggleFavorito as toggleLeiFavorito, LEIS_FAVORITOS_EVENT } from '@/lib/leisFavoritos';
 
 const TIPO_CONFIG: Record<string, { label: string; icon: React.ElementType; bg: string }> = {
-  constituicao: { label: 'ConstituiÃƒÂ§ÃƒÂ£o', icon: Landmark, bg: 'from-amber-500/90 to-amber-700/80' },
-  codigo: { label: 'CÃƒÂ³digos', icon: Scale, bg: 'from-sky-500/90 to-sky-700/80' },
+  constituicao: { label: 'Constituição', icon: Landmark, bg: 'from-amber-500/90 to-amber-700/80' },
+  codigo: { label: 'Códigos', icon: Scale, bg: 'from-sky-500/90 to-sky-700/80' },
   estatuto: { label: 'Estatutos', icon: Shield, bg: 'from-emerald-500/90 to-emerald-700/80' },
-  'lei-ordinaria': { label: 'Leis OrdinÃƒÂ¡rias', icon: FileText, bg: 'from-violet-500/90 to-violet-700/80' },
+  'lei-ordinaria': { label: 'Leis Ordinárias', icon: FileText, bg: 'from-violet-500/90 to-violet-700/80' },
   decreto: { label: 'Decretos', icon: ScrollText, bg: 'from-orange-500/90 to-orange-700/80' },
-  sumula: { label: 'JurisprudÃƒÂªncia', icon: Gavel, bg: 'from-pink-500/90 to-pink-700/80' },
+  sumula: { label: 'Jurisprudência', icon: Gavel, bg: 'from-pink-500/90 to-pink-700/80' },
   'lei-especial': { label: 'Leis Especiais', icon: BookMarked, bg: 'from-indigo-500/90 to-indigo-700/80' },
-  previdenciario: { label: 'PrevidenciÃƒÂ¡rio', icon: HeartPulse, bg: 'from-teal-500/90 to-teal-700/80' },
+  previdenciario: { label: 'Previdenciário', icon: HeartPulse, bg: 'from-teal-500/90 to-teal-700/80' },
 };
 
 const MOBILE_ARTIGOS_VIRTUAL_THRESHOLD = 120;
@@ -59,11 +59,11 @@ const LEI_ESPECIAL_SUBCATEGORIAS: { id: string; label: string; ids: Set<string> 
   { id: 'todas', label: 'Todas', ids: new Set() },
   { id: 'penal', label: 'Penal', ids: new Set(['lep','lmp','ld','loc','laa','lit','lat','lch','ltort','lca','lrac','llav','lcp','lcsf','lpt','lci']) },
   { id: 'admin', label: 'Administrativo', ids: new Set(['l8112','lia','nll','lpaf','lrf','lai','lap','lace','lotcu','ces','lomp','loman']) },
-  { id: 'civil', label: 'Civil / FamÃƒÂ­lia', ids: new Set(['lindb','li','lrp','la','lalp','lalim','lpsu','lda']) },
+  { id: 'civil', label: 'Civil / Família', ids: new Set(['lindb','li','lrp','la','lalp','lalim','lpsu','lda']) },
   { id: 'processual', label: 'Processual', ids: new Set(['lms','lacp','lje','lhd','lmi']) },
   { id: 'empresarial', label: 'Empresarial', ids: new Set(['lf','lgpd','mci','lsa','lpi','lcon','lppp','lcade','lle','lmls','lrt']) },
   { id: 'eleitoral', label: 'Eleitoral', ids: new Set(['lpp','lele','lfl','line']) },
-  { id: 'social', label: 'Social / SaÃƒÂºde', ids: new Set(['ldb','lsus','lbio']) },
+  { id: 'social', label: 'Social / Saúde', ids: new Set(['ldb','lsus','lbio']) },
 ];
 
 const LEI_ICON_MAP: Record<string, React.ElementType> = {
@@ -91,13 +91,13 @@ const CategoriaLegislacao = () => {
   const tipo = rawTipo ? slugToTipo(rawTipo) : rawTipo;
   const navigate = useNavigate();
   const location = useLocation();
-  // Mobile/tablet nÃƒÂ£o tÃƒÂªm telas de lista intermediÃƒÂ¡rias por categoria Ã¢â‚¬â€ as
-  // categorias abrem por bottom-sheet a partir da home. EntÃƒÂ£o o botÃƒÂ£o voltar
-  // de qualquer lei (ConstituiÃƒÂ§ÃƒÂ£o, CÃƒÂ³digos, Estatutos, Leis OrdinÃƒÂ¡rias, Lei
-  // Penal Especial, JurisprudÃƒÂªncia, etc.) sempre retorna direto para "/".
+  // Mobile/tablet não têm telas de lista intermediárias por categoria — as
+  // categorias abrem por bottom-sheet a partir da home. Então o botão voltar
+  // de qualquer lei (Constituição, Códigos, Estatutos, Leis Ordinárias, Lei
+  // Penal Especial, Jurisprudência, etc.) sempre retorna direto para "/".
   const goBack = useCallback(() => {
     // Prefer the browser back stack when the previous entry belongs to this
-    // app Ã¢â‚¬â€ it restores the home instantly (with scroll position) instead of
+    // app — it restores the home instantly (with scroll position) instead of
     // pushing a fresh "/" entry that has to remount + re-hydrate.
     try {
       const ref = document.referrer;
@@ -111,7 +111,7 @@ const CategoriaLegislacao = () => {
   }, [navigate]);
   // Prefetch the home route chunks on mount so tapping "Voltar" from a heavy
   // law page paints the home instantly instead of waiting on a lazy import.
-  // AdminPassoAPassoLojas Ã¢â€ â€™ AdminFuncoes feels instant because both are small
+  // AdminPassoAPassoLojas → AdminFuncoes feels instant because both are small
   // chunks already in cache; law pages weren't warming Index.
   useEffect(() => {
     const id = (window as any).requestIdleCallback?.(() => {
@@ -167,7 +167,7 @@ const CategoriaLegislacao = () => {
   
   const { focusMode, setFocusMode, fontSizeScale, setFontSizeScale } = useLeituraStore();
   
-  // Coreografia de entrada: search+abas Ã¢â€ â€™ lista Ã¢â€ â€™ rodapÃƒÂ©
+  // Coreografia de entrada: search+abas → lista → rodapé
   const [showFooter, setShowFooter] = useState(false);
   useEffect(() => {
     if (!selectedLeiId) { setShowFooter(false); return; }
@@ -218,7 +218,7 @@ const CategoriaLegislacao = () => {
       return saved ? new Set(JSON.parse(saved)) : new Set();
     } catch { return new Set(); }
   });
-  // Leis OrdinÃƒÂ¡rias state
+  // Leis Ordinárias state
   const [selectedAno, setSelectedAno] = useState<number | null>(null);
   const [leisOrdinarias, setLeisOrdinarias] = useState<LeiOrdinaria[]>([]);
   const [loadingLeisOrd, setLoadingLeisOrd] = useState(false);
@@ -230,7 +230,7 @@ const CategoriaLegislacao = () => {
   const [loadingDecretos, setLoadingDecretos] = useState(false);
   const [searchDecretos, setSearchDecretos] = useState('');
   const [openDecreto, setOpenDecreto] = useState<LeiOrdinaria | null>(null);
-  // SÃƒÂºmulas state
+  // Súmulas state
   const [selectedTribunal, setSelectedTribunal] = useState<string | null>(null);
   const [sumulas, setSumulas] = useState<Sumula[]>([]);
   const [loadingSumulas, setLoadingSumulas] = useState(false);
@@ -270,7 +270,7 @@ const CategoriaLegislacao = () => {
     return () => { cancelled = true; };
   }, [selectedTabelaNome]);
 
-  // Hidrata os favoritos (Meus Artigos) do usuÃƒÂ¡rio para a lei selecionada.
+  // Hidrata os favoritos (Meus Artigos) do usuário para a lei selecionada.
   useEffect(() => {
     if (!selectedTabelaNome) { setFavArtigoNumeros(new Set()); return; }
     let cancelled = false;
@@ -285,7 +285,7 @@ const CategoriaLegislacao = () => {
     return () => { cancelled = true; window.removeEventListener(ARTIGOS_FAV_EVENT, onChange); };
   }, [selectedTabelaNome]);
 
-  // Re-render quando o favorito da prÃƒÂ³pria lei mudar.
+  // Re-render quando o favorito da própria lei mudar.
   useEffect(() => {
     const bump = () => setLeiFavToggle((n) => n + 1);
     window.addEventListener(LEIS_FAVORITOS_EVENT, bump);
@@ -304,7 +304,7 @@ const CategoriaLegislacao = () => {
     setDbAlteracoes([]);
     setLoadingDbAlteracoes(false);
   }, [overlayPanel, selectedTabelaNome]);
-  // 53. BotÃƒÂ£o 'Esc' Global
+  // 53. Botão 'Esc' Global
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && overlayPanel) {
@@ -386,7 +386,7 @@ const CategoriaLegislacao = () => {
     });
   }, [selectedTabelaNome, selectedLeiId, selectedLeiNome]);
 
-  // Player flutuante de narraÃƒÂ§ÃƒÂ£o: quando a pessoa clica pra voltar ao artigo
+  // Player flutuante de narração: quando a pessoa clica pra voltar ao artigo
   useEffect(() => {
     const handler = (ev: Event) => {
       const detail = (ev as CustomEvent).detail as { artigo?: ArtigoLei } | undefined;
@@ -436,7 +436,7 @@ const CategoriaLegislacao = () => {
       localStorage.setItem('vademecum-favoritos', JSON.stringify([...next]));
       return next;
     });
-    // PersistÃƒÂªncia real em Supabase (para aparecer em Meu EspaÃƒÂ§o Ã¢â€ â€™ Meus Artigos)
+    // Persistência real em Supabase (para aparecer em Meu Espaço → Meus Artigos)
     const artigo = artigos.find((a) => a.id === id);
     if (artigo && selectedTabelaNome) {
       const numero = String(artigo.numero || '').replace(/^Art\.\s*/i, '').trim() || String(artigo.numero || '');
@@ -469,7 +469,7 @@ const CategoriaLegislacao = () => {
           return next;
         });
         setPremiumGateFeature('favorito');
-        setPremiumGateDesc(`Contas gratuitas podem manter atÃƒÂ© ${err.limite} artigos favoritos. Comece 7 dias grÃƒÂ¡tis para favoritar sem limite.`);
+        setPremiumGateDesc(`Contas gratuitas podem manter até ${err.limite} artigos favoritos. Comece 7 dias grátis para favoritar sem limite.`);
         setShowPremiumGate(true);
       });
     }
@@ -484,7 +484,7 @@ const CategoriaLegislacao = () => {
   const UF_ESTADUAL = tipo && /^estadual_([a-z]{2})$/i.exec(tipo)?.[1]?.toUpperCase();
   const config = tipo
     ? (TIPO_CONFIG[tipo] || (UF_ESTADUAL
-        ? { label: `LegislaÃƒÂ§ÃƒÂ£o ${UF_ESTADUAL}`, icon: Landmark, bg: 'from-emerald-500/90 to-emerald-700/80' }
+        ? { label: `Legislação ${UF_ESTADUAL}`, icon: Landmark, bg: 'from-emerald-500/90 to-emerald-700/80' }
         : null))
     : null;
   const Icon = config?.icon || Scale;
@@ -510,16 +510,16 @@ const CategoriaLegislacao = () => {
     });
   }, [tipo]);
 
-  // Prefetch artigos em background para carregamento instantÃƒÂ¢neo (paralelo)
+  // Prefetch artigos em background para carregamento instantâneo (paralelo)
   useEffect(() => {
     if (leis.length === 0) return;
     // Use the centralized parallel prefetch
     prefetchAllArtigos(4);
-    // Aquece o cache das capas (CDN Ã¢â€ â€™ memÃƒÂ³ria do browser) para abrir instantÃƒÂ¢neo
+    // Aquece o cache das capas (CDN → memória do browser) para abrir instantâneo
     warmCoverCache();
   }, [leis]);
 
-  // Jump to top when selecting a lei (instant Ã¢â‚¬â€ the PageTransition zoom-in
+  // Jump to top when selecting a lei (instant — the PageTransition zoom-in
   // already provides the sense of movement; smooth scroll adds 250-300ms of
   // dead time before the list becomes visible).
   useEffect(() => {
@@ -548,10 +548,10 @@ const CategoriaLegislacao = () => {
     }
   }, [location.state]);
 
-  // Auto-select lei baseado no slug da URL (padrÃƒÂ£o novo /legislacao/<tipo>/<leiSlug>).
+  // Auto-select lei baseado no slug da URL (padrão novo /legislacao/<tipo>/<leiSlug>).
   useEffect(() => {
     if (!tipo) return;
-    // ConstituiÃƒÂ§ÃƒÂ£o ÃƒÂ© ÃƒÂºnica no seu tipo: URL canÃƒÂ´nica ÃƒÂ© /legislacao/constituicao.
+    // Constituição é única no seu tipo: URL canônica é /legislacao/constituicao.
     // Se vier com slug redundante (ex.: /legislacao/constituicao/constituicao-federal),
     // redireciona para a rota curta.
     if (tipo === 'constituicao') {
@@ -579,7 +579,7 @@ const CategoriaLegislacao = () => {
       if (artigoNumeroParam) setPendingArtigoNumero(artigoNumeroParam);
       return;
     }
-    // Fallback: tipos dinÃƒÂ¢micos (estaduais) Ã¢â‚¬â€ casa contra a lista carregada do banco
+    // Fallback: tipos dinâmicos (estaduais) — casa contra a lista carregada do banco
     const s = leiSlugParam.toLowerCase();
     const dyn = leis.find(l => l.tabela_nome.toLowerCase() === s);
     if (dyn) {
@@ -592,7 +592,7 @@ const CategoriaLegislacao = () => {
   }, [leiSlugParam, tipo, artigoNumeroParam, leis, navigate]);
 
 
-  // Fetch leis ordinÃƒÂ¡rias when year selected
+  // Fetch leis ordinárias when year selected
   useEffect(() => {
     if (!selectedAno) return;
     setLoadingLeisOrd(true);
@@ -670,7 +670,7 @@ const CategoriaLegislacao = () => {
     let cancelled = false;
     const tabelaAtual = selectedTabelaNome;
 
-    // 1) Cache em memÃƒÂ³ria Ã¢â‚¬â€ instant, sem spinner (bundle prime jÃƒÂ¡ rodou no boot).
+    // 1) Cache em memória — instant, sem spinner (bundle prime já rodou no boot).
     const cached = getCachedArtigos(tabelaAtual);
     if (cached && cached.length > 0) {
       setArtigos(cached);
@@ -685,8 +685,8 @@ const CategoriaLegislacao = () => {
       return () => { cancelled = true; };
     }
 
-    // 2) Corrida: bundle JSON local vs Dexie persistido Ã¢â‚¬â€ quem vier primeiro renderiza.
-    //    Ambos sÃƒÂ£o "instantÃƒÂ¢neos" no Android (bundle vem do APK, Dexie da IDB local).
+    // 2) Corrida: bundle JSON local vs Dexie persistido — quem vier primeiro renderiza.
+    //    Ambos são "instantâneos" no Android (bundle vem do APK, Dexie da IDB local).
     let settled = false;
     const settle = (arts: ArtigoLei[]) => {
       if (cancelled || settled || !arts || arts.length === 0) return;
@@ -700,7 +700,7 @@ const CategoriaLegislacao = () => {
       }).catch(() => {});
     };
 
-    // Bundle nativo (rÃƒÂ¡pido em Android Ã¢â‚¬â€ arquivo do APK).
+    // Bundle nativo (rápido em Android — arquivo do APK).
     import('@/services/lawsBundle').then(async ({ loadManifest, loadBundledLei, getBundleSlugForTabela }) => {
       const manifest = await loadManifest();
       if (!manifest || cancelled || settled) return;
@@ -763,9 +763,9 @@ const CategoriaLegislacao = () => {
         (a.numero || '').toLowerCase().includes(lower)
       );
     }
-    // Exact match by article number Ã¢â‚¬â€ "10" only matches Art. 10, not 100/101.
+    // Exact match by article number — "10" only matches Art. 10, not 100/101.
     return artigos.filter(a => {
-      const artNum = (a.numero || '').replace(/^art\.?\s*/i, '').replace(/[Ã‚ÂºÃ‚Â°]/g, '').trim().toLowerCase();
+      const artNum = (a.numero || '').replace(/^art\.?\s*/i, '').replace(/[º°]/g, '').trim().toLowerCase();
       return artNum === q;
     });
   }, [artigos, searchQuery]);
@@ -783,10 +783,10 @@ const CategoriaLegislacao = () => {
 
     // Find exact article by comparing extracted number
     const found = artigos.find(a => {
-      const artNum = a.numero.replace(/^art\.?\s*/i, '').replace(/[Ã‚ÂºÃ‚Â°]/g, '').trim();
+      const artNum = a.numero.replace(/^art\.?\s*/i, '').replace(/[º°]/g, '').trim();
       return artNum === digits;
     }) || artigos.find(a => {
-      const artNum = a.numero.replace(/^art\.?\s*/i, '').replace(/[Ã‚ÂºÃ‚Â°]/g, '').trim();
+      const artNum = a.numero.replace(/^art\.?\s*/i, '').replace(/[º°]/g, '').trim();
       return artNum.startsWith(digits);
     });
 
@@ -820,7 +820,7 @@ const CategoriaLegislacao = () => {
   };
 
 
-  // Auto-abre artigo especÃƒÂ­fico vindo da busca (NÃ‚Âº do Artigo) Ã¢â‚¬â€ sem animaÃƒÂ§ÃƒÂ£o de rolagem.
+  // Auto-abre artigo específico vindo da busca (Nº do Artigo) — sem animação de rolagem.
   useEffect(() => {
     if (!pendingArtigoNumero) return;
     if (artigos.length === 0) return;
@@ -828,11 +828,11 @@ const CategoriaLegislacao = () => {
     if (!digits) { setPendingArtigoNumero(null); return; }
     const found =
       artigos.find((a) => {
-        const artNum = a.numero.replace(/^art\.?\s*/i, '').replace(/[Ã‚ÂºÃ‚Â°]/g, '').trim();
+        const artNum = a.numero.replace(/^art\.?\s*/i, '').replace(/[º°]/g, '').trim();
         return artNum === digits;
       }) ||
       artigos.find((a) => {
-        const artNum = a.numero.replace(/^art\.?\s*/i, '').replace(/[Ã‚ÂºÃ‚Â°]/g, '').trim();
+        const artNum = a.numero.replace(/^art\.?\s*/i, '').replace(/[º°]/g, '').trim();
         return artNum.startsWith(digits);
       });
     if (found) {
@@ -846,20 +846,20 @@ const CategoriaLegislacao = () => {
 
 
 
-  // Show tÃƒÂ­tulos for laws that have them (check if artigos have titulo filled)
+  // Show títulos for laws that have them (check if artigos have titulo filled)
   const showTitulos = useMemo(() => {
     if (artigos.length === 0) return false;
     return artigos.some(a => a.titulo && a.titulo.trim() !== '');
   }, [artigos]);
 
-  // Build hierarchical groups: TÃƒÂ­tulo Ã¢â€ â€™ CapÃƒÂ­tulo Ã¢â€ â€™ Artigos
+  // Build hierarchical groups: Título → Capítulo → Artigos
   // If DB has `titulo`/`capitulo` columns filled, use them.
-  // Otherwise, derive from inline structural rows (numero = "TÃƒÂTULO I", "CAPÃƒÂTULO II"...).
+  // Otherwise, derive from inline structural rows (numero = "TÍTULO I", "CAPÍTULO II"...).
   const capituloGroups = useMemo(() => {
-    const isTituloRow = (n: string) => /^\s*T[ÃƒÂI]TULO\s+[IVXLCDM0-9]/i.test(n || '');
-    const isCapituloRow = (n: string) => /^\s*CAP[ÃƒÂI]TULO\s+[IVXLCDM0-9]/i.test(n || '');
+    const isTituloRow = (n: string) => /^\s*T[ÍI]TULO\s+[IVXLCDM0-9]/i.test(n || '');
+    const isCapituloRow = (n: string) => /^\s*CAP[ÍI]TULO\s+[IVXLCDM0-9]/i.test(n || '');
     const isStructuralRow = (n: string) =>
-      /^\s*(PARTE|LIVRO|T[ÃƒÂI]TULO|CAP[ÃƒÂI]TULO|SE[Ãƒâ€¡C][ÃƒÆ’A]O|SUBSE[Ãƒâ€¡C][ÃƒÆ’A]O)\s+[IVXLCDM0-9]/i.test(n || '');
+      /^\s*(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\s+[IVXLCDM0-9]/i.test(n || '');
 
     type CapGroup = { capitulo: string; artigos: typeof artigos };
     type TituloGroup = { titulo: string; capitulos: CapGroup[] };
@@ -882,8 +882,8 @@ const CategoriaLegislacao = () => {
 
     if (showTitulos) {
       for (const art of artigos) {
-        const rawTitulo = art.titulo || 'Sem tÃƒÂ­tulo';
-        const tituloKey = rawTitulo === 'Sem tÃƒÂ­tulo' ? 'TÃƒÂTULO I - DA APLICAÃƒâ€¡ÃƒÆ’O DA LEI PENAL' : rawTitulo;
+        const rawTitulo = art.titulo || 'Sem título';
+        const tituloKey = rawTitulo === 'Sem título' ? 'TÍTULO I - DA APLICAÇÃO DA LEI PENAL' : rawTitulo;
         const capKey = art.capitulo || '__sem_capitulo__';
         const t = ensureTitulo(tituloKey);
         ensureCap(t, capKey).artigos.push(art);
@@ -901,8 +901,8 @@ const CategoriaLegislacao = () => {
       if (isTituloRow(num)) {
         sawStructural = true;
         let sub = (art.caput || '').replace(/<[^>]+>/g, '').trim();
-        // Remove eventual repetiÃƒÂ§ÃƒÂ£o do prÃƒÂ³prio header no inÃƒÂ­cio do subtÃƒÂ­tulo
-        const dupRe = new RegExp(`^${num.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[-Ã¢â‚¬â€œÃ¢â‚¬â€:]?\\s*`, 'i');
+        // Remove eventual repetição do próprio header no início do subtítulo
+        const dupRe = new RegExp(`^${num.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[-–—:]?\\s*`, 'i');
         sub = sub.replace(dupRe, '').trim();
         currentTitulo = sub ? `${num} - ${sub}` : num;
         currentCapitulo = null;
@@ -911,10 +911,10 @@ const CategoriaLegislacao = () => {
       if (isCapituloRow(num)) {
         sawStructural = true;
         let sub = (art.caput || '').replace(/<[^>]+>/g, '').trim();
-        const dupRe = new RegExp(`^${num.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[-Ã¢â‚¬â€œÃ¢â‚¬â€:]?\\s*`, 'i');
+        const dupRe = new RegExp(`^${num.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[-–—:]?\\s*`, 'i');
         sub = sub.replace(dupRe, '').trim();
         currentCapitulo = sub ? `${num} - ${sub}` : num;
-        if (!currentTitulo) currentTitulo = 'TÃƒÂTULO ÃƒÅ¡NICO';
+        if (!currentTitulo) currentTitulo = 'TÍTULO ÚNICO';
         continue;
       }
       if (isStructuralRow(num)) continue;
@@ -951,7 +951,7 @@ const CategoriaLegislacao = () => {
                 const el = document.getElementById(`artigo-${capGroup.artigos[0].id}`);
                 if (el) {
                   const rect = el.getBoundingClientRect();
-                  // Se o topo do primeiro artigo do capÃƒÂ­tulo passou da linha de 300px, 
+                  // Se o topo do primeiro artigo do capítulo passou da linha de 300px, 
                   // consideramos ele como o "ativo" mais recente.
                   if (rect.top <= 350) {
                     activeCapKey = `${tGroup.titulo}__${capGroup.capitulo}`;
@@ -1037,7 +1037,7 @@ const CategoriaLegislacao = () => {
   const virtualItems = artigosVirtualizer.getVirtualItems();
   const firstVisibleIndex = virtualItems.length > 0 ? virtualItems[0].index : 0;
 
-  // Mini-sumÃƒÂ¡rio flutuante (PARTE GERAL, etc.) foi removido a pedido do usuÃƒÂ¡rio.
+  // Mini-sumário flutuante (PARTE GERAL, etc.) foi removido a pedido do usuário.
 
   // Handle cross references internally
   const handleCrossReferenceClick = (artigoNum: string) => {
@@ -1045,9 +1045,9 @@ const CategoriaLegislacao = () => {
   };
 
 
-  // View: Leis OrdinÃƒÂ¡rias Ã¢â‚¬â€ year selection + list
+  // View: Leis Ordinárias — year selection + list
   if (tipo === 'lei-ordinaria' && !selectedLeiId) {
-    // If viewing a specific lei ordinÃƒÂ¡ria detail
+    // If viewing a specific lei ordinária detail
     if (openLeiOrd) {
       return (
         <LeiOrdinariaDetail
@@ -1075,7 +1075,7 @@ const CategoriaLegislacao = () => {
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="font-display text-2xl text-white font-bold">Leis OrdinÃƒÂ¡rias Ã¢â‚¬â€ {selectedAno}</h1>
+                  <h1 className="font-display text-2xl text-white font-bold">Leis Ordinárias — {selectedAno}</h1>
                   <p className="text-white/70 text-sm">{leisOrdinarias.length} leis</p>
                 </div>
               </div>
@@ -1086,7 +1086,7 @@ const CategoriaLegislacao = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nÃƒÂºmero ou ementa..."
+                placeholder="Buscar por número ou ementa..."
                 value={searchLeisOrd}
                 onChange={(e) => setSearchLeisOrd(e.target.value)}
                 className="pl-10 bg-secondary border-border"
@@ -1096,7 +1096,7 @@ const CategoriaLegislacao = () => {
             {loadingLeisOrd ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                <p className="text-muted-foreground text-sm">Carregando leis ordinÃƒÂ¡rias...</p>
+                <p className="text-muted-foreground text-sm">Carregando leis ordinárias...</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -1160,7 +1160,7 @@ const CategoriaLegislacao = () => {
                 <FileText className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="font-display text-2xl text-white font-bold">Leis OrdinÃƒÂ¡rias</h1>
+                <h1 className="font-display text-2xl text-white font-bold">Leis Ordinárias</h1>
                 <p className="text-white/70 text-sm">Selecione o ano</p>
               </div>
             </div>
@@ -1186,7 +1186,7 @@ const CategoriaLegislacao = () => {
                   <h3 className="font-display text-2xl text-foreground group-hover:text-primary transition-colors font-bold">
                     {ano}
                   </h3>
-                  <p className="text-muted-foreground text-sm">Leis OrdinÃƒÂ¡rias</p>
+                  <p className="text-muted-foreground text-sm">Leis Ordinárias</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors ml-auto" />
               </motion.button>
@@ -1197,7 +1197,7 @@ const CategoriaLegislacao = () => {
     );
   }
 
-  // View: Decretos Ã¢â‚¬â€ year selection + list (same pattern as lei-ordinaria)
+  // View: Decretos — year selection + list (same pattern as lei-ordinaria)
   if (tipo === 'decreto' && !selectedLeiId) {
     if (openDecreto) {
       return (
@@ -1225,7 +1225,7 @@ const CategoriaLegislacao = () => {
                   <ScrollText className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="font-display text-2xl text-white font-bold">Decretos Ã¢â‚¬â€ {selectedAnoDecreto}</h1>
+                  <h1 className="font-display text-2xl text-white font-bold">Decretos — {selectedAnoDecreto}</h1>
                   <p className="text-white/70 text-sm">{decretos.length} decretos</p>
                 </div>
               </div>
@@ -1236,7 +1236,7 @@ const CategoriaLegislacao = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nÃƒÂºmero ou ementa..."
+                placeholder="Buscar por número ou ementa..."
                 value={searchDecretos}
                 onChange={(e) => setSearchDecretos(e.target.value)}
                 className="pl-10 bg-secondary border-border"
@@ -1347,7 +1347,7 @@ const CategoriaLegislacao = () => {
     );
   }
 
-  // View: SÃƒÂºmulas Ã¢â‚¬â€ tribunal selection + list
+  // View: Súmulas — tribunal selection + list
   if (tipo === 'sumula' && !selectedLeiId) {
     // If a tribunal is selected, show the list of sumulas
     if (selectedTribunal) {
@@ -1369,7 +1369,7 @@ const CategoriaLegislacao = () => {
                 </div>
                 <div>
                   <h1 className="font-display text-2xl text-white font-bold">{tribunalInfo?.nome || selectedTribunal}</h1>
-                  <p className="text-white/70 text-sm">{sumulas.length} sÃƒÂºmulas</p>
+                  <p className="text-white/70 text-sm">{sumulas.length} súmulas</p>
                 </div>
               </div>
             </div>
@@ -1379,7 +1379,7 @@ const CategoriaLegislacao = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nÃƒÂºmero ou enunciado..."
+                placeholder="Buscar por número ou enunciado..."
                 value={searchSumulas}
                 onChange={(e) => setSearchSumulas(e.target.value)}
                 className="pl-10 bg-secondary border-border"
@@ -1389,7 +1389,7 @@ const CategoriaLegislacao = () => {
             {loadingSumulas ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                <p className="text-muted-foreground text-sm">Carregando jurisprudÃƒÂªncia...</p>
+                <p className="text-muted-foreground text-sm">Carregando jurisprudência...</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -1413,7 +1413,7 @@ const CategoriaLegislacao = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
                           <h4 className="font-display text-[15px] font-bold text-primary-light">
-                            SÃƒÂºmula {selectedTribunal === 'STF_VINCULANTE' ? 'Vinculante ' : ''}{sumula.numero}
+                            Súmula {selectedTribunal === 'STF_VINCULANTE' ? 'Vinculante ' : ''}{sumula.numero}
                           </h4>
                           {sumula.situacao === 'cancelada' && (
                             <span className="text-[10px] bg-destructive/15 text-destructive px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
@@ -1435,13 +1435,13 @@ const CategoriaLegislacao = () => {
                   </motion.button>
                 ))}
                 {filteredSumulas.length === 0 && !loadingSumulas && (
-                  <p className="text-center text-muted-foreground py-8">Nenhuma jurisprudÃƒÂªncia encontrada.</p>
+                  <p className="text-center text-muted-foreground py-8">Nenhuma jurisprudência encontrada.</p>
                 )}
               </div>
             )}
           </div>
 
-          {/* Bottom sheet for sÃƒÂºmula detail */}
+          {/* Bottom sheet for súmula detail */}
           {openSumula && selectedTribunal === 'STF_VINCULANTE' && (
             <SumulaVinculanteSheet sumula={openSumula} onClose={() => setOpenSumula(null)} />
           )}
@@ -1449,7 +1449,7 @@ const CategoriaLegislacao = () => {
             <ArtigoBottomSheet
               artigo={{
                 id: openSumula.id,
-                numero: `SÃƒÂºmula ${selectedTribunal === 'STF_VINCULANTE' ? 'Vinculante ' : ''}${openSumula.numero}`,
+                numero: `Súmula ${selectedTribunal === 'STF_VINCULANTE' ? 'Vinculante ' : ''}${openSumula.numero}`,
                 caput: openSumula.enunciado,
               }}
               onClose={() => setOpenSumula(null)}
@@ -1484,7 +1484,7 @@ const CategoriaLegislacao = () => {
                 <Gavel className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="font-display text-2xl text-white font-bold">JurisprudÃƒÂªncia</h1>
+                <h1 className="font-display text-2xl text-white font-bold">Jurisprudência</h1>
                 <p className="text-white/70 text-sm">Selecione o tribunal</p>
               </div>
             </div>
@@ -1526,14 +1526,14 @@ const CategoriaLegislacao = () => {
 
   // View: artigos de uma lei selecionada
   if (selectedLeiId) {
-    const stripRedacaoFn = (s: string) => s.replace(/\s*\((?:RedaÃƒÂ§ÃƒÂ£o|IncluÃƒÂ­do|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '').trim();
+    const stripRedacaoFn = (s: string) => s.replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '').trim();
     const leiAccent = getLeiColor(selectedLeiId, tipo);
 
     // Desktop: chapters sidebar + articles
     const chaptersPanel = !loadingArtigos && capituloGroups.length > 0 && (
       <div className="space-y-2">
         <p className="text-[10px] font-body font-semibold text-muted-foreground uppercase tracking-wider px-1">
-          CapÃƒÂ­tulos ({totalCapitulos})
+          Capítulos ({totalCapitulos})
         </p>
         {/* "Todos" option to clear filter */}
         {isDesktop && expandedTitulo && (
@@ -1541,7 +1541,7 @@ const CategoriaLegislacao = () => {
             onClick={() => setExpandedTitulo(null)}
             className="w-full text-left px-3 py-2 rounded-lg text-xs font-body text-primary hover:bg-secondary transition-colors font-semibold"
           >
-            Ã¢â€ Â Todos os artigos
+            ← Todos os artigos
           </button>
         )}
         {capituloGroups.map((tGroup, ti) => (
@@ -1555,7 +1555,7 @@ const CategoriaLegislacao = () => {
               const capKey = `${tGroup.titulo}__${capGroup.capitulo}`;
               const isExpanded = expandedTitulo === capKey;
               const displayCap = capGroup.capitulo === '__sem_capitulo__'
-                ? 'DisposiÃƒÂ§ÃƒÂµes Gerais'
+                ? 'Disposições Gerais'
                 : stripRedacaoFn(capGroup.capitulo);
               return (
                 <button
@@ -1584,7 +1584,7 @@ const CategoriaLegislacao = () => {
       </div>
     );
 
-    // Articles content Ã¢â‚¬â€ skeleton matches real ArtigoCard height to avoid layout jump
+    // Articles content — skeleton matches real ArtigoCard height to avoid layout jump
     const articlesContent = loadingArtigos ? (
       <div className="space-y-2 pb-8" aria-busy="true">
         {Array.from({ length: 8 }).map((_, i) => (
@@ -1664,16 +1664,16 @@ const CategoriaLegislacao = () => {
     ) : activeTab === 'cap' ? (
       <div className="space-y-3 pb-8">
         {(() => {
-          const splitRe = /^((?:PARTE|LIVRO|T[ÃƒÂI]TULO|CAP[ÃƒÂI]TULO|SE[Ãƒâ€¡C][ÃƒÆ’A]O|SUBSE[Ãƒâ€¡C][ÃƒÆ’A]O)\s+[IVXLCDM0-9Ã‚ÂºÃ‚Â°]+(?:-[A-Z])?)\s*[Ã¢â‚¬â€œÃ¢â‚¬â€\-:]?\s*(.+)$/i;
-          const _lowerWords = new Set(['a','ÃƒÂ ','ÃƒÂ s','ao','aos','o','os','as','e','ou','de','do','da','dos','das','em','no','na','nos','nas','por','para','com','sem','sob','sobre','entre','apÃƒÂ³s','ante','atÃƒÂ©','contra','desde','perante','trÃƒÂ¡s','um','uma','uns','umas']);
+          const splitRe = /^((?:PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\s+[IVXLCDM0-9º°]+(?:-[A-Z])?)\s*[–—\-:]?\s*(.+)$/i;
+          const _lowerWords = new Set(['a','à','às','ao','aos','o','os','as','e','ou','de','do','da','dos','das','em','no','na','nos','nas','por','para','com','sem','sob','sobre','entre','após','ante','até','contra','desde','perante','trás','um','uma','uns','umas']);
           const toTitleCase = (s: string) => s.toLowerCase().split(/(\s+)/).map((w, i) => {
             if (/^\s+$/.test(w) || !w) return w;
             if (i !== 0 && _lowerWords.has(w)) return w;
             return w.charAt(0).toUpperCase() + w.slice(1);
           }).join('');
-          // Se o ÃƒÂºnico "tÃƒÂ­tulo" ÃƒÂ© o sintÃƒÂ©tico TÃƒÂTULO ÃƒÅ¡NICO (lei que sÃƒÂ³ tem capÃƒÂ­tulos),
-          // renderiza os capÃƒÂ­tulos como cards de topo Ã¢â‚¬â€ sem o wrapper redundante.
-          const flatCapitulos = capituloGroups.length === 1 && capituloGroups[0].titulo === 'TÃƒÂTULO ÃƒÅ¡NICO';
+          // Se o único "título" é o sintético TÍTULO ÚNICO (lei que só tem capítulos),
+          // renderiza os capítulos como cards de topo — sem o wrapper redundante.
+          const flatCapitulos = capituloGroups.length === 1 && capituloGroups[0].titulo === 'TÍTULO ÚNICO';
           if (flatCapitulos) {
             const tGroup = capituloGroups[0];
             return tGroup.capitulos.map((capGroup, ci) => {
@@ -1681,7 +1681,7 @@ const CategoriaLegislacao = () => {
               const isCapExpanded = expandedTitulo === capKey;
               const fA = capGroup.artigos[0]?.numero || '';
               const lA = capGroup.artigos[capGroup.artigos.length - 1]?.numero || '';
-              const rawCap = capGroup.capitulo === '__sem_capitulo__' ? 'DisposiÃƒÂ§ÃƒÂµes Gerais' : stripRedacaoFn(capGroup.capitulo);
+              const rawCap = capGroup.capitulo === '__sem_capitulo__' ? 'Disposições Gerais' : stripRedacaoFn(capGroup.capitulo);
               const cMatch = rawCap.match(splitRe);
               const capHead = cMatch ? cMatch[1].trim() : rawCap;
               const capSub = cMatch ? cMatch[2].trim() : '';
@@ -1701,7 +1701,7 @@ const CategoriaLegislacao = () => {
                         <h5 className="font-serif text-base md:text-2xl font-bold text-foreground leading-snug mt-0.5">{toTitleCase(capSub)}</h5>
                       ) : null}
                       <p className="text-muted-foreground text-xs md:text-sm mt-1">
-                        {capGroup.artigos.length} artigos{fA && lA ? ` (${fA} Ã¢â‚¬â€œ ${lA})` : ''}
+                        {capGroup.artigos.length} artigos{fA && lA ? ` (${fA} – ${lA})` : ''}
                       </p>
                     </div>
                     <div className="flex items-center pr-4">
@@ -1724,9 +1724,9 @@ const CategoriaLegislacao = () => {
             const tMatch = rawTitulo.match(splitRe);
             const titHead = tMatch ? tMatch[1].trim() : rawTitulo;
             let titSub = tMatch ? tMatch[2].trim() : '';
-            // Remove duplicated head prefix (e.g. "TÃƒÂTULO I DISPOSIÃƒâ€¡Ãƒâ€¢ES PRELIMINARES" -> "DISPOSIÃƒâ€¡Ãƒâ€¢ES PRELIMINARES")
+            // Remove duplicated head prefix (e.g. "TÍTULO I DISPOSIÇÕES PRELIMINARES" -> "DISPOSIÇÕES PRELIMINARES")
             if (titSub && titHead) {
-              const dupRe = new RegExp(`^${titHead.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\s*[-Ã¢â‚¬â€œÃ¢â‚¬â€:]?\\s*`, 'i');
+              const dupRe = new RegExp(`^${titHead.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\s*[-–—:]?\\s*`, 'i');
               titSub = titSub.replace(dupRe, '').trim();
             }
             const totalArts = tGroup.capitulos.reduce((s, c) => s + c.artigos.length, 0);
@@ -1758,7 +1758,7 @@ const CategoriaLegislacao = () => {
                       </h5>
                     )}
                     <p className="text-muted-foreground text-xs md:text-sm mt-1.5">
-                      {totalArts} artigos{firstArt && lastArt ? ` (${firstArt} Ã¢â‚¬â€œ ${lastArt})` : ''}
+                      {totalArts} artigos{firstArt && lastArt ? ` (${firstArt} – ${lastArt})` : ''}
                     </p>
                   </div>
                   <div className="flex items-center pr-4">
@@ -1778,13 +1778,13 @@ const CategoriaLegislacao = () => {
                         const fA = capGroup.artigos[0]?.numero || '';
                         const lA = capGroup.artigos[capGroup.artigos.length - 1]?.numero || '';
                         const rawCap = capGroup.capitulo === '__sem_capitulo__'
-                          ? 'DisposiÃƒÂ§ÃƒÂµes Gerais'
+                          ? 'Disposições Gerais'
                           : stripRedacaoFn(capGroup.capitulo);
                         const cMatch = rawCap.match(splitRe);
                         const capHead = cMatch ? cMatch[1].trim() : rawCap;
                         let capSub = cMatch ? cMatch[2].trim() : '';
                         if (capSub && capHead) {
-                          const dupRe = new RegExp(`^${capHead.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\s*[-Ã¢â‚¬â€œÃ¢â‚¬â€:]?\\s*`, 'i');
+                          const dupRe = new RegExp(`^${capHead.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\s*[-–—:]?\\s*`, 'i');
                           capSub = capSub.replace(dupRe, '').trim();
                         }
                         return (
@@ -1804,7 +1804,7 @@ const CategoriaLegislacao = () => {
                                 ) : (
                                   <h6 className="font-display text-base md:text-2xl font-bold text-foreground leading-snug">{capHead}</h6>
                                 )}
-                                <p className="text-muted-foreground text-[11px] md:text-xs mt-1">{capGroup.artigos.length} artigos ({fA} Ã¢â‚¬â€œ {lA})</p>
+                                <p className="text-muted-foreground text-[11px] md:text-xs mt-1">{capGroup.artigos.length} artigos ({fA} – {lA})</p>
                               </div>
                               <div className="flex items-center pr-3">
                                 <ChevronRight
@@ -1839,13 +1839,13 @@ const CategoriaLegislacao = () => {
     ) : activeTab === 'lot' ? (
       <div className="space-y-5 pb-8">
         {(() => {
-          const stripRe = (s: string) => s.replace(/\s*\((?:RedaÃƒÂ§ÃƒÂ£o|IncluÃƒÂ­do|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '').trim();
+          const stripRe = (s: string) => s.replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '').trim();
           const formatNumero = (n: string) => {
             const raw = (n || '').trim();
-            // "5-A" / "5 A" / "5Ã‚Âº-A" Ã¢â€ â€™ "5A"; "5Ã‚Âº" Ã¢â€ â€™ "5"; keep letters
-            const m = raw.match(/^(\d+)\s*[Ã‚ÂºoÃ‚Â°]?\s*[-Ã¢â‚¬â€œ\s]?\s*([A-Za-z]?)$/);
+            // "5-A" / "5 A" / "5º-A" → "5A"; "5º" → "5"; keep letters
+            const m = raw.match(/^(\d+)\s*[ºo°]?\s*[-–\s]?\s*([A-Za-z]?)$/);
             if (m) return `${m[1]}${(m[2] || '').toUpperCase()}`;
-            return raw.replace(/[Ã‚ÂºoÃ‚Â°]/g, '');
+            return raw.replace(/[ºo°]/g, '');
           };
           if (capituloGroups.length === 0) {
             // Fallback flat grid when no chapters
@@ -1868,7 +1868,7 @@ const CategoriaLegislacao = () => {
           }
           return capituloGroups.map((tGroup, ti) => (
             <div key={ti} className="space-y-3">
-              {stripRe(tGroup.titulo) && !/^T[ÃƒÂI]TULO\s+[ÃƒÅ¡U]NICO$/i.test(stripRe(tGroup.titulo)) && (
+              {stripRe(tGroup.titulo) && !/^T[ÍI]TULO\s+[ÚU]NICO$/i.test(stripRe(tGroup.titulo)) && (
                 <p className="text-primary text-[11px] font-bold uppercase tracking-wider">
                   {stripRe(tGroup.titulo)}
                 </p>
@@ -1915,8 +1915,8 @@ const CategoriaLegislacao = () => {
         ) : (
           <div className={`flex flex-col items-center py-16 gap-3 ${isDesktop ? 'col-span-2' : ''}`}>
             <Heart className="w-10 h-10 text-muted-foreground/40" />
-            <p className="text-foreground text-sm font-medium">VocÃƒÂª nÃƒÂ£o tem nenhum artigo favoritado</p>
-            <p className="text-muted-foreground/70 text-xs text-center max-w-[240px]">Toque no coraÃƒÂ§ÃƒÂ£o ao abrir um artigo para favoritÃƒÂ¡-lo.</p>
+            <p className="text-foreground text-sm font-medium">Você não tem nenhum artigo favoritado</p>
+            <p className="text-muted-foreground/70 text-xs text-center max-w-[240px]">Toque no coração ao abrir um artigo para favoritá-lo.</p>
           </div>
         )}
       </div>
@@ -1933,8 +1933,8 @@ const CategoriaLegislacao = () => {
         return (
           <div className="flex flex-col items-center py-12 gap-2">
             <ListMusic className="w-8 h-8 text-muted-foreground/40" />
-            <p className="text-muted-foreground text-sm">Nenhuma narraÃƒÂ§ÃƒÂ£o disponÃƒÂ­vel.</p>
-            <p className="text-muted-foreground/60 text-xs">Gere narraÃƒÂ§ÃƒÂµes na tela de NarraÃƒÂ§ÃƒÂ£o de Artigos.</p>
+            <p className="text-muted-foreground text-sm">Nenhuma narração disponível.</p>
+            <p className="text-muted-foreground/60 text-xs">Gere narrações na tela de Narração de Artigos.</p>
           </div>
         );
       }
@@ -1948,7 +1948,7 @@ const CategoriaLegislacao = () => {
       return (
         <div className="space-y-2 pb-8">
           <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-3">
-            Ã°Å¸Å½Â§ {narradosArtigos.length} artigo{narradosArtigos.length !== 1 ? 's' : ''} narrado{narradosArtigos.length !== 1 ? 's' : ''}
+            🎧 {narradosArtigos.length} artigo{narradosArtigos.length !== 1 ? 's' : ''} narrado{narradosArtigos.length !== 1 ? 's' : ''}
           </p>
           {narradosArtigos.map((artigo, i) => {
             const audioUrl = playlistNarracoes[artigo.numero];
@@ -1995,16 +1995,16 @@ const CategoriaLegislacao = () => {
       <div className="space-y-2 pb-8">
         <div className="flex flex-col items-center py-12 gap-2">
           <StickyNote className="w-8 h-8 text-muted-foreground/40" />
-          <p className="text-muted-foreground text-sm">Nenhuma anotaÃƒÂ§ÃƒÂ£o ainda.</p>
-          <p className="text-muted-foreground/60 text-xs">Grife um trecho e adicione um comentÃƒÂ¡rio para criar anotaÃƒÂ§ÃƒÂµes.</p>
+          <p className="text-muted-foreground text-sm">Nenhuma anotação ainda.</p>
+          <p className="text-muted-foreground/60 text-xs">Grife um trecho e adicione um comentário para criar anotações.</p>
         </div>
       </div>
     );
 
     const novidadesContent = (() => {
-      const modRegex = /\((?:RedaÃƒÂ§ÃƒÂ£o\s+dada|IncluÃƒÂ­d[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Regulamento|Vide|PromulgaÃƒÂ§ÃƒÂ£o|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|ProduÃƒÂ§ÃƒÂ£o de efeito)[^)\n]*(?:\)|$)/gi;
+      const modRegex = /\((?:Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Regulamento|Vide|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)\n]*(?:\)|$)/gi;
       const yearRegex = /\b(1\d{3}|20\d{2})\b/;
-      const typeRegex = /^\((RedaÃƒÂ§ÃƒÂ£o\s+dada|IncluÃƒÂ­d[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Regulamento|Vide|PromulgaÃƒÂ§ÃƒÂ£o|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|ProduÃƒÂ§ÃƒÂ£o de efeito)/i;
+      const typeRegex = /^\((Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Regulamento|Vide|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)/i;
 
       type ModItem = { artigo: ArtigoLei; tipo: string; referencia: string; ano: number; parteModificada: string; leiNome: string; linhasModificadas: number[]; fromMonitor?: boolean };
       const items: ModItem[] = [];
@@ -2019,8 +2019,8 @@ const CategoriaLegislacao = () => {
           const refKey = ref.replace(/^\(/, '').replace(/\)$/, '');
           const tm = ref.match(typeRegex);
           const ym = ref.match(yearRegex);
-          let tipo = tm ? tm[1].replace(/\s+dada/i, '') : 'AlteraÃƒÂ§ÃƒÂ£o';
-          if (/^redaÃƒÂ§/i.test(tipo)) tipo = 'Alterada';
+          let tipo = tm ? tm[1].replace(/\s+dada/i, '') : 'Alteração';
+          if (/^redaç/i.test(tipo)) tipo = 'Alterada';
           const ano = ym ? parseInt(ym[1]) : 0;
           if (!refGroups.has(refKey)) {
             refGroups.set(refKey, { indices: [], tipo, ref: refKey, ano });
@@ -2032,17 +2032,17 @@ const CategoriaLegislacao = () => {
           let parteModificada = 'Caput';
           const firstModLine = lines[group.indices[0]];
 
-          if (/^Ã‚Â§\s*\d+[Ã‚ÂºÃ‚Â°]?/i.test(firstModLine)) {
-            const pMatch = firstModLine.match(/^(Ã‚Â§\s*\d+[Ã‚ÂºÃ‚Â°]?)/i);
-            parteModificada = pMatch ? pMatch[1].replace(/Ã‚Â°/g, 'Ã‚Âº') : 'Ã‚Â§';
-          } else if (/^[IVXLC]+\s*[-Ã¢â‚¬â€œ.]/i.test(firstModLine)) {
+          if (/^§\s*\d+[º°]?/i.test(firstModLine)) {
+            const pMatch = firstModLine.match(/^(§\s*\d+[º°]?)/i);
+            parteModificada = pMatch ? pMatch[1].replace(/°/g, 'º') : '§';
+          } else if (/^[IVXLC]+\s*[-–.]/i.test(firstModLine)) {
             const iMatch = firstModLine.match(/^([IVXLC]+)/i);
             parteModificada = iMatch ? `Inciso ${iMatch[1]}` : 'Inciso';
           } else if (/^[a-z]\)\s/i.test(firstModLine)) {
             const aMatch = firstModLine.match(/^([a-z]\))/i);
-            parteModificada = aMatch ? `AlÃƒÂ­nea ${aMatch[1]}` : 'AlÃƒÂ­nea';
-          } else if (/^ParÃƒÂ¡grafo\s+ÃƒÂºnico/i.test(firstModLine)) {
-            parteModificada = 'ParÃƒÂ¡grafo ÃƒÂºnico';
+            parteModificada = aMatch ? `Alínea ${aMatch[1]}` : 'Alínea';
+          } else if (/^Parágrafo\s+único/i.test(firstModLine)) {
+            parteModificada = 'Parágrafo único';
           } else if (group.indices.length === lines.length && lines.length === 1) {
             parteModificada = 'Artigo inteiro';
           } else if (group.indices.includes(0)) {
@@ -2056,7 +2056,7 @@ const CategoriaLegislacao = () => {
           if (group.indices.length > 1) {
             parteModificada += ` (+${group.indices.length - 1})`;
           }
-          const leiMatch = refKey.match(/(?:Lei(?:\s+Complementar)?|Decreto(?:-Lei)?|Emenda\s+Constitucional|Medida\s+ProvisÃƒÂ³ria)\s+n[Ã‚ÂºÃ‚Â°]?\s*[\d.]+(?:,\s*de\s*\d{4})?/i);
+          const leiMatch = refKey.match(/(?:Lei(?:\s+Complementar)?|Decreto(?:-Lei)?|Emenda\s+Constitucional|Medida\s+Provisória)\s+n[º°]?\s*[\d.]+(?:,\s*de\s*\d{4})?/i);
           const leiNome = leiMatch ? leiMatch[0] : refKey;
           items.push({ artigo, tipo: group.tipo, referencia: refKey, ano: group.ano, parteModificada, leiNome, linhasModificadas: group.indices });
         }
@@ -2071,16 +2071,16 @@ const CategoriaLegislacao = () => {
         if (parsedKeys.has(key)) continue; // skip duplicates
         const matchingArtigo = artigos.find(a => a.numero === dbItem.artigo_numero);
         const tipoLabel = dbItem.tipo_alteracao === 'artigo_revogado' ? 'Revogado'
-          : dbItem.tipo_alteracao === 'artigo_novo' ? 'IncluÃƒÂ­do'
+          : dbItem.tipo_alteracao === 'artigo_novo' ? 'Incluído'
           : dbItem.tipo_alteracao === 'texto_alterado' ? 'Alterada'
-          : 'AlteraÃƒÂ§ÃƒÂ£o';
+          : 'Alteração';
         items.push({
           artigo: matchingArtigo || { id: dbItem.artigo_numero, numero: dbItem.artigo_numero, caput: dbItem.texto_atual || dbItem.texto_anterior || '' },
           tipo: tipoLabel,
           referencia: `Detectado pelo monitoramento em ${new Date(dbItem.detectado_em).toLocaleDateString('pt-BR')}`,
           ano,
           parteModificada: 'Artigo inteiro',
-          leiNome: 'Monitoramento automÃƒÂ¡tico',
+          leiNome: 'Monitoramento automático',
           linhasModificadas: [],
           fromMonitor: true,
         });
@@ -2104,12 +2104,12 @@ const CategoriaLegislacao = () => {
         return loadingDbAlteracoes ? (
           <div className="flex flex-col items-center py-12 gap-2">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            <p className="text-muted-foreground text-sm">Carregando alteraÃƒÂ§ÃƒÂµes do monitoramento...</p>
+            <p className="text-muted-foreground text-sm">Carregando alterações do monitoramento...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center py-12 gap-2">
             <Sparkles className="w-8 h-8 text-muted-foreground/40" />
-            <p className="text-muted-foreground text-sm">Nenhuma alteraÃƒÂ§ÃƒÂ£o legislativa encontrada.</p>
+            <p className="text-muted-foreground text-sm">Nenhuma alteração legislativa encontrada.</p>
           </div>
         );
       }
@@ -2153,14 +2153,14 @@ const CategoriaLegislacao = () => {
               <div className="flex items-center gap-2 mb-3">
                 <Calendar className="w-4 h-4 text-primary" />
                 <h3 className="text-sm font-bold text-foreground">{ano > 0 ? ano : 'Sem data'}</h3>
-                <span className="text-xs text-muted-foreground">({group.length} {group.length === 1 ? 'alteraÃƒÂ§ÃƒÂ£o' : 'alteraÃƒÂ§ÃƒÂµes'})</span>
+                <span className="text-xs text-muted-foreground">({group.length} {group.length === 1 ? 'alteração' : 'alterações'})</span>
               </div>
               <div className="space-y-2">
                 {group.map((item, i) => {
                   const displayNumero = `Art. ${item.artigo.numero}`;
-                  const totalAlt = (item.artigo.caput.match(/\((?:RedaÃƒÂ§ÃƒÂ£o|IncluÃƒÂ­do|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|PromulgaÃƒÂ§ÃƒÂ£o|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|ProduÃƒÂ§ÃƒÂ£o de efeito)[^)]*\)/gi) || []).length;
+                  const totalAlt = (item.artigo.caput.match(/\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi) || []).length;
                   const previewText = item.artigo.caput
-                    .replace(/\s*\((?:RedaÃƒÂ§ÃƒÂ£o|IncluÃƒÂ­do|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|PromulgaÃƒÂ§ÃƒÂ£o|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|ProduÃƒÂ§ÃƒÂ£o de efeito)[^)]*\)/gi, '')
+                    .replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi, '')
                     .split('\n').filter(l => l.trim())[0] || '';
                   return (
                     <motion.button
@@ -2201,7 +2201,7 @@ const CategoriaLegislacao = () => {
                           <p className="text-[11px] text-muted-foreground italic line-clamp-1">{item.referencia}</p>
                           {totalAlt > 0 && (
                             <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-secondary text-muted-foreground shrink-0">
-                              {totalAlt} {totalAlt === 1 ? 'alteraÃƒÂ§ÃƒÂ£o total' : 'alteraÃƒÂ§ÃƒÂµes totais'}
+                              {totalAlt} {totalAlt === 1 ? 'alteração total' : 'alterações totais'}
                             </span>
                           )}
                         </div>
@@ -2225,11 +2225,11 @@ const CategoriaLegislacao = () => {
     );
 
     const overlayLabels: Record<string, { label: string; icon: typeof Star; desc: string }> = {
-      fav: { label: 'Favoritos', icon: Heart, desc: 'Aqui ficam os artigos que vocÃƒÂª marcou com o coraÃƒÂ§ÃƒÂ£o. Favoritar facilita o acesso rÃƒÂ¡pido aos dispositivos que vocÃƒÂª mais consulta.' },
-      playlist: { label: 'Playlist', icon: ListMusic, desc: 'OuÃƒÂ§a as narraÃƒÂ§ÃƒÂµes dos artigos desta lei. Ideal para estudar enquanto faz outras atividades Ã¢â‚¬â€ basta gerar as narraÃƒÂ§ÃƒÂµes na tela de NarraÃƒÂ§ÃƒÂ£o.' },
-      anotacoes: { label: 'AnotaÃƒÂ§ÃƒÂµes', icon: StickyNote, desc: 'Veja todas as suas anotaÃƒÂ§ÃƒÂµes e grifos desta lei em um sÃƒÂ³ lugar. Para criar, abra um artigo e grife um trecho.' },
-      novidades: { label: 'Novidades', icon: History, desc: 'HistÃƒÂ³rico de alteraÃƒÂ§ÃƒÂµes legislativas Ã¢â‚¬â€ veja quais artigos foram incluÃƒÂ­dos, revogados ou modificados, organizados por ano.' },
-      radar: { label: 'Radar', icon: Radar, desc: 'ProposiÃƒÂ§ÃƒÂµes em tramitaÃƒÂ§ÃƒÂ£o no Congresso que podem alterar esta legislaÃƒÂ§ÃƒÂ£o. Acompanhe os projetos de lei em tempo real.' },
+      fav: { label: 'Favoritos', icon: Heart, desc: 'Aqui ficam os artigos que você marcou com o coração. Favoritar facilita o acesso rápido aos dispositivos que você mais consulta.' },
+      playlist: { label: 'Playlist', icon: ListMusic, desc: 'Ouça as narrações dos artigos desta lei. Ideal para estudar enquanto faz outras atividades — basta gerar as narrações na tela de Narração.' },
+      anotacoes: { label: 'Anotações', icon: StickyNote, desc: 'Veja todas as suas anotações e grifos desta lei em um só lugar. Para criar, abra um artigo e grife um trecho.' },
+      novidades: { label: 'Novidades', icon: History, desc: 'Histórico de alterações legislativas — veja quais artigos foram incluídos, revogados ou modificados, organizados por ano.' },
+      radar: { label: 'Radar', icon: Radar, desc: 'Proposições em tramitação no Congresso que podem alterar esta legislação. Acompanhe os projetos de lei em tempo real.' },
     };
     const overlayContents: Record<string, React.ReactNode> = {
       fav: favContent,
@@ -2239,39 +2239,11 @@ const CategoriaLegislacao = () => {
       radar: radarContent,
     };
 
-    // Menu de alternÃƒÂ¢ncia no rodapÃƒÂ©
-        // Abas movidas para o topo do conteÃºdo em telas mobile
-        // Abas movidas para o topo do conteÃºdo em telas mobile
-    const mobileTabs = !isDesktop ? (
-      <div className="sticky top-[64px] z-[40] bg-background/95 backdrop-blur-md border-b border-white/5 px-3 py-2 shadow-sm mb-4">
-        <div className="mx-auto grid grid-cols-3 gap-2 w-full">
-          {[
-            { key: 'art' as const, icon: FileText, label: 'Artigos' },
-            { key: 'cap' as const, icon: BookOpen, label: 'CapÃ­tulos' },
-            { key: 'lot' as const, icon: LayoutGrid, label: 'Lotes' },
-          ].map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              disabled={loadingArtigos}
-              className={`flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-[22px] transition-all ${
-                activeTab === tab.key
-                  ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
-                  : 'bg-[#1C1C1E] text-white/80 hover:bg-[#2C2C2E] hover:text-white'
-              } ${loadingArtigos ? 'opacity-70' : ''}`}
-            >
-              <tab.icon className="w-5 h-5 shrink-0" strokeWidth={2.5} />
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase">{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    ) : null;
-
-    // Novo Menu de RodapÃ© estilo Home
+    // Menu de alternância no rodapé
+    // Novo Menu de Rodapé estilo Home
     const footerBottomNav = !focusMode && !isDesktop && !showSearchRecents ? (
       <nav
-        aria-label="NavegaÃ§Ã£o principal"
+        aria-label="Navegação principal"
         role="navigation"
         data-bottom-nav
         className={`fixed bottom-0 left-0 right-0 z-[60] lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-out`}
@@ -2281,13 +2253,13 @@ const CategoriaLegislacao = () => {
           className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
         />
         <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
-          {/* LiÃ§Ãµes */}
+          {/* Lições */}
           <button
             onClick={() => {}}
             className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
           >
             <GraduationCap className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">LiÃ§Ãµes</span>
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Lições</span>
           </button>
           
           {/* Flashcards */}
@@ -2313,13 +2285,13 @@ const CategoriaLegislacao = () => {
             <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white drop-shadow-sm truncate px-0.5">Pesquisar</span>
           </button>
 
-          {/* QuestÃµes */}
+          {/* Questões */}
           <button
             onClick={() => {}}
             className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
           >
             <Target className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">QuestÃµes</span>
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Questões</span>
           </button>
 
           {/* Sobre */}
@@ -2423,7 +2395,7 @@ const CategoriaLegislacao = () => {
 
     return (
       <div className={`min-h-dvh bg-background lg:pb-0 ${focusMode ? 'pb-8' : 'pb-8'}`}>
-        {/* Painel hero estilo Home Ã¢â‚¬â€ corte diagonal amarelo + imagem da lei */}
+        {/* Painel hero estilo Home — corte diagonal amarelo + imagem da lei */}
         {!focusMode && (() => {
           const cover = getLeiCover(selectedLeiId, tipo);
           const selectedLei = leis.find(l => l.id === selectedLeiId);
@@ -2441,7 +2413,7 @@ const CategoriaLegislacao = () => {
               <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                 <img
                   src={cover}
-                  alt={`Capa Ã¢â‚¬â€ ${selectedLeiNome}`}
+                  alt={`Capa — ${selectedLeiNome}`}
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
@@ -2449,7 +2421,7 @@ const CategoriaLegislacao = () => {
                 />
               </div>
 
-              {/* Fundo animado sobre a ÃƒÂ¡rea preta da imagem */}
+              {/* Fundo animado sobre a área preta da imagem */}
               <div className="absolute inset-0 pointer-events-none z-0 mix-blend-screen opacity-80">
                 <ShapeGrid 
                   speed={0.5} 
@@ -2481,7 +2453,7 @@ const CategoriaLegislacao = () => {
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.16),transparent_65%)]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
-                  {/* Motifs jurÃƒÂ­dicos clÃƒÂ¡ssicos */}
+                  {/* Motifs jurídicos clássicos */}
                   <HeroMotifs />
 
                   {/* Grid Pattern */}
@@ -2495,7 +2467,7 @@ const CategoriaLegislacao = () => {
                 </div>
               </div>
 
-              {/* BotÃƒÂ£o flutuante Ã¢â‚¬â€ Voltar */}
+              {/* Botão flutuante — Voltar */}
               <button
                 type="button"
                 onClick={goBack}
@@ -2505,7 +2477,7 @@ const CategoriaLegislacao = () => {
                 <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
               </button>
 
-              {/* BotÃƒÂ£o flutuante Ã¢â‚¬â€ Favoritar */}
+              {/* Botão flutuante — Favoritar */}
               {(() => {
                 const sl = leis.find((l) => l.id === selectedLeiId);
                 if (!sl) return null;
@@ -2532,7 +2504,7 @@ const CategoriaLegislacao = () => {
                 );
               })()}
 
-              {/* ConteÃƒÂºdo: TÃƒÂ­tulo da lei no lado esquerdo (sobre o amarelo) */}
+              {/* Conteúdo: Título da lei no lado esquerdo (sobre o amarelo) */}
               <div className="relative z-10 pt-16 sm:pt-20 flex-1 flex flex-col justify-end px-5 sm:px-6 pb-2 max-w-[55%]">
 
                 {selectedLei && (selectedLei as any).sigla ? (
@@ -2555,7 +2527,7 @@ const CategoriaLegislacao = () => {
                   </p>
                 )}
 
-                {/* BotÃƒÂ£o Ver no Planalto movido para debaixo do tÃƒÂ­tulo */}
+                {/* Botão Ver no Planalto movido para debaixo do título */}
                 {planaltoUrl && (
                   <div className="mt-3">
                     <a
@@ -2565,18 +2537,18 @@ const CategoriaLegislacao = () => {
                       className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] text-white/90 hover:text-white font-medium bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10 shadow-lg transition-colors active:scale-95"
                     >
                       <ExternalLink className="w-3 h-3" />
-                      <span>{/^(estadual|municipal)_/.test(tipo || '') ? 'Ver legislaÃƒÂ§ÃƒÂ£o' : 'Ver no Planalto'}</span>
+                      <span>{/^(estadual|municipal)_/.test(tipo || '') ? 'Ver legislação' : 'Ver no Planalto'}</span>
                     </a>
                   </div>
                 )}
               </div>
 
-              {/* Barra de aÃƒÂ§ÃƒÂµes (quadradinhos tipo Home) */}
+              {/* Barra de ações (quadradinhos tipo Home) */}
               <div className="relative z-10 px-3 sm:px-5 pb-4 pt-3 flex justify-center">
                 <div className="flex items-center gap-2 w-full max-w-2xl bg-black/40 backdrop-blur-md rounded-3xl p-2 border border-white/10 shadow-2xl">
                   {[
                     { key: 'fav' as const, icon: Heart, label: 'Favoritos', color: '#F87171' },
-                    { key: 'anotacoes' as const, icon: StickyNote, label: 'AnotaÃƒÂ§ÃƒÂµes', color: '#38BDF8' },
+                    { key: 'anotacoes' as const, icon: StickyNote, label: 'Anotações', color: '#38BDF8' },
                     { key: 'playlist' as const, icon: ListMusic, label: 'Playlist', color: '#34D399' },
                     { key: 'radar' as const, icon: Radar, label: 'Radar', color: '#FACC15' },
                   ].map((tab, index) => {
@@ -2587,7 +2559,7 @@ const CategoriaLegislacao = () => {
                         onClick={() => {
                           if (!isPremium && tab.key === 'radar') {
                             setPremiumGateFeature('radar');
-                            setPremiumGateDesc('O Radar Legislativo ÃƒÂ© exclusivo para assinantes.');
+                            setPremiumGateDesc('O Radar Legislativo é exclusivo para assinantes.');
                             setShowPremiumGate(true);
                             return;
                           }
@@ -2619,7 +2591,7 @@ const CategoriaLegislacao = () => {
                 </div>
               </div>
 
-              {/* Barra de Pesquisa movida para baixo do histÃƒÂ³rico */}
+              {/* Barra de Pesquisa movida para baixo do histórico */}
             </div>
           );
         })()}
@@ -2641,9 +2613,9 @@ const CategoriaLegislacao = () => {
 
         <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-[1200px]' : 'max-w-5xl'}`} style={{ fontSize: `${fontSizeScale || 1}rem` }}>
 
-          {/* Mini-SumÃƒÂ¡rio Flutuante removido */}
+          {/* Mini-Sumário Flutuante removido */}
 
-          {/* Search bar + Tabs Ã¢â‚¬â€ entram juntos com fade sutil (evita "pop") */}
+          {/* Search bar + Tabs — entram juntos com fade sutil (evita "pop") */}
           {!focusMode && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -2653,7 +2625,52 @@ const CategoriaLegislacao = () => {
           >
             {/* Search bar agora fica dentro do hero panel */}
 
-            {/* NOVO CARROSSEL DE HISTÃƒâ€œRICO DE ATUALIZAÃƒâ€¡ÃƒÆ’O */}
+            {/* Cabecalho Compacto (Brasão, Nome, Numero) antes dos cards */}
+            {!focusMode && (() => {
+              const selectedLei = leis.find(l => l.id === selectedLeiId);
+              const planaltoUrl = (selectedLei as any)?.url_planalto;
+              return (
+                <div className="relative z-10 px-0 sm:px-5 w-full pb-2 pt-2">
+                  <div className="flex flex-col gap-3 px-4 sm:px-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 shrink-0 bg-white/5 rounded-full flex items-center justify-center p-1.5 shadow-inner border border-white/10">
+                        <img src={brasaoImg} alt="Brasão da República" className="w-full h-full object-contain drop-shadow-md" />
+                      </div>
+                      <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h1 className="text-white font-display font-bold text-[15px] sm:text-base leading-tight truncate drop-shadow-sm">
+                            {selectedLeiNome}
+                          </h1>
+                          {selectedLei && (selectedLei as any).sigla && (
+                            <p className="text-white/60 text-[11px] font-semibold tracking-wide uppercase mt-0.5">
+                              Lei nº {(selectedLei as any).sigla}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => setShowEmentaDialog(true)} className="flex-1 flex items-center justify-center gap-1.5 bg-[#1C1C1E] border border-white/10 hover:bg-[#2C2C2E] rounded-xl py-2 px-3 text-[11px] font-bold tracking-wide uppercase text-white/90 transition-all shadow-sm active:scale-95">
+                        <ScrollText className="w-3.5 h-3.5 opacity-80" />
+                        Ementa
+                      </button>
+                      <button onClick={() => { setActiveTab('cap'); setTimeout(() => { window.scrollTo({ top: 300, behavior: 'smooth' }); }, 100); }} className="flex-1 flex items-center justify-center gap-1.5 bg-[#1C1C1E] border border-white/10 hover:bg-[#2C2C2E] rounded-xl py-2 px-3 text-[11px] font-bold tracking-wide uppercase text-white/90 transition-all shadow-sm active:scale-95">
+                        <BookOpen className="w-3.5 h-3.5 opacity-80" />
+                        Capítulos
+                      </button>
+                      {planaltoUrl && (
+                        <a href={planaltoUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 bg-primary/10 border border-primary/20 hover:bg-primary/20 rounded-xl py-2 px-3 text-[11px] font-bold tracking-wide uppercase text-primary transition-all shadow-sm active:scale-95">
+                          <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                          Planalto
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* NOVO CARROSSEL DE HISTÓRICO DE ATUALIZAÇÃO */}
             <HistoricoAtualizacaoCarousel 
               artigos={artigos} 
               dbAlteracoes={dbAlteracoes} 
@@ -2672,136 +2689,59 @@ const CategoriaLegislacao = () => {
               onViewAll={() => setOverlayPanel('novidades')}
             />
 
-            {/* Linha divisÃƒÂ³ria fina */}
+            {/* Linha divisória fina */}
             <div className="mx-4 sm:mx-0 py-1">
               <div className="h-px bg-white/5 w-full rounded-full" />
             </div>
 
-            {/* Nova Barra de Pesquisa */}
-            {(() => {
-              const searchContent = (
-                <div ref={searchBarRef} className={`mx-auto w-full ${isDesktop ? 'max-w-full' : ''}`}>
-                  <form
-                    className="flex items-center gap-2.5 min-w-0"
-                    onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
-                  >
-                    <div className="relative flex-1 min-w-0">
-                      <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50 ${isDesktop ? 'w-4 h-4' : 'w-[18px] h-[18px]'}`} />
-                      <Input
-                        value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Pesquisar artigo..."
-                        inputMode="search"
-                        enterKeyHint="search"
-                        className={`rounded-2xl bg-[#1C1C1E] text-white placeholder:text-white/50 border-transparent shadow-xl pl-10 pr-20 font-bold transition-colors focus:bg-[#1C1C1E] focus-visible:ring-2 focus-visible:ring-white/20 ${isDesktop ? 'h-10 text-xs' : 'h-[52px] text-[14px]'}`}
-                        onFocus={(e) => {
-                          setShowSearchRecents(true);
-                          setTimeout(() => {
-                            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                          }, 150);
-                        }}
-                        onBlur={() => setTimeout(() => setShowSearchRecents(false), 200)}
-                      />
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                        {searchQuery && !voiceSearch.listening && (
-                          <button
-                            type="button"
-                            onClick={() => { setSearchQuery(''); handleSearch(''); }}
-                            className="p-1.5 rounded-full hover:bg-white/10 text-white/50 transition-colors"
-                            aria-label="Limpar busca"
-                          >
-                            <XIcon className="w-4 h-4" />
-                          </button>
-                        )}
-                        {!isDesktop && (
-                          <button
-                            type="button"
-                            onClick={() => setOcrOpen(true)}
-                            aria-label="Fotografar artigo (OCR)"
-                            className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 text-white hover:bg-white/10 transition-colors shrink-0"
-                          >
-                            <Camera className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => voiceSearch.toggle()}
-                      aria-label={voiceSearch.listening ? 'Parar gravaÃƒÂ§ÃƒÂ£o' : 'Buscar por voz'}
-                      className={`relative overflow-hidden shrink-0 rounded-full flex items-center justify-center shadow-xl active:scale-[0.95] transition ${
-                        isDesktop ? 'w-9 h-9' : 'w-12 h-12'
-                      } ${
-                        voiceSearch.listening
-                          ? 'bg-red-500 text-white animate-pulse shadow-red-500/40'
-                          : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/30'
-                      }`}
-                    >
-                      {voiceSearch.listening && <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}
-                      {voiceSearch.listening
-                        ? <MicOff className={`relative z-[2] ${isDesktop ? 'w-4 h-4' : 'w-5 h-5'}`} strokeWidth={2.5} />
-                        : <Mic className={`relative z-[2] ${isDesktop ? 'w-4 h-4' : 'w-5 h-5'}`} strokeWidth={2.5} />}
-                    </button>
-                  </form>
-
-                  {/* Dropdown de recentes (Pesquisas) */}
-                  <AnimatePresence>
-                    {showSearchRecents && recentIds.length > 0 && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute left-0 right-0 top-[110%] bg-[#1C1C1E] border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-50 flex flex-col"
+            {/* Sticky floating audio search */}
+          <AnimatePresence>
+            {stickySearch && !focusMode && !isDesktop && (
+              <motion.div
+                initial={{ y: -60, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -60, opacity: 0 }}
+                transition={{ type: 'spring', damping: 24, stiffness: 300 }}
+                className="fixed top-0 left-0 right-0 z-[100] bg-[#1C1C1E]/95 backdrop-blur-md border-b border-white/10 px-4 py-3 shadow-2xl"
+              >
+                <div className={`mx-auto ${isDesktop ? 'max-w-xl w-full' : 'w-full'}`}>
+                  <form className="relative min-w-0" onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+                    <Input
+                      value={voiceSearch.listening ? (voiceSearch.partial || searchQuery) : searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Pesquisar..."
+                      inputMode="search"
+                      enterKeyHint="search"
+                      className="h-[46px] rounded-2xl bg-[#2C2C2E] border-transparent pl-10 pr-12 text-[14px] text-white placeholder:text-white/50 shadow-inner focus-visible:ring-1 focus-visible:ring-primary/50"
+                      autoFocus
+                    />
+                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                      {searchQuery && !voiceSearch.listening && (
+                        <button
+                          type="button"
+                          onClick={() => { setSearchQuery(''); handleSearch(''); }}
+                          className="w-8 h-8 rounded-full hover:bg-white/10 text-white/50 transition-colors flex items-center justify-center"
+                        >
+                          <XIcon className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => voiceSearch.toggle()}
+                        className={`w-[34px] h-[34px] rounded-full flex items-center justify-center ${voiceSearch.listening ? 'bg-red-500/20 text-red-500' : 'bg-primary/10 text-primary'}`}
                       >
-                        <div className="p-2 max-h-64 overflow-y-auto flex flex-col no-scrollbar">
-                          <p className="text-[10px] font-bold text-white/50 uppercase px-3 py-2 tracking-wider">Artigos Recentes</p>
-                          {(() => {
-                            const map = new Map(artigos.map(a => [String(a.id), a]));
-                            const recents = recentIds.map(id => map.get(id)).filter(Boolean) as ArtigoLei[];
-                            return recents.slice(0, 10).map((artigo) => (
-                              <button
-                                key={artigo.id}
-                                type="button"
-                                onClick={() => openArtigoWithRecent(artigo)}
-                                className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 transition-colors text-left rounded-xl active:scale-[0.98]"
-                              >
-                                <History className="w-4 h-4 shrink-0 text-white/50" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-[13px] font-bold text-white truncate">{artigo.numero}</p>
-                                  <p className="text-[11px] text-white/60 truncate">{artigo.caput}</p>
-                                </div>
-                              </button>
-                            ));
-                          })()}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        {voiceSearch.listening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </form>
                 </div>
-              );
-
-              if (isDesktop && typeof document !== 'undefined') {
-                const portalTarget = document.getElementById('breadcrumb-actions-portal');
-                if (portalTarget) {
-                  return createPortal(searchContent, portalTarget);
-                }
-              }
-
-              return (
-                <div className="relative z-10 px-0 sm:px-5 w-full pb-4">
-                  {searchContent}
-                </div>
-              );
-            })()}
+              </motion.div>
+            )}
+          </AnimatePresence>
           </motion.div>
           )}
 
-
-
-
-
-          {/* Sticky search removed */}
           {/* Lista entra depois de search+abas, com fade curto */}
           <motion.div
             initial={{ opacity: 0, y: 6 }}
@@ -2933,7 +2873,7 @@ const CategoriaLegislacao = () => {
                 const rawText: string = (a?.caput || a?.texto || num || '').toString();
                 const lines = rawText.split('\n').map((s: string) => s.trim()).filter(Boolean);
                 const head = (lines[0] || num).toUpperCase();
-                const desc = lines.slice(1).join(' Ã¢â‚¬â€ ');
+                const desc = lines.slice(1).join(' — ');
                 found[level] = { head, desc: desc || undefined };
               }
               const ordered = LEVELS.filter(l => found[l]);
@@ -2962,7 +2902,7 @@ const CategoriaLegislacao = () => {
           />
         )}
 
-        {/* Footer bottom nav Ã¢â‚¬â€ portal evita ficar preso na transiÃƒÂ§ÃƒÂ£o da pÃƒÂ¡gina */}
+        {/* Footer bottom nav — portal evita ficar preso na transição da página */}
         {typeof document !== 'undefined' && createPortal(footerBottomNav, document.body)}
         {typeof document !== 'undefined' && createPortal(footerOverlayPanels, document.body)}
 
@@ -3043,10 +2983,10 @@ const CategoriaLegislacao = () => {
     );
   }
 
-  // Nenhuma tela de lista intermediÃƒÂ¡ria: qualquer categoria sem lei selecionada
-  // (e sem slug pendente de resoluÃƒÂ§ÃƒÂ£o) volta para a home.
+  // Nenhuma tela de lista intermediária: qualquer categoria sem lei selecionada
+  // (e sem slug pendente de resolução) volta para a home.
   if ((leiSlugParam || tipo === 'constituicao') && !selectedLeiId) {
-    // Aguardando o efeito resolver o slug em uma lei do catÃƒÂ¡logo.
+    // Aguardando o efeito resolver o slug em uma lei do catálogo.
     return (
       <div className="min-h-dvh bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
@@ -3066,8 +3006,3 @@ const CategoriaLegislacao = () => {
   };
 
 export default CategoriaLegislacao;
-
-
-
-
-
