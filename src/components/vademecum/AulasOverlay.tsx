@@ -10,6 +10,7 @@ import hero5 from '@/assets/aprender-hero/hero-5.png';
 import hero6 from '@/assets/aprender-hero/hero-6.png';
 
 const HERO_ILLUSTRATIONS = [hero1, hero2, hero3, hero4, hero5, hero6];
+const OFFSETS = [0, 56, 84, 56, 0, -56, -84, -56];
 
 type ArtigoType = any; // Substitua por import real depois
 type CapGroup = { capitulo: string; artigos: ArtigoType[] };
@@ -41,43 +42,56 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
 
   if (selectedCapitulo) {
     return (
-      <div className="flex flex-col h-full bg-background relative z-10 w-full rounded-[30px] overflow-hidden">
-        <div className="flex items-center gap-3 p-4 border-b border-white/10 sticky top-0 bg-background/80 backdrop-blur-md z-20">
+      <div className="flex flex-col h-full bg-background relative w-full rounded-t-[30px] overflow-hidden" style={{ background: 'linear-gradient(180deg, hsl(0 70% 38%) 0%, hsl(0 75% 42%) 40%, hsl(0 72% 36%) 100%)' }}>
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_60%)]" />
+        <div className="flex items-center gap-3 p-4 border-b border-white/10 sticky top-0 bg-black/20 backdrop-blur-xl z-20">
           <button 
             onClick={() => setSelectedCapitulo(null)}
-            className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10"
+            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
           <div className="flex-1 min-w-0">
-            <h2 className="font-display font-bold text-lg text-white truncate">
-              {selectedCapitulo.capitulo}
+            <h2 className="font-display font-bold text-lg text-white truncate drop-shadow-md">
+              {selectedCapitulo.capitulo.split(' - ').slice(1).join(' - ') || selectedCapitulo.capitulo}
             </h2>
-            <p className="text-sm text-muted-foreground truncate font-body">
+            <p className="text-sm text-white/80 truncate font-body drop-shadow-sm">
               {selectedCapitulo.artigos.length} aulas
             </p>
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4 pb-32 space-y-3">
-          {selectedCapitulo.artigos.map((artigo, idx) => (
-            <button
-              key={artigo.id || idx}
-              onClick={() => onArtigoSelect(artigo)}
-              className="w-full text-left bg-card border border-border p-3.5 rounded-2xl flex items-center gap-4 hover:border-primary/40 active:scale-[0.99] transition-all"
-            >
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <PlayCircle className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-display font-bold text-white text-[15px]">Aula {idx + 1}</h3>
-                <p className="text-muted-foreground text-[13px] truncate font-body mt-0.5" style={{ letterSpacing: '-0.005em' }}>
-                  {artigo.numero}
-                </p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-            </button>
-          ))}
+        <div className="flex-1 overflow-y-auto p-4 pb-32 relative z-10">
+          <ul className="flex flex-col items-center gap-4 py-8">
+            {selectedCapitulo.artigos.map((artigo, idx) => {
+              const offset = OFFSETS[idx % OFFSETS.length];
+              
+              return (
+                <li
+                  key={artigo.id || idx}
+                  className="w-full flex justify-center relative"
+                  style={{ transform: `translateX(${offset}px)` }}
+                >
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 pointer-events-none">
+                    <div className="bg-black/40 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white/90 border border-white/20 whitespace-nowrap">
+                      Aula {idx + 1}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => onArtigoSelect(artigo)}
+                    className="relative w-16 h-16 rounded-full flex items-center justify-center font-black text-white text-lg bg-red-500 ring-red-200 ring-4 ring-offset-2 ring-offset-transparent active:scale-95 transition-transform"
+                    style={{
+                      boxShadow: '0 10px 22px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.25), inset 0 -4px 0 rgba(0,0,0,0.28), inset 0 2px 0 rgba(255,255,255,0.18)',
+                    }}
+                  >
+                    <span className="tabular-nums drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)]">
+                      {idx + 1}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </div>
     );
@@ -111,8 +125,16 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
           <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-amber-500 via-amber-500/60 to-transparent" />
         </div>
 
-        <div className="relative p-5">
-          <div className="flex items-start gap-4">
+        <div className="relative p-5 pt-[calc(env(safe-area-inset-top,0px)+16px)]">
+          {/* Botão de Voltar */}
+          <button 
+            onClick={onClose}
+            className="absolute left-4 top-[calc(env(safe-area-inset-top,0px)+12px)] z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white shadow-sm active:scale-95 transition-all"
+          >
+            <ArrowLeft className="w-5 h-5 drop-shadow-md" />
+          </button>
+
+          <div className="flex items-start gap-4 mt-8">
             <div className="relative shrink-0 mt-1" style={{ width: size, height: size }}>
               <svg width={size} height={size} className="-rotate-90">
                 <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(0,0,0,0.15)" strokeWidth={stroke} fill="none" />
@@ -176,14 +198,17 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="min-w-0 flex-1 truncate text-[15px] font-semibold text-foreground sm:text-[16px]" style={{ fontFamily: "'Barlow', system-ui, sans-serif", letterSpacing: '-0.005em' }}>
-                    {cap.capitulo}
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider truncate">
+                    {cap.capitulo.split(' - ')[0]}
                   </p>
-                  <span className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold bg-muted text-muted-foreground tabular-nums">
+                  <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-muted text-muted-foreground tabular-nums ml-auto">
                     {capPct}%
                   </span>
                 </div>
+                <p className="min-w-0 text-[14px] font-bold text-foreground sm:text-[15px] leading-snug" style={{ fontFamily: "'Barlow', system-ui, sans-serif", letterSpacing: '-0.005em' }}>
+                  {cap.capitulo.split(' - ').slice(1).join(' - ') || cap.capitulo}
+                </p>
                 <p className="mt-0.5 text-[12px] text-muted-foreground sm:text-[13px]">
                   {cap.artigos.length} {cap.artigos.length === 1 ? 'aula' : 'aulas'}
                 </p>
