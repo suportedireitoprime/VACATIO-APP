@@ -154,6 +154,7 @@ const CategoriaLegislacao = () => {
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [openArtigo, setOpenArtigo] = useState<ArtigoLei | null>(null);
   const [openFromNovidades, setOpenFromNovidades] = useState(false);
+  const [activeNovidadesYear, setActiveNovidadesYear] = useState<number | null>(null);
   const [subcat, setSubcat] = useState('todas');
   const [openModInfo, setOpenModInfo] = useState<import('@/components/vademecum/ArtigoBottomSheet').ModificationInfo | null>(null);
   const [activeTab, setActiveTab] = useState<'art' | 'cap' | 'lot'>('art');
@@ -2082,12 +2083,12 @@ const CategoriaLegislacao = () => {
 
       const badgeColor = (tipo: string) => {
         const t = tipo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        if (t.startsWith('revogad')) return 'bg-destructive/20 text-destructive';
-        if (t.startsWith('vetad')) return 'bg-destructive/20 text-destructive';
-        if (t.startsWith('suprimid')) return 'bg-destructive/20 text-destructive';
-        if (t.startsWith('incluid')) return 'bg-emerald-500/20 text-emerald-400';
-        if (t.startsWith('acrescid')) return 'bg-emerald-500/20 text-emerald-400';
-        if (t.startsWith('redacao') || t.startsWith('alterad')) return 'bg-amber-500/20 text-amber-400';
+        if (t.startsWith('revogad')) return 'bg-red-500/20 text-red-500';
+        if (t.startsWith('vetad')) return 'bg-red-500/20 text-red-500';
+        if (t.startsWith('suprimid')) return 'bg-red-500/20 text-red-500';
+        if (t.startsWith('incluid')) return 'bg-emerald-500/20 text-emerald-500';
+        if (t.startsWith('acrescid')) return 'bg-emerald-500/20 text-emerald-500';
+        if (t.startsWith('redacao') || t.startsWith('alterad')) return 'bg-blue-500/20 text-blue-400';
         if (t.startsWith('renumerad')) return 'bg-sky-500/20 text-sky-400';
         if (t.startsWith('vigencia') || t.startsWith('producao')) return 'bg-violet-500/20 text-violet-400';
         return 'bg-muted text-muted-foreground';
@@ -2114,9 +2115,34 @@ const CategoriaLegislacao = () => {
         grouped.get(key)!.push(item);
       }
 
+      const availableYears = [...grouped.keys()].sort((a, b) => b - a);
+      const displayedGroups = activeNovidadesYear !== null && grouped.has(activeNovidadesYear)
+        ? [[activeNovidadesYear, grouped.get(activeNovidadesYear)!]] as const
+        : [...grouped.entries()];
+
       return (
         <div className="space-y-6 pb-8">
-          {[...grouped.entries()].map(([ano, group]) => (
+          {availableYears.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <button
+                onClick={() => setActiveNovidadesYear(null)}
+                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${activeNovidadesYear === null ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
+              >
+                Todos
+              </button>
+              {availableYears.map(year => (
+                <button
+                  key={year}
+                  onClick={() => setActiveNovidadesYear(year)}
+                  className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${activeNovidadesYear === year ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
+                >
+                  {year > 0 ? year : 'Sem data'}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {displayedGroups.map(([ano, group]) => (
             <div key={ano}>
               <div className="flex items-center gap-2 mb-3">
                 <Calendar className="w-4 h-4 text-primary" />
@@ -2145,10 +2171,10 @@ const CategoriaLegislacao = () => {
                           textoAnterior: (item as any).textoAnterior
                         });
                       }}
-                      className="w-full text-left rounded-2xl bg-card hover:bg-secondary/60 transition-all group flex overflow-hidden min-h-[82px]"
+                      className="w-full text-left rounded-2xl bg-card hover:bg-secondary/60 transition-all group flex overflow-hidden h-[120px]"
                     >
                       <div className="w-1.5 bg-primary rounded-l-2xl shrink-0" />
-                      <div className="flex-1 min-w-0 p-4">
+                      <div className="flex flex-col flex-1 min-w-0 p-4 justify-center">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <span className="font-display text-[15px] font-bold text-primary-light">{displayNumero}</span>
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${badgeColor(item.tipo)}`}>
@@ -2164,12 +2190,12 @@ const CategoriaLegislacao = () => {
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-muted-foreground mb-1 italic">{item.referencia}</p>
+                        <p className="text-[11px] text-muted-foreground mb-1 italic line-clamp-1">{item.referencia}</p>
                         {previewText && (
                           <p className="text-[13px] leading-relaxed line-clamp-2 text-foreground/80">{previewText}</p>
                         )}
                       </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary shrink-0 mt-4 mr-3 transition-colors" />
+                      <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary shrink-0 self-center mr-3 transition-colors" />
                     </motion.button>
                   );
                 })}
@@ -2258,52 +2284,54 @@ const CategoriaLegislacao = () => {
                   <div className="w-10 h-1 rounded-full bg-white/20" />
                 </div>
               )}
-              {/* Header */}
-              <div className="flex items-center justify-between gap-3 px-4 md:px-6 py-3 border-b border-white/5 shrink-0 bg-background/95 backdrop-blur-sm sticky top-0 z-10 rounded-t-2xl">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  {!isDesktop && (
-                    <button onClick={() => setOverlayPanel(null)} className="w-9 h-9 shrink-0 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center">
-                      <ArrowLeft className="w-5 h-5 text-white" />
+              <div className="flex-1 overflow-y-auto pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] overscroll-contain">
+                {/* Header */}
+                <div className="flex items-center justify-between gap-3 px-4 md:px-6 py-3 border-b border-white/5 shrink-0 bg-background/95 backdrop-blur-sm sticky top-0 z-10 rounded-t-2xl">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {!isDesktop && (
+                      <button onClick={() => setOverlayPanel(null)} className="w-9 h-9 shrink-0 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center">
+                        <ArrowLeft className="w-5 h-5 text-white" />
+                      </button>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h1 className="font-display text-base md:text-lg font-bold text-foreground truncate">{overlayLabels[overlayPanel]?.label}</h1>
+                      <p className="text-xs text-muted-foreground truncate">{selectedLeiNome}</p>
+                    </div>
+                  </div>
+                  {isDesktop && (
+                    <button onClick={() => setOverlayPanel(null)} className="w-9 h-9 shrink-0 rounded-full hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition-colors">
+                      <XIcon className="w-5 h-5" />
                     </button>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <h1 className="font-display text-base md:text-lg font-bold text-foreground truncate">{overlayLabels[overlayPanel]?.label}</h1>
-                    <p className="text-xs text-muted-foreground truncate">{selectedLeiNome}</p>
-                  </div>
                 </div>
-                {isDesktop && (
-                  <button onClick={() => setOverlayPanel(null)} className="w-9 h-9 shrink-0 rounded-full hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition-colors">
-                    <XIcon className="w-5 h-5" />
-                  </button>
+                {/* Explanatory banner (hidden for Favoritos) */}
+                {overlayPanel !== 'fav' && (
+                  <div className="mx-4 mt-3 p-3 rounded-xl bg-primary/10 border border-primary/20 flex gap-3 items-start shrink-0">
+                    <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <p className="text-xs text-foreground/80 leading-relaxed">
+                      {overlayLabels[overlayPanel]?.desc}
+                    </p>
+                  </div>
                 )}
-              </div>
-              {/* Explanatory banner (hidden for Favoritos) */}
-              {overlayPanel !== 'fav' && (
-                <div className="mx-4 mt-3 p-3 rounded-xl bg-primary/10 border border-primary/20 flex gap-3 items-start shrink-0">
-                  <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <p className="text-xs text-foreground/80 leading-relaxed">
-                    {overlayLabels[overlayPanel]?.desc}
-                  </p>
-                </div>
-              )}
-              {/* Live monitoring pulse for Novidades & Radar */}
-              {(overlayPanel === 'novidades' || overlayPanel === 'radar') && (
-                <div className="mx-4 mt-2 flex items-center gap-2.5 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 shrink-0">
-                  <span className="relative flex h-2.5 w-2.5 shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-                  </span>
-                  <p className="text-[11px] text-emerald-400 font-medium">
-                    Monitoramento em tempo real
-                  </p>
-                  <div className="flex-1 h-[1px] relative overflow-hidden rounded-full bg-emerald-500/20">
-                    <div className="absolute inset-y-0 w-8 bg-emerald-400/60 rounded-full animate-[liveSlide_2s_ease-in-out_infinite]" />
+                {/* Live monitoring pulse for Novidades & Radar */}
+                {(overlayPanel === 'novidades' || overlayPanel === 'radar') && (
+                  <div className="mx-4 mt-2 flex items-center gap-2.5 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 shrink-0">
+                    <span className="relative flex h-2.5 w-2.5 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                    </span>
+                    <p className="text-[11px] text-emerald-400 font-medium">
+                      Monitoramento em tempo real
+                    </p>
+                    <div className="flex-1 h-[1px] relative overflow-hidden rounded-full bg-emerald-500/20">
+                      <div className="absolute inset-y-0 w-8 bg-emerald-400/60 rounded-full animate-[liveSlide_2s_ease-in-out_infinite]" />
+                    </div>
                   </div>
+                )}
+                {/* Content */}
+                <div className="px-4 pt-4">
+                  {overlayContents[overlayPanel]}
                 </div>
-              )}
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto px-4 pt-4 pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] overscroll-contain">
-                {overlayContents[overlayPanel]}
               </div>
             </motion.div>
           </>
