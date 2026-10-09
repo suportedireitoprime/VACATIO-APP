@@ -176,6 +176,7 @@ const MeExplique = lazy(() => import("./pages/MeExplique.tsx"));
 const AdminMonitorUsuarios = lazy(() => import("./pages/AdminMonitorUsuarios.tsx"));
 const AdminMonitoramento = lazy(() => import("./pages/AdminMonitoramento.tsx"));
 const AdminMonitorApis = lazy(() => import("./pages/AdminMonitorApis.tsx"));
+const AdminOmniRoute = lazy(() => import("./pages/AdminOmniRoute.tsx"));
 const AdminAprender = lazy(() => import("./pages/AdminAprender.tsx"));
 const AdminAprenderArea = lazy(() => import("./pages/AdminAprenderArea.tsx"));
 const AdminJurisprudencia = lazy(() => import("./pages/AdminJurisprudencia.tsx"));
