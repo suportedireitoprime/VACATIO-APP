@@ -2450,26 +2450,32 @@ const ArtigoBottomSheet = ({
           }
           setActiveTab(v);
         }} className="flex flex-col">
-          {modificationInfo ? (
-            <TabsList className="mx-5 bg-secondary/60 rounded-2xl h-11 grid grid-cols-2 w-auto p-1">
-              <TabsTrigger value="artigo" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Artigo</TabsTrigger>
-              <TabsTrigger value="explicacao" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1">
-                Explicação {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
-              </TabsTrigger>
-            </TabsList>
-          ) : (
-            <TabsList className="mx-5 bg-secondary/60 rounded-2xl h-11 grid grid-cols-4 w-auto p-1">
-              <TabsTrigger value="artigo" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Artigo</TabsTrigger>
-              <TabsTrigger value="explicacao" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1">
-                Explicação {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
-              </TabsTrigger>
-              <TabsTrigger value="exemplo" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1">
-                Exemplo {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
-              </TabsTrigger>
-              <TabsTrigger value="termos" className="rounded-xl text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2">Termos</TabsTrigger>
-            </TabsList>
-
-          )}
+          {(() => {
+            const articleFullText = [artigo?.caput, ...(artigo?.incisos || []), ...(artigo?.paragrafos || [])].join('\n');
+            const hasHistorico = /\((?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Revogad[oa]|Acrescid[oa]|Alterad[oa])/i.test(articleFullText);
+            
+            return (
+              <TabsList className="mx-5 bg-secondary/60 rounded-2xl h-11 flex overflow-x-auto w-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden justify-start snap-x snap-mandatory">
+                <TabsTrigger value="artigo" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">Artigo</TabsTrigger>
+                {hasHistorico && (
+                  <TabsTrigger value="historico" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start flex items-center gap-1">
+                    Histórico
+                  </TabsTrigger>
+                )}
+                <TabsTrigger value="explicacao" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1 snap-start">
+                  Explicação {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
+                </TabsTrigger>
+                {!modificationInfo && (
+                  <>
+                    <TabsTrigger value="exemplo" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1 snap-start">
+                      Exemplo {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
+                    </TabsTrigger>
+                    <TabsTrigger value="termos" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">Termos</TabsTrigger>
+                  </>
+                )}
+              </TabsList>
+            );
+          })()}
 
 
           <TabsContent value="artigo" className="px-5 pb-[calc(9rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4 relative">
@@ -3015,6 +3021,107 @@ const ArtigoBottomSheet = ({
             ) : (
               <p className="text-muted-foreground text-sm text-center py-8">Carregando termos...</p>
             )}
+          </TabsContent>
+
+          <TabsContent value="historico" className="px-5 pb-[calc(8rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-foreground text-lg font-display">Histórico de Alterações</h3>
+              <button 
+                onClick={() => {
+                  if (!isPremium) {
+                    strictGateFeature('explicacao', () => setActiveTab('explicacao'));
+                  } else {
+                    setActiveTab('explicacao');
+                  }
+                }}
+                className="bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-3.5 py-2 rounded-full flex items-center gap-1.5 transition-colors hover:bg-primary/90 shadow-sm shadow-primary/20"
+              >
+                {!isPremium && <Lock className="w-3 h-3 opacity-70" />}
+                Explicar
+              </button>
+            </div>
+            
+            <div className="flex flex-col gap-5 pl-1 mt-2">
+              {(() => {
+                const articleFullText = [artigo?.caput, ...(artigo?.incisos || []), ...(artigo?.paragrafos || [])].join('\n');
+                const linhas = articleFullText.split('\n');
+                let mapAnos: Record<string, { contexto: string, nota: string }[]> = {};
+                
+                let contextQueue: string[] = [];
+                
+                for (let j = 0; j < linhas.length; j++) {
+                  const linha = linhas[j].trim();
+                  if (!linha) continue;
+                  
+                  const isModificada = /\((?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Revogad[oa]|Acrescid[oa]|Alterad[oa])/i.test(linha);
+                  
+                  if (isModificada) {
+                    const m = /(?:de\s+(?:\d{1,2}\.\d{1,2}\.(\d{4})|(\d{4})))/i.exec(linha);
+                    const year = m ? (m[1] || m[2]) : "Outros";
+                    
+                    if (!mapAnos[year]) mapAnos[year] = [];
+                    
+                    let ctx = contextQueue.length > 0 ? contextQueue[contextQueue.length - 1] : "Caput";
+                    
+                    if (ctx.length < 3 && contextQueue.length > 1) {
+                      ctx = contextQueue[contextQueue.length - 2] + ' ' + ctx;
+                    }
+                    
+                    mapAnos[year].push({ contexto: ctx, nota: linha });
+                    contextQueue = []; 
+                  } else {
+                    contextQueue.push(linha);
+                  }
+                }
+                
+                const anosOrd = Object.keys(mapAnos).sort((a,b) => b.localeCompare(a));
+                
+                if (anosOrd.length === 0) {
+                  return (
+                    <div className="text-sm text-foreground leading-relaxed border-l-2 border-primary/40 pl-3">
+                      {linhas.map((linha: string, idx: number) => {
+                        const isMod = /\((?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Revogad[oa]|Acrescid[oa]|Alterad[oa])/i.test(linha);
+                        return (
+                          <div key={idx} className={isMod ? 'bg-primary/10 text-primary font-semibold px-2 py-1 rounded-md my-1' : 'py-1'}>
+                            {linha}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+
+                return anosOrd.map(ano => (
+                  <div key={ano} className="relative border-l-2 border-border pl-4 pb-2">
+                    <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-background" />
+                    <p className="text-sm font-extrabold text-primary mb-3 leading-none font-display">{ano}</p>
+                    <div className="flex flex-col gap-3">
+                      {mapAnos[ano].map((item, idx) => {
+                        let blockId = "";
+                        let blockText = item.contexto;
+                        const matchId = /^(Art\.\s*\d+[a-zº°]*|[IVXLCDM]+\s*-|§\s*\d+[º°]*|Parágrafo único)\s*(.*)/i.exec(item.contexto);
+                        if (matchId) {
+                          blockId = matchId[1];
+                          blockText = matchId[2] || "";
+                        }
+
+                        return (
+                          <div key={idx} className="bg-secondary/40 rounded-xl border border-border/60 p-3.5 shadow-sm">
+                            <p className="text-[13px] text-foreground leading-relaxed mb-2.5 font-body">
+                              {blockId && <span className="font-bold mr-1.5 text-primary/90">{blockId}</span>}
+                              <span className="opacity-95">{blockText}</span>
+                            </p>
+                            <p className="text-[11px] text-muted-foreground font-medium italic border-l-[3px] border-primary/30 pl-2.5 py-0.5 font-body">
+                              {item.nota}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
           </TabsContent>
         </Tabs>
 

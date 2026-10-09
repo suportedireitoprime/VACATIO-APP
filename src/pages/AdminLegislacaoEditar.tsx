@@ -457,10 +457,14 @@ function DetalheLeiOverlay({
       const detectTag = (text: string) => {
          const m = text.match(/\((Reda[çc][ãa]o\s+dada|Inclu[íi]d[oa]|Revogad[oa]|Acrescid[oa]|Alterad[oa])/i);
          if (m) {
+           if (/emenda\s+constitucional/i.test(text)) {
+             return { label: 'Emenda', color: 'bg-purple-500/15 text-purple-400 border-purple-500/30' };
+           }
+           
            const type = m[1].toLowerCase();
            if (type.includes('revogad')) return { label: 'Revogado', color: 'bg-red-500/15 text-red-400 border-red-500/30' };
            if (type.includes('inclu')) return { label: 'Incluído', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' };
-           return { label: 'Alterado', color: 'bg-blue-500/15 text-blue-400 border-blue-500/30' };
+           return { label: 'Alterado', color: 'bg-yellow-500/15 text-yellow-500 border-yellow-500/30' };
          }
          return null;
       };
@@ -590,17 +594,18 @@ function DetalheLeiOverlay({
                         Resultados da Busca · <span className="text-primary">{atualizacoesEncontradas.length} artigos modificados</span>
                       </h4>
                     </div>
-                    <div className="space-y-1.5 mt-4">
+                    <div className="relative border-l-2 border-border/60 pl-5 ml-4 mt-6 space-y-6">
                       {atualizacoesEncontradas.map((art: any, i: number) => {
                         const badgeLabel = art.numero.replace(/^Art\.?\s*/i, '').trim() || art.numero;
                         const isExpanded = !!expandidos[art.numero];
                         const antigo = artigos.find(a => a.numero === art.numero);
                         
                         return (
-                          <div
-                            key={i}
-                            className="w-full text-left rounded-xl bg-card/70 border border-border/60 overflow-hidden"
-                          >
+                          <div key={i} className="relative">
+                            <div className="absolute -left-[27.5px] top-5 w-3 h-3 rounded-full bg-primary ring-4 ring-background z-10 shadow-[0_0_8px_rgba(255,0,0,0.6)]" />
+                            <div
+                              className="w-full text-left rounded-xl bg-card/70 border border-border/60 overflow-hidden shadow-sm"
+                            >
                             <div 
                               className="px-3 py-2 flex items-stretch gap-3 cursor-pointer hover:bg-muted/50 transition-colors"
                               onClick={() => setExpandidos(prev => ({ ...prev, [art.numero]: !prev[art.numero] }))}
@@ -646,11 +651,13 @@ function DetalheLeiOverlay({
                                 {(() => {
                                   const hist = historico.find((h: any) => h.artigo_numero === art.numero);
                                   const oldText = (antigo && antigo.texto !== art.texto) ? antigo.texto : (hist ? hist.texto_antigo : null);
+                                  const isAlteradoOrEmenda = art.tag?.label === 'Alterado' || art.tag?.label === 'Emenda';
+                                  const hasToggle = oldText || isAlteradoOrEmenda;
                                   const currentMode = viewModes[art.numero] || 'novo';
 
                                   return (
                                     <>
-                                      {oldText && (
+                                      {hasToggle && (
                                         <div className="flex bg-muted/50 rounded-lg p-1 w-max border border-border/50">
                                           <button 
                                             onClick={(e) => { e.stopPropagation(); setViewModes(prev => ({...prev, [art.numero]: 'antigo'})); }}
@@ -757,7 +764,7 @@ function DetalheLeiOverlay({
                                       ) : (
                                         <div>
                                           <div className="text-[11px] text-muted-foreground whitespace-pre-wrap leading-relaxed opacity-70 border-l-2 border-border pl-2 line-through decoration-destructive/50">
-                                            {oldText}
+                                            {oldText || <i>Texto antigo indisponível (A atualização pode referir-se a uma inclusão integral ou a lei original não estava no banco de dados local).</i>}
                                           </div>
                                         </div>
                                       )}
@@ -766,6 +773,7 @@ function DetalheLeiOverlay({
                                 })()}
                               </div>
                             )}
+                            </div>
                           </div>
                         );
                       })}
