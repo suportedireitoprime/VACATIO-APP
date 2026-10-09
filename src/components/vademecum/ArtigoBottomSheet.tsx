@@ -1866,16 +1866,16 @@ const ArtigoBottomSheet = ({
       }
       const t = line.trim();
       if (/^[a-z]\)\s*/i.test(t)) {
-        const m = t.match(/^([a-z]\))/i);
-        if (m) navChips.push({ chip: m[1].toLowerCase(), index: i });
+        const m = t.match(/^([a-z])\)/i);
+        if (m) navChips.push({ chip: `Alínea ${m[1].toLowerCase()}`, index: i });
       } else if (/^§\s*(\d+)/i.test(t)) {
         const m = t.match(/^§\s*(\d+)/i);
-        if (m) navChips.push({ chip: `§ ${m[1]}º`, index: i });
+        if (m) navChips.push({ chip: `Parágrafo ${m[1]}º`, index: i });
       } else if (/^Par[áa]grafo\s+[úu]nico/i.test(t)) {
-        navChips.push({ chip: 'Par. único', index: i });
+        navChips.push({ chip: 'Parágrafo único', index: i });
       } else if (/^([IVXLCDM]+)\s*[-–.)]/i.test(t)) {
         const m = t.match(/^([IVXLCDM]+)/i);
-        if (m) navChips.push({ chip: m[1].toUpperCase(), index: i });
+        if (m) navChips.push({ chip: `Inciso ${m[1].toUpperCase()}`, index: i });
       }
     });
   }
@@ -2561,28 +2561,10 @@ const ArtigoBottomSheet = ({
                           const el = containerRef.current?.querySelector(`[data-line-index="${chip.index}"]`);
                           if (el) {
                             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                          }
-                        }}
-                        className="shrink-0 rounded-full px-3 py-1.5 text-[12px] font-bold bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                      >
-                        {chip.chip}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Menu de alternância (Chips para alínea, caput, etc.) */}
-              {navChips.length > 1 && !narracaoPlaying && (
-                <div className="mb-4 -mx-5 px-5">
-                  <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {navChips.map((chip, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          const el = containerRef.current?.querySelector(`[data-line-index="${chip.index}"]`);
-                          if (el) {
-                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            el.classList.add('bg-red-500/20', 'transition-colors', 'duration-500', 'rounded-md', 'px-2');
+                            setTimeout(() => {
+                              el.classList.remove('bg-red-500/20');
+                            }, 1200);
                           }
                         }}
                         className="shrink-0 rounded-full px-3 py-1.5 text-[12px] font-bold bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
