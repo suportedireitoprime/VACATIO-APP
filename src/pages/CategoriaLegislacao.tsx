@@ -164,6 +164,7 @@ const CategoriaLegislacao = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [stickySearch, setStickySearch] = useState(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
+  const [isAulasOpen, setIsAulasOpen] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
   const [showSearchRecents, setShowSearchRecents] = useState(false);
   
@@ -2266,7 +2267,7 @@ const CategoriaLegislacao = () => {
         <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
           {/* Aulas */}
           <button
-            onClick={() => {}}
+            onClick={() => setIsAulasOpen(true)}
             className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
           >
             <GraduationCap className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
