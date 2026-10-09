@@ -35,6 +35,8 @@ export default function NovidadeDetalheSheet({
   onGoToArtigo
 }: NovidadeDetalheProps) {
   const [viewMode, setViewMode] = useState<'novo' | 'antigo'>('novo');
+  const [explicacao, setExplicacao] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open && artigo) {
