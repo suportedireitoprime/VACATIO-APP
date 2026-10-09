@@ -34,12 +34,12 @@ export default function NovidadeDetalheSheet({
   textoAnterior,
   onGoToArtigo
 }: NovidadeDetalheProps) {
-  const [explicacao, setExplicacao] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'novo' | 'antigo'>('novo');
 
   useEffect(() => {
     if (open && artigo) {
       setExplicacao(null);
+      setViewMode('novo');
       gerarExplicacao();
     }
   }, [open, artigo]);
@@ -81,7 +81,7 @@ Mantenha o texto bem formatado, didático e vá direto ao ponto, não fique enro
 
   return (
     <Sheet open={open} onOpenChange={(val) => !val && onClose()}>
-      <SheetContent side="bottom" className="h-[100dvh] rounded-none px-0 pb-0 pt-0 flex flex-col gap-0 border-none bg-background">
+      <SheetContent side="bottom" className="h-[100dvh] z-[99999] rounded-none px-0 pb-0 pt-0 flex flex-col gap-0 border-none bg-background">
         <SheetHeader className="px-4 py-3 border-b border-border text-left flex flex-row items-center gap-3 space-y-0 sticky top-0 bg-background/80 backdrop-blur-xl z-20">
           <button onClick={onClose} className="w-10 h-10 rounded-full bg-secondary/30 flex items-center justify-center shrink-0">
             <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -101,26 +101,36 @@ Mantenha o texto bem formatado, didático e vá direto ao ponto, não fique enro
             </div>
             
             <div className="rounded-2xl border border-border bg-card overflow-hidden">
-              <div className="bg-secondary/40 px-4 py-2 border-b border-border flex items-center gap-2">
-                <FileText className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-semibold text-foreground">Texto Atual</h3>
+              <div className="bg-secondary/40 px-3 py-2 border-b border-border flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-semibold text-foreground">Redação</h3>
+                </div>
+                {textoAnterior && (
+                  <div className="flex bg-muted/60 rounded-lg p-0.5 border border-border/50">
+                    <button 
+                      onClick={() => setViewMode('antigo')}
+                      className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-colors ${viewMode === 'antigo' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Antigo
+                    </button>
+                    <button 
+                      onClick={() => setViewMode('novo')}
+                      className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-colors ${viewMode === 'novo' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      Novo
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="p-4">
-                <p className="text-[15px] leading-relaxed text-foreground/90 whitespace-pre-wrap">{artigo.caput}</p>
+                {viewMode === 'novo' ? (
+                  <p className="text-[15px] leading-relaxed text-foreground/90 whitespace-pre-wrap">{artigo.caput}</p>
+                ) : (
+                  <p className="text-[15px] leading-relaxed text-muted-foreground whitespace-pre-wrap line-through opacity-80">{textoAnterior || 'Sem registro do texto anterior.'}</p>
+                )}
               </div>
             </div>
-
-            {textoAnterior && (
-              <div className="rounded-2xl border border-destructive/20 bg-destructive/5 overflow-hidden">
-                <div className="bg-destructive/10 px-4 py-2 border-b border-destructive/10 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-destructive" />
-                  <h3 className="text-sm font-semibold text-destructive">Texto Anterior</h3>
-                </div>
-                <div className="p-4">
-                  <p className="text-[15px] leading-relaxed text-destructive/80 whitespace-pre-wrap line-through opacity-80">{textoAnterior}</p>
-                </div>
-              </div>
-            )}
 
             <div className="rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/5 border border-indigo-500/20 p-5 space-y-4">
               <div className="flex items-center gap-2 text-indigo-400">
@@ -143,13 +153,24 @@ Mantenha o texto bem formatado, didático e vá direto ao ponto, não fique enro
         </div>
 
         <div className="p-4 border-t border-border bg-background pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
-          <Button 
-            onClick={onGoToArtigo} 
-            className="w-full h-12 text-[15px] rounded-xl flex items-center justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            <BookOpen className="w-5 h-5" />
-            Ir para o artigo na lei
-          </Button>
+          <div className="flex items-center gap-3">
+            {textoAnterior && (
+              <Button 
+                variant="outline"
+                onClick={() => setViewMode(prev => prev === 'novo' ? 'antigo' : 'novo')} 
+                className="flex-1 h-12 text-[14px] rounded-xl font-bold bg-secondary/50"
+              >
+                {viewMode === 'novo' ? 'Ver Antigo' : 'Ver Novo'}
+              </Button>
+            )}
+            <Button 
+              onClick={onGoToArtigo} 
+              className="flex-[2] h-12 text-[14px] rounded-xl flex items-center justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <BookOpen className="w-5 h-5" />
+              Ir para o artigo
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

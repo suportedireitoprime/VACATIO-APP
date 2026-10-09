@@ -159,9 +159,10 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
                     {item.tipo} {item.ano ? `em ${item.ano}` : ''}
                   </span>
                 </div>
-                <p className="text-sm text-foreground/80 line-clamp-3 leading-snug flex-1">
-                  {item.artigo.caput.substring(0, 150)}{item.artigo.caput.length > 150 ? '...' : ''}
-                </p>
+                <div className="text-sm text-foreground/80 leading-snug flex-1 flex flex-col justify-center">
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-1">O que mudou:</span>
+                  <span className="font-semibold text-foreground line-clamp-2">{item.parteModificada}</span>
+                </div>
               </div>
             </motion.button>
           );
