@@ -23,6 +23,8 @@ import ArtigoBottomSheet from '@/components/vademecum/ArtigoBottomSheet';
 import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
+import AulasOverlay from '@/components/vademecum/AulasOverlay';
+import LocalSearchOverlay from '@/components/vademecum/LocalSearchOverlay';
 import HistoricoAtualizacaoCarousel from '@/components/vademecum/HistoricoAtualizacaoCarousel';
 import SearchOverlay from '@/components/vademecum/SearchOverlay';
 import NovidadeDetalheSheet from '@/components/vademecum/NovidadeDetalheSheet';
@@ -165,6 +167,7 @@ const CategoriaLegislacao = () => {
   const [stickySearch, setStickySearch] = useState(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
   const [isAulasOpen, setIsAulasOpen] = useState(false);
+  const [isLocalSearchOpen, setIsLocalSearchOpen] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
   const [showSearchRecents, setShowSearchRecents] = useState(false);
   
@@ -2286,7 +2289,7 @@ const CategoriaLegislacao = () => {
           {/* Pesquisar */}
           <button
             onClick={() => {
-              setIsGlobalSearchOpen(true);
+              setIsLocalSearchOpen(true);
             }}
             className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 min-h-[6.25rem] min-w-[5.75rem] touch-manipulation select-none"
           >
@@ -2318,7 +2321,8 @@ const CategoriaLegislacao = () => {
     ) : null;
 
     const footerOverlayPanels = (
-      <AnimatePresence>
+      <>
+        <AnimatePresence>
         {overlayPanel && (
           <>
             <motion.div
@@ -2402,9 +2406,24 @@ const CategoriaLegislacao = () => {
           </>
         )}
       </AnimatePresence>
-    );
+      <LocalSearchOverlay
+        open={isLocalSearchOpen}
+        onClose={() => setIsLocalSearchOpen(false)}
+        leiNome={selectedLeiNome}
+        leiThemeColor={leiAccent || '#c2274a'}
+        artigos={artigos}
+        capituloGroups={capituloGroups}
+        recentes={recentIds.map(id => artigos.find(a => a.id === id)).filter(Boolean) as typeof artigos}
+        onClearRecentes={() => setRecentIds([])}
+        onArtigoSelect={(artigo) => {
+          setIsLocalSearchOpen(false);
+          openArtigoWithRecent(artigo);
+        }}
+      />
+    </>
+  );
 
-    return (
+  return (
       <div className={`min-h-dvh bg-background lg:pb-0 ${focusMode ? 'pb-8' : 'pb-8'}`}>
         {/* Painel hero estilo Home — corte diagonal amarelo + imagem da lei */}
         {!focusMode && (() => {
