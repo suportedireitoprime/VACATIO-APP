@@ -23,7 +23,7 @@ import ArtigoBottomSheet from '@/components/vademecum/ArtigoBottomSheet';
 import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
-import AulasOverlay from '@/components/vademecum/AulasOverlay';
+import { AulasOverlay } from '@/components/vademecum/AulasOverlay';
 import { LicoesOverlay } from '@/components/vademecum/LicoesOverlay';
 import { FlashcardsOverlay } from '@/components/vademecum/FlashcardsOverlay';
 import { QuestoesOverlay } from '@/components/vademecum/QuestoesOverlay';
