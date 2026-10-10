@@ -2746,7 +2746,7 @@ const CategoriaLegislacao = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2.5 overflow-x-auto pb-2 px-[5%] md:px-[4%] lg:px-[3%] snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <div className="flex gap-2.5 overflow-x-auto pb-2 px-4 sm:px-6 md:px-8 snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
                   {recentIds.slice(0, 15).map(id => {
                     const artigo = artigos.find(a => a.id === id);
                     if (!artigo) return null;
