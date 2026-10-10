@@ -2233,12 +2233,34 @@ const CategoriaLegislacao = () => {
       <RadarLegislacaoContent leiNome={selectedLeiNome} tabelaNome={selectedTabelaNome} navigate={navigate} />
     );
 
+    const mapasContent = (
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 hide-scrollbar flex flex-col items-center justify-center text-center mt-12">
+        <Brain className="w-16 h-16 text-primary/30 mb-4" />
+        <h3 className="font-display text-xl font-bold text-foreground mb-2">Mapas Mentais</h3>
+        <p className="text-sm text-muted-foreground max-w-[250px]">
+          Selecione uma área para gerar mapas mentais interativos usando inteligência artificial.
+        </p>
+      </div>
+    );
+
+    const resumosContent = (
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 hide-scrollbar flex flex-col items-center justify-center text-center mt-12">
+        <FileText className="w-16 h-16 text-primary/30 mb-4" />
+        <h3 className="font-display text-xl font-bold text-foreground mb-2">Resumos</h3>
+        <p className="text-sm text-muted-foreground max-w-[250px]">
+          Selecione uma área para gerar resumos usando inteligência artificial.
+        </p>
+      </div>
+    );
+
     const overlayLabels: Record<string, { label: string; icon: typeof Star; desc: string }> = {
       fav: { label: 'Favoritos', icon: Heart, desc: 'Aqui ficam os artigos que você marcou com o coração. Favoritar facilita o acesso rápido aos dispositivos que você mais consulta.' },
       playlist: { label: 'Playlist', icon: ListMusic, desc: 'Ouça as narrações dos artigos desta lei. Ideal para estudar enquanto faz outras atividades — basta gerar as narrações na tela de Narração.' },
       anotacoes: { label: 'Anotações', icon: StickyNote, desc: 'Veja todas as suas anotações e grifos desta lei em um só lugar. Para criar, abra um artigo e grife um trecho.' },
       novidades: { label: 'Novidades', icon: History, desc: 'Histórico de alterações legislativas — veja quais artigos foram incluídos, revogados ou modificados, organizados por ano.' },
       radar: { label: 'Radar', icon: Radar, desc: 'Proposições em tramitação no Congresso que podem alterar esta legislação. Acompanhe os projetos de lei em tempo real.' },
+      mapas: { label: 'Mapas Mentais', icon: Brain, desc: 'Mapas mentais estruturados gerados por IA para fixar a legislação.' },
+      resumos: { label: 'Resumos', icon: FileText, desc: 'Resumos concisos dos tópicos selecionados da legislação.' },
     };
     const overlayContents: Record<string, React.ReactNode> = {
       fav: favContent,
@@ -2246,6 +2268,8 @@ const CategoriaLegislacao = () => {
       anotacoes: anotacoesContent,
       novidades: novidadesContent,
       radar: radarContent,
+      mapas: mapasContent,
+      resumos: resumosContent,
     };
 
     // Menu de alternância no rodapé
@@ -2293,30 +2317,22 @@ const CategoriaLegislacao = () => {
             <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white drop-shadow-sm truncate px-0.5">Pesquisar</span>
           </button>
 
-          {/* Playlist */}
+          {/* Mapas */}
           <button
-            onClick={() => setOverlayPanel('playlist')}
-            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${overlayPanel === 'playlist' ? 'text-primary' : 'text-white/80 hover:text-white'}`}
+            onClick={() => setOverlayPanel('mapas')}
+            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${overlayPanel === 'mapas' ? 'text-primary' : 'text-white/80 hover:text-white'}`}
           >
-            <ListMusic className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Playlist</span>
+            <Brain className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Mapas</span>
           </button>
 
-          {/* Radar */}
+          {/* Resumos */}
           <button
-            onClick={() => {
-              if (!isPremium) {
-                setPremiumGateFeature('radar');
-                setPremiumGateDesc('O Radar Legislativo é exclusivo para assinantes.');
-                setShowPremiumGate(true);
-                return;
-              }
-              setOverlayPanel('radar');
-            }}
-            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${overlayPanel === 'radar' ? 'text-primary' : 'text-white/80 hover:text-white'}`}
+            onClick={() => setOverlayPanel('resumos')}
+            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${overlayPanel === 'resumos' ? 'text-primary' : 'text-white/80 hover:text-white'}`}
           >
-            <Radar className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Radar</span>
+            <FileText className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Resumos</span>
           </button>
         </div>
       </nav>
@@ -2593,14 +2609,12 @@ const CategoriaLegislacao = () => {
               </div>
 
               {/* Barra de ações (quadradinhos tipo Home) */}
-              <div className="relative z-10 pl-3 sm:px-5 pb-4 pt-3 flex justify-start sm:justify-center w-full">
-                <div className="flex items-center gap-1 w-full max-w-2xl bg-black/40 backdrop-blur-md rounded-l-3xl rounded-r-none sm:rounded-r-3xl p-2 pr-0 sm:pr-2 border border-white/10 border-r-0 sm:border-r shadow-2xl overflow-x-auto hide-scrollbar snap-x snap-mandatory">
+              <div className="relative z-10 px-3 sm:px-5 pb-4 pt-3 flex justify-center w-full">
+                <div className="flex items-center gap-1.5 w-full max-w-2xl bg-black/40 backdrop-blur-md rounded-3xl p-2 border border-white/10 shadow-2xl overflow-x-auto hide-scrollbar snap-x snap-mandatory">
                   {[
                     { key: 'aulas' as const, icon: GraduationCap, label: 'Aulas', color: '#F87171' },
                     { key: 'licoes' as const, icon: Pencil, label: 'Lições', color: '#38BDF8' },
                     { key: 'flashcards' as const, icon: Layers, label: 'Flashcards', color: '#34D399' },
-                    { key: 'mapas' as const, icon: Brain, label: 'Mapas', color: '#A855F7' },
-                    { key: 'resumos' as const, icon: FileText, label: 'Resumos', color: '#FB923C' },
                     { key: 'questoes' as const, icon: Target, label: 'Questões', color: '#FACC15' },
                   ].map((tab, index) => {
                     const active = isAulasOpen && tab.key === 'aulas'; // Simple check for now
@@ -2614,7 +2628,7 @@ const CategoriaLegislacao = () => {
                         }}
                         type="button"
                         style={{ '--shimmer-delay': `${index * 150}ms` } as React.CSSProperties}
-                        className={`group shrink-0 min-w-[72px] sm:min-w-[84px] snap-center flex flex-col items-center justify-center py-2 px-1 rounded-[14px] transition-all duration-300 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden ${
+                        className={`group shrink-0 min-w-[72px] sm:min-w-[84px] flex-1 snap-center flex flex-col items-center justify-center py-2 px-1 rounded-[14px] transition-all duration-300 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden ${
                           active
                             ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
                             : 'hover:bg-white/10'
