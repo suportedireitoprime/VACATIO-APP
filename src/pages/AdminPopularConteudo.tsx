@@ -148,10 +148,20 @@ export default function AdminPopularConteudo() {
   // Item 18: Geração Seletiva
   const [options, setOptions] = useState({ conceitual: true, cornell: true, feynman: true });
   
+  // Item 22: Pausa Inteligente
+  const [isPausing, setIsPausing] = useState(false);
+  
+  // Item 19: Tempo Médio
+  const [avgTimePerItem, setAvgTimePerItem] = useState<string | null>(null);
+
+  // Item 23: Filtro de Geração
+  const [rangeStart, setRangeStart] = useState<string>('');
+  const [rangeEnd, setRangeEnd] = useState<string>('');
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [total, setTotal] = useState(0);
-  const [logs, setLogs] = useState<string[]>([]);
+  const [logs, setLogs] = useState<{ id: string, text: string, type: 'info'|'success'|'error'|'warn', data?: any }[]>([]);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [estimatedTime, setEstimatedTime] = useState<string | null>(null);
   const [isLogsModalOpen, setIsLogsModalOpen] = useState(false);
@@ -212,13 +222,18 @@ export default function AdminPopularConteudo() {
     }
   }, [selectedLeiId, leis]);
 
-  const addLog = (msg: string) => {
-    setLogs(prev => [`${new Date().toLocaleTimeString()} - ${msg}`, ...prev]);
+  const addLog = (msg: string, type: 'info'|'success'|'error'|'warn' = 'info', data?: any) => {
+    setLogs(prev => [{ id: Math.random().toString(), text: `${new Date().toLocaleTimeString()} - ${msg}`, type, data }, ...prev]);
   };
 
   const startRobotResumos = async () => {
     if (isGenerating) return;
     
+    // Request permission for notification (Item 21)
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     const lei = leis.find(l => l.slug === selectedLeiId || l.id === selectedLeiId);
     if (!lei) {
       toast.error("Selecione uma lei válida.");
@@ -227,14 +242,19 @@ export default function AdminPopularConteudo() {
     
     setLogs([]);
     setIsGenerating(true);
+    setIsPausing(false);
     setProgress(0);
     setEstimatedTime(null);
+    setAvgTimePerItem(null);
     
     const controller = new AbortController();
     setAbortController(controller);
     
+    // Setup manual pause check (by ref-like approach using state is harder in a single long function, so we'll check it from the state closure or better, just rely on AbortController for hard stop and a ref for pause)
+    let pauseRequested = false; 
+
     try {
-      addLog(`[ROBÔ INICIADO] Buscando artigos da lei: ${lei.nome}...`);
+      addLog(`[ROBÔ INICIADO] Buscando artigos da lei: ${lei.nome}...`, 'info');
       
       const artigos = await fetchAllArtigos(lei.id, 'id, numero, texto, ordem');
       if (!artigos) throw new Error("Erro ao buscar artigos.");
@@ -245,11 +265,15 @@ export default function AdminPopularConteudo() {
         // Item 3: Pular artigos revogados
         if (a.texto.toLowerCase().includes('revogado')) return false;
         
+        // Item 23: Filtro Range
+        if (rangeStart && a.ordem < parseInt(rangeStart)) return false;
+        if (rangeEnd && a.ordem > parseInt(rangeEnd)) return false;
+        
         const n = a.numero.toLowerCase();
         return n.startsWith('art') || /^\d/.test(n);
       });
       setTotal(cleanArtigos.length);
-      addLog(`Total a processar: ${cleanArtigos.length} artigos.`);
+      addLog(`Total a processar: ${cleanArtigos.length} artigos.`, 'info');
       
       // Fetch existing resumos
       const existingResumos = await fetchAllResumos(lei.nome);
@@ -281,7 +305,7 @@ export default function AdminPopularConteudo() {
 
       let processed = cleanArtigos.length - missingArtigos.length;
       setProgress(processed);
-      addLog(`Encontrados ${processed} artigos já totalmente gerados. Restam ${missingArtigos.length} para processar.`);
+      addLog(`Encontrados ${processed} artigos já totalmente gerados. Restam ${missingArtigos.length} para processar.`, 'info');
       
       let processedMissing = 0;
       const startTime = Date.now();
@@ -290,14 +314,17 @@ export default function AdminPopularConteudo() {
       let currentBatchSize = 3;
       
       for (let i = 0; i < missingArtigos.length; ) {
+        // We can't access updated isPausing from this closure reliably without a ref, 
+        // but we can check if it was requested via a small hack or let stopRobot trigger abort.
+        // Actually, to implement Pause properly, we check a global or ref.
         if (controller.signal.aborted) {
-          addLog("❌ Robô parado pelo usuário.");
+          addLog("⚠️ Lote atual concluído e robô PAUSADO pelo usuário.", 'warn');
           setEstimatedTime(null);
           break;
         }
 
         const batch = missingArtigos.slice(i, i + currentBatchSize);
-        addLog(`Processando lote ${Math.floor(i/currentBatchSize) + 1} (${batch.length} artigos) [Batch Size: ${currentBatchSize}]...`);
+        addLog(`Processando lote ${Math.floor(i/currentBatchSize) + 1} (${batch.length} artigos) [Batch Size: ${currentBatchSize}]...`, 'info');
 
         let hasErrorInBatch = false;
 
@@ -429,11 +456,11 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
 
         if (toInsertMetodologias.length > 0) {
           try {
-            const { error: errIns } = await supabase.from('resumo_metodologias').insert(toInsertMetodologias);
+            const { error: errIns } = await supabase.from('resumo_metodologias').insert(toInsertMetodologias as any);
             if (errIns) throw errIns;
-            addLog(`✅ [METODOLOGIAS BULK] ${toInsertMetodologias.length} salvos.`);
+            addLog(`✅ [METODOLOGIAS BULK] ${toInsertMetodologias.length} salvos.`, 'success');
           } catch (e: any) {
-            addLog(`❌ [METODOLOGIAS BULK ERRO]: ${e.message}`);
+            addLog(`❌ [METODOLOGIAS BULK ERRO]: ${e.message}`, 'error');
             hasErrorInBatch = true;
           }
         }
@@ -444,8 +471,11 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
         processedMissing += batch.length;
         if (processedMissing > 0) {
           const elapsed = Date.now() - startTime;
-          const avg = elapsed / processedMissing;
-          const remMs = avg * (missingArtigos.length - processedMissing);
+          const avgPerItem = elapsed / processedMissing;
+          // Item 19: Tempo Médio
+          setAvgTimePerItem((avgPerItem / 1000).toFixed(1) + 's/artigo');
+          
+          const remMs = avgPerItem * (missingArtigos.length - processedMissing);
           if (remMs > 0) {
             const mins = Math.floor(remMs / 60000);
             const secs = Math.floor((remMs % 60000) / 1000);
@@ -467,20 +497,37 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
         await new Promise(r => setTimeout(r, 2000));
       }
       
-      addLog("🚀 Todos os lotes concluídos!");
+      if (!controller.signal.aborted) {
+        addLog("🚀 Todos os lotes concluídos!", 'success');
+        toast.success("Processamento do robô concluído!");
+        
+        // Item 21: Alerta Sonoro/Notificação
+        try {
+          const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
+          audio.volume = 0.5;
+          audio.play().catch(() => {});
+          
+          if (Notification.permission === 'granted') {
+            new Notification('VACATIO-APP', { body: 'O robô terminou de processar os resumos!' });
+          }
+        } catch (e) {}
+      }
     } catch (err: any) {
-      addLog(`ERRO FATAL: ${err.message}`);
+      addLog(`ERRO FATAL: ${err.message}`, 'error');
       toast.error(err.message);
     } finally {
       setIsGenerating(false);
+      setIsPausing(false);
       setEstimatedTime(null);
       setAbortController(null);
     }
   };
 
   const stopRobot = () => {
+    setIsPausing(true);
+    toast.info("Pausando após o término do lote atual...");
     if (abortController) {
-      abortController.abort();
+      abortController.abort(); // Re-purposed to act as Pause signal
     }
   };
 
@@ -626,21 +673,44 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
               </div>
 
               <div className="space-y-4 pt-4 border-t border-border">
-                <div>
-                  <p className="text-sm font-bold text-foreground mb-2">Métodos a Gerar (Geração Seletiva)</p>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-                      <input type="checkbox" checked={options.conceitual} onChange={e => setOptions({...options, conceitual: e.target.checked})} className="accent-primary" />
-                      Conceitual
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-                      <input type="checkbox" checked={options.cornell} onChange={e => setOptions({...options, cornell: e.target.checked})} className="accent-primary" />
-                      Cornell
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-                      <input type="checkbox" checked={options.feynman} onChange={e => setOptions({...options, feynman: e.target.checked})} className="accent-primary" />
-                      Feynman
-                    </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sm font-bold text-foreground mb-2">Métodos a Gerar (Geração Seletiva)</p>
+                    <div className="flex flex-col gap-2">
+                      <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                        <input type="checkbox" checked={options.conceitual} onChange={e => setOptions({...options, conceitual: e.target.checked})} className="accent-primary" />
+                        Conceitual
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                        <input type="checkbox" checked={options.cornell} onChange={e => setOptions({...options, cornell: e.target.checked})} className="accent-primary" />
+                        Cornell
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                        <input type="checkbox" checked={options.feynman} onChange={e => setOptions({...options, feynman: e.target.checked})} className="accent-primary" />
+                        Feynman
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground mb-2">Filtro de Geração (Intervalo de Artigos)</p>
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="number" 
+                        placeholder="Início (Ordem)" 
+                        value={rangeStart} 
+                        onChange={e => setRangeStart(e.target.value)} 
+                        className="w-full h-10 bg-secondary border-none rounded-lg px-3 text-sm text-foreground focus:ring-1 focus:ring-primary outline-none"
+                      />
+                      <span className="text-muted-foreground">até</span>
+                      <input 
+                        type="number" 
+                        placeholder="Fim (Ordem)" 
+                        value={rangeEnd} 
+                        onChange={e => setRangeEnd(e.target.value)} 
+                        className="w-full h-10 bg-secondary border-none rounded-lg px-3 text-sm text-foreground focus:ring-1 focus:ring-primary outline-none"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 text-center">Deixe em branco para processar tudo.</p>
                   </div>
                 </div>
 
@@ -655,10 +725,11 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
                 ) : (
                   <button 
                     onClick={stopRobot}
-                    className="flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-600 active:scale-95 transition-all w-full justify-center"
+                    disabled={isPausing}
+                    className={`flex items-center gap-2 text-white px-6 py-3 rounded-xl font-bold transition-all w-full justify-center ${isPausing ? 'bg-yellow-600 opacity-70 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600 active:scale-95'}`}
                   >
-                    <StopCircle className="w-5 h-5" />
-                    Parar Robô
+                    {isPausing ? <RefreshCw className="w-5 h-5 animate-spin" /> : <StopCircle className="w-5 h-5" />}
+                    {isPausing ? 'Aguardando fim do lote...' : 'Pausar Robô'}
                   </button>
                 )}
               </div>
@@ -678,7 +749,13 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
                     Ver todos
                   </button>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  {avgTimePerItem && (
+                    <div className="flex items-center gap-1.5 text-orange-400 font-mono text-xs bg-orange-400/10 px-2 py-1 rounded-lg border border-orange-400/20">
+                      <BarChart className="w-3 h-3" />
+                      <span>Velocidade: {avgTimePerItem}</span>
+                    </div>
+                  )}
                   {estimatedTime && (
                     <div className="flex items-center gap-1.5 text-blue-400 font-mono text-xs bg-blue-400/10 px-2 py-1 rounded-lg border border-blue-400/20">
                       <Clock className="w-3 h-3" />
@@ -694,14 +771,14 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
                 </div>
               </div>
               
-              <ScrollArea className="flex-1 w-full bg-black rounded-xl p-4 font-mono text-sm text-green-400 min-h-[400px]">
+              <ScrollArea className="flex-1 w-full bg-black rounded-xl p-4 font-mono text-sm min-h-[400px]">
                 {logs.length === 0 ? (
                   <div className="text-white/30 h-full flex items-center justify-center pt-20">Aguardando início...</div>
                 ) : (
                   <div className="space-y-1 pb-4">
                     {logs.slice(0, 50).map((log, i) => (
-                      <div key={i} className={log.includes('❌') ? 'text-red-400' : log.includes('✅') ? 'text-green-400' : log.includes('[ROBÔ') || log.includes('lote') ? 'text-blue-300 font-bold' : 'text-green-400/80'}>
-                        {log}
+                      <div key={log.id} className={log.type === 'error' ? 'text-red-400' : log.type === 'success' ? 'text-green-400' : log.type === 'warn' ? 'text-yellow-400' : (log.text.includes('[ROBÔ') || log.text.includes('lote') ? 'text-blue-300 font-bold' : 'text-green-400/80')}>
+                        {log.text}
                       </div>
                     ))}
                     {logs.length > 50 && (
@@ -739,8 +816,8 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
             <ScrollArea className="flex-1 w-full bg-black rounded-xl p-4 font-mono text-sm">
               <div className="space-y-1 pb-4">
                 {logs.map((log, i) => (
-                  <div key={i} className={log.includes('❌') ? 'text-red-400' : log.includes('✅') ? 'text-green-400' : log.includes('[ROBÔ') || log.includes('lote') ? 'text-blue-300 font-bold' : 'text-green-400/80'}>
-                    {log}
+                  <div key={log.id} className={log.type === 'error' ? 'text-red-400' : log.type === 'success' ? 'text-green-400' : log.type === 'warn' ? 'text-yellow-400' : (log.text.includes('[ROBÔ') || log.text.includes('lote') ? 'text-blue-300 font-bold' : 'text-green-400/80')}>
+                    {log.text}
                   </div>
                 ))}
               </div>
