@@ -466,8 +466,6 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
                 <div className="h-28" />
               </div>
 
-            </div>
-
             {/* Ações flutuantes */}
             <div className="pointer-events-none absolute bottom-5 right-4 flex flex-col items-end gap-3">
               <AnimatePresence>
