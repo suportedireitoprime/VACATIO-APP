@@ -68,7 +68,7 @@ const METODOS: { id: Metodo; label: string }[] = [
 
 export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoChange, pregerarMetodos, initialMetodo }: Props) {
   const isDesktop = useIsDesktop();
-  const [fontScale, setFontScale] = useState(1.15);
+  const [fontScale, setFontScale] = useState(1.05);
   const [tab, setTab] = useState<Tab>("resumo");
   const [metodo, setMetodo] = useState<Metodo>(initialMetodo || "conceitos");
   const [cornell, setCornell] = useState<CornellContent | null>(null);
@@ -412,7 +412,24 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
                             "
                           >
                             {content ? (
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                              <ReactMarkdown 
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                  table: ({node, ...props}) => (
+                                    <div className="w-full overflow-x-auto pb-2 my-6 custom-scrollbar">
+                                      <table className="w-full text-left border-collapse min-w-[500px]" {...props} />
+                                    </div>
+                                  ),
+                                  th: ({node, ...props}) => (
+                                    <th className="border border-border/50 px-3 py-2 font-bold bg-muted/30" {...props} />
+                                  ),
+                                  td: ({node, ...props}) => (
+                                    <td className="border border-border/50 px-3 py-2 align-top" {...props} />
+                                  )
+                                }}
+                              >
+                                {content}
+                              </ReactMarkdown>
                             ) : (
                               <p className="text-muted-foreground">Sem conteúdo neste tópico.</p>
                             )}
