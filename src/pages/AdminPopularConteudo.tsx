@@ -419,7 +419,7 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
         if (toInsertResumos.length > 0) {
           try {
             const { data: inserted, error: errIns } = await supabase.from('resumos_juridicos').insert(
-              toInsertResumos.map(r => ({ area: r.area, tema: r.tema, subtema: r.subtema, ordem_subtema: r.ordem_subtema, markdown: r.markdown, exemplos: r.exemplos, termos_chave: r.termos_chave })) as any
+              toInsertResumos.map(r => ({ area: r.area, tema: r.tema, subtema: r.subtema, ordem_subtema: r.ordem_subtema, markdown: r.markdown })) as any
             ).select('id, subtema');
             
             if (errIns) throw errIns;
