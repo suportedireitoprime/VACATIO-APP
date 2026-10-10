@@ -2,12 +2,12 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { BookOpen, ChevronRight, GraduationCap, ArrowLeft, PlayCircle } from 'lucide-react';
 
 // Fallbacks caso não exista o diretório em vacatio app
-import hero1 from '@/assets/aprender-hero/hero-1.png';
-import hero2 from '@/assets/aprender-hero/hero-2.png';
-import hero3 from '@/assets/aprender-hero/hero-3.png';
-import hero4 from '@/assets/aprender-hero/hero-4.png';
-import hero5 from '@/assets/aprender-hero/hero-5.png';
-import hero6 from '@/assets/aprender-hero/hero-6.png';
+import hero1 from '@/assets/aprender-hero/hero-1.webp';
+import hero2 from '@/assets/aprender-hero/hero-2.webp';
+import hero3 from '@/assets/aprender-hero/hero-3.webp';
+import hero4 from '@/assets/aprender-hero/hero-4.webp';
+import hero5 from '@/assets/aprender-hero/hero-5.webp';
+import hero6 from '@/assets/aprender-hero/hero-6.webp';
 
 const HERO_ILLUSTRATIONS = [hero1, hero2, hero3, hero4, hero5, hero6];
 const OFFSETS = [0, 56, 84, 56, 0, -56, -84, -56];
