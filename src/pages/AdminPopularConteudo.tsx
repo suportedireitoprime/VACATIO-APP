@@ -145,6 +145,9 @@ export default function AdminPopularConteudo() {
   const [leis, setLeis] = useState<any[]>([]);
   const [selectedLeiId, setSelectedLeiId] = useState<string>('cc');
   
+  // Item 18: Geração Seletiva
+  const [options, setOptions] = useState({ conceitual: true, cornell: true, feynman: true });
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [total, setTotal] = useState(0);
@@ -267,12 +270,13 @@ export default function AdminPopularConteudo() {
         const numLabel = `Artigo ${num}`;
         let resumoId = existingMap.get(numLabel) || existingMap.get(`Art. ${num}`) || existingMap.get(num) || existingMap.get(artigo.numero);
         
-        if (!resumoId) return true; // Missing concept
+        if (options.conceitual && !resumoId) return true; // Missing concept
         
         const metodos = metodologiasMap.get(resumoId) || new Set();
-        if (!metodos.has('cornell') || !metodos.has('feynman')) return true; // Missing a methodology
+        if (options.cornell && !metodos.has('cornell')) return true; // Missing Cornell
+        if (options.feynman && !metodos.has('feynman')) return true; // Missing Feynman
         
-        return false; // Fully generated
+        return false; // Fully generated or ignored by options
       });
 
       let processed = cleanArtigos.length - missingArtigos.length;
@@ -282,26 +286,30 @@ export default function AdminPopularConteudo() {
       let processedMissing = 0;
       const startTime = Date.now();
       
-      // Lote de 3 em 3 para não sobrecarregar
-      const BATCH_SIZE = 3;
-      for (let i = 0; i < missingArtigos.length; i += BATCH_SIZE) {
+      // Lote Dinâmico (Item 14)
+      let currentBatchSize = 3;
+      
+      for (let i = 0; i < missingArtigos.length; ) {
         if (controller.signal.aborted) {
           addLog("❌ Robô parado pelo usuário.");
           setEstimatedTime(null);
           break;
         }
 
-        const batch = missingArtigos.slice(i, i + BATCH_SIZE);
-        addLog(`Processando lote ${i/BATCH_SIZE + 1} (${batch.length} artigos)...`);
+        const batch = missingArtigos.slice(i, i + currentBatchSize);
+        addLog(`Processando lote ${Math.floor(i/currentBatchSize) + 1} (${batch.length} artigos) [Batch Size: ${currentBatchSize}]...`);
+
+        let hasErrorInBatch = false;
 
         const batchPromises = batch.map(async (artigo) => {
           let num = artigo.numero.replace(/art\.?\s*/i, '').trim();
           const numLabel = `Artigo ${num}`;
           let resumoId = existingMap.get(numLabel) || existingMap.get(`Art. ${num}`) || existingMap.get(num) || existingMap.get(artigo.numero);
           const metodos = metodologiasMap.get(resumoId) || new Set();
-          const missingConcept = !resumoId;
-          const missingCornell = !metodos.has('cornell');
-          const missingFeynman = !metodos.has('feynman');
+          
+          const missingConcept = options.conceitual && !resumoId;
+          const missingCornell = options.cornell && !metodos.has('cornell');
+          const missingFeynman = options.feynman && !metodos.has('feynman');
 
           let pConceitual = null;
           let pCornell = null;
@@ -342,51 +350,95 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
           // Await all AI generations in parallel
           const [resConceitual, resCornell, resFeynman] = await Promise.allSettled([pConceitual, pCornell, pFeynman]);
 
-          // Now save sequentially since relations depend on ResumoId
-          try {
-            if (missingConcept && resConceitual.status === 'fulfilled' && resConceitual.value) {
-              const raw = safeJsonParse(resConceitual.value);
-
-              const { data: ins, error: errIns } = await supabase.from('resumos_juridicos').insert({
-                area: lei.nome, tema: lei.nome, subtema: numLabel, ordem_subtema: artigo.ordem || 0,
-                markdown: raw.markdown, exemplos: raw.exemplos, termos_chave: raw.termos
-              } as any).select('id').single();
-              if (errIns) throw errIns;
-              resumoId = ins.id;
-              existingMap.set(numLabel, resumoId);
-              metodologiasMap.set(resumoId, new Set());
-              
-              const snippet = raw.markdown ? raw.markdown.substring(0, 45).replace(/\n/g, ' ') + '...' : 'OK';
-              addLog(`✅ [CONCEITUAL] ${numLabel}: "${snippet}"`);
-            } else if (resConceitual?.status === 'rejected') {
-              addLog(`⚠️ [CONCEITUAL] ${numLabel} Falhou: ${resConceitual.reason?.message}`);
-            }
-
-            if (missingCornell && resCornell.status === 'fulfilled' && resCornell.value && resumoId) {
-              const raw = safeJsonParse(resCornell.value);
-              await supabase.from('resumo_metodologias').insert({ resumo_id: resumoId, metodo: 'cornell', conteudo: raw });
-              metodologiasMap.get(resumoId)!.add('cornell');
-              addLog(`✅ [CORNELL] ${numLabel} salvo com sucesso.`);
-            } else if (resCornell?.status === 'rejected') {
-              addLog(`⚠️ [CORNELL] ${numLabel} Falhou: ${resCornell.reason?.message}`);
-            }
-
-            if (missingFeynman && resFeynman.status === 'fulfilled' && resFeynman.value && resumoId) {
-              const raw = safeJsonParse(resFeynman.value);
-              await supabase.from('resumo_metodologias').insert({ resumo_id: resumoId, metodo: 'feynman', conteudo: raw });
-              metodologiasMap.get(resumoId)!.add('feynman');
-              addLog(`✅ [FEYNMAN] ${numLabel} salvo com sucesso.`);
-            } else if (resFeynman?.status === 'rejected') {
-              addLog(`⚠️ [FEYNMAN] ${numLabel} Falhou: ${resFeynman.reason?.message}`);
-            }
-          } catch (e: any) {
-            addLog(`❌ Erro ao salvar/parsear ${numLabel}: ${e.message}`);
-          }
-          
-          setProgress(prev => prev + 1);
+          return {
+            artigo, numLabel, resumoId,
+            resConceitual, resCornell, resFeynman,
+            missingConcept, missingCornell, missingFeynman
+          };
         });
 
-        await Promise.all(batchPromises);
+        const batchResults = await Promise.all(batchPromises);
+
+        // Item 15: Bulk Insert de Conceituais
+        const toInsertResumos: any[] = [];
+        for (const res of batchResults) {
+          if (res.missingConcept && res.resConceitual.status === 'fulfilled' && res.resConceitual.value) {
+            try {
+              const raw = safeJsonParse(res.resConceitual.value);
+              toInsertResumos.push({
+                area: lei.nome, tema: lei.nome, subtema: res.numLabel, ordem_subtema: res.artigo.ordem || 0,
+                markdown: raw.markdown, exemplos: raw.exemplos, termos_chave: raw.termos, _raw: raw, _origResult: res
+              });
+            } catch (e: any) {
+              addLog(`❌ [JSON ERRO] ${res.numLabel}: ${e.message}`);
+              hasErrorInBatch = true;
+            }
+          } else if (res.resConceitual?.status === 'rejected') {
+            addLog(`⚠️ [CONCEITUAL] ${res.numLabel} Falhou: ${res.resConceitual.reason?.message}`);
+            hasErrorInBatch = true;
+          }
+        }
+
+        if (toInsertResumos.length > 0) {
+          try {
+            const { data: inserted, error: errIns } = await supabase.from('resumos_juridicos').insert(
+              toInsertResumos.map(r => ({ area: r.area, tema: r.tema, subtema: r.subtema, ordem_subtema: r.ordem_subtema, markdown: r.markdown, exemplos: r.exemplos, termos_chave: r.termos_chave })) as any
+            ).select('id, subtema');
+            
+            if (errIns) throw errIns;
+            
+            // Map the new IDs back
+            for (const r of toInsertResumos) {
+              const dbRow = inserted.find(i => i.subtema === r.subtema);
+              if (dbRow) {
+                r._origResult.resumoId = dbRow.id;
+                existingMap.set(r.subtema, dbRow.id);
+                metodologiasMap.set(dbRow.id, new Set());
+                addLog(`✅ [CONCEITUAL BULK] ${r.subtema} salvo.`);
+              }
+            }
+          } catch (e: any) {
+            addLog(`❌ [BULK INSERT ERRO]: ${e.message}`);
+            hasErrorInBatch = true;
+          }
+        }
+
+        // Item 15: Bulk Insert de Metodologias
+        const toInsertMetodologias: any[] = [];
+        for (const res of batchResults) {
+          const rid = res.resumoId;
+          
+          if (res.missingCornell && res.resCornell.status === 'fulfilled' && res.resCornell.value && rid) {
+            try {
+              const raw = safeJsonParse(res.resCornell.value);
+              toInsertMetodologias.push({ resumo_id: rid, metodo: 'cornell', conteudo: raw });
+              metodologiasMap.get(rid)!.add('cornell');
+              addLog(`✅ [CORNELL] ${res.numLabel} processado.`);
+            } catch (e) { hasErrorInBatch = true; }
+          } else if (res.resCornell?.status === 'rejected') { hasErrorInBatch = true; }
+
+          if (res.missingFeynman && res.resFeynman.status === 'fulfilled' && res.resFeynman.value && rid) {
+            try {
+              const raw = safeJsonParse(res.resFeynman.value);
+              toInsertMetodologias.push({ resumo_id: rid, metodo: 'feynman', conteudo: raw });
+              metodologiasMap.get(rid)!.add('feynman');
+              addLog(`✅ [FEYNMAN] ${res.numLabel} processado.`);
+            } catch (e) { hasErrorInBatch = true; }
+          } else if (res.resFeynman?.status === 'rejected') { hasErrorInBatch = true; }
+        }
+
+        if (toInsertMetodologias.length > 0) {
+          try {
+            const { error: errIns } = await supabase.from('resumo_metodologias').insert(toInsertMetodologias);
+            if (errIns) throw errIns;
+            addLog(`✅ [METODOLOGIAS BULK] ${toInsertMetodologias.length} salvos.`);
+          } catch (e: any) {
+            addLog(`❌ [METODOLOGIAS BULK ERRO]: ${e.message}`);
+            hasErrorInBatch = true;
+          }
+        }
+
+        setProgress(prev => prev + batch.length);
         loadStats(); // Update counters
 
         processedMissing += batch.length;
@@ -403,7 +455,15 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
           }
         }
 
-        // Pausa entre lotes
+        // Dinamicamente ajusta o lote (Rate limit resilience)
+        if (hasErrorInBatch && currentBatchSize > 1) {
+          addLog("⚠️ Erros detectados no lote. Reduzindo Batch Size (Rate Limit).");
+          currentBatchSize--;
+        } else if (!hasErrorInBatch && currentBatchSize < 3) {
+          currentBatchSize++;
+        }
+
+        i += batch.length; // Avança o loop
         await new Promise(r => setTimeout(r, 2000));
       }
       
@@ -565,14 +625,32 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 pt-4 border-t border-border">
+              <div className="space-y-4 pt-4 border-t border-border">
+                <div>
+                  <p className="text-sm font-bold text-foreground mb-2">Métodos a Gerar (Geração Seletiva)</p>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                      <input type="checkbox" checked={options.conceitual} onChange={e => setOptions({...options, conceitual: e.target.checked})} className="accent-primary" />
+                      Conceitual
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                      <input type="checkbox" checked={options.cornell} onChange={e => setOptions({...options, cornell: e.target.checked})} className="accent-primary" />
+                      Cornell
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                      <input type="checkbox" checked={options.feynman} onChange={e => setOptions({...options, feynman: e.target.checked})} className="accent-primary" />
+                      Feynman
+                    </label>
+                  </div>
+                </div>
+
                 {!isGenerating ? (
                   <button 
                     onClick={startRobotResumos}
                     className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:bg-primary/90 active:scale-95 transition-all w-full justify-center"
                   >
                     <Play className="w-5 h-5" />
-                    Iniciar Lotes (3 em 3)
+                    Iniciar Robô (Dinâmico)
                   </button>
                 ) : (
                   <button 
