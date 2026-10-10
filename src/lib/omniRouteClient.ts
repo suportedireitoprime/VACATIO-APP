@@ -76,7 +76,7 @@ export async function generateOmniText({
   });
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+  const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout
 
   try {
     const res = await fetch(url, { method: 'POST', headers, body, signal: controller.signal });
@@ -144,7 +144,7 @@ export async function generateOmniChat({
   });
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
 
   try {
     const res = await fetch(url, { method: 'POST', headers, body, signal: controller.signal });
