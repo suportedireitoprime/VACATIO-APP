@@ -243,87 +243,172 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
     );
   }
 
-  return (
-    <div className="flex flex-col h-full bg-background relative w-full rounded-t-[30px] overflow-hidden">
-      <div className="flex items-center justify-between p-4 pb-2 relative z-20">
-        <button 
-          onClick={onClose}
-          className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 active:scale-95 transition-all shadow-sm"
-        >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </button>
-      </div>
+  // ---- LISTA PRINCIPAL (Estilo Mapas Overlay - Azul) ----
+  const size = 64;
+  const stroke = 6;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const pct = 0; // Placeholder
+  const dash = c - (pct / 100) * c;
 
-      <div className="flex-1 overflow-y-auto relative z-10 pb-[env(safe-area-inset-bottom)] hide-scrollbar">
-        <div className="px-5 pt-2 pb-6">
-          <div className="relative w-full aspect-[2/1] rounded-2xl overflow-hidden mb-6 shadow-md border border-border/50">
+  return (
+    <div className="flex flex-col h-full relative w-full overflow-hidden" style={{ background: 'linear-gradient(180deg, hsl(220 75% 35%) 0%, hsl(225 80% 40%) 40%, hsl(215 70% 30%) 100%)' }}>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_60%)] z-0" />
+      <div 
+        className="flex-1 overflow-y-auto w-full relative z-10"
+        style={{ paddingBottom: 'calc(8rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
+      >
+        <section className="relative isolate shrink-0 pb-4 overflow-hidden -mx-px rounded-t-[30px]">
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-[42%] sm:w-[34%] overflow-hidden">
             <AnimatePresence mode="popLayout">
-              <motion.img
-                key={heroIdx}
-                src={HERO_ILLUSTRATIONS[heroIdx]}
-                initial={{ opacity: 0, scale: 1.05 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.8 }}
-                className="absolute inset-0 w-full h-full object-cover"
-                alt="Ilustração Resumos"
-              />
+              {HERO_ILLUSTRATIONS.map((url, i) => (
+                <img
+                  key={i}
+                  src={url}
+                  alt=""
+                  className="absolute inset-y-0 right-0 h-full w-auto object-contain object-right transition-opacity duration-[1400ms] ease-in-out"
+                  style={{ opacity: i === heroIdx ? 1 : 0 }}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              ))}
             </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-            
-            <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-              <div>
-                <h1 className="font-display font-bold text-2xl text-white tracking-tight leading-tight mb-1">
+          </div>
+
+          <div 
+            className="relative p-5"
+            style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 16px)' }}
+          >
+            <button 
+              onClick={onClose}
+              style={{ top: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 12px)' }}
+              className="absolute left-4 w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white shadow-sm active:scale-95 transition-all z-20"
+            >
+              <ArrowLeft className="w-5 h-5 drop-shadow-md" />
+            </button>
+
+            <div className="flex items-start gap-4 mt-8 relative z-10">
+              <div className="relative shrink-0 mt-1" style={{ width: size, height: size }}>
+                <svg width={size} height={size} className="-rotate-90">
+                  <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(255,255,255,0.15)" strokeWidth={stroke} fill="none" />
+                  <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={r}
+                    stroke="#fff"
+                    strokeWidth={stroke}
+                    strokeLinecap="round"
+                    fill="none"
+                    strokeDasharray={c}
+                    strokeDashoffset={dash}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-display text-[14px] font-black leading-none text-white">{pct}%</span>
+                </div>
+              </div>
+
+              <div className="min-w-0 max-w-[65%] text-white drop-shadow-md">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">Sua trilha</p>
+                <h1 className="mt-0.5 font-display text-[22px] font-black leading-tight sm:text-[26px]">
                   Resumos
+                  <span className="ml-2 font-display text-[15px] font-semibold italic text-white/80">
+                    jurídicos
+                  </span>
                 </h1>
-                <p className="font-body text-white/80 text-sm leading-tight max-w-[240px]">
-                  Resumos conceituais, Técnicas Feynman e Cornell.
+                <p className="mt-0.5 text-[12px] leading-snug text-white/80 font-body">
+                  Resumos organizados por capítulos de {leiNome}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
-                <FileText className="w-6 h-6 text-white" />
+            </div>
+
+            <div className="relative mt-4 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-white shadow-lg z-10">
+              <div className="grid grid-cols-2 divide-x divide-white/10">
+                <div className="flex flex-col items-center justify-center px-2 py-2.5">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-white/60">Trilhas</span>
+                  <span className="mt-0.5 font-display text-lg font-black leading-none">{allCapitulos.length}</span>
+                </div>
+                <div className="flex flex-col items-center justify-center px-2 py-2.5">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-white/60">Artigos Totais</span>
+                  <span className="mt-0.5 font-display text-lg font-black leading-none">{totalResumos}</span>
+                </div>
               </div>
             </div>
           </div>
+        </section>
 
-          <div className="flex items-center gap-2 mb-6">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <h2 className="font-display font-bold text-lg text-foreground uppercase tracking-wider">
-              {leiNome}
-            </h2>
-            <span className="ml-auto text-xs font-bold px-2 py-1 bg-secondary text-muted-foreground rounded-full">
-              {totalResumos} resumos
-            </span>
-          </div>
-
-          <div className="space-y-4">
-            {allCapitulos.map((cap, i) => (
-              <motion.button
+        <div className="px-4 py-2 space-y-3">
+          {allCapitulos.map((cap, i) => {
+            const capPct = 0; // Placeholder
+            return (
+              <button
                 key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
                 onClick={() => setSelectedCapitulo(cap)}
-                className="w-full text-left rounded-2xl bg-card border border-border/40 hover:border-primary/30 p-4 shadow-sm active:scale-[0.98] transition-all group relative overflow-hidden"
+                className="group flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-md p-3 text-left transition-all hover:bg-black/30 active:scale-[0.99] sm:p-3.5 shadow-sm"
               >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
-                <div className="flex items-start gap-4 relative z-10">
-                  <div className="w-12 h-12 rounded-full bg-secondary group-hover:bg-primary/10 flex items-center justify-center shrink-0 transition-colors">
-                    <FileText className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </div>
-                  <div className="flex-1 min-w-0 py-0.5">
-                    <h3 className="font-display font-bold text-foreground text-[15px] leading-snug mb-1 line-clamp-2">
-                      {cap.capitulo}
-                    </h3>
-                    <p className="text-xs text-muted-foreground font-medium">
-                      {cap.artigos.length} artigos disponíveis
-                    </p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground/50 group-hover:text-primary shrink-0 self-center transition-colors" />
+                <div className="relative h-14 w-14 shrink-0 flex items-center justify-center sm:h-16 sm:w-16">
+                  <NotebookText className="h-9 w-9 text-[#60A5FA] drop-shadow-sm transition-transform group-hover:scale-110" strokeWidth={1.5} />
                 </div>
-              </motion.button>
-            ))}
-          </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-[11px] font-bold text-white/60 uppercase tracking-wider truncate">
+                      {(() => {
+                        if (cap.capitulo.toUpperCase().includes('SEM_CAPITULO')) {
+                          if (cap.titulo && !cap.titulo.toUpperCase().includes('SEM_TITULO')) {
+                            return cap.titulo.split(' - ')[0].toUpperCase();
+                          }
+                          return 'CAPÍTULO I';
+                        }
+                        return cap.capitulo.split(' - ')[0].toUpperCase();
+                      })()}
+                    </p>
+                    <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-white/10 text-white/80 tabular-nums ml-auto">
+                      {capPct}%
+                    </span>
+                  </div>
+                  <p className="min-w-0 text-[14px] font-bold text-white sm:text-[15px] leading-snug drop-shadow-sm" style={{ fontFamily: "'Barlow', system-ui, sans-serif", letterSpacing: '-0.005em' }}>
+                    {(() => {
+                      let raw = '';
+                      if (cap.capitulo.toUpperCase().includes('SEM_CAPITULO')) {
+                        if (cap.titulo && !cap.titulo.toUpperCase().includes('SEM_TITULO')) {
+                          raw = cap.titulo.split(' - ').slice(1).join(' - ') || cap.titulo;
+                        } else {
+                          raw = 'Disposições Gerais';
+                        }
+                      } else {
+                        raw = cap.capitulo.split(' - ').slice(1).join(' - ') || cap.capitulo;
+                      }
+                      
+                      if (raw && raw === raw.toUpperCase() && raw.length > 3) {
+                        const pequenos = ['E', 'OU', 'DE', 'DA', 'DO', 'DAS', 'DOS', 'A', 'O', 'AS', 'OS', 'EM', 'NO', 'NA', 'NOS', 'NAS', 'POR'];
+                        return raw.split(' ').map((word, idx) => {
+                          if (idx > 0 && pequenos.includes(word)) return word.toLowerCase();
+                          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                        }).join(' ');
+                      }
+                      return raw;
+                    })()}
+                  </p>
+                  <p className="mt-0.5 text-[12px] text-white/60 sm:text-[13px]">
+                    {cap.artigos.length} {cap.artigos.length === 1 ? 'artigo' : 'artigos'}
+                  </p>
+                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-black/40">
+                    <div
+                      className="h-full rounded-full bg-blue-400 transition-all"
+                      style={{ width: `${capPct}%` }}
+                    />
+                  </div>
+                </div>
+
+                <ChevronRight className="h-5 w-5 shrink-0 text-white/40 transition-transform group-hover:translate-x-0.5" />
+              </button>
+            );
+          })}
+          {allCapitulos.length === 0 && (
+            <div className="text-center py-10 text-white/60 text-sm font-body">
+              Nenhum artigo encontrado para resumir nesta legislação.
+            </div>
+          )}
         </div>
       </div>
     </div>
