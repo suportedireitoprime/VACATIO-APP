@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
-import { Search, BookOpen, ChevronRight, ChevronDown, Scale, ArrowLeft, Landmark, Shield, FileText, ScrollText, Loader2, Star, Heart, Gavel, Building2, Briefcase, ShieldCheck, DollarSign, Car, Vote, Droplets, Plane, Bus, ListMusic, Sparkles, StickyNote, Calendar, ExternalLink, ArrowUp, BadgeCheck, Ban, Play, Pause, CheckCircle2, Radar, GitBranch, Info, BookMarked, HeartPulse, History, Mic, MicOff, Volume2, Camera, LayoutGrid, Maximize2, Minimize2, GraduationCap, Layers, Target, Pencil, X as XIcon } from 'lucide-react';
+import { Search, BookOpen, ChevronRight, ChevronDown, Scale, ArrowLeft, Landmark, Shield, FileText, ScrollText, Loader2, Star, Heart, Gavel, Building2, Briefcase, ShieldCheck, DollarSign, Car, Vote, Droplets, Plane, Bus, ListMusic, Sparkles, StickyNote, Calendar, ExternalLink, ArrowUp, BadgeCheck, Ban, Play, Pause, CheckCircle2, Radar, GitBranch, Info, BookMarked, HeartPulse, History, Mic, MicOff, Volume2, Camera, LayoutGrid, Maximize2, Minimize2, GraduationCap, Layers, Target, Pencil, X as XIcon, Brain } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { supabase } from '@/integrations/supabase/client';
 import { LEIS_SUPABASE_URL, leisAuthHeaders } from '@/lib/legislacaoBackend';
@@ -2598,7 +2598,7 @@ const CategoriaLegislacao = () => {
                   {[
                     { key: 'aulas' as const, icon: GraduationCap, label: 'Aulas', color: '#F87171' },
                     { key: 'licoes' as const, icon: Pencil, label: 'Lições', color: '#38BDF8' },
-                    { key: 'flashcards' as const, icon: Layers, label: 'Flashcards', color: '#34D399' },
+                    { key: 'flashcards' as const, icon: Brain, label: 'Flashcards', color: '#A855F7' },
                     { key: 'questoes' as const, icon: Target, label: 'Questões', color: '#FACC15' },
                   ].map((tab, index) => {
                     const active = isAulasOpen && tab.key === 'aulas'; // Simple check for now
