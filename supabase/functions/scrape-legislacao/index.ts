@@ -83,16 +83,26 @@ Deno.serve(async (req) => {
 
     for (let i = 0; i < artigos.length; i += 50) {
       const batch = artigos.slice(i, i + 50);
-      const rows = batch.map((art) => ({
-        numero: art.numero,
-        rotulo: art.rotulo,
-        texto: art.texto,
-        ordem_numero: art.ordem_numero,
-        caput: art.texto.split("\n")[0] || "",
-        ordem: Math.floor(art.ordem_numero),
-        titulo: art.titulo || null,
-        capitulo: art.capitulo || null,
-      }));
+      const rows = batch.map((art) => {
+        let finalTitulo = formatTitleCase(art.titulo || "");
+        let finalCapitulo = formatTitleCase(art.capitulo || "");
+
+        // Se o capítulo for vazio, usa o título ou um fallback amigável em vez de salvar null ou vazio
+        if (!finalCapitulo) {
+          finalCapitulo = finalTitulo ? finalTitulo : "Disposições Gerais";
+        }
+
+        return {
+          numero: art.numero,
+          rotulo: art.rotulo,
+          texto: art.texto,
+          ordem_numero: art.ordem_numero,
+          caput: art.texto.split("\n")[0] || "",
+          ordem: Math.floor(art.ordem_numero),
+          titulo: finalTitulo,
+          capitulo: finalCapitulo,
+        };
+      });
 
       const insertRes = await fetch(
         `${supabaseUrl}/rest/v1/${encodeURIComponent(tabela_nome)}`,
@@ -169,6 +179,22 @@ function decodeHtmlText(text: string): string {
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function formatTitleCase(text: string): string {
+  if (!text) return "";
+  const cleaned = text.trim();
+  // Se for 100% maiúsculo e tiver mais de 3 letras
+  if (cleaned === cleaned.toUpperCase() && cleaned.length > 3) {
+    const pequenos = ['E', 'OU', 'DE', 'DA', 'DO', 'DAS', 'DOS', 'A', 'O', 'AS', 'OS', 'EM', 'NO', 'NA', 'NOS', 'NAS', 'POR', 'PARA', 'COM'];
+    return cleaned.split(' ').map((word, idx) => {
+      // Ignorar formatação de números romanos completos (simplificado)
+      if (/^[IVXLC]+$/.test(word)) return word;
+      if (idx > 0 && pequenos.includes(word)) return word.toLowerCase();
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }).join(' ');
+  }
+  return cleaned;
 }
 
 function extractNumeroOrdem(artMatch: string): { numero: string; rotulo: string; ordem: number } {

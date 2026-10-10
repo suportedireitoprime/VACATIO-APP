@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -1133,7 +1134,7 @@ export default function AdminOmniRoute() {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-                className="fixed inset-x-0 bottom-0 max-h-[95vh] h-[95vh] bg-[#121215] border-t border-white/10 rounded-t-3xl z-50 flex flex-col shadow-2xl overflow-hidden"
+                className="fixed inset-x-0 bottom-0 max-h-[95vh] h-[95vh] bg-[#121215] border-t border-white/10 rounded-t-3xl z-[60] flex flex-col shadow-2xl overflow-hidden"
               >
                 {/* Puxador Central */}
                 <div className="w-12 h-1.5 rounded-full bg-white/20 mx-auto mt-3 shrink-0" />
@@ -1357,7 +1358,8 @@ export default function AdminOmniRoute() {
         {/* ============================================================== */}
         {/* BOTTOM SHEET 95%: TESTAR OMNIROUTE (SANDBOX DE TESTE COMPLETO) */}
         {/* ============================================================== */}
-        <AnimatePresence>
+        {typeof document !== 'undefined' && createPortal(
+<AnimatePresence>
           {showOmniRouteTestSheet && (
             <>
               <motion.div
@@ -1372,7 +1374,7 @@ export default function AdminOmniRoute() {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-                className="fixed inset-x-0 bottom-0 max-h-[95vh] h-[95vh] bg-[#121215] border-t border-white/10 rounded-t-3xl z-50 flex flex-col shadow-2xl overflow-hidden"
+                className="fixed inset-x-0 bottom-0 max-h-[95vh] h-[95vh] bg-[#121215] border-t border-white/10 rounded-t-3xl z-[60] flex flex-col shadow-2xl overflow-hidden"
               >
                 {/* Puxador Central */}
                 <div className="w-12 h-1.5 rounded-full bg-white/20 mx-auto mt-3 shrink-0" />
@@ -2108,7 +2110,8 @@ export default function AdminOmniRoute() {
               </motion.div>
             </>
           )}
-        </AnimatePresence>
+        </AnimatePresence>, document.body)}
+
       </main>
       </div>
     </div>

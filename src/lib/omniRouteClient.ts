@@ -16,23 +16,15 @@ export const OMNI_MODELS: Record<OmniModelComplexity, string> = {
   tiered: 'antigravity/gemini-3.7-flash-tiered',
 };
 
-export function getOmniRouteConfig(): OmniRouteConfig | null {
-  try {
-    const raw = localStorage.getItem('omniroute_config');
-    if (!raw) return null;
-    const config = JSON.parse(raw) as OmniRouteConfig;
-    if (!config.enabled || !config.baseUrl) return null;
-    
-    let formattedUrl = config.baseUrl;
-    if (!/^https?:\/\//i.test(formattedUrl)) {
-      formattedUrl = `https://${formattedUrl}`;
-    }
-    
-    return { ...config, baseUrl: formattedUrl };
-  } catch (e) {
-    console.error('Erro ao ler omniroute_config', e);
-    return null;
-  }
+export function getOmniRouteConfig(): OmniRouteConfig {
+  // Ignora completamente o localStorage para evitar configs antigas/quebradas
+  // Força o uso do Railway que acabamos de validar que funciona perfeitamente
+  return {
+    baseUrl: 'https://omniroute-production-fb57.up.railway.app/v1',
+    apiKey: 'sk-03fcfd719bf0cc25-19fbd7-028392e5',
+    defaultModel: 'antigravity/gemini-3.7-flash-high',
+    enabled: true
+  };
 }
 
 /**

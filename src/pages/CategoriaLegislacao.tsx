@@ -24,6 +24,7 @@ import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
 import AulasOverlay from '@/components/vademecum/AulasOverlay';
+import { MapasOverlay } from '@/components/vademecum/MapasOverlay';
 import LocalSearchOverlay from '@/components/vademecum/LocalSearchOverlay';
 import HistoricoAtualizacaoCarousel from '@/components/vademecum/HistoricoAtualizacaoCarousel';
 import SearchOverlay from '@/components/vademecum/SearchOverlay';
@@ -167,6 +168,7 @@ const CategoriaLegislacao = () => {
   const [stickySearch, setStickySearch] = useState(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
   const [isAulasOpen, setIsAulasOpen] = useState(false);
+  const [isMapasOpen, setIsMapasOpen] = useState(false);
   const [isLocalSearchOpen, setIsLocalSearchOpen] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
   const [showSearchRecents, setShowSearchRecents] = useState(false);
@@ -2233,15 +2235,6 @@ const CategoriaLegislacao = () => {
       <RadarLegislacaoContent leiNome={selectedLeiNome} tabelaNome={selectedTabelaNome} navigate={navigate} />
     );
 
-    const mapasContent = (
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 hide-scrollbar flex flex-col items-center justify-center text-center mt-12">
-        <Brain className="w-16 h-16 text-primary/30 mb-4" />
-        <h3 className="font-display text-xl font-bold text-foreground mb-2">Mapas Mentais</h3>
-        <p className="text-sm text-muted-foreground max-w-[250px]">
-          Selecione uma área para gerar mapas mentais interativos usando inteligência artificial.
-        </p>
-      </div>
-    );
 
     const resumosContent = (
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 hide-scrollbar flex flex-col items-center justify-center text-center mt-12">
@@ -2259,7 +2252,6 @@ const CategoriaLegislacao = () => {
       anotacoes: { label: 'Anotações', icon: StickyNote, desc: 'Veja todas as suas anotações e grifos desta lei em um só lugar. Para criar, abra um artigo e grife um trecho.' },
       novidades: { label: 'Novidades', icon: History, desc: 'Histórico de alterações legislativas — veja quais artigos foram incluídos, revogados ou modificados, organizados por ano.' },
       radar: { label: 'Radar', icon: Radar, desc: 'Proposições em tramitação no Congresso que podem alterar esta legislação. Acompanhe os projetos de lei em tempo real.' },
-      mapas: { label: 'Mapas Mentais', icon: Brain, desc: 'Mapas mentais estruturados gerados por IA para fixar a legislação.' },
       resumos: { label: 'Resumos', icon: FileText, desc: 'Resumos concisos dos tópicos selecionados da legislação.' },
     };
     const overlayContents: Record<string, React.ReactNode> = {
@@ -2268,7 +2260,6 @@ const CategoriaLegislacao = () => {
       anotacoes: anotacoesContent,
       novidades: novidadesContent,
       radar: radarContent,
-      mapas: mapasContent,
       resumos: resumosContent,
     };
 
@@ -2319,8 +2310,8 @@ const CategoriaLegislacao = () => {
 
           {/* Mapas */}
           <button
-            onClick={() => setOverlayPanel('mapas')}
-            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${overlayPanel === 'mapas' ? 'text-primary' : 'text-white/80 hover:text-white'}`}
+            onClick={() => setIsMapasOpen(true)}
+            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${isMapasOpen ? 'text-primary' : 'text-white/80 hover:text-white'}`}
           >
             <Brain className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
             <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Mapas</span>
@@ -2422,6 +2413,23 @@ const CategoriaLegislacao = () => {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isMapasOpen && (
+          <motion.div
+            initial={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            animate={isDesktop ? { opacity: 1, y: 0 } : { y: 0, opacity: 1 }}
+            exit={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[100] bg-background lg:w-[480px] lg:h-[80vh] lg:m-auto lg:rounded-3xl lg:shadow-2xl lg:border lg:border-white/10 overflow-hidden"
+          >
+            <MapasOverlay 
+              capituloGroups={capituloGroups} 
+              leiNome={selectedLeiNome} 
+              onClose={() => setIsMapasOpen(false)} 
+            />
+          </motion.div>
         )}
       </AnimatePresence>
       <AnimatePresence>
