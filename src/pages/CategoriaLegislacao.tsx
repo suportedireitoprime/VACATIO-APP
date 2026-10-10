@@ -1010,7 +1010,7 @@ const CategoriaLegislacao = () => {
     return [];
   }, [capituloGroups, expandedTitulo, filteredArtigos, isDesktop]);
 
-  const shouldVirtualizeArtigos = false; // Desabilitado a pedido do usuário
+  const shouldVirtualizeArtigos = !isDesktop && visibleArtigos.length > MOBILE_ARTIGOS_VIRTUAL_THRESHOLD;
 
   useLayoutEffect(() => {
     if (!shouldVirtualizeArtigos) return;
@@ -1040,7 +1040,7 @@ const CategoriaLegislacao = () => {
   const artigosVirtualizer = useWindowVirtualizer({
     count: shouldVirtualizeArtigos ? visibleArtigos.length : 0,
     estimateSize: () => 116,
-    overscan: 8,
+    overscan: 20,
   });
 
   const virtualItems = artigosVirtualizer.getVirtualItems();
@@ -2703,8 +2703,7 @@ const CategoriaLegislacao = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
-                  <div className="w-[5%] md:w-[4%] lg:w-[3%] shrink-0" />
+                <div className="flex gap-2.5 overflow-x-auto pb-2 px-[5%] md:px-[4%] lg:px-[3%] snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
                   {recentIds.slice(0, 15).map(id => {
                     const artigo = artigos.find(a => a.id === id);
                     if (!artigo) return null;
@@ -2723,7 +2722,6 @@ const CategoriaLegislacao = () => {
                       </button>
                     );
                   })}
-                  <div className="w-[5%] md:w-[4%] lg:w-[3%] shrink-0" />
                 </div>
               </div>
             )}
