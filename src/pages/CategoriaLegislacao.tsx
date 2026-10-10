@@ -2693,8 +2693,8 @@ const CategoriaLegislacao = () => {
 
             {/* CARROSSEL RECENTES */}
             {recentIds.length > 0 && (
-              <div className="pt-0 px-0 bg-background relative z-10 w-full mb-6 mt-2">
-                <div className="mb-3 px-4 flex items-center justify-between">
+              <div className="pt-0 bg-background relative z-10 mb-6 mt-2 -mx-2 sm:-mx-4 md:-mx-6">
+                <div className="mb-3 px-4 sm:px-6 md:px-8 flex items-center justify-between">
                   <div className="min-w-0 flex-1">
                     <h3 className="font-display text-foreground text-[16px] sm:text-[18px] font-black uppercase mb-0 flex items-center gap-2">
                       <span className="w-1 h-5 rounded-full shrink-0" style={{ backgroundColor: '#60a5fa' }} />
@@ -2703,7 +2703,7 @@ const CategoriaLegislacao = () => {
                   </div>
                 </div>
                 <div className="flex gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
-                  <div className="w-1.5 shrink-0" />
+                  <div className="w-[5%] md:w-[4%] lg:w-[3%] shrink-0" />
                   {recentIds.slice(0, 15).map(id => {
                     const artigo = artigos.find(a => a.id === id);
                     if (!artigo) return null;
@@ -2722,7 +2722,7 @@ const CategoriaLegislacao = () => {
                       </button>
                     );
                   })}
-                  <div className="w-1.5 shrink-0" />
+                  <div className="w-[5%] md:w-[4%] lg:w-[3%] shrink-0" />
                 </div>
               </div>
             )}

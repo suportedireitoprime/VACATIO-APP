@@ -108,8 +108,8 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
   if (historicoAlteracoes.length === 0) return null;
 
   return (
-    <div className="space-y-3 pt-6 pb-2">
-      <div className="px-2 flex items-center justify-between gap-3">
+    <div className="space-y-3 pt-6 pb-2 -mx-2 sm:-mx-4 md:-mx-6">
+      <div className="px-4 sm:px-6 md:px-8 flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
           <h3 className="font-display text-foreground text-[16px] sm:text-[18px] font-bold mb-0.5 flex items-center gap-2">
             <span className="w-1 h-5 rounded-full shrink-0" style={{ backgroundColor: leiAccent }} />
@@ -134,7 +134,7 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
 
       <div
         ref={scrollerRef}
-        className="flex gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 pt-1 pl-[5%] md:pl-[4%] lg:pl-[3%] pr-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 pt-1 px-[5%] md:px-[4%] lg:px-[3%] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         {historicoAlteracoes.map((item, i) => {
           const t = item.tipo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -191,7 +191,6 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
             </motion.button>
           );
         })}
-        <div className="w-[5%] shrink-0" />
       </div>
     </div>
   );
