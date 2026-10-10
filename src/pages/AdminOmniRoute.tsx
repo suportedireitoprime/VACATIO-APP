@@ -232,7 +232,6 @@ export default function AdminOmniRoute() {
   const [textModel, setTextModel] = useState(() => localStorage.getItem(STORAGE_KEYS.LAST_MODEL) || 'antigravity/gemini-3.7-flash-high');
   const [textPrompt, setTextPrompt] = useState('Explique de forma concisa e didática o princípio da dignidade da pessoa humana para um estudante de direito, destacando base constitucional e jurisprudência.');
   const [textSystem, setTextSystem] = useState('Você é um jurista e tutor de alta precisão do Vade Mecum Prime. Utilize formatação rica em Markdown (negritos, listas e títulos claros).');
-  const [temperature, setTemperature] = useState(0.7);
   const [textLoading, setTextLoading] = useState(false);
   const [textResponse, setTextResponse] = useState<string | null>(null);
   const [textMeta, setTextMeta] = useState<{ durationMs: number; tokens?: { prompt: number; completion: number; total: number }; raw?: unknown } | null>(null);
@@ -456,7 +455,6 @@ export default function AdminOmniRoute() {
         body: JSON.stringify({
           model: textModel,
           messages,
-          temperature,
         }),
         signal: controller.signal,
       });
@@ -496,7 +494,13 @@ export default function AdminOmniRoute() {
       addLog('Texto', textModel, elapsed, 200);
       toast.success(`Resposta gerada em ${elapsed}ms!`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
+      let msg = err instanceof Error ? err.message : String(err);
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        msg = 'Timeout: O OmniRoute não respondeu em 20 segundos (contas em cooldown).';
+      } else if (msg.includes('aborted without reason') || msg.includes('The operation was aborted')) {
+        msg = 'Timeout: O OmniRoute demorou mais de 20s para responder.';
+      }
+      
       setTextResponse(`❌ **Erro na execução:**\n\`\`\`\n${msg}\n\`\`\``);
       toast.error(`Erro: ${msg}`);
     } finally {
@@ -1593,25 +1597,8 @@ export default function AdminOmniRoute() {
                   />
                 </div>
 
-                {/* Slider de Temperatura & Botão de Executar */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
-                  <div className="flex-1 min-w-[200px] max-w-sm space-y-1.5">
-                    <div className="flex justify-between text-xs text-white/60">
-                      <span className="flex items-center gap-1">
-                        <SlidersHorizontal className="w-3.5 h-3.5 text-white/40" />
-                        Temperatura (Criatividade):
-                      </span>
-                      <span className="font-mono text-amber-400 font-semibold">{temperature.toFixed(2)}</span>
-                    </div>
-                    <Slider
-                      min={0}
-                      max={1}
-                      step={0.05}
-                      value={[temperature]}
-                      onValueChange={([val]) => setTemperature(val)}
-                      className="w-full"
-                    />
-                  </div>
+                {/* Botão de Executar */}
+                <div className="flex justify-end pt-1">
 
                   <Button
                     onClick={handleRunTextTest}

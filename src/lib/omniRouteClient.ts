@@ -72,8 +72,7 @@ export async function generateOmniText({
 
   const body = JSON.stringify({
     model: finalModel,
-    messages,
-    temperature
+    messages
   });
 
   const controller = new AbortController();
@@ -141,8 +140,7 @@ export async function generateOmniChat({
 
   const body = JSON.stringify({
     model: finalModel,
-    messages,
-    temperature
+    messages
   });
 
   const controller = new AbortController();
