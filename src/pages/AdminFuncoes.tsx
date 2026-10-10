@@ -171,6 +171,7 @@ const CATEGORIES: Category[] = [
     route: '/admin-aprender',
     items: [
       { id: 'admin-aprender', label: 'Gerar conteúdo das aulas', icon: Sparkles, desc: 'Gera/regera aulas a partir dos resumos e publica no app', route: '/admin-aprender' },
+      { id: 'admin-robo-resumos', label: 'Robô de Resumos', icon: NotebookText, desc: 'Gera resumos conceituais em lote', route: '/admin-robo-resumos' },
     ],
   },
   {

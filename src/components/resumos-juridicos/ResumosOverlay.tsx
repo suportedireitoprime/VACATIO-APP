@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { generateOmniText } from '@/lib/omniRouteClient';
 import ResumoJuridicoReaderSheet, { type ResumoRow } from '@/components/resumos-juridicos/ResumoJuridicoReaderSheet';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 import hero1 from '@/assets/aprender-hero/hero-1.webp';
 import hero2 from '@/assets/aprender-hero/hero-2.webp';
@@ -58,9 +59,29 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
   const gerarResumoConceitual = async (artigo: ArtigoType) => {
     if (gerandoArtigoId) return;
     setGerandoArtigoId(artigo.id);
-    const toastId = toast.loading(`Gerando resumo do ${artigo.numero}...`);
+    const toastId = toast.loading(`Abrindo resumo do ${artigo.numero}...`);
 
     try {
+      const numLabel = artigo.numero.toLowerCase().includes('art') ? artigo.numero : `Art. ${artigo.numero}`;
+      
+      // 1. Tentar buscar no banco
+      const { data: existing } = await supabase
+        .from('resumos_juridicos')
+        .select('*')
+        .eq('area', leiNome)
+        .eq('tema', leiNome)
+        .in('subtema', [numLabel, artigo.numero])
+        .maybeSingle();
+
+      if (existing) {
+        setResumo(existing as ResumoRow);
+        toast.success('Resumo carregado!', { id: toastId });
+        setGerandoArtigoId(null);
+        return;
+      }
+
+      // 2. Se não existir, gera via IA
+      toast.loading(`Gerando resumo inédito do ${artigo.numero} (pode levar 10s)...`, { id: toastId });
       const prompt = `LEGISLAÇÃO: ${leiNome}\nARTIGO: ${artigo.numero}\nCAPUT: ${artigo.caput}\n\nGere uma explicação PROFUNDA e COMPLETA deste artigo jurídico. Não seja seco ou superficial. Retorne ESTRITAMENTE um objeto JSON válido (sem \`\`\`json) com os seguintes campos:\n{\n  "markdown": "Uma explicação doutrinária extensa e didática, formatada em markdown. Comece do básico e aprofunde. Use analogias, tabelas markdown e listas. OBRIGATÓRIO: Vá direto ao ponto! PROIBIDO usar saudações como 'Olá', 'Bem-vindo', 'Que alegria'. Inicie o texto diretamente com o conteúdo da explicação.",\n  "exemplos": "Pelo menos 2 ou 3 exemplos práticos, ricos em detalhes e do cotidiano, ilustrando perfeitamente a aplicação deste artigo. Formato markdown.",\n  "termos": "Um pequeno glossário explicando detalhadamente de forma acessível os termos ou jargões jurídicos usados neste artigo."\n}`;
 
       const systemPrompt = "Você é um professor de direito experiente e didático. Seu objetivo é explicar conceitos jurídicos de forma profunda, completa e muito acessível para leigos. IMPORTANTE: NÃO inclua NENHUMA saudação, introdução ou conversa fiada (como 'Olá', 'Que alegria', 'Bem-vindo', 'Aqui está'). Vá DIRETO ao conteúdo da explicação jurídica. Retorne apenas JSON puro, sem marcações markdown em volta do JSON.";
@@ -85,12 +106,24 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
         id: crypto.randomUUID(),
         area: leiNome,
         tema: leiNome,
-        subtema: artigo.numero,
+        subtema: numLabel,
         ordem_subtema: 0,
         markdown: raw.markdown || null,
         exemplos: raw.exemplos || null,
         termos: raw.termos || null
       };
+
+      // Tenta salvar no banco pro próximo usuário não precisar gerar
+      await supabase.from('resumos_juridicos').insert({
+        id: novoResumo.id,
+        area: novoResumo.area,
+        tema: novoResumo.tema,
+        subtema: novoResumo.subtema,
+        ordem_subtema: novoResumo.ordem_subtema,
+        markdown: novoResumo.markdown,
+        exemplos: novoResumo.exemplos,
+        termos: novoResumo.termos
+      });
 
       setResumo(novoResumo);
       toast.success('Resumo gerado com sucesso!', { id: toastId });
