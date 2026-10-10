@@ -99,7 +99,7 @@ const POPULAR_IMAGE_MODELS = [
 ];
 
 const POPULAR_AUDIO_MODELS = [
-  'antigravity/gemini-3.7-flash-high',
+  'antigravity/gemini-3.6-flash-high',
   'antigravity/gemini-3.8-flash',
   'whisper-1',
 ];
@@ -798,7 +798,7 @@ export default function AdminOmniRoute() {
               'Authorization': `Bearer ${apiKey.trim()}`,
             },
             body: JSON.stringify({
-              model: audioModel.includes('gemini') ? audioModel : 'antigravity/gemini-3.7-flash-high',
+              model: audioModel.includes('gemini') ? audioModel : 'antigravity/gemini-3.6-flash-high',
               messages: [
                 {
                   role: 'user',
