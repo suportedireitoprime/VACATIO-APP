@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, startTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlayCircle, Check, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -89,7 +89,11 @@ const TeoriaTab = ({ aulas, progresso, onNavigate }: Props) => {
               <button
                 onClick={() => {
                   onNavigate();
-                  setTimeout(() => navigate(`/aprender/aula/${au.id}`), 120);
+                  setTimeout(() => {
+                    startTransition(() => {
+                      navigate(`/aprender/aula/${au.id}`);
+                    });
+                  }, 120);
                 }}
                 disabled={isLocked}
                 className="group relative flex h-20 w-20 items-center justify-center rounded-full transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -139,7 +143,11 @@ const TeoriaTab = ({ aulas, progresso, onNavigate }: Props) => {
           <button
             onClick={() => {
               onNavigate();
-              setTimeout(() => navigate(`/aprender/aula/${aulas[targetIdx].id}`), 120);
+              setTimeout(() => {
+                startTransition(() => {
+                  navigate(`/aprender/aula/${aulas[targetIdx].id}`);
+                });
+              }, 120);
             }}
             className="pointer-events-auto flex items-center gap-2 rounded-full bg-white px-6 py-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.5)] active:scale-95 transition-transform"
           >

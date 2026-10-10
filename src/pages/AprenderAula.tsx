@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, startTransition } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -325,7 +325,9 @@ const AprenderAula = () => {
                   setFlipped({});
                   setConexoes({});
                   setFinalizada(false);
-                  navigate(`/aprender/aula/${nextAula.id}`);
+                  startTransition(() => {
+                    navigate(`/aprender/aula/${nextAula.id}`);
+                  });
                 }}
                 className="rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 flex items-center justify-center gap-2"
               >
@@ -340,7 +342,7 @@ const AprenderAula = () => {
             </button>
             {!nextAula && (
               <button
-                onClick={() => navigate('/aprender')}
+                onClick={() => startTransition(() => navigate('/aprender'))}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 flex items-center justify-center"
               >
                 Voltar para trilhas
