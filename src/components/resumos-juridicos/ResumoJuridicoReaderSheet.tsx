@@ -51,6 +51,8 @@ interface Props {
   onFavoritoChange?: () => void;
   /** Gera Cornell e Feynman automaticamente quando ainda não existem. */
   pregerarMetodos?: boolean;
+  /** Método ativo inicial, escolhido pelo usuário na tela anterior. */
+  initialMetodo?: Metodo;
 }
 
 type Tab = "resumo" | "exemplos" | "termos";
@@ -64,11 +66,11 @@ const METODOS: { id: Metodo; label: string }[] = [
   { id: "feynman", label: "Feynman" },
 ];
 
-export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoChange, pregerarMetodos }: Props) {
+export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoChange, pregerarMetodos, initialMetodo }: Props) {
   const isDesktop = useIsDesktop();
   const [fontScale, setFontScale] = useState(1.15);
   const [tab, setTab] = useState<Tab>("resumo");
-  const [metodo, setMetodo] = useState<Metodo>("conceitos");
+  const [metodo, setMetodo] = useState<Metodo>(initialMetodo || "conceitos");
   const [cornell, setCornell] = useState<CornellContent | null>(null);
   const [feynman, setFeynman] = useState<FeynmanContent | null>(null);
   const [gerando, setGerando] = useState<Metodo | null>(null);
@@ -83,7 +85,7 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
     if (resumo && scrollRef.current) {
       scrollRef.current.scrollTo({ top: 0, behavior: "auto" });
       setTab("resumo");
-      setMetodo("conceitos");
+      setMetodo(initialMetodo || "conceitos");
       setCornell(null);
       setFeynman(null);
       setGerando(null);
@@ -92,7 +94,7 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
       setCopiado(false);
       setFav(resumosLocal.isFavorito(resumo.id));
     }
-  }, [resumo?.id]);
+  }, [resumo?.id, initialMetodo]);
 
   // Carrega metodologias já geradas para este resumo
   useEffect(() => {
@@ -112,17 +114,30 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
         if (row.metodo === "feynman") setFeynman(row.conteudo as unknown as FeynmanContent);
       }
 
+      // Se o usuário selecionou um método inicial que ainda não existe, gera automaticamente
+      if (initialMetodo && initialMetodo !== "conceitos" && !existentes.has(initialMetodo)) {
+        setGerando(initialMetodo);
+        try {
+          await gerarViaOmni(initialMetodo);
+        } catch (e: any) {
+          setErroGerar(e?.message || "Erro na geração inicial.");
+        } finally {
+          setGerando(null);
+        }
+      }
+
       // Gera em segundo plano os métodos que ainda não existem
       if (!pregerarMetodos) return;
       for (const alvo of ["cornell", "feynman"] as const) {
         if (existentes.has(alvo)) continue;
+        if (alvo === initialMetodo) continue; // já gerado acima
         gerarViaOmni(alvo).catch(() => {});
       }
     })();
     return () => {
       ativo = false;
     };
-  }, [resumo?.id, pregerarMetodos]);
+  }, [resumo?.id, pregerarMetodos, initialMetodo]);
 
   const gerarViaOmni = async (alvo: Metodo) => {
     if (!resumo) return;
@@ -338,74 +353,17 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
               </div>
 
 
-              <div className="space-y-4 px-4 pt-5 md:px-5">
-                <FichaEditorial
-                  etiqueta="Resumo Jurídico"
-                  titulo={resumo.subtema || resumo.tema}
-                  subtitulo={`${resumo.area} — ${resumo.tema}`}
-                >
-                  {/* Métodos de estudo */}
-                  <div
-                    className="flex w-full rounded-xl p-1 gap-1"
-                    style={{ background: "rgba(122,18,32,0.07)" }}
-                  >
-                    {METODOS.map((m) => {
-                      const ativo = metodo === m.id;
-                      return (
-                        <button
-                          key={m.id}
-                          onClick={() => setMetodo(m.id)}
-                          className="relative flex-1 py-2 rounded-lg text-sm font-body font-semibold transition-colors text-center"
-                        >
-                          {ativo && (
-                            <motion.span
-                              layoutId="ficha-metodo"
-                              transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                              className="absolute inset-0 rounded-lg"
-                              style={{ background: PALETA.wine }}
-                            />
-                          )}
-                          <span
-                            className="relative"
-                            style={{ color: ativo ? "#FFF9F0" : "hsl(var(--muted-foreground))" }}
-                          >
-                            {m.label}
-                          </span>
-                        </button>
-                      );
-                    })}
+                <div className="space-y-4 px-4 pt-5 md:px-5">
+                  <div className="mb-6 border-b border-border pb-4">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                      {resumo.area}
+                    </p>
+                    <h2 className="font-display text-2xl font-bold text-foreground leading-tight">
+                      {resumo.subtema || resumo.tema}
+                    </h2>
                   </div>
 
-                  {metodo === "conceitos" && abas.length > 1 && (
-                    <div
-                      className="flex w-full mt-4 border-b"
-                      style={{ borderColor: "rgba(122,18,32,0.16)" }}
-                    >
-                      {abas.map((t) => {
-                        const label =
-                          t === "resumo" ? "Resumo" : t === "exemplos" ? "Exemplos" : "Termos";
-                        const ativo = tab === t;
-                        return (
-                          <button
-                            key={t}
-                            onClick={() => setTab(t)}
-                            className="relative flex-1 py-2.5 text-[13px] font-body font-semibold uppercase tracking-[0.08em] text-center"
-                            style={{ color: ativo ? PALETA.wine : "hsl(var(--muted-foreground))" }}
-                          >
-                            {label}
-                            {ativo && (
-                              <motion.span
-                                layoutId="ficha-aba"
-                                transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                                className="absolute left-3 right-3 -bottom-[1px] h-[2px] rounded-full"
-                                style={{ background: PALETA.gold }}
-                              />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {/* Métodos de estudo escondidos (o usuário deve escolher antes, mas vamos manter a lógica aqui caso precisem) */}
 
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
@@ -417,25 +375,49 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
                       className="pt-2"
                     >
                       {metodo === "conceitos" ? (
-                        <article
-                          style={{ fontSize: `${fontScale}em` }}
-                          className="
-                            prose prose-sm md:prose-base max-w-none font-body
-                            prose-headings:font-display prose-headings:text-foreground prose-headings:mt-6 prose-headings:mb-3
-                            prose-h2:text-xl prose-h3:text-lg
-                            prose-p:text-foreground/90 prose-p:leading-[1.8] prose-p:my-4
-                            prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-                            prose-strong:text-foreground
-                            prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-1 prose-blockquote:px-3 prose-blockquote:rounded-r prose-blockquote:not-italic
-                            prose-ul:my-4 prose-li:my-1 prose-li:marker:text-primary
-                          "
-                        >
-                          {content ? (
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-                          ) : (
-                            <p className="text-muted-foreground">Sem conteúdo neste tópico.</p>
+                        <>
+                          {(resumo.exemplos || resumo.termos) && (
+                            <div className="flex gap-1 border-b border-border mb-4">
+                              {(["resumo", "exemplos", "termos"] as Tab[]).map((t) => {
+                                const has = t === "resumo" ? !!resumo.markdown : t === "exemplos" ? !!resumo.exemplos : !!resumo.termos;
+                                if (!has) return null;
+                                const label = t === "resumo" ? "Resumo" : t === "exemplos" ? "Exemplos" : "Termos";
+                                return (
+                                  <button
+                                    key={t}
+                                    onClick={() => setTab(t)}
+                                    className={`px-4 py-2 text-sm font-body transition-colors ${
+                                      tab === t
+                                        ? "text-primary border-b-2 border-primary -mb-px"
+                                        : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                  >
+                                    {label}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           )}
-                        </article>
+                          <article
+                            style={{ fontSize: `${fontScale}em` }}
+                            className="
+                              prose prose-sm md:prose-base max-w-none dark:prose-invert font-body
+                              prose-headings:font-display prose-headings:text-foreground prose-headings:mt-6 prose-headings:mb-3
+                              prose-h2:text-xl prose-h3:text-lg
+                              prose-p:text-foreground/90 prose-p:leading-[1.8] prose-p:my-4
+                              prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                              prose-strong:text-foreground
+                              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-1 prose-blockquote:px-3 prose-blockquote:rounded-r prose-blockquote:not-italic
+                              prose-ul:my-4 prose-li:my-1 prose-li:marker:text-primary
+                            "
+                          >
+                            {content ? (
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                            ) : (
+                              <p className="text-muted-foreground">Sem conteúdo neste tópico.</p>
+                            )}
+                          </article>
+                        </>
                       ) : (metodo === "cornell" && cornell) || (metodo === "feynman" && feynman) ? (
                         <div style={{ fontSize: `${fontScale}em` }}>
                           {metodo === "cornell" ? (
@@ -479,7 +461,7 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
                       )}
                     </motion.div>
                   </AnimatePresence>
-                </FichaEditorial>
+                </div>
 
                 <div className="h-28" />
               </div>

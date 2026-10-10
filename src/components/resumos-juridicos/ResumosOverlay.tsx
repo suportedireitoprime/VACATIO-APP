@@ -32,6 +32,9 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
   const [gerandoArtigoId, setGerandoArtigoId] = useState<string | null>(null);
   const [resumo, setResumo] = useState<ResumoRow | null>(null);
 
+  const [artigoParaMetodo, setArtigoParaMetodo] = useState<ArtigoType | null>(null);
+  const [metodoSelecionado, setMetodoSelecionado] = useState<"conceitos" | "cornell" | "feynman">("conceitos");
+
   useEffect(() => {
     const id = setInterval(() => {
       setHeroIdx((i) => (i + 1) % HERO_ILLUSTRATIONS.length);
@@ -45,22 +48,20 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
 
   const totalResumos = allCapitulos.reduce((acc, curr) => acc + curr.artigos.length, 0);
 
+  const iniciarGeracao = (metodo: "conceitos" | "cornell" | "feynman") => {
+    if (!artigoParaMetodo) return;
+    setMetodoSelecionado(metodo);
+    gerarResumoConceitual(artigoParaMetodo);
+    setArtigoParaMetodo(null);
+  };
+
   const gerarResumoConceitual = async (artigo: ArtigoType) => {
     if (gerandoArtigoId) return;
     setGerandoArtigoId(artigo.id);
     const toastId = toast.loading(`Gerando resumo do ${artigo.numero}...`);
 
     try {
-      const prompt = `LEGISLAÇÃO: ${leiNome}
-ARTIGO: ${artigo.numero}
-CAPUT: ${artigo.caput}
-
-Gere um resumo deste artigo jurídico. Retorne ESTRITAMENTE um objeto JSON válido (sem \`\`\`json) com os seguintes campos:
-{
-  "markdown": "Um resumo doutrinário conciso, formatado em markdown, focando nos conceitos e aplicação principal. Use bullet points e negritos.",
-  "exemplos": "Pelo menos um exemplo prático bem direto explicando a aplicação do artigo. Formato markdown.",
-  "termos": "Uma explicação muito curta dos principais termos ou jargões jurídicos usados neste artigo."
-}`;
+      const prompt = `LEGISLAÇÃO: ${leiNome}\nARTIGO: ${artigo.numero}\nCAPUT: ${artigo.caput}\n\nGere um resumo deste artigo jurídico. Retorne ESTRITAMENTE um objeto JSON válido (sem \`\`\`json) com os seguintes campos:\n{\n  "markdown": "Um resumo doutrinário conciso, formatado em markdown, focando nos conceitos e aplicação principal. Use bullet points e negritos.",\n  "exemplos": "Pelo menos um exemplo prático bem direto explicando a aplicação do artigo. Formato markdown.",\n  "termos": "Uma explicação muito curta dos principais termos ou jargões jurídicos usados neste artigo."\n}`;
 
       const systemPrompt = "Você é um professor de direito experiente. Explique de forma muito didática, concisa e direta, voltado para alunos e advogados. Retorne apenas JSON puro, sem textos introdutórios ou blocos markdown de código.";
 
@@ -141,7 +142,7 @@ Gere um resumo deste artigo jurídico. Retorne ESTRITAMENTE um objeto JSON váli
                   </div>
 
                   <button
-                    onClick={() => gerarResumoConceitual(artigo)}
+                    onClick={() => setArtigoParaMetodo(artigo)}
                     disabled={!!gerandoArtigoId}
                     className="relative w-16 h-16 z-10 rounded-full flex items-center justify-center font-black text-white text-lg bg-orange-500 ring-orange-200 ring-4 ring-offset-2 ring-offset-transparent active:scale-95 transition-transform disabled:opacity-50"
                     style={{
@@ -164,9 +165,80 @@ Gere um resumo deste artigo jurídico. Retorne ESTRITAMENTE um objeto JSON váli
           <ResumoJuridicoReaderSheet
             resumo={resumo}
             onClose={() => setResumo(null)}
-            pregerarMetodos={true}
+            initialMetodo={metodoSelecionado}
+            pregerarMetodos={false}
           />
         )}
+
+        <AnimatePresence>
+          {artigoParaMetodo && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+                onClick={() => setArtigoParaMetodo(null)}
+              />
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="fixed bottom-0 left-0 right-0 z-[70] bg-card rounded-t-[32px] p-6 pb-[calc(2rem+env(safe-area-inset-bottom))] shadow-2xl border-t border-border"
+              >
+                <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-6" />
+                <h3 className="text-xl font-display font-bold text-center text-foreground mb-2">
+                  Escolha o formato
+                </h3>
+                <p className="text-sm text-center text-muted-foreground mb-6">
+                  Como você quer estudar o {artigoParaMetodo.numero}?
+                </p>
+
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => iniciarGeracao("conceitos")}
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-foreground">Resumo Conceitual</h4>
+                      <p className="text-xs text-muted-foreground">Markdown direto com exemplos e termos</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => iniciarGeracao("cornell")}
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5 text-orange-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-foreground">Método Cornell</h4>
+                      <p className="text-xs text-muted-foreground">Palavras-chave, perguntas e anotações</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => iniciarGeracao("feynman")}
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-5 h-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-foreground">Técnica Feynman</h4>
+                      <p className="text-xs text-muted-foreground">Explicação simples em 4 passos</p>
+                    </div>
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
