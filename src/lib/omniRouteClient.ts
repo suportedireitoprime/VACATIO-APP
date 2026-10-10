@@ -10,9 +10,9 @@ export interface OmniRouteConfig {
 export type OmniModelComplexity = 'low' | 'medium' | 'high' | 'tiered';
 
 export const OMNI_MODELS: Record<OmniModelComplexity, string> = {
-  low: 'antigravity/gemini-3.6-flash-low',
-  medium: 'antigravity/gemini-3.6-flash-high',
-  high: 'antigravity/gemini-3.1-pro-high',
+  low: 'antigravity/gemini-3.8-flash-tiered',
+  medium: 'antigravity/gemini-3.8-flash-tiered',
+  high: 'antigravity/gemini-3.8-flash-tiered',
   tiered: 'antigravity/gemini-3.8-flash-tiered',
 };
 

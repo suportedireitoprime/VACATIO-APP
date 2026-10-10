@@ -57,7 +57,7 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
     subtitle: 'Assistente e tutor jurídico em tempo real para dúvidas processuais e materiais',
     category: 'Texto & Chat',
     defaultProvider: 'omniroute',
-    defaultModel: 'antigravity/gemini-3.6-flash-high',
+    defaultModel: 'antigravity/gemini-3.8-flash-tiered',
     suggestedModels: [
       {
         id: 'antigravity/gemini-3.8-flash',
@@ -97,7 +97,7 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
     subtitle: 'Síntese de doutrina, artigos de leis, Cornell Notes e criação de flashcards',
     category: 'Síntese & Estudo',
     defaultProvider: 'omniroute',
-    defaultModel: 'antigravity/gemini-3.6-flash-high',
+    defaultModel: 'antigravity/gemini-3.8-flash-tiered',
     suggestedModels: [
       {
         id: 'antigravity/gemini-3.6-flash',
@@ -130,7 +130,7 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
     subtitle: 'Extração de texto de fotos de livros, certidões, petições escaneadas e contratos',
     category: 'Visão & OCR',
     defaultProvider: 'omniroute',
-    defaultModel: 'antigravity/gemini-3.6-flash-high',
+    defaultModel: 'antigravity/gemini-3.8-flash-tiered',
     suggestedModels: [
       {
         id: 'antigravity/gemini-3.6-flash-high',
@@ -163,7 +163,7 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
     subtitle: 'Transcrição de audiências, notas por voz, busca fonética e aulas gravadas',
     category: 'Áudio & Fala',
     defaultProvider: 'omniroute',
-    defaultModel: 'antigravity/gemini-3.6-flash-high',
+    defaultModel: 'antigravity/gemini-3.8-flash-tiered',
     suggestedModels: [
       {
         id: 'antigravity/gemini-3.6-flash-high',
@@ -249,7 +249,7 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
     subtitle: 'Atendimento e suporte jurídico 24/7 direto pelo WhatsApp',
     category: 'Texto & Chat',
     defaultProvider: 'omniroute',
-    defaultModel: 'antigravity/gemini-3.6-flash-high',
+    defaultModel: 'antigravity/gemini-3.8-flash-tiered',
     suggestedModels: [
       {
         id: 'antigravity/gemini-3.6-flash-high',
