@@ -103,7 +103,6 @@ export default function AdminPopularConteudo() {
   const [selectedCategory, setSelectedCategory] = useState<string>('código');
   
   const [leis, setLeis] = useState<any[]>([]);
-  const [leis, setLeis] = useState<any[]>([]);
   const [selectedLeiId, setSelectedLeiId] = useState<string>('cc');
   
   const [isGenerating, setIsGenerating] = useState(false);
