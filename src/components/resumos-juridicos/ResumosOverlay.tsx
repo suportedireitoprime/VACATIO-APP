@@ -244,12 +244,6 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
   }
 
   // ---- LISTA PRINCIPAL (Estilo Mapas Overlay - Azul) ----
-  const size = 64;
-  const stroke = 6;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const pct = 0; // Placeholder
-  const dash = c - (pct / 100) * c;
 
   return (
     <div className="flex flex-col h-full relative w-full overflow-hidden" style={{ background: 'linear-gradient(180deg, hsl(220 75% 35%) 0%, hsl(225 80% 40%) 40%, hsl(215 70% 30%) 100%)' }}>
@@ -287,27 +281,7 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
             </button>
 
             <div className="flex items-start gap-4 mt-8 relative z-10">
-              <div className="relative shrink-0 mt-1" style={{ width: size, height: size }}>
-                <svg width={size} height={size} className="-rotate-90">
-                  <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(255,255,255,0.15)" strokeWidth={stroke} fill="none" />
-                  <circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={r}
-                    stroke="#fff"
-                    strokeWidth={stroke}
-                    strokeLinecap="round"
-                    fill="none"
-                    strokeDasharray={c}
-                    strokeDashoffset={dash}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="font-display text-[14px] font-black leading-none text-white">{pct}%</span>
-                </div>
-              </div>
-
-              <div className="min-w-0 max-w-[65%] text-white drop-shadow-md">
+              <div className="min-w-0 max-w-[80%] text-white drop-shadow-md">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">Sua trilha</p>
                 <h1 className="mt-0.5 font-display text-[22px] font-black leading-tight sm:text-[26px]">
                   Resumos
@@ -324,12 +298,12 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
             <div className="relative mt-4 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-white shadow-lg z-10">
               <div className="grid grid-cols-2 divide-x divide-white/10">
                 <div className="flex flex-col items-center justify-center px-2 py-2.5">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-white/60">Trilhas</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-white/60">Temas</span>
                   <span className="mt-0.5 font-display text-lg font-black leading-none">{allCapitulos.length}</span>
                 </div>
                 <div className="flex flex-col items-center justify-center px-2 py-2.5">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-white/60">Artigos Totais</span>
-                  <span className="mt-0.5 font-display text-lg font-black leading-none">{totalResumos}</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-white/60">Resumos Totais</span>
+                  <span className="mt-0.5 font-display text-lg font-black leading-none">{totalResumos * 3}</span>
                 </div>
               </div>
             </div>
