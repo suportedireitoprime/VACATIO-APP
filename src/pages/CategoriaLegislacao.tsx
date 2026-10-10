@@ -24,6 +24,9 @@ import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
 import AulasOverlay from '@/components/vademecum/AulasOverlay';
+import { LicoesOverlay } from '@/components/vademecum/LicoesOverlay';
+import { FlashcardsOverlay } from '@/components/vademecum/FlashcardsOverlay';
+import { QuestoesOverlay } from '@/components/vademecum/QuestoesOverlay';
 import { MapasOverlay } from '@/components/vademecum/MapasOverlay';
 import ResumosOverlay from '@/components/resumos-juridicos/ResumosOverlay';
 import LocalSearchOverlay from '@/components/vademecum/LocalSearchOverlay';
@@ -169,6 +172,9 @@ const CategoriaLegislacao = () => {
   const [stickySearch, setStickySearch] = useState(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
   const [isAulasOpen, setIsAulasOpen] = useState(false);
+  const [isLicoesOpen, setIsLicoesOpen] = useState(false);
+  const [isFlashcardsOpen, setIsFlashcardsOpen] = useState(false);
+  const [isQuestoesOpen, setIsQuestoesOpen] = useState(false);
   const [isMapasOpen, setIsMapasOpen] = useState(false);
   const [isResumosOpen, setIsResumosOpen] = useState(false);
   const [isLocalSearchOpen, setIsLocalSearchOpen] = useState(false);
@@ -2471,6 +2477,63 @@ const CategoriaLegislacao = () => {
             />
           </motion.div>
         )}
+        {isLicoesOpen && (
+          <motion.div
+            initial={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            animate={isDesktop ? { opacity: 1, y: 0 } : { y: 0, opacity: 1 }}
+            exit={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[100] bg-background lg:w-[480px] lg:h-[80vh] lg:m-auto lg:rounded-3xl lg:shadow-2xl lg:border lg:border-white/10 overflow-hidden"
+          >
+            <LicoesOverlay
+              capituloGroups={capituloGroups}
+              leiNome={selectedLeiNome}
+              onClose={() => setIsLicoesOpen(false)}
+              onArtigoSelect={(artigo) => {
+                setIsLicoesOpen(false);
+                openArtigoWithRecent(artigo);
+              }}
+            />
+          </motion.div>
+        )}
+        {isFlashcardsOpen && (
+          <motion.div
+            initial={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            animate={isDesktop ? { opacity: 1, y: 0 } : { y: 0, opacity: 1 }}
+            exit={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[100] bg-background lg:w-[480px] lg:h-[80vh] lg:m-auto lg:rounded-3xl lg:shadow-2xl lg:border lg:border-white/10 overflow-hidden"
+          >
+            <FlashcardsOverlay
+              capituloGroups={capituloGroups}
+              leiNome={selectedLeiNome}
+              onClose={() => setIsFlashcardsOpen(false)}
+              onArtigoSelect={(artigo) => {
+                setIsFlashcardsOpen(false);
+                openArtigoWithRecent(artigo);
+              }}
+            />
+          </motion.div>
+        )}
+        {isQuestoesOpen && (
+          <motion.div
+            initial={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            animate={isDesktop ? { opacity: 1, y: 0 } : { y: 0, opacity: 1 }}
+            exit={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[100] bg-background lg:w-[480px] lg:h-[80vh] lg:m-auto lg:rounded-3xl lg:shadow-2xl lg:border lg:border-white/10 overflow-hidden"
+          >
+            <QuestoesOverlay
+              capituloGroups={capituloGroups}
+              leiNome={selectedLeiNome}
+              onClose={() => setIsQuestoesOpen(false)}
+              onArtigoSelect={(artigo) => {
+                setIsQuestoesOpen(false);
+                openArtigoWithRecent(artigo);
+              }}
+            />
+          </motion.div>
+        )}
       </AnimatePresence>
       <LocalSearchOverlay
         open={isLocalSearchOpen}
@@ -2644,14 +2707,18 @@ const CategoriaLegislacao = () => {
                     { key: 'flashcards' as const, icon: Layers, label: 'Flashcards', color: '#34D399' },
                     { key: 'questoes' as const, icon: Target, label: 'Questões', color: '#FACC15' },
                   ].map((tab, index) => {
-                    const active = isAulasOpen && tab.key === 'aulas'; // Simple check for now
+                    const active = (tab.key === 'aulas' && isAulasOpen) ||
+                                   (tab.key === 'licoes' && isLicoesOpen) ||
+                                   (tab.key === 'flashcards' && isFlashcardsOpen) ||
+                                   (tab.key === 'questoes' && isQuestoesOpen);
                     return (
                       <button
                         key={tab.key}
                         onClick={() => {
-                          if (tab.key === 'aulas') {
-                            setIsAulasOpen(true);
-                          }
+                          if (tab.key === 'aulas') setIsAulasOpen(true);
+                          else if (tab.key === 'licoes') setIsLicoesOpen(true);
+                          else if (tab.key === 'flashcards') setIsFlashcardsOpen(true);
+                          else if (tab.key === 'questoes') setIsQuestoesOpen(true);
                         }}
                         type="button"
                         style={{ '--shimmer-delay': `${index * 150}ms` } as React.CSSProperties}

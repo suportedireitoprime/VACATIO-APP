@@ -23,7 +23,7 @@ interface AulasOverlayProps {
   onArtigoSelect: (artigo: ArtigoType) => void;
 }
 
-export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect }: AulasOverlayProps) {
+export function LicoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect }: AulasOverlayProps) {
   const [heroIdx, setHeroIdx] = useState(0);
   const [selectedCapitulo, setSelectedCapitulo] = useState<CapGroup | null>(null);
 
@@ -102,7 +102,7 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
   const pct = 0; // Por enquanto mockado em 0%
 
   return (
-    <div className="flex flex-col h-full relative w-full overflow-hidden" style={{ background: 'linear-gradient(180deg, hsl(0 75% 45%) 0%, hsl(0 80% 50%) 40%, hsl(0 70% 38%) 100%)' }}>
+    <div className="flex flex-col h-full relative w-full overflow-hidden" style={{ background: 'linear-gradient(180deg, hsl(200 85% 40%) 0%, hsl(200 90% 45%) 40%, hsl(200 80% 35%) 100%)' }}>
       <section className="relative isolate shrink-0 pb-4 overflow-hidden -mx-px rounded-t-[30px] z-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.18),transparent_65%)]" />
@@ -118,8 +118,8 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
               onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
           ))}
-          <div className="absolute inset-0 opacity-25" style={{ background: 'linear-gradient(135deg, hsl(0 70% 38%) 0%, #F87171 100%)', mixBlendMode: 'multiply' }} />
-          <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-red-600 via-red-600/60 to-transparent" />
+          <div className="absolute inset-0 opacity-25" style={{ background: 'linear-gradient(135deg, hsl(200 80% 35%) 0%, #38BDF8 100%)', mixBlendMode: 'multiply' }} />
+          <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#0284c7] via-[#0284c7]/60 to-transparent" />
         </div>
 
         <div className="relative p-5 pt-[calc(var(--sai-top)+16px)]">
@@ -135,10 +135,10 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
             <div className="min-w-0 max-w-[80%] text-white drop-shadow-md">
               <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">Sua trilha</p>
               <h1 className="mt-0.5 font-display text-[22px] font-black leading-tight sm:text-[26px]">
-                Aulas
+                Lições
               </h1>
               <p className="mt-0.5 text-[12px] leading-snug text-white/80 font-body">
-                Aulas organizadas por capítulos de {leiNome}
+                Lições organizadas por capítulos de {leiNome}
               </p>
             </div>
           </div>
@@ -150,8 +150,8 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
                 <span className="mt-0.5 font-display text-lg font-black leading-none">{allCapitulos.length}</span>
               </div>
               <div className="flex flex-col items-center justify-center px-2 py-2.5">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-white/60">Aulas Totais</span>
-                <span className="mt-0.5 font-display text-lg font-black leading-none">{totalAulas}</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-white/60">Lições Totais</span>
+                <span className="mt-0.5 font-display text-lg font-black leading-none">{totalAulas * 2}</span>
               </div>
             </div>
           </div>
