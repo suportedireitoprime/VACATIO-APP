@@ -179,6 +179,7 @@ const AdminMonitorApis = lazy(() => import("./pages/AdminMonitorApis.tsx"));
 const AdminOmniRoute = lazy(() => import("./pages/AdminOmniRoute.tsx"));
 const AdminAprender = lazy(() => import("./pages/AdminAprender.tsx"));
 const AdminRoboResumos = lazy(() => import("./pages/AdminRoboResumos.tsx"));
+const AdminPopularConteudo = lazy(() => import("./pages/AdminPopularConteudo.tsx"));
 const AdminAprenderArea = lazy(() => import("./pages/AdminAprenderArea.tsx"));
 const AdminJurisprudencia = lazy(() => import("./pages/AdminJurisprudencia.tsx"));
 const AdminHorus = lazy(() => import("./pages/AdminHorus.tsx"));
@@ -249,9 +250,9 @@ const queryClient = new QueryClient({
 const queryPersister = typeof window !== 'undefined'
   ? createAsyncStoragePersister({
       storage: {
-        getItem: (key) => idbGet(key).then((v) => (v == null ? null : v as string)),
-        setItem: (key, value) => idbSet(key, value).then(() => undefined),
-        removeItem: (key) => idbDel(key).then(() => undefined),
+        getItem: (key) => idbGet(key).then((v) => (v == null ? null : v as string)).catch(() => null),
+        setItem: (key, value) => idbSet(key, value).then(() => undefined).catch(() => undefined),
+        removeItem: (key) => idbDel(key).then(() => undefined).catch(() => undefined),
       },
       key: 'rq-cache-v1',
       throttleTime: 1500,
@@ -268,15 +269,18 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
 
   // Leitura síncrona do cache — não bloqueia o paint.
   const cacheKey = user ? `onboarding_completed:${user.id}` : null;
-  const cachedDone = cacheKey && typeof window !== 'undefined'
-    ? localStorage.getItem(cacheKey) === '1'
-    : false;
+  let cachedDone = false;
+  try {
+    cachedDone = cacheKey && typeof window !== 'undefined' ? localStorage.getItem(cacheKey) === '1' : false;
+  } catch (e) {}
 
   // Otimista pós-cadastro: se acabou de criar conta nesta sessão, já assume
   // que precisa passar pela triagem — evita spinner de 3-5s enquanto o
   // Supabase ainda não respondeu com o perfil recém-criado.
-  const justSignedUp =
-    typeof window !== 'undefined' && window.sessionStorage.getItem('just_signed_up') === '1';
+  let justSignedUp = false;
+  try {
+    justSignedUp = typeof window !== 'undefined' && window.sessionStorage.getItem('just_signed_up') === '1';
+  } catch (e) {}
 
   const [needsOnboarding, setNeedsOnboarding] = useState(justSignedUp);
   // Só libera a tela quando souber se a triagem está pendente. Antes começava
@@ -671,6 +675,7 @@ function AnimatedRoutes() {
           <Route path="/planos/ativos" element={<ProtectedRoute><PageTransition><PlanosAtivos /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-aprender" element={<ProtectedRoute><PageTransition><AdminAprender /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-robo-resumos" element={<ProtectedRoute><PageTransition><AdminRoboResumos /></PageTransition></ProtectedRoute>} />
+          <Route path="/admin-popular-conteudo" element={<ProtectedRoute><PageTransition><AdminPopularConteudo /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-aprender/:area" element={<ProtectedRoute><PageTransition><AdminAprenderArea /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-jurisprudencia" element={<ProtectedRoute><PageTransition><AdminJurisprudencia /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-push" element={<ProtectedRoute><PageTransition><AdminPush /></PageTransition></ProtectedRoute>} />

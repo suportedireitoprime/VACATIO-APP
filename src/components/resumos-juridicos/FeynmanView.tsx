@@ -6,13 +6,10 @@ function Passo({ num, titulo, children }: { num: number; titulo: string; childre
   return (
     <div className="rounded-2xl p-4 border border-border">
       <div className="flex items-center gap-2 mb-3">
-        <div
-          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border"
-          style={{ color: ROSE, borderColor: ROSE }}
-        >
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border border-primary text-primary">
           {num}
         </div>
-        <h3 className="font-semibold text-sm" style={{ color: ROSE }}>
+        <h3 className="font-semibold text-sm text-primary">
           {titulo}
         </h3>
       </div>
@@ -39,7 +36,7 @@ export default function FeynmanView({ conteudo }: { conteudo: FeynmanContent }) 
         <div className="space-y-3">
           {(conteudo.lacunas || []).map((l, i) => (
             <div key={i} className="rounded-xl p-3 border border-border/60">
-              <p className="text-sm font-semibold" style={{ color: ROSE }}>
+              <p className="text-sm font-semibold text-primary">
                 {l.ponto}
               </p>
               <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{l.explicacao}</p>
@@ -52,7 +49,7 @@ export default function FeynmanView({ conteudo }: { conteudo: FeynmanContent }) 
         <div className="space-y-3">
           {(conteudo.analogias || []).map((a, i) => (
             <div key={i} className="rounded-xl p-3 border border-border/60">
-              <p className="text-sm font-semibold" style={{ color: ROSE }}>
+              <p className="text-sm font-semibold text-primary">
                 {a.analogia}
               </p>
               <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{a.relacao}</p>
@@ -63,7 +60,7 @@ export default function FeynmanView({ conteudo }: { conteudo: FeynmanContent }) 
 
       {conteudo.revisao_final && (
         <div className="rounded-2xl p-4 border border-border">
-          <h3 className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: ROSE }}>
+          <h3 className="text-xs font-bold uppercase tracking-wider mb-2 text-primary">
             Revisão final
           </h3>
           <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">

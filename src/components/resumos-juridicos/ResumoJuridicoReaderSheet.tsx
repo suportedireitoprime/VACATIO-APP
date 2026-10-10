@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown,
@@ -11,13 +11,17 @@ import {
   Type,
   Sparkles,
   Loader2,
+  Volume2,
+  Square,
+  Settings2,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { useIsDesktop } from "@/hooks/use-desktop";
 import { resumosLocal } from "@/lib/resumosLocal";
 import { gerarResumoPdf, resumoParaTexto } from "@/lib/resumoPdf";
 import { supabase } from "@/integrations/supabase/client";
+import { get, set } from "idb-keyval";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+const ResumoMarkdown = lazy(() => import("./ResumoMarkdown"));
 import CornellView from "./CornellView";
 import FeynmanView from "./FeynmanView";
 import FichaEditorial from "./FichaEditorial";
@@ -78,8 +82,12 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
   const [fontOpen, setFontOpen] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const [fav, setFav] = useState(false);
+  const [falando, setFalando] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    return () => window.speechSynthesis.cancel();
+  }, []);
 
   useEffect(() => {
     if (resumo && scrollRef.current) {
@@ -92,9 +100,11 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
       setErroGerar(null);
       setFontOpen(false);
       setCopiado(false);
+      setFalando(false);
+      window.speechSynthesis.cancel();
       setFav(resumosLocal.isFavorito(resumo.id));
     }
-  }, [resumo?.id, initialMetodo]);
+  }, [resumo?.id, initialMetodo, resumo]);
 
   // Carrega metodologias já geradas para este resumo
   useEffect(() => {
@@ -102,10 +112,20 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
     const resumoId = resumo.id;
     let ativo = true;
     (async () => {
-      const { data } = await supabase
-        .from("resumo_metodologias")
-        .select("metodo, conteudo")
-        .eq("resumo_id", resumoId);
+      const cacheKey = `metodologias_${resumoId}`;
+      let data = await get(cacheKey).catch(() => null);
+
+      if (!data) {
+        const res = await supabase
+          .from("resumo_metodologias")
+          .select("metodo, conteudo")
+          .eq("resumo_id", resumoId);
+        data = res.data;
+        if (data && data.length > 0) {
+          await set(cacheKey, data).catch(() => {});
+        }
+      }
+
       if (!ativo) return;
       const existentes = new Set<string>();
       for (const row of data || []) {
@@ -182,11 +202,11 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
     const raw = JSON.parse(cleanJson);
     
     // Salvar no banco (opcional, omitido aqui mas idealmente salvo para cache)
-    supabase.from("resumo_metodologias").insert({
+    await supabase.from("resumo_metodologias").insert({
       resumo_id: resumo.id,
       metodo: alvo,
       conteudo: raw
-    }).catch(() => {});
+    });
 
     if (alvo === "cornell") setCornell(raw as CornellContent);
     else setFeynman(raw as FeynmanContent);
@@ -252,6 +272,21 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
       setTimeout(() => setCopiado(false), 1800);
     } catch {
       /* noop */
+    }
+  };
+
+  const toggleTTS = () => {
+    if (falando) {
+      window.speechSynthesis.cancel();
+      setFalando(false);
+    } else {
+      const text = textoAtivo();
+      if (!text) return;
+      const ut = new SpeechSynthesisUtterance(text);
+      ut.lang = 'pt-BR';
+      ut.onend = () => setFalando(false);
+      window.speechSynthesis.speak(ut);
+      setFalando(true);
     }
   };
 
@@ -412,24 +447,9 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
                             "
                           >
                             {content ? (
-                              <ReactMarkdown 
-                                remarkPlugins={[remarkGfm]}
-                                components={{
-                                  table: ({node, ...props}) => (
-                                    <div className="w-full overflow-x-auto pb-2 my-6 custom-scrollbar">
-                                      <table className="w-full text-left border-collapse min-w-[500px]" {...props} />
-                                    </div>
-                                  ),
-                                  th: ({node, ...props}) => (
-                                    <th className="border border-border/50 px-3 py-2 font-bold bg-muted/30" {...props} />
-                                  ),
-                                  td: ({node, ...props}) => (
-                                    <td className="border border-border/50 px-3 py-2 align-top" {...props} />
-                                  )
-                                }}
-                              >
-                                {content}
-                              </ReactMarkdown>
+                              <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>}>
+                                <ResumoMarkdown content={content} />
+                              </Suspense>
                             ) : (
                               <p className="text-muted-foreground">Sem conteúdo neste tópico.</p>
                             )}
@@ -485,65 +505,62 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
 
             {/* Ações flutuantes */}
             <div className="pointer-events-none absolute bottom-5 right-4 flex flex-col items-end gap-3">
-              <AnimatePresence>
-                {fontOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                    className="pointer-events-auto flex items-center bg-card/95 backdrop-blur-md border border-border rounded-full shadow-xl overflow-hidden"
-                  >
-                    <button
-                      onClick={decFont}
-                      aria-label="Diminuir fonte"
-                      className="w-11 h-11 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-95 transition-all"
-                    >
-                      <span className="text-sm font-bold">A</span>
-                    </button>
-                    <span className="text-[10px] text-muted-foreground w-9 text-center">
-                      {Math.round(fontScale * 100)}%
-                    </span>
-                    <button
-                      onClick={incFont}
-                      aria-label="Aumentar fonte"
-                      className="w-11 h-11 flex items-center justify-center text-foreground hover:bg-secondary active:scale-95 transition-all"
-                    >
-                      <span className="text-lg font-bold">A</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               <div className="pointer-events-auto flex flex-col gap-2 items-end">
                 <button
-                  onClick={() => setFontOpen((v) => !v)}
-                  aria-label="Tamanho da fonte"
+                  onClick={toggleTTS}
+                  aria-label={falando ? "Parar leitura" : "Ler em voz alta"}
                   className="w-11 h-11 flex items-center justify-center rounded-full bg-card/95 backdrop-blur-md border border-border shadow-xl text-foreground active:scale-95 transition"
                 >
-                  <Type className="w-5 h-5" />
+                  {falando ? <Square className="w-5 h-5" style={{ color: RED, fill: RED }} /> : <Volume2 className="w-5 h-5" />}
                 </button>
-                <button
-                  onClick={copiar}
-                  aria-label="Copiar resumo"
-                  className="w-11 h-11 flex items-center justify-center rounded-full bg-card/95 backdrop-blur-md border border-border shadow-xl text-foreground active:scale-95 transition"
-                >
-                  {copiado ? <Check className="w-5 h-5" style={{ color: RED }} /> : <Copy className="w-5 h-5" />}
-                </button>
-                <button
-                  onClick={baixarPdf}
-                  aria-label="Baixar em PDF"
-                  className="w-11 h-11 flex items-center justify-center rounded-full bg-card/95 backdrop-blur-md border border-border shadow-xl text-foreground active:scale-95 transition"
-                >
-                  <FileDown className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={share}
-                  aria-label="Compartilhar"
-                  className="w-12 h-12 flex items-center justify-center rounded-full text-white shadow-2xl hover:brightness-110 active:scale-95 transition-all"
-                  style={{ backgroundColor: RED }}
-                >
-                  <Share2 className="w-5 h-5" />
-                </button>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      aria-label="Opções de leitura"
+                      className="w-12 h-12 flex items-center justify-center rounded-full text-white shadow-2xl hover:brightness-110 active:scale-95 transition-all"
+                      style={{ backgroundColor: RED }}
+                    >
+                      <Settings2 className="w-5 h-5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" side="top" sideOffset={16} className="w-64 p-3 rounded-2xl shadow-2xl bg-card border-border">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Tamanho do texto</p>
+                        <div className="flex items-center justify-between bg-muted rounded-xl p-1">
+                          <button onClick={decFont} className="w-12 h-10 flex items-center justify-center hover:bg-background rounded-lg transition-colors">
+                            <span className="text-sm font-bold">A</span>
+                          </button>
+                          <span className="text-[11px] font-medium text-foreground w-12 text-center">
+                            {Math.round(fontScale * 100)}%
+                          </span>
+                          <button onClick={incFont} className="w-12 h-10 flex items-center justify-center hover:bg-background rounded-lg transition-colors">
+                            <span className="text-lg font-bold">A</span>
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Ações</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button onClick={copiar} className="flex flex-col items-center justify-center gap-1.5 bg-muted hover:bg-muted/80 rounded-xl p-2.5 transition-colors">
+                            {copiado ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-foreground/70" />}
+                            <span className="text-[10px] font-medium text-foreground/80">Copiar</span>
+                          </button>
+                          <button onClick={baixarPdf} className="flex flex-col items-center justify-center gap-1.5 bg-muted hover:bg-muted/80 rounded-xl p-2.5 transition-colors">
+                            <FileDown className="w-4 h-4 text-foreground/70" />
+                            <span className="text-[10px] font-medium text-foreground/80">PDF</span>
+                          </button>
+                          <button onClick={share} className="flex flex-col items-center justify-center gap-1.5 bg-muted hover:bg-muted/80 rounded-xl p-2.5 transition-colors">
+                            <Share2 className="w-4 h-4 text-foreground/70" />
+                            <span className="text-[10px] font-medium text-foreground/80">Enviar</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </motion.div>

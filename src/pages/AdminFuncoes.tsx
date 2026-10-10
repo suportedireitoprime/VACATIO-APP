@@ -5,7 +5,7 @@ import {
   Gamepad2, Brain, BookA, MessageCircle, BellRing, Mic, Lightbulb, Building2,
   Rss, Palette, Users, GitBranch, Github, ImageIcon, KeyRound, Bug, Newspaper,
   Quote, Monitor, Send, RefreshCcw, Lock, Wrench, FileText, Crown, Search, Target, MapPin, PlayCircle,
-  Sparkles, UserPlus, GraduationCap, Scale, Store, Mail, FileSignature, User, Server,
+  Sparkles, UserPlus, GraduationCap, Scale, Store, Mail, FileSignature, User, Server, NotebookText, Layers,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -97,18 +97,7 @@ type Category = {
 };
 
 const CATEGORIES: Category[] = [
-  {
-    id: 'exclusivas-admin',
-    title: 'Funções exclusivas (Admin)',
-    desc: 'Ferramentas em testes, visíveis apenas para admins',
-    icon: Crown,
-    color: '#f43f5e',
-    items: [
-      { id: 'admin-newsletter', label: 'Newsletter', icon: Mail, desc: 'Receba um resumo jurídico diário no e-mail', route: '/newsletter' },
-      { id: 'admin-horus-congelado', label: 'Assistente Horus (Congelado)', icon: MessageCircle, desc: 'Assistente virtual por IA (oculto do app principal)', route: '/assistente-horus' },
-      { id: 'admin-blog-congelado', label: 'Blog Jurídico (Congelado)', icon: Rss, desc: 'Artigos jurídicos (oculto do app principal)', route: '/blog' },
-    ],
-  },
+
   {
     id: 'push',
     title: 'Notificações Push',
@@ -117,6 +106,16 @@ const CATEGORIES: Category[] = [
     color: '#8b5cf6',
     items: [
       { id: 'admin-push', label: 'Painel de Push', icon: BellRing, desc: 'Compor, agendar, campanhas e métricas', route: '/admin-push' },
+    ],
+  },
+  {
+    id: 'popular-conteudo',
+    title: 'Popular Conteúdo',
+    desc: 'Povoamento em lote de resumos, aulas, lições, mapas mentais...',
+    icon: NotebookText,
+    color: '#f59e0b',
+    items: [
+      { id: 'admin-popular-conteudo', label: 'Painel do Robô Populador', icon: Layers, desc: 'Verifica o DB e roda robôs de população em lote', route: '/admin-popular-conteudo' },
     ],
   },
   {
@@ -171,7 +170,6 @@ const CATEGORIES: Category[] = [
     route: '/admin-aprender',
     items: [
       { id: 'admin-aprender', label: 'Gerar conteúdo das aulas', icon: Sparkles, desc: 'Gera/regera aulas a partir dos resumos e publica no app', route: '/admin-aprender' },
-      { id: 'admin-robo-resumos', label: 'Robô de Resumos', icon: NotebookText, desc: 'Gera resumos conceituais em lote', route: '/admin-robo-resumos' },
     ],
   },
   {

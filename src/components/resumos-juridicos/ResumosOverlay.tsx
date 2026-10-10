@@ -62,7 +62,9 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
     const toastId = toast.loading(`Abrindo resumo do ${artigo.numero}...`);
 
     try {
-      const numLabel = artigo.numero.toLowerCase().includes('art') ? artigo.numero : `Art. ${artigo.numero}`;
+      const num = artigo.numero.replace(/art\.?\s*/i, '').trim();
+      const numLabelArtigo = `Artigo ${num}`;
+      const numLabelArt = `Art. ${num}`;
       
       // 1. Tentar buscar no banco
       const { data: existing } = await supabase
@@ -70,7 +72,7 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
         .select('*')
         .eq('area', leiNome)
         .eq('tema', leiNome)
-        .in('subtema', [numLabel, artigo.numero])
+        .in('subtema', [numLabelArtigo, numLabelArt, artigo.numero, num])
         .maybeSingle();
 
       if (existing) {
@@ -82,9 +84,9 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
 
       // 2. Se não existir, gera via IA
       toast.loading(`Gerando resumo inédito do ${artigo.numero} (pode levar 10s)...`, { id: toastId });
-      const prompt = `LEGISLAÇÃO: ${leiNome}\nARTIGO: ${artigo.numero}\nCAPUT: ${artigo.caput}\n\nGere uma explicação PROFUNDA e COMPLETA deste artigo jurídico. Não seja seco ou superficial. Retorne ESTRITAMENTE um objeto JSON válido (sem \`\`\`json) com os seguintes campos:\n{\n  "markdown": "Uma explicação doutrinária extensa e didática, formatada em markdown. Comece do básico e aprofunde. Use analogias, tabelas markdown e listas. OBRIGATÓRIO: Vá direto ao ponto! PROIBIDO usar saudações como 'Olá', 'Bem-vindo', 'Que alegria'. Inicie o texto diretamente com o conteúdo da explicação.",\n  "exemplos": "Pelo menos 2 ou 3 exemplos práticos, ricos em detalhes e do cotidiano, ilustrando perfeitamente a aplicação deste artigo. Formato markdown.",\n  "termos": "Um pequeno glossário explicando detalhadamente de forma acessível os termos ou jargões jurídicos usados neste artigo."\n}`;
+      const prompt = `LEGISLAÇÃO: ${leiNome}\nARTIGO: ${artigo.numero}\nCAPUT: ${artigo.caput}\n\nGere uma explicação doutrinária extensa e didática, formatada em markdown. Retorne ESTRITAMENTE um objeto JSON válido (sem \`\`\`json) com os seguintes campos:\n{\n  "markdown": "O texto deve obrigatoriamente começar com o título '# Artigo ${num}'. Não crie títulos inventados como 'Análise profunda do artigo...'. O texto deve ser extremamente didático, explicando como se fosse para um leigo entender, mas mantendo a técnica jurídica quando necessário. Use analogias, tabelas markdown e listas. OBRIGATÓRIO: Vá direto ao ponto! PROIBIDO usar saudações.",\n  "exemplos": "Pelo menos 2 ou 3 exemplos práticos, ricos em detalhes e do cotidiano, ilustrando perfeitamente a aplicação deste artigo. Formato markdown.",\n  "termos": "Um pequeno glossário explicando detalhadamente de forma acessível os termos ou jargões jurídicos usados neste artigo."\n}`;
 
-      const systemPrompt = "Você é um professor de direito experiente e didático. Seu objetivo é explicar conceitos jurídicos de forma profunda, completa e muito acessível para leigos. IMPORTANTE: NÃO inclua NENHUMA saudação, introdução ou conversa fiada (como 'Olá', 'Que alegria', 'Bem-vindo', 'Aqui está'). Vá DIRETO ao conteúdo da explicação jurídica. Retorne apenas JSON puro, sem marcações markdown em volta do JSON.";
+      const systemPrompt = "Você é um professor de direito experiente e didático. Seu objetivo é explicar conceitos jurídicos de forma profunda, completa e muito acessível para leigos. IMPORTANTE: NÃO inclua NENHUMA saudação, introdução ou conversa fiada. Vá DIRETO ao conteúdo da explicação jurídica. Retorne apenas JSON puro, sem marcações markdown em volta do JSON.";
 
       let res = await generateOmniText({
         prompt,
@@ -106,7 +108,7 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
         id: crypto.randomUUID(),
         area: leiNome,
         tema: leiNome,
-        subtema: numLabel,
+        subtema: numLabelArtigo,
         ordem_subtema: 0,
         markdown: raw.markdown || null,
         exemplos: raw.exemplos || null,
@@ -234,7 +236,7 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-colors text-left"
                   >
                     <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                      <FileText className="w-7 h-7 text-primary" strokeWidth={1.5} />
+                      <FileText className="w-7 h-7 text-rose-500" strokeWidth={1.5} />
                     </div>
                     <div>
                       <h4 className="font-bold text-foreground">Resumo Conceitual</h4>
@@ -247,7 +249,7 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-colors text-left"
                   >
                     <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                      <BookOpen className="w-7 h-7 text-orange-500" strokeWidth={1.5} />
+                      <BookOpen className="w-7 h-7 text-amber-500" strokeWidth={1.5} />
                     </div>
                     <div>
                       <h4 className="font-bold text-foreground">Método Cornell</h4>
@@ -260,7 +262,7 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-colors text-left"
                   >
                     <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                      <Brain className="w-7 h-7 text-blue-500" strokeWidth={1.5} />
+                      <Brain className="w-7 h-7 text-violet-500" strokeWidth={1.5} />
                     </div>
                     <div>
                       <h4 className="font-bold text-foreground">Técnica Feynman</h4>
