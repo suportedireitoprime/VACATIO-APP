@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, FileText, Loader2, PlayCircle, Sparkles, ChevronRight } from 'lucide-react';
+import { ArrowLeft, FileText, Loader2, PlayCircle, Sparkles, ChevronRight, NotebookText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateOmniText } from '@/lib/omniRouteClient';
 import ResumoJuridicoReaderSheet, { type ResumoRow } from '@/components/resumos-juridicos/ResumoJuridicoReaderSheet';
