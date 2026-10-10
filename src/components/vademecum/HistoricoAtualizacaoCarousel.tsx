@@ -134,7 +134,7 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
 
       <div
         ref={scrollerRef}
-        className="flex gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 pt-1 px-[5%] md:px-[4%] lg:px-[3%] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 pt-1 pl-[5%] md:pl-[4%] lg:pl-[3%] pr-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         {historicoAlteracoes.map((item, i) => {
           const t = item.tipo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -191,6 +191,7 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
             </motion.button>
           );
         })}
+        <div className="w-[5%] shrink-0" />
       </div>
     </div>
   );
