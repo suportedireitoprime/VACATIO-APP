@@ -61,9 +61,9 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
     const toastId = toast.loading(`Gerando resumo do ${artigo.numero}...`);
 
     try {
-      const prompt = `LEGISLAÇÃO: ${leiNome}\nARTIGO: ${artigo.numero}\nCAPUT: ${artigo.caput}\n\nGere um resumo deste artigo jurídico. Retorne ESTRITAMENTE um objeto JSON válido (sem \`\`\`json) com os seguintes campos:\n{\n  "markdown": "Um resumo doutrinário conciso, formatado em markdown, focando nos conceitos e aplicação principal. Use bullet points e negritos.",\n  "exemplos": "Pelo menos um exemplo prático bem direto explicando a aplicação do artigo. Formato markdown.",\n  "termos": "Uma explicação muito curta dos principais termos ou jargões jurídicos usados neste artigo."\n}`;
+      const prompt = `LEGISLAÇÃO: ${leiNome}\nARTIGO: ${artigo.numero}\nCAPUT: ${artigo.caput}\n\nGere uma explicação PROFUNDA e COMPLETA deste artigo jurídico. Não seja seco ou superficial. Retorne ESTRITAMENTE um objeto JSON válido (sem \`\`\`json) com os seguintes campos:\n{\n  "markdown": "Uma explicação doutrinária extensa e muito didática, formatada em markdown. Comece do básico e aprofunde. Use analogias, tabelas markdown (se ajudar a comparar conceitos), listas e destaques para facilitar a leitura. Escreva como se estivesse dando uma aula completa para um leigo entender absolutamente tudo sobre o assunto.",\n  "exemplos": "Pelo menos 2 ou 3 exemplos práticos, ricos em detalhes e do cotidiano, ilustrando perfeitamente a aplicação deste artigo. Formato markdown.",\n  "termos": "Um pequeno glossário explicando detalhadamente de forma acessível os termos ou jargões jurídicos usados neste artigo."\n}`;
 
-      const systemPrompt = "Você é um professor de direito experiente. Explique de forma muito didática, concisa e direta, voltado para alunos e advogados. Retorne apenas JSON puro, sem textos introdutórios ou blocos markdown de código.";
+      const systemPrompt = "Você é um professor de direito experiente, acolhedor e extremamente didático. Seu objetivo é explicar conceitos jurídicos de forma profunda, completa e muito acessível, como se ensinasse para um leigo, sem perder a precisão. Retorne apenas JSON puro, sem marcações markdown em volta do JSON.";
 
       let res = await generateOmniText({
         prompt,
