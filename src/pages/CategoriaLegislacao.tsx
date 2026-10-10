@@ -2268,22 +2268,22 @@ const CategoriaLegislacao = () => {
           className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
         />
         <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
-          {/* Aulas */}
+          {/* Favoritos */}
           <button
-            onClick={() => setIsAulasOpen(true)}
-            className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
+            onClick={() => setOverlayPanel('fav')}
+            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${overlayPanel === 'fav' ? 'text-primary' : 'text-white/80 hover:text-white'}`}
           >
-            <GraduationCap className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Aulas</span>
+            <Heart className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Favoritos</span>
           </button>
           
-          {/* Lições */}
+          {/* Anotações */}
           <button
-            onClick={() => {}}
-            className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
+            onClick={() => setOverlayPanel('anotacoes')}
+            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${overlayPanel === 'anotacoes' ? 'text-primary' : 'text-white/80 hover:text-white'}`}
           >
-            <Pencil className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Lições</span>
+            <StickyNote className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Anotações</span>
           </button>
 
           {/* Pesquisar */}
@@ -2299,22 +2299,30 @@ const CategoriaLegislacao = () => {
             <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white drop-shadow-sm truncate px-0.5">Pesquisar</span>
           </button>
 
-          {/* Flashcards */}
+          {/* Playlist */}
           <button
-            onClick={() => {}}
-            className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
+            onClick={() => setOverlayPanel('playlist')}
+            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${overlayPanel === 'playlist' ? 'text-primary' : 'text-white/80 hover:text-white'}`}
           >
-            <Layers className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Flashcards</span>
+            <ListMusic className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Playlist</span>
           </button>
 
-          {/* Questões */}
+          {/* Radar */}
           <button
-            onClick={() => {}}
-            className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative text-white/80 hover:text-white"
+            onClick={() => {
+              if (!isPremium) {
+                setPremiumGateFeature('radar');
+                setPremiumGateDesc('O Radar Legislativo é exclusivo para assinantes.');
+                setShowPremiumGate(true);
+                return;
+              }
+              setOverlayPanel('radar');
+            }}
+            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${overlayPanel === 'radar' ? 'text-primary' : 'text-white/80 hover:text-white'}`}
           >
-            <Target className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
-            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Questões</span>
+            <Radar className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
+            <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Radar</span>
           </button>
         </div>
       </nav>
@@ -2594,23 +2602,19 @@ const CategoriaLegislacao = () => {
               <div className="relative z-10 px-3 sm:px-5 pb-4 pt-3 flex justify-center">
                 <div className="flex items-center gap-2 w-full max-w-2xl bg-black/40 backdrop-blur-md rounded-3xl p-2 border border-white/10 shadow-2xl">
                   {[
-                    { key: 'fav' as const, icon: Heart, label: 'Favoritos', color: '#F87171' },
-                    { key: 'anotacoes' as const, icon: StickyNote, label: 'Anotações', color: '#38BDF8' },
-                    { key: 'playlist' as const, icon: ListMusic, label: 'Playlist', color: '#34D399' },
-                    { key: 'radar' as const, icon: Radar, label: 'Radar', color: '#FACC15' },
+                    { key: 'aulas' as const, icon: GraduationCap, label: 'Aulas', color: '#F87171' },
+                    { key: 'licoes' as const, icon: Pencil, label: 'Lições', color: '#38BDF8' },
+                    { key: 'flashcards' as const, icon: Layers, label: 'Flashcards', color: '#34D399' },
+                    { key: 'questoes' as const, icon: Target, label: 'Questões', color: '#FACC15' },
                   ].map((tab, index) => {
-                    const active = overlayPanel === tab.key;
+                    const active = isAulasOpen && tab.key === 'aulas'; // Simple check for now
                     return (
                       <button
                         key={tab.key}
                         onClick={() => {
-                          if (!isPremium && tab.key === 'radar') {
-                            setPremiumGateFeature('radar');
-                            setPremiumGateDesc('O Radar Legislativo é exclusivo para assinantes.');
-                            setShowPremiumGate(true);
-                            return;
+                          if (tab.key === 'aulas') {
+                            setIsAulasOpen(true);
                           }
-                          setOverlayPanel(tab.key);
                         }}
                         type="button"
                         style={{ '--shimmer-delay': `${index * 150}ms` } as React.CSSProperties}

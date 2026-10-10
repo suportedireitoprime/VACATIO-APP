@@ -156,7 +156,7 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(i * 0.04, 0.2) }}
-              className="snap-center shrink-0 w-[85%] sm:w-[60%] md:w-[45%] lg:w-[30%] text-left"
+              className="snap-center shrink-0 w-[70%] sm:w-[60%] md:w-[45%] lg:w-[30%] text-left"
             >
               <div className="w-full h-[140px] flex flex-col p-4 rounded-2xl transition-all duration-300 bg-card hover:bg-secondary/60 shadow-sm border border-white/5 group-active:scale-[0.98]">
                 <div className="flex items-center justify-between mb-2">
