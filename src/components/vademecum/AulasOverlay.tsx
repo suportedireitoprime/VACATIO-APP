@@ -44,12 +44,12 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
     return (
       <div className="flex flex-col h-full bg-background relative w-full rounded-t-[30px] overflow-hidden" style={{ background: 'linear-gradient(180deg, hsl(0 70% 38%) 0%, hsl(0 75% 42%) 40%, hsl(0 72% 36%) 100%)' }}>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_60%)]" />
-        <div className="flex items-center gap-3 p-4 border-b border-white/10 sticky top-0 bg-black/20 backdrop-blur-xl z-20">
+        <div className="flex items-center gap-3 p-4 border-b border-white/10 relative z-20">
           <button 
             onClick={() => setSelectedCapitulo(null)}
-            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all"
+            className="w-10 h-10 rounded-full bg-black/20 border border-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all shadow-sm"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-white drop-shadow-md" />
           </button>
           <div className="flex-1 min-w-0">
             <h2 className="font-display font-bold text-lg text-white truncate drop-shadow-md">
@@ -65,7 +65,7 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
           <ul className="flex flex-col items-center gap-4 py-8">
             {selectedCapitulo.artigos.map((artigo, idx) => {
               const offset = OFFSETS[idx % OFFSETS.length];
-              const isRightSide = offset > 0;
+              const numText = artigo.numero.toLowerCase().includes('art') ? artigo.numero : `Art. ${artigo.numero}`;
               
               return (
                 <li
@@ -74,19 +74,8 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
                   style={{ transform: `translateX(${offset}px)` }}
                 >
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 pointer-events-none z-20">
-                    <div className="bg-black/40 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white/90 border border-white/20 whitespace-nowrap">
-                      Aula {idx + 1}
-                    </div>
-                  </div>
-
-                  <div className={`absolute top-1/2 -translate-y-1/2 pointer-events-none z-10 flex items-center ${isRightSide ? 'right-1/2 mr-[72px]' : 'left-1/2 ml-[72px]'}`}>
-                    {/* Linha tracejada conectando ao botão */}
-                    <div className={`absolute top-1/2 -translate-y-1/2 w-10 border-t-[1.5px] border-dashed border-white/40 ${isRightSide ? '-right-10' : '-left-10'}`} />
-                    
-                    <div className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 shadow-lg whitespace-nowrap">
-                      <span className="text-[12px] font-display font-black text-white/90 drop-shadow-md">
-                        {artigo.numero.toLowerCase().includes('art') ? artigo.numero : `Art. ${artigo.numero}`}
-                      </span>
+                    <div className="bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full text-[11px] font-bold text-white/90 border border-white/20 whitespace-nowrap shadow-sm">
+                      {numText}
                     </div>
                   </div>
 
