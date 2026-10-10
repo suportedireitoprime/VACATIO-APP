@@ -115,6 +115,7 @@ const AprenderAula = () => {
   const [aula, setAula] = useState<Aula | null>(null);
   const [blocos, setBlocos] = useState<Bloco[]>([]);
   const [loading, setLoading] = useState(true);
+  const [nextAula, setNextAula] = useState<{ id: string; titulo: string } | null>(null);
   const [idx, setIdx] = useState(0);
   const [direction, setDirection] = useState(1);
   const [respostas, setRespostas] = useState<Record<string, { correta: boolean; escolha?: string }>>({});
@@ -154,11 +155,26 @@ const AprenderAula = () => {
     if (!aulaId) return;
     (async () => {
       const [{ data: a }, { data: bs }] = await Promise.all([
-        supabase.from('aprender_aulas').select('id, titulo, objetivo, duracao_est_min').eq('id', aulaId).maybeSingle(),
+        supabase.from('aprender_aulas').select('id, titulo, objetivo, duracao_est_min, modulo_id, ordem').eq('id', aulaId).maybeSingle(),
         supabase.from('aprender_blocos').select('id, ordem, tipo, payload, resposta_correta').eq('aula_id', aulaId).order('ordem'),
       ]);
       setAula(a as Aula | null);
       setBlocos((bs ?? []) as Bloco[]);
+      
+      if (a?.modulo_id && typeof a.ordem === 'number') {
+        const { data: nA } = await supabase
+          .from('aprender_aulas')
+          .select('id, titulo')
+          .eq('modulo_id', a.modulo_id)
+          .gt('ordem', a.ordem)
+          .order('ordem', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        setNextAula(nA as any);
+      } else {
+        setNextAula(null);
+      }
+
       startedAt.current = Date.now();
       setLoading(false);
     })();
@@ -301,18 +317,35 @@ const AprenderAula = () => {
             </div>
           )}
           <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            {nextAula && (
+              <button
+                onClick={() => {
+                  setIdx(0);
+                  setRespostas({});
+                  setFlipped({});
+                  setConexoes({});
+                  setFinalizada(false);
+                  navigate(`/aprender/aula/${nextAula.id}`);
+                }}
+                className="rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 flex items-center justify-center gap-2"
+              >
+                Próxima matéria <ArrowRight className="h-4 w-4" />
+              </button>
+            )}
             <button
               onClick={() => { setIdx(0); setRespostas({}); setFlipped({}); setConexoes({}); setFinalizada(false); startedAt.current = Date.now(); }}
-              className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-accent"
+              className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-accent flex items-center justify-center gap-2"
             >
-              <RotateCw className="mr-1 inline h-4 w-4" /> Refazer
+              <RotateCw className="h-4 w-4" /> Refazer
             </button>
-            <button
-              onClick={() => navigate('/aprender')}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-            >
-              Voltar para trilhas
-            </button>
+            {!nextAula && (
+              <button
+                onClick={() => navigate('/aprender')}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 flex items-center justify-center"
+              >
+                Voltar para trilhas
+              </button>
+            )}
           </div>
         </div>
       </div>

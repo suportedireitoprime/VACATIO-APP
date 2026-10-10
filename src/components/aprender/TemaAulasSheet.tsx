@@ -1,5 +1,7 @@
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import TeoriaTab from './tema/TeoriaTab';
+import bgImage from '@/assets/trilha_juridica_bg.jpg';
+import { ArrowLeft } from 'lucide-react';
 
 type Aula = {
   id: string;
@@ -25,24 +27,36 @@ const TemaAulasSheet = ({ open, onOpenChange, numero, titulo, aulas, progresso }
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="flex h-[90dvh] max-h-[90dvh] flex-col gap-0 rounded-t-3xl border-t p-0"
+        className="flex h-[100dvh] max-h-[100dvh] flex-col gap-0 border-none p-0 bg-[#3a0a14]"
       >
-        {/* Handle */}
-        <div className="flex justify-center pt-3">
-          <span className="h-1.5 w-12 rounded-full bg-muted-foreground/30" />
-        </div>
+        {/* Background Layer */}
+        <div 
+          className="absolute inset-0 z-0 opacity-40 mix-blend-overlay"
+          style={{
+            backgroundImage: `url(${bgImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 pointer-events-none" />
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 pb-3 pr-14 pt-3 sm:px-6 sm:pr-16">
-          <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[15px] font-black tabular-nums text-white bg-primary shadow-sm"
+        <div 
+          className="relative z-10 flex items-center gap-3 px-5 pb-4 pr-14 sm:px-6 sm:pr-16 border-b border-white/10 bg-black/20 backdrop-blur-md"
+          style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 1rem)' }}
+        >
+          <button 
+            onClick={() => onOpenChange(false)}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-transform text-white backdrop-blur-sm"
           >
-            {String(numero).padStart(2, '0')}
-          </div>
+            <ArrowLeft className="h-5 w-5" />
+          </button>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Tema</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+              Módulo {String(numero).padStart(2, '0')} • {aulas.length} aulas
+            </p>
             <SheetTitle
-              className="line-clamp-2 text-[17px] font-bold leading-snug sm:text-lg"
+              className="line-clamp-2 text-[16px] font-bold leading-tight text-white sm:text-lg uppercase tracking-wide"
               style={{ fontFamily: "'Barlow', system-ui, sans-serif" }}
             >
               {titulo}
@@ -50,8 +64,11 @@ const TemaAulasSheet = ({ open, onOpenChange, numero, titulo, aulas, progresso }
           </div>
         </div>
 
-        {/* Lista de aulas do tema */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-1 sm:px-6">
+        {/* Lista de aulas do tema (Trail) */}
+        <div 
+          className="relative z-10 min-h-0 flex-1 overflow-y-auto px-4 sm:px-6 scroll-smooth"
+          style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 5rem)' }}
+        >
           <TeoriaTab aulas={aulas} progresso={progresso} onNavigate={() => onOpenChange(false)} />
         </div>
       </SheetContent>
