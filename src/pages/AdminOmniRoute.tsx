@@ -444,6 +444,9 @@ export default function AdminOmniRoute() {
       }
       messages.push({ role: 'user', content: textPrompt.trim() });
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+
       const res = await fetch(`${cleanUrl}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -455,7 +458,10 @@ export default function AdminOmniRoute() {
           messages,
           temperature,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const elapsed = Math.round(performance.now() - start);
 
@@ -512,6 +518,9 @@ export default function AdminOmniRoute() {
 
     try {
       const cleanUrl = baseUrl.trim().replace(/\/+$/, '');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+
       const res = await fetch(`${cleanUrl}/images/generations`, {
         method: 'POST',
         headers: {
@@ -524,7 +533,10 @@ export default function AdminOmniRoute() {
           n: 1,
           size: imageSize,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const elapsed = Math.round(performance.now() - start);
 
@@ -591,6 +603,9 @@ export default function AdminOmniRoute() {
 
     try {
       const cleanUrl = baseUrl.trim().replace(/\/+$/, '');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+
       const res = await fetch(`${cleanUrl}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -609,7 +624,10 @@ export default function AdminOmniRoute() {
             },
           ],
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const elapsed = Math.round(performance.now() - start);
 
