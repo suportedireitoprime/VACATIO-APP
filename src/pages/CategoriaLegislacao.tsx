@@ -2593,13 +2593,13 @@ const CategoriaLegislacao = () => {
               </div>
 
               {/* Barra de ações (quadradinhos tipo Home) */}
-              <div className="relative z-10 px-3 sm:px-5 pb-4 pt-3 flex justify-center w-full">
-                <div className="flex items-center gap-2 w-full max-w-2xl bg-black/40 backdrop-blur-md rounded-3xl p-2 border border-white/10 shadow-2xl overflow-x-auto hide-scrollbar snap-x snap-mandatory">
+              <div className="relative z-10 pl-3 sm:px-5 pb-4 pt-3 flex justify-start sm:justify-center w-full">
+                <div className="flex items-center gap-1 w-full max-w-2xl bg-black/40 backdrop-blur-md rounded-l-3xl rounded-r-none sm:rounded-r-3xl p-2 pr-0 sm:pr-2 border border-white/10 border-r-0 sm:border-r shadow-2xl overflow-x-auto hide-scrollbar snap-x snap-mandatory">
                   {[
                     { key: 'aulas' as const, icon: GraduationCap, label: 'Aulas', color: '#F87171' },
                     { key: 'licoes' as const, icon: Pencil, label: 'Lições', color: '#38BDF8' },
                     { key: 'flashcards' as const, icon: Layers, label: 'Flashcards', color: '#34D399' },
-                    { key: 'mapas' as const, icon: Brain, label: 'Mapas Mentais', color: '#A855F7' },
+                    { key: 'mapas' as const, icon: Brain, label: 'Mapas', color: '#A855F7' },
                     { key: 'resumos' as const, icon: FileText, label: 'Resumos', color: '#FB923C' },
                     { key: 'questoes' as const, icon: Target, label: 'Questões', color: '#FACC15' },
                   ].map((tab, index) => {
@@ -2614,7 +2614,7 @@ const CategoriaLegislacao = () => {
                         }}
                         type="button"
                         style={{ '--shimmer-delay': `${index * 150}ms` } as React.CSSProperties}
-                        className={`group shrink-0 min-w-[85px] sm:min-w-[100px] snap-center flex flex-col items-center justify-center py-2 px-1 rounded-[14px] transition-all duration-300 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden ${
+                        className={`group shrink-0 min-w-[72px] sm:min-w-[84px] snap-center flex flex-col items-center justify-center py-2 px-1 rounded-[14px] transition-all duration-300 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden ${
                           active
                             ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
                             : 'hover:bg-white/10'
