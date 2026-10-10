@@ -352,7 +352,11 @@ Deno.serve(async (req) => {
           });
         }
         
-        const omniUrl = body.url || 'https://omniroute-production-fb57.up.railway.app/v1/chat/completions';
+        let omniUrl = body.url || 'https://omniroute-production-fb57.up.railway.app/v1/chat/completions';
+        if (omniUrl.includes('localhost') || omniUrl.includes('127.0.0.1')) {
+           const path = new URL(omniUrl).pathname;
+           omniUrl = `https://omniroute-production-fb57.up.railway.app${path}`;
+        }
         const proxyRes = await fetch(omniUrl, {
           method: 'POST',
           headers: {
