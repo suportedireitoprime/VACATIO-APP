@@ -77,12 +77,12 @@ export interface AntigravityModelInfo {
 
 const ANTIGRAVITY_TEXT_MODELS: AntigravityModelInfo[] = [
   // Google Gemini
-  { id: 'antigravity/gemini-3.8-flash', name: 'Gemini 3.8 Flash (Última Geração)', group: 'Google Gemini' },
-  { id: 'antigravity/gemini-3.7-flash-high', name: 'Gemini 3.7 Flash High (Recomendado)', group: 'Google Gemini' },
-  { id: 'antigravity/gemini-3.7-flash-thinking', name: 'Gemini 3.7 Flash Thinking (Raciocínio Profundo)', group: 'Google Gemini' },
-  { id: 'antigravity/gemini-3.6-flash', name: 'Gemini 3.6 Flash (Velocidade & Precisão)', group: 'Google Gemini' },
-  { id: 'antigravity/gemini-3.1-pro-low', name: 'Gemini 3.1 Pro (Precisão Jurídica)', group: 'Google Gemini' },
-  { id: 'antigravity/gemini-pro-agent', name: 'Gemini Pro Agent (Agente Autônomo)', group: 'Google Gemini' },
+  { id: 'antigravity/gemini-3.6-flash-high', name: 'Gemini 3.6 Flash High (Recomendado)', group: 'Google Gemini' },
+  { id: 'antigravity/gemini-3.6-flash-low', name: 'Gemini 3.6 Flash Low (Rápido)', group: 'Google Gemini' },
+  { id: 'antigravity/gemini-3.1-pro-high', name: 'Gemini 3.1 Pro High (Precisão Jurídica)', group: 'Google Gemini' },
+  { id: 'antigravity/gemini-3.1-pro-low', name: 'Gemini 3.1 Pro Low', group: 'Google Gemini' },
+  { id: 'antigravity/gemini-3.8-flash', name: 'Gemini 3.8 Flash', group: 'Google Gemini' },
+  { id: 'antigravity/gemini-pro-agent', name: 'Gemini Pro Agent', group: 'Google Gemini' },
   // Anthropic Claude
   { id: 'antigravity/claude-sonnet-4-6', name: 'Claude 3.7 Sonnet / 4.6 (Redação e Análise)', group: 'Anthropic Claude' },
   { id: 'antigravity/claude-opus-4-6-thinking', name: 'Claude Opus 4.6 Thinking (Raciocínio Avançado)', group: 'Anthropic Claude' },
@@ -229,7 +229,7 @@ export default function AdminOmniRoute() {
   const [mainTab, setMainTab] = useState<MainTabType>('texto');
 
   // Tab Texto
-  const [textModel, setTextModel] = useState(() => localStorage.getItem(STORAGE_KEYS.LAST_MODEL) || 'antigravity/gemini-3.7-flash-high');
+  const [textModel, setTextModel] = useState(() => localStorage.getItem(STORAGE_KEYS.LAST_MODEL) || 'antigravity/gemini-3.6-flash-high');
   const [textPrompt, setTextPrompt] = useState('Explique de forma concisa e didática o princípio da dignidade da pessoa humana para um estudante de direito, destacando base constitucional e jurisprudência.');
   const [textSystem, setTextSystem] = useState('Você é um jurista e tutor de alta precisão do Vade Mecum Prime. Utilize formatação rica em Markdown (negritos, listas e títulos claros).');
   const [textLoading, setTextLoading] = useState(false);
@@ -247,7 +247,7 @@ export default function AdminOmniRoute() {
   // Tab Visão (Análise Multimodal & OCR)
   const [visionImageBase64, setVisionImageBase64] = useState<string | null>(null);
   const [visionPrompt, setVisionPrompt] = useState('Descreva os elementos jurídicos e visuais presentes nesta imagem.');
-  const [visionModel, setVisionModel] = useState('antigravity/gemini-3.7-flash-high');
+  const [visionModel, setVisionModel] = useState('antigravity/gemini-3.6-flash-high');
   const [visionLoading, setVisionLoading] = useState(false);
   const [visionResponse, setVisionResponse] = useState<string | null>(null);
 
@@ -408,7 +408,7 @@ export default function AdminOmniRoute() {
       toast.success(`OmniRoute conectado (${combined.length} modelos Antigravity)!`);
 
       if (combined.length > 0 && !combined.includes(textModel)) {
-        const found = combined.find((m) => m === 'antigravity/gemini-3.7-flash-high') || combined[0];
+        const found = combined.find((m) => m === 'antigravity/gemini-3.6-flash-high') || combined[0];
         setTextModel(found);
       }
     } catch (err: unknown) {

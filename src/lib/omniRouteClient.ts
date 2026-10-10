@@ -10,10 +10,10 @@ export interface OmniRouteConfig {
 export type OmniModelComplexity = 'low' | 'medium' | 'high' | 'tiered';
 
 export const OMNI_MODELS: Record<OmniModelComplexity, string> = {
-  low: 'antigravity/gemini-3.7-flash-low',
-  medium: 'antigravity/gemini-3.7-flash-medium',
-  high: 'antigravity/gemini-3.7-flash-high',
-  tiered: 'antigravity/gemini-3.7-flash-tiered',
+  low: 'antigravity/gemini-3.6-flash-low',
+  medium: 'antigravity/gemini-3.6-flash-high',
+  high: 'antigravity/gemini-3.1-pro-high',
+  tiered: 'antigravity/gemini-3.6-flash-high',
 };
 
 export function getOmniRouteConfig(): OmniRouteConfig {
@@ -22,7 +22,7 @@ export function getOmniRouteConfig(): OmniRouteConfig {
   return {
     baseUrl: 'https://omniroute-production-fb57.up.railway.app/v1',
     apiKey: 'sk-03fcfd719bf0cc25-19fbd7-028392e5',
-    defaultModel: 'antigravity/gemini-3.7-flash-high',
+    defaultModel: 'antigravity/gemini-3.6-flash-high',
     enabled: true
   };
 }
