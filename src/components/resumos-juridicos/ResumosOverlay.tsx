@@ -67,7 +67,7 @@ Gere um resumo deste artigo jurídico. Retorne ESTRITAMENTE um objeto JSON váli
       let res = await generateOmniText({
         prompt,
         systemPrompt,
-        complexity: 'medium'
+        complexity: 'low'
       });
 
       let cleanJson = res.replace(/```json/gi, '').replace(/```/g, '').trim();

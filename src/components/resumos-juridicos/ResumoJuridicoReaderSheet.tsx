@@ -157,7 +157,7 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose, onFavoritoC
     }
     const systemPrompt = "Você é um professor de direito muito didático. Retorne apenas JSON puro sem blocos de markdown.";
     
-    let res = await generateOmniText({ prompt, systemPrompt, complexity: 'medium' });
+    let res = await generateOmniText({ prompt, systemPrompt, complexity: 'low' });
     let cleanJson = res.replace(/```json/gi, '').replace(/```/g, '').trim();
     const startIdx = cleanJson.indexOf('{');
     const endIdx = cleanJson.lastIndexOf('}');
