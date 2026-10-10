@@ -25,6 +25,7 @@ import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
 import AulasOverlay from '@/components/vademecum/AulasOverlay';
 import { MapasOverlay } from '@/components/vademecum/MapasOverlay';
+import ResumosOverlay from '@/components/resumos-juridicos/ResumosOverlay';
 import LocalSearchOverlay from '@/components/vademecum/LocalSearchOverlay';
 import HistoricoAtualizacaoCarousel from '@/components/vademecum/HistoricoAtualizacaoCarousel';
 import SearchOverlay from '@/components/vademecum/SearchOverlay';
@@ -169,6 +170,7 @@ const CategoriaLegislacao = () => {
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
   const [isAulasOpen, setIsAulasOpen] = useState(false);
   const [isMapasOpen, setIsMapasOpen] = useState(false);
+  const [isResumosOpen, setIsResumosOpen] = useState(false);
   const [isLocalSearchOpen, setIsLocalSearchOpen] = useState(false);
   const [ocrOpen, setOcrOpen] = useState(false);
   const [showSearchRecents, setShowSearchRecents] = useState(false);
@@ -2319,8 +2321,8 @@ const CategoriaLegislacao = () => {
 
           {/* Resumos */}
           <button
-            onClick={() => setOverlayPanel('resumos')}
-            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${overlayPanel === 'resumos' ? 'text-primary' : 'text-white/80 hover:text-white'}`}
+            onClick={() => setIsResumosOpen(true)}
+            className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${isResumosOpen ? 'text-primary' : 'text-white/80 hover:text-white'}`}
           >
             <FileText className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" strokeWidth={1.5} />
             <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Resumos</span>
@@ -2428,6 +2430,23 @@ const CategoriaLegislacao = () => {
               capituloGroups={capituloGroups} 
               leiNome={selectedLeiNome} 
               onClose={() => setIsMapasOpen(false)} 
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isResumosOpen && (
+          <motion.div
+            initial={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            animate={isDesktop ? { opacity: 1, y: 0 } : { y: 0, opacity: 1 }}
+            exit={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[100] bg-background lg:w-[480px] lg:h-[80vh] lg:m-auto lg:rounded-3xl lg:shadow-2xl lg:border lg:border-white/10 overflow-hidden"
+          >
+            <ResumosOverlay 
+              capituloGroups={capituloGroups} 
+              leiNome={selectedLeiNome} 
+              onClose={() => setIsResumosOpen(false)} 
             />
           </motion.div>
         )}
