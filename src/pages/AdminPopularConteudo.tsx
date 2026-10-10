@@ -309,19 +309,33 @@ export default function AdminPopularConteudo() {
 
           if (missingConcept) {
             addLog(`[CONCEITUAL] Gerando ${numLabel}...`);
-            const p = `LEGISLAÇÃO: ${lei.nome}\nARTIGO: ${artigo.numero}\nCAPUT: ${artigo.texto}\nGere uma explicação conceitual ESTRITAMENTE em JSON. A chave "markdown" DEVE começar com '# Artigo ${num}' e NENHUM outro título (PROIBIDO títulos como 'Análise Profunda'). O texto deve ser super explicadinho, como se fosse para um leigo entender do zero, mas mantendo o rigor e os termos técnicos ao mesmo tempo. Vá direto ao ponto, sem saudações. Use markdown, tabelas se útil. Formato exigido: {"markdown": "...", "exemplos": "...", "termos": "..."}`;
+            const p = `LEGISLAÇÃO: ${lei.nome}\nARTIGO: ${artigo.numero}\nCAPUT: ${artigo.texto}
+
+Gere uma explicação conceitual ESTRITAMENTE em JSON. Regras:
+1. A chave "markdown" DEVE começar com '# Artigo ${num}' e NENHUM outro título principal (PROIBIDO títulos inventados como 'Análise Profunda').
+2. Se o artigo for muito longo, divida a explicação por incisos/parágrafos.
+3. Se o artigo for curto/óbvio, seja breve, sem encher linguiça.
+4. Se houver súmula STF/STJ relacionada, cite-a.
+5. Seja extremamente didático (como para um leigo) mas mantenha o rigor técnico.
+6. Faça uma auto-revisão na chave "reflection" para garantir precisão jurídica.
+
+Formato exigido: {"reflection": "sua verificação se contraria a lei", "markdown": "texto didático...", "exemplos": "...", "termos": "..."}`;
             pConceitual = generateWithTimeoutAndRetry({ prompt: p, systemPrompt: "Apenas JSON. SEM SAUDAÇÕES. DIRETO AO PONTO. Título '# Artigo X' OBRIGATÓRIO.", modelOverride: 'antigravity/gemini-3.8-flash-tiered', complexity: 'tiered' });
           }
 
           if (missingCornell) {
             addLog(`[CORNELL] Gerando ${numLabel}...`);
-            const p = `LEGISLAÇÃO: ${lei.nome} / ${numLabel}\nCrie um resumo Método Cornell. Retorne ESTRITAMENTE JSON: {"palavras_chave": [], "perguntas": [{"pergunta":"", "resposta":""}], "anotacoes": [{"topico":"", "conteudo":""}], "resumo_geral": ""}`;
+            const p = `LEGISLAÇÃO: ${lei.nome} / ${numLabel}
+Crie um resumo Método Cornell. As "perguntas" devem instigar raciocínio clínico/prático (estilo OAB), fugindo da mera cópia do texto.
+Retorne ESTRITAMENTE JSON: {"palavras_chave": [], "perguntas": [{"pergunta":"", "resposta":""}], "anotacoes": [{"topico":"", "conteudo":""}], "resumo_geral": ""}`;
             pCornell = generateWithTimeoutAndRetry({ prompt: p, systemPrompt: "Apenas JSON.", complexity: 'low' });
           }
 
           if (missingFeynman) {
             addLog(`[FEYNMAN] Gerando ${numLabel}...`);
-            const p = `LEGISLAÇÃO: ${lei.nome} / ${numLabel}\nCrie um resumo Técnica Feynman. Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas": [{"ponto":"", "explicacao":""}], "analogias": [{"analogia":"", "relacao":""}], "revisao_final": ""}`;
+            const p = `LEGISLAÇÃO: ${lei.nome} / ${numLabel}
+Crie um resumo Técnica Feynman. As "analogias" devem focar na prática real do advogado ou situações do cotidiano do estudante de direito.
+Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas": [{"ponto":"", "explicacao":""}], "analogias": [{"analogia":"", "relacao":""}], "revisao_final": ""}`;
             pFeynman = generateWithTimeoutAndRetry({ prompt: p, systemPrompt: "Apenas JSON.", complexity: 'low' });
           }
 
