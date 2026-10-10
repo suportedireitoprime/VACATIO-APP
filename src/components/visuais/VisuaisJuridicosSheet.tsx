@@ -514,7 +514,10 @@ export default function VisuaisJuridicosSheet({ open, onClose, tipoInicial, modo
                 </>
               )}
 
-              <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 lg:mx-auto lg:w-full lg:max-w-[900px] lg:px-8">
+              <div 
+                className="flex-1 overflow-y-auto overscroll-contain px-4 pt-3 lg:mx-auto lg:w-full lg:max-w-[900px] lg:px-8"
+                style={{ paddingBottom: 'calc(2.5rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
+              >
                 {/* 1 — tipo */}
                 {passo === 1 && (
                   <div className="space-y-2">

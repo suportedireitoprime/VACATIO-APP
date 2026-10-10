@@ -64,7 +64,10 @@ export default function VisualViewer({ registro, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-[70] flex flex-col bg-background">
-      <header className="flex items-center gap-2 border-b border-border px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 sm:py-4">
+      <header 
+        className="flex items-center gap-2 border-b border-border px-3 py-3 sm:px-5 sm:py-4 shrink-0"
+        style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 0.75rem)' }}
+      >
         <button
           onClick={onClose}
           aria-label="Fechar"
@@ -89,7 +92,11 @@ export default function VisualViewer({ registro, onClose }: Props) {
         </button>
       </header>
 
-      <div ref={wrapRef} className="flex-1 overflow-auto bg-muted/40 p-2 sm:p-3">
+      <div 
+        ref={wrapRef} 
+        className="flex-1 overflow-auto bg-muted/40 p-2 sm:p-3"
+        style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 1.5rem)' }}
+      >
         <div style={{ width: `${zoom * 100}%`, transition: 'width .18s ease' }} className="mx-auto">
           <div className="overflow-hidden rounded-xl shadow-lg">
             <VisualScene content={content} estilo={estilo} />
@@ -97,7 +104,10 @@ export default function VisualViewer({ registro, onClose }: Props) {
         </div>
       </div>
 
-      <footer className="flex items-center gap-2 border-t border-border px-3 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+      <footer 
+        className="flex items-center gap-2 border-t border-border px-3 py-2.5 shrink-0"
+        style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 0.75rem)' }}
+      >
         <div className="flex items-center gap-1 rounded-full border border-border px-1">
           <button className="px-3 py-1.5 text-lg leading-none" aria-label="Diminuir zoom" onClick={() => setZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}>
             −

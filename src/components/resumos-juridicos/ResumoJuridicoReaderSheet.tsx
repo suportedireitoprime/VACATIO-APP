@@ -80,7 +80,10 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose }: Props) {
             }
           >
             <div ref={scrollRef} className="flex-1 overflow-y-auto pb-8 relative">
-              <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-md border-b border-border">
+              <div 
+                className="sticky top-0 z-10 bg-card/95 backdrop-blur-md border-b border-border shrink-0"
+                style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 6px)' }}
+              >
                 <div className="flex items-center gap-2 px-4 py-3">
                   <button
                     onClick={onClose}
@@ -154,11 +157,14 @@ export default function ResumoJuridicoReaderSheet({ resumo, onClose }: Props) {
                   )}
                 </article>
 
-                <div className="h-24" />
+                <div style={{ height: 'calc(7rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }} />
               </div>
             </div>
 
-            <div className="pointer-events-none absolute bottom-5 right-4 flex flex-col items-end gap-3">
+            <div 
+              className="pointer-events-none absolute right-4 flex flex-col items-end gap-3"
+              style={{ bottom: 'calc(1.5rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
+            >
               <div className="pointer-events-auto flex items-center bg-card/95 backdrop-blur-md border border-border rounded-full shadow-xl overflow-hidden">
                 <button
                   onClick={decFont}

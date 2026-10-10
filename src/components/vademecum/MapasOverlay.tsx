@@ -270,10 +270,13 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
     return (
       <div className="flex flex-col h-full bg-background relative w-full rounded-t-[30px] overflow-hidden" style={{ background: 'linear-gradient(180deg, hsl(270 70% 30%) 0%, hsl(275 75% 35%) 40%, hsl(265 72% 28%) 100%)' }}>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_60%)]" />
-        <div className="flex items-center gap-3 p-4 border-b border-white/10 relative z-20">
+        <div 
+          className="flex items-center gap-3 px-4 pb-4 border-b border-white/10 relative z-20 shrink-0"
+          style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 14px)' }}
+        >
           <button 
             onClick={() => setSelectedCapitulo(null)}
-            className="w-10 h-10 rounded-full bg-black/20 border border-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all shadow-sm"
+            className="w-10 h-10 rounded-full bg-black/20 border border-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all shadow-sm shrink-0"
           >
             <ArrowLeft className="w-5 h-5 text-white drop-shadow-md" />
           </button>
@@ -306,7 +309,10 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4 pb-32 relative z-10">
+        <div 
+          className="flex-1 overflow-y-auto p-4 relative z-10"
+          style={{ paddingBottom: 'calc(8rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
+        >
           <ul className="flex flex-col items-center gap-4 py-8">
             {selectedCapitulo.artigos.map((artigo, idx) => {
               const offset = OFFSETS[idx % OFFSETS.length];
@@ -353,9 +359,10 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="bg-card w-full rounded-t-3xl shadow-2xl pb-[calc(env(safe-area-inset-bottom)+20px)]"
+                className="bg-card w-full rounded-t-3xl shadow-2xl flex flex-col max-h-[85vh]"
+                style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 24px)' }}
               >
-                <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-border">
+                <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-border shrink-0">
                   <div>
                     <h3 className="font-display font-bold text-xl text-foreground">
                       Art. {selectedArtigo.numero.replace(/\D/g, '')}
@@ -372,7 +379,10 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
                   </button>
                 </div>
                 
-                <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+                <div 
+                  className="p-4 space-y-3 overflow-y-auto"
+                  style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 12px)' }}
+                >
                   {(Object.keys(TIPO_INFO) as VisualTipo[]).map((t) => {
                     const Icon = TIPO_ICON[t];
                     const isGerando = gerando === t;
@@ -426,7 +436,10 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
   return (
     <div className="flex flex-col h-full relative w-full overflow-hidden" style={{ background: 'linear-gradient(180deg, hsl(270 70% 30%) 0%, hsl(275 75% 35%) 40%, hsl(265 72% 28%) 100%)' }}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_60%)] z-0" />
-      <div className="flex-1 overflow-y-auto w-full relative z-10 pb-32">
+      <div 
+        className="flex-1 overflow-y-auto w-full relative z-10"
+        style={{ paddingBottom: 'calc(8rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
+      >
         <section className="relative isolate shrink-0 pb-4 overflow-hidden -mx-px rounded-t-[30px]">
           <div className="pointer-events-none absolute inset-y-0 right-0 w-[42%] sm:w-[34%] overflow-hidden">
             {HERO_ILLUSTRATIONS.map((url, i) => (
@@ -441,10 +454,14 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
             ))}
           </div>
 
-          <div className="relative p-5 pt-[calc(var(--sai-top)+16px)]">
+          <div 
+            className="relative p-5"
+            style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 16px)' }}
+          >
             <button 
               onClick={onClose}
-              className="absolute left-4 top-[calc(var(--sai-top)+12px)] w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white shadow-sm active:scale-95 transition-all"
+              style={{ top: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 12px)' }}
+              className="absolute left-4 w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white shadow-sm active:scale-95 transition-all"
             >
               <ArrowLeft className="w-5 h-5 drop-shadow-md" />
             </button>
