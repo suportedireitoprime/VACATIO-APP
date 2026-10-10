@@ -227,7 +227,7 @@ const GrifoVoicePanel = forwardRef<GrifoVoicePanelHandle, Props>(function GrifoV
             exit={{ y: 40, opacity: 0 }}
             transition={{ type: 'spring', damping: 24, stiffness: 260 }}
             className="fixed left-1/2 -translate-x-1/2 z-[9995] w-[calc(100vw-1.5rem)] max-w-lg pointer-events-none"
-            style={{ bottom: 'calc(9.5rem + var(--sai-bottom,env(safe-area-inset-bottom,0px)))' }}
+            style={{ bottom: 'calc(9.5rem + var(--sai-bottom,var(--sai-bottom)))' }}
           >
             <div className="pointer-events-auto rounded-2xl bg-card/95 backdrop-blur-md border border-amber-400/40 shadow-2xl shadow-amber-400/20 px-4 py-3">
               <div className="flex items-center gap-2 mb-1.5">
@@ -278,7 +278,7 @@ const GrifoVoicePanel = forwardRef<GrifoVoicePanelHandle, Props>(function GrifoV
               key="color-sheet"
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 26, stiffness: 260 }}
-              className="fixed left-0 right-0 bottom-0 z-[10021] bg-card border-t border-border rounded-t-3xl shadow-2xl pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] mx-auto max-w-lg"
+              className="fixed left-0 right-0 bottom-0 z-[10021] bg-card border-t border-border rounded-t-3xl shadow-2xl pb-[var(--sai-bottom,var(--sai-bottom))] mx-auto max-w-lg"
             >
               <div className="pt-3 pb-2 flex justify-center">
                 <span className="w-10 h-1 rounded-full bg-border" />

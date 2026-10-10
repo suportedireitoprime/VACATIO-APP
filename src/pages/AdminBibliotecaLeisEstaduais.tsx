@@ -55,7 +55,7 @@ function GridUFs() {
   }, []);
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <PageHeader title="Legislação Estadual" onBack={() => navigate('/admin-biblioteca-leis')} />
       <div className="max-w-3xl mx-auto px-4 pt-4">
         <p className="text-xs text-muted-foreground mb-4">
@@ -212,7 +212,7 @@ function DetalheUF({ uf }: { uf: string }) {
   }, [rows]);
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <PageHeader
         title={`${estado?.nome ?? uf} (${uf})`}
         subtitle="Catálogo estadual"

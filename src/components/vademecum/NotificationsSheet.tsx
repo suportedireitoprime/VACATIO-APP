@@ -331,8 +331,8 @@ export default function NotificationsSheet({ open, onClose }: Props) {
       <aside
         className="fixed top-0 right-0 bottom-0 z-[1401] w-full max-w-md bg-background border-l border-border/50 shadow-2xl flex flex-col will-change-transform overflow-hidden"
         style={{
-          paddingTop: 'var(--sai-top,env(safe-area-inset-top,0px))',
-          paddingBottom: 'var(--sai-bottom,env(safe-area-inset-bottom,0px))',
+          paddingTop: 'var(--sai-top,var(--sai-top))',
+          paddingBottom: 'var(--sai-bottom,var(--sai-bottom))',
           transform: entered ? 'translate3d(0,0,0)' : 'translate3d(100%,0,0)',
           transition: 'transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1)',
         }}

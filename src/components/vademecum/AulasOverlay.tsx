@@ -127,11 +127,11 @@ export function AulasOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect 
           <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-amber-500 via-amber-500/60 to-transparent" />
         </div>
 
-        <div className="relative p-5 pt-[calc(env(safe-area-inset-top,0px)+16px)]">
+        <div className="relative p-5 pt-[calc(var(--sai-top)+16px)]">
           {/* Botão de Voltar */}
           <button 
             onClick={onClose}
-            className="absolute left-4 top-[calc(env(safe-area-inset-top,0px)+12px)] z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white shadow-sm active:scale-95 transition-all"
+            className="absolute left-4 top-[calc(var(--sai-top)+12px)] z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white shadow-sm active:scale-95 transition-all"
           >
             <ArrowLeft className="w-5 h-5 drop-shadow-md" />
           </button>

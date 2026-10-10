@@ -288,7 +288,7 @@ const PdfScrollReader = ({ url, titulo, onClose, livroId, isPreview }: Props) =>
       <div
         className="flex items-center gap-3 px-4 shrink-0 bg-neutral-950/95 backdrop-blur border-b border-white/5"
         style={{
-          paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 6px)',
+          paddingTop: 'calc(var(--sai-top, var(--sai-top)) + 6px)',
           paddingBottom: 6,
           minHeight: 56,
         }}
@@ -391,7 +391,7 @@ const PdfScrollReader = ({ url, titulo, onClose, livroId, isPreview }: Props) =>
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 260, damping: 26 }}
           className="fixed inset-x-0 bottom-0 z-[1310] border-t border-white/10 bg-neutral-950/95 backdrop-blur-xl shadow-2xl"
-          style={{ paddingBottom: 'var(--sai-bottom,env(safe-area-inset-bottom,0px))' }}
+          style={{ paddingBottom: 'var(--sai-bottom,var(--sai-bottom))' }}
         >
           <div className="px-5 pt-3 pb-2 flex items-center gap-3 text-[11px] text-white/70">
             <span className="tabular-nums">{currentPage} / {totalPages}</span>

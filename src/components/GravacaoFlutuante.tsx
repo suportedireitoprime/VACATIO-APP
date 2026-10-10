@@ -18,7 +18,7 @@ export function GravacaoFlutuante() {
   return (
     <div
       className="fixed left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-3 rounded-full border border-primary/40 bg-background/90 px-3 py-2 shadow-xl backdrop-blur-md"
-      style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + 84px)` }}
+      style={{ bottom: `calc(var(--sai-bottom) + 84px)` }}
       role="status"
       aria-label="Gravação de aula em andamento"
     >

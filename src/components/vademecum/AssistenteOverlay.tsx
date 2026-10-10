@@ -660,7 +660,7 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
           <div className={
             isDesktop
               ? 'relative px-6 pt-2 pb-6 bg-gradient-to-t from-background via-background to-transparent'
-              : 'relative px-3 pt-3 pb-[calc(0.75rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] border-t border-border bg-card/95 backdrop-blur-md'
+              : 'relative px-3 pt-3 pb-[calc(0.75rem+var(--sai-bottom,var(--sai-bottom)))] border-t border-border bg-card/95 backdrop-blur-md'
           }>
             <div className={isDesktop ? 'max-w-3xl mx-auto w-full rounded-3xl bg-secondary/95 border border-border shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] p-2' : 'contents'}>
             {attachment && (
@@ -741,7 +741,7 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
           {voice.listening && (
             <div
               className="fixed left-4 right-4 z-[64] pointer-events-none flex justify-center"
-              style={{ bottom: 'calc(11rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
+              style={{ bottom: 'calc(11rem + var(--sai-bottom, var(--sai-bottom)))' }}
             >
               <div className="px-3 py-1.5 rounded-full bg-red-500/95 text-white text-[11px] font-body shadow-lg">
                 🎙️ Ouvindo… fale agora
@@ -763,7 +763,7 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
                   exit={{ opacity: 0, y: 12, scale: 0.9 }}
                   transition={{ type: 'spring', damping: 22, stiffness: 320 }}
                   className="fixed left-3 z-[69] bg-card border border-border rounded-2xl shadow-2xl p-2 flex flex-col gap-1 min-w-[200px]"
-                  style={{ bottom: 'calc(9.5rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
+                  style={{ bottom: 'calc(9.5rem + var(--sai-bottom, var(--sai-bottom)))' }}
                 >
                   {[
                     {

@@ -111,8 +111,8 @@ const InAppWebView = ({ url, titulo, onClose, autoFallback = false }: InAppWebVi
         transition={{ duration: 0.2 }}
         className="fixed inset-0 z-[1400] bg-background flex flex-col"
         style={{
-          paddingTop: 'env(safe-area-inset-top, 0px)',
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          paddingTop: 'var(--sai-top)',
+          paddingBottom: 'var(--sai-bottom)',
         }}
       >
         {/* Header */}

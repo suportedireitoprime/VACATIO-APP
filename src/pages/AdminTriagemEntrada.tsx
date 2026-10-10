@@ -121,7 +121,7 @@ export default function AdminTriagemEntrada() {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <PageHeader title="Triagem de Entrada" onBack={() => navigate('/admin-funcoes')} />
 
       <div className="hidden lg:flex min-h-[70vh] items-center justify-center p-6">

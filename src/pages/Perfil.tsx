@@ -63,7 +63,7 @@ const Perfil = () => {
   const expira = sub.expiresAt ? new Date(sub.expiresAt).toLocaleDateString('pt-BR') : null;
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <AppHeader title="Meu Perfil" />
 
       <div className="px-4 pt-2 pb-4 space-y-5 max-w-lg mx-auto">

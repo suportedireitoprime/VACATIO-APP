@@ -79,7 +79,7 @@ const AvaliarAppSheet = ({ open, onClose, onFeedback }: Props) => {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 320 }}
-            className="fixed inset-x-0 bottom-0 z-[2101] bg-card border-t border-border rounded-t-3xl pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+1rem)] max-w-lg mx-auto shadow-2xl"
+            className="fixed inset-x-0 bottom-0 z-[2101] bg-card border-t border-border rounded-t-3xl pb-[calc(var(--sai-bottom,var(--sai-bottom))+1rem)] max-w-lg mx-auto shadow-2xl"
           >
             <div className="flex justify-center pt-3 pb-2">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />

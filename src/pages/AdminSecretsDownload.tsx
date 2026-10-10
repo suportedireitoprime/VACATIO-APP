@@ -238,7 +238,7 @@ export default function AdminSecretsDownload() {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <PageHeader
         title={platform === 'android' ? 'Secrets Android' : 'Secrets Apple'}
         subtitle="Copie o nome para o GitHub Secrets e o valor da chave separadamente."

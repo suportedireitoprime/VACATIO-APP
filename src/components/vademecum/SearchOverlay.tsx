@@ -262,7 +262,7 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
           className="fixed z-50 inset-0 bg-background flex flex-col lg:top-[10%] lg:bottom-auto lg:h-[80vh] lg:max-w-[800px] lg:mx-auto lg:rounded-2xl lg:shadow-2xl"
         >
           {/* Header estilizado (layout APP.PRIME) */}
-          <div className="bg-gradient-to-br from-primary to-primary/80 px-4 pb-4 pt-[calc(0.5rem+var(--sai-top,env(safe-area-inset-top,0px)))] shrink-0 shadow-md">
+          <div className="bg-gradient-to-br from-primary to-primary/80 px-4 pb-4 pt-[calc(0.5rem+var(--sai-top,var(--sai-top)))] shrink-0 shadow-md">
             <div className="flex items-center justify-center pb-2">
               <div className="w-10 h-1 rounded-full bg-white/30" />
             </div>
@@ -327,7 +327,7 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
           </div>
 
           {/* Results */}
-          <div className="flex-1 overflow-y-auto px-2 pb-[calc(3.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] relative border-t border-border/50 pt-2">
+          <div className="flex-1 overflow-y-auto px-2 pb-[calc(3.5rem+var(--sai-bottom,var(--sai-bottom)))] relative border-t border-border/50 pt-2">
             {isLeisMode && (() => {
               const temTextoSemNumero = !artigoQueryDigits && query.trim().length >= 1;
               const leisParaMostrar = temTextoSemNumero ? leiResults : (query.trim() === '' && mode !== 'todos' ? leisParaFiltrar : []);
@@ -498,7 +498,7 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
           <button
             onClick={() => setOcrOpen(true)}
             aria-label="Fotografar caderno ou lei (OCR)"
-            className="!absolute right-4 bottom-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-2xl shadow-primary/40 active:scale-95 transition-transform z-[60]"
+            className="!absolute right-4 bottom-[calc(1rem+var(--sai-bottom,var(--sai-bottom)))] w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-2xl shadow-primary/40 active:scale-95 transition-transform z-[60]"
           >
             <Camera className="w-6 h-6 relative z-[2]" />
           </button>

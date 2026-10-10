@@ -120,14 +120,14 @@ export default function HorusOnboardingOverlay({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.4 }}
         className="fixed inset-0 z-[100] bg-black"
-        style={{ paddingTop: 'var(--sai-top,env(safe-area-inset-top,0px))' }}
+        style={{ paddingTop: 'var(--sai-top,var(--sai-top))' }}
       >
         {/* Skip button */}
         <button
           onClick={handleSkip}
           aria-label="Pular apresentação"
           className="absolute top-4 right-4 z-20 w-11 h-11 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center active:scale-95 transition"
-          style={{ marginTop: 'var(--sai-top,env(safe-area-inset-top,0px))' }}
+          style={{ marginTop: 'var(--sai-top,var(--sai-top))' }}
         >
           <X className="w-5 h-5" />
         </button>
@@ -164,7 +164,7 @@ export default function HorusOnboardingOverlay({
               transition={{ type: 'spring', stiffness: 260, damping: 28 }}
               className="absolute inset-x-0 z-30 p-6"
               style={{
-                bottom: 'calc(var(--sai-bottom,env(safe-area-inset-bottom,0px)) + 12vh)',
+                bottom: 'calc(var(--sai-bottom,var(--sai-bottom)) + 12vh)',
                 background:
                   'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.92) 100%)',
               }}

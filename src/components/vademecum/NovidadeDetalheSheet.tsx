@@ -170,7 +170,7 @@ Mantenha o texto bem formatado, didático e vá direto ao ponto, não fique enro
           </div>
         </div>
 
-        <div className="p-4 border-t border-border bg-background pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
+        <div className="p-4 border-t border-border bg-background pb-[calc(1rem+var(--sai-bottom,var(--sai-bottom)))]">
           <div className="flex items-center gap-3">
             {textoAnterior && (
               <Button 

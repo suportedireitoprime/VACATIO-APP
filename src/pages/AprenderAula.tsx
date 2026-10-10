@@ -295,7 +295,7 @@ const AprenderAula = () => {
   if (finalizada) {
     const pct = perguntas.length ? Math.round((acertos / perguntas.length) * 100) : 100;
     return (
-      <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
         <div className="mx-auto max-w-2xl px-4 py-10 text-center">
           <div
             className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30"
@@ -363,14 +363,14 @@ const AprenderAula = () => {
       <header
         className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur"
         style={{
-          paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 0.5rem)',
+          paddingTop: 'calc(var(--sai-top, var(--sai-top)) + 0.5rem)',
         }}
       >
         <div
           className="mx-auto flex max-w-3xl items-center gap-3 py-2 md:py-3"
           style={{
-            paddingLeft: 'calc(0.75rem + var(--sai-left, env(safe-area-inset-left, 0px)))',
-            paddingRight: 'calc(0.75rem + var(--sai-right, env(safe-area-inset-right, 0px)))',
+            paddingLeft: 'calc(0.75rem + var(--sai-left, var(--sai-left)))',
+            paddingRight: 'calc(0.75rem + var(--sai-right, var(--sai-right)))',
           }}
         >
           <button
@@ -401,8 +401,8 @@ const AprenderAula = () => {
           <div
             className="mx-auto flex max-w-3xl items-center"
             style={{
-              paddingLeft: 'calc(0.75rem + var(--sai-left, env(safe-area-inset-left, 0px)))',
-              paddingRight: 'calc(0.75rem + var(--sai-right, env(safe-area-inset-right, 0px)))',
+              paddingLeft: 'calc(0.75rem + var(--sai-left, var(--sai-left)))',
+              paddingRight: 'calc(0.75rem + var(--sai-right, var(--sai-right)))',
             }}
           >
             {blocos.map((b, i) => {
@@ -482,7 +482,7 @@ const AprenderAula = () => {
               else if (info.offset.x > 80) anterior();
             }}
             className="mx-auto h-full w-full max-w-3xl overflow-y-auto px-5 md:px-8 pt-6 md:pt-8"
-            style={{ paddingBottom: 'calc(9rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
+            style={{ paddingBottom: 'calc(9rem + var(--sai-bottom, var(--sai-bottom)))' }}
           >
             <BlocoView
               bloco={atual}
@@ -510,9 +510,9 @@ const AprenderAula = () => {
       <div
         className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur"
         style={{
-          paddingLeft: 'calc(0.75rem + var(--sai-left, env(safe-area-inset-left, 0px)))',
-          paddingRight: 'calc(0.75rem + var(--sai-right, env(safe-area-inset-right, 0px)))',
-          paddingBottom: 'calc(0.75rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
+          paddingLeft: 'calc(0.75rem + var(--sai-left, var(--sai-left)))',
+          paddingRight: 'calc(0.75rem + var(--sai-right, var(--sai-right)))',
+          paddingBottom: 'calc(0.75rem + var(--sai-bottom, var(--sai-bottom)))',
         }}
       >
         <div className="mx-auto flex max-w-3xl items-center gap-2 md:gap-3 py-3">

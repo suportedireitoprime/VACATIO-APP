@@ -44,7 +44,7 @@ export default function HabilidadesFloatingBar({ ativa, onChange, contagens = {}
             transition={{ type: "spring", stiffness: 300, damping: 32 }}
             className="fixed inset-x-0 bottom-0 z-[301] rounded-t-3xl bg-gradient-to-b from-[#1a0a0f] to-[#0e0608] border-t border-red-500/25 shadow-[0_-20px_60px_-20px_rgba(220,38,38,0.5)]"
           >
-            <div className="mx-auto max-w-3xl px-5 pt-3 pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+20px)]">
+            <div className="mx-auto max-w-3xl px-5 pt-3 pb-[calc(var(--sai-bottom,var(--sai-bottom))+20px)]">
               <div className="flex justify-center mb-3">
                 <div className="w-10 h-1 rounded-full bg-white/20" />
               </div>
@@ -128,7 +128,7 @@ export default function HabilidadesFloatingBar({ ativa, onChange, contagens = {}
       <div
         className="fixed left-1/2 -translate-x-1/2 z-[150] pointer-events-none"
         style={{
-          bottom: "calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 88px)",
+          bottom: "calc(var(--sai-bottom, var(--sai-bottom)) + 88px)",
         }}
       >
         <motion.button

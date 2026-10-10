@@ -136,7 +136,7 @@ export default function AdminBibliotecaLeisGeral() {
   }), [leis, impactosPorLei]);
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <PageHeader title="Geral · Todas as leis" onBack={() => navigate('/admin-biblioteca-leis')} />
 
       <div className="px-4 pt-4 max-w-3xl mx-auto space-y-3">

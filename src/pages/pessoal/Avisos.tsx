@@ -121,7 +121,7 @@ const AvisosPage = () => {
 
       {modalOpen && (
         <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center" onClick={() => setModalOpen(false)}>
-          <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-2xl border border-border p-5 space-y-3 pb-[calc(1.25rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
+          <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-2xl border border-border p-5 space-y-3 pb-[calc(1.25rem+var(--sai-bottom,var(--sai-bottom)))]">
             <h2 className="font-display text-lg font-bold">Novo aviso</h2>
             <input value={novo.titulo} onChange={(e) => setNovo({ ...novo, titulo: e.target.value })} placeholder="Título" className="w-full h-11 rounded-lg bg-secondary border border-border px-3 text-sm" />
             <textarea value={novo.mensagem} onChange={(e) => setNovo({ ...novo, mensagem: e.target.value })} placeholder="Mensagem (opcional)" className="w-full rounded-lg bg-secondary border border-border px-3 py-2 text-sm min-h-[70px]" />

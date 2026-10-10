@@ -64,7 +64,7 @@ export default function AdminLocais() {
     contagens.find((c) => c.categoria === categoria && c.uf === ufSelecionada)?.total ?? 0;
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <header className="sticky top-0 z-10 bg-black text-white px-4 py-4 flex items-center gap-3 border-b border-black/20">
         <button onClick={() => navigate('/admin-funcoes')} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />

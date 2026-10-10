@@ -96,7 +96,7 @@ const BibliotecaAtalhosBar = ({ onAbrirLivro }: Props) => {
       {/* Fixed Bottom Menu */}
       {createPortal(
         <div className="fixed bottom-0 left-0 right-0 z-[60]">
-          <div className="bg-secondary/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.45)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]">
+          <div className="bg-secondary/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.45)] pb-[var(--sai-bottom,var(--sai-bottom))]">
             <div className="grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
               {TABS.map((t) => {
                 const Icon = t.icon;

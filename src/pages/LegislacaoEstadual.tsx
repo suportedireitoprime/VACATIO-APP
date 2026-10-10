@@ -57,7 +57,7 @@ const LegislacaoEstadual = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <PageHeader
         title="Legislação Estadual"
         subtitle="27 unidades federativas"

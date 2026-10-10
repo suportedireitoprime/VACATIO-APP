@@ -31,11 +31,11 @@ export function PageHeader({
     <header
       className={`flex items-center gap-3 py-3.5 shrink-0 ${baseBg} border-b ${borderColor} ${className}`}
       style={{
-        paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 0.875rem)',
+        paddingTop: 'calc(var(--sai-top, var(--sai-top)) + 0.875rem)',
         // Notch/curvatura em landscape: respeita insets laterais além dos 16px base.
-        paddingLeft: 'calc(1rem + var(--sai-left, env(safe-area-inset-left, 0px)))',
-        paddingRight: 'calc(1rem + var(--sai-right, env(safe-area-inset-right, 0px)))',
-        minHeight: 'calc(5rem + var(--sai-top, env(safe-area-inset-top, 0px)))',
+        paddingLeft: 'calc(1rem + var(--sai-left, var(--sai-left)))',
+        paddingRight: 'calc(1rem + var(--sai-right, var(--sai-right)))',
+        minHeight: 'calc(5rem + var(--sai-top, var(--sai-top)))',
       }}
     >
       {onBack ? (

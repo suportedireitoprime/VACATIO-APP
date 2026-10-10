@@ -128,7 +128,7 @@ export default function HorusEuSheet({
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 320, damping: 34 }}
             className="fixed left-0 right-0 bottom-0 z-[61] bg-background border-t border-border rounded-t-3xl shadow-2xl max-h-[92vh] flex flex-col"
-            style={{ paddingBottom: 'var(--sai-bottom,env(safe-area-inset-bottom,0px))' }}
+            style={{ paddingBottom: 'var(--sai-bottom,var(--sai-bottom))' }}
           >
             <div className="flex items-center gap-3 px-5 pt-4 pb-3 border-b border-border">
               <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 flex items-center justify-center">

@@ -834,13 +834,13 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       <button
         onClick={onBack}
         aria-label="Voltar"
-        className="absolute top-[max(var(--sai-top,env(safe-area-inset-top,0px)),1rem)] left-4 z-20 w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition"
+        className="absolute top-[max(var(--sai-top,var(--sai-top)),1rem)] left-4 z-20 w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition"
       >
         <ArrowLeft className="w-5 h-5 text-white" />
       </button>
 
       {/* Content at the bottom */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(var(--sai-bottom,env(safe-area-inset-bottom,0px)),1.5rem)]">
+      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(var(--sai-bottom,var(--sai-bottom)),1.5rem)]">
         
         {/* Brand block */}
         <div className="flex flex-col items-center text-center mb-8">
@@ -888,7 +888,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
 
       {/* Bottom Sheet Drawer for Auth Form */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="bg-neutral-900 border-neutral-800 px-5 pt-6 pb-[max(var(--sai-bottom,env(safe-area-inset-bottom,0px)),1.5rem)] outline-none">
+        <DrawerContent className="bg-neutral-900 border-neutral-800 px-5 pt-6 pb-[max(var(--sai-bottom,var(--sai-bottom)),1.5rem)] outline-none">
           {formContent}
         </DrawerContent>
       </Drawer>

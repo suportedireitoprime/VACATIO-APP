@@ -186,7 +186,7 @@ export default function ResumosJuridicosTemas() {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border">
         <PageHeader
           title={decodedArea}
@@ -256,7 +256,7 @@ export default function ResumosJuridicosTemas() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              className="fixed left-0 right-0 bottom-0 z-[70] bg-card border-t border-border rounded-t-2xl flex flex-col max-h-[88vh] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]"
+              className="fixed left-0 right-0 bottom-0 z-[70] bg-card border-t border-border rounded-t-2xl flex flex-col max-h-[88vh] pb-[var(--sai-bottom,var(--sai-bottom))]"
             >
               <div className="flex items-center justify-center pt-2 pb-1 shrink-0">
                 <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />

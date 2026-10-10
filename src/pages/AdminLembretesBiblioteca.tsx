@@ -47,7 +47,7 @@ const AdminLembretesBiblioteca = () => {
   const maxDia = Math.max(1, ...((stats?.por_dia_semana || []).map((d: any) => d.total)));
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <PageHeader title="Lembretes · Biblioteca" subtitle="Métricas e disparos" onBack={() => navigate('/admin-lembretes')} />
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <div className="flex items-center justify-between">

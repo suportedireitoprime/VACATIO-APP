@@ -186,7 +186,7 @@ const BottomNav = () => {
       aria-label="Navegação principal"
       role="navigation"
       data-bottom-nav
-      className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-out ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
+      className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,var(--sai-bottom))] transition-all duration-300 ease-out ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
     >
       {/* Degradê escuro subindo do rodapé para dar profundidade */}
       <div
@@ -300,7 +300,7 @@ const BottomNav = () => {
             exit={{ y: '100%' }}
             transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
             style={{ willChange: 'transform', transform: 'translateZ(0)' }}
-            className="fixed bottom-0 left-0 right-0 z-[80] bg-card border-t border-border rounded-t-2xl pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] lg:hidden"
+            className="fixed bottom-0 left-0 right-0 z-[80] bg-card border-t border-border rounded-t-2xl pb-[var(--sai-bottom,var(--sai-bottom))] lg:hidden"
           >
             <div className="flex items-center justify-center pt-2 pb-1">
               <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
@@ -371,7 +371,7 @@ const BottomNav = () => {
             exit={{ y: '100%' }}
             transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
             style={{ willChange: 'transform', transform: 'translateZ(0)' }}
-            className="fixed bottom-0 left-0 right-0 z-[80] h-[92vh] bg-card border-t border-border rounded-t-3xl pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] lg:hidden flex flex-col md:max-w-3xl md:mx-auto md:max-h-[88vh] md:h-auto md:min-h-[70vh] md:rounded-3xl md:mb-6 md:border"
+            className="fixed bottom-0 left-0 right-0 z-[80] h-[92vh] bg-card border-t border-border rounded-t-3xl pb-[var(--sai-bottom,var(--sai-bottom))] lg:hidden flex flex-col md:max-w-3xl md:mx-auto md:max-h-[88vh] md:h-auto md:min-h-[70vh] md:rounded-3xl md:mb-6 md:border"
           >
             <div className="flex items-center justify-center pt-3 pb-2 shrink-0">
               <div className="w-12 h-1.5 rounded-full bg-muted-foreground/30" />

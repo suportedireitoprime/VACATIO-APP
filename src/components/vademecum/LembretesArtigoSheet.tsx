@@ -860,7 +860,7 @@ export default function LembretesArtigoSheet({ open, onClose, artigoRef, artigoT
         </div>
 
         {creating && (
-          <div className="shrink-0 border-t border-border p-4 flex gap-2.5 bg-card pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
+          <div className="shrink-0 border-t border-border p-4 flex gap-2.5 bg-card pb-[calc(1rem+var(--sai-bottom,var(--sai-bottom)))]">
             <Button
               variant="outline" className="h-14 rounded-2xl px-5"
               onClick={() => (step === 0 ? resetForm() : setStep(step - 1))}

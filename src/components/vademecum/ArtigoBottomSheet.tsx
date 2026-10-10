@@ -2503,7 +2503,7 @@ const ArtigoBottomSheet = ({
           })()}
 
 
-          <TabsContent value="artigo" className="px-5 pb-[calc(9rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4 relative">
+          <TabsContent value="artigo" className="px-5 pb-[calc(9rem+var(--sai-bottom,var(--sai-bottom)))] pt-4 relative">
             {/* Barra de progresso da narração (sticky no topo) */}
             {narracaoPlaying && (
               <div className="sticky top-0 z-30 -mx-5 -mt-4 mb-3 bg-background/95 backdrop-blur-md border-b border-white/5 px-5 py-2.5">
@@ -2847,7 +2847,7 @@ const ArtigoBottomSheet = ({
           </TabsContent>
 
 
-          <TabsContent value="explicacao" className="px-5 pb-[calc(8rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4">
+          <TabsContent value="explicacao" className="px-5 pb-[calc(8rem+var(--sai-bottom,var(--sai-bottom)))] pt-4">
             {modificationInfo ? (
               <div className="space-y-5">
                 <div className="rounded-2xl bg-violet-500/10 border border-violet-500/20 p-4">
@@ -2946,7 +2946,7 @@ const ArtigoBottomSheet = ({
             )}
           </TabsContent>
 
-          <TabsContent value="exemplo" className="px-5 pb-[calc(8rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4">
+          <TabsContent value="exemplo" className="px-5 pb-[calc(8rem+var(--sai-bottom,var(--sai-bottom)))] pt-4">
             {aiLoading.exemplo ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -2988,7 +2988,7 @@ const ArtigoBottomSheet = ({
             )}
           </TabsContent>
 
-          <TabsContent value="termos" className="px-5 pb-[calc(8rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4">
+          <TabsContent value="termos" className="px-5 pb-[calc(8rem+var(--sai-bottom,var(--sai-bottom)))] pt-4">
             {aiLoading.termos ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -3030,7 +3030,7 @@ const ArtigoBottomSheet = ({
             )}
           </TabsContent>
 
-          <TabsContent value="historico" className="px-5 pb-[calc(8rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-4">
+          <TabsContent value="historico" className="px-5 pb-[calc(8rem+var(--sai-bottom,var(--sai-bottom)))] pt-4">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-foreground text-lg font-display">Histórico de Alterações</h3>
               <button 
@@ -3219,7 +3219,7 @@ const ArtigoBottomSheet = ({
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 26, stiffness: 260 }}
-                        className="fixed bottom-0 left-0 right-0 z-[71] bg-card border-t border-border rounded-t-3xl shadow-2xl flex flex-col pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] min-h-[74vh] max-h-[92vh] mx-auto max-w-lg md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-6 md:top-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl"
+                        className="fixed bottom-0 left-0 right-0 z-[71] bg-card border-t border-border rounded-t-3xl shadow-2xl flex flex-col pb-[var(--sai-bottom,var(--sai-bottom))] min-h-[74vh] max-h-[92vh] mx-auto max-w-lg md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-6 md:top-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl"
                       >
                         <div className="pt-3 pb-2 flex justify-center">
                           <span className="w-10 h-1 rounded-full bg-border" />
@@ -3305,7 +3305,7 @@ const ArtigoBottomSheet = ({
 
         {/* Bottom nav bar — only visible on "artigo" tab; fixed as a flex item below the scrollable area */}
         {(activeTab ?? 'artigo') === 'artigo' && !isDesktop && (
-        <div className="shrink-0 relative z-[55] bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]">
+        <div className="shrink-0 relative z-[55] bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10 pb-[var(--sai-bottom,var(--sai-bottom))]">
           <div className="relative grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
             {(highlightMode || voiceGrifoActive) ? (
               <button
@@ -3481,7 +3481,7 @@ const ArtigoBottomSheet = ({
                 document.body
               )}
               {createPortal(
-                <div className="fixed top-[calc(0.75rem+var(--sai-top,env(safe-area-inset-top,0px)))] left-0 right-0 z-[10001] flex justify-center pointer-events-none">
+                <div className="fixed top-[calc(0.75rem+var(--sai-top,var(--sai-top)))] left-0 right-0 z-[10001] flex justify-center pointer-events-none">
                   <motion.button
                     initial={{ opacity: 0, y: -20, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -3609,7 +3609,7 @@ const ArtigoBottomSheet = ({
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="fixed bottom-0 left-0 right-0 z-[61] bg-card rounded-t-3xl border-t border-border pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] h-[85vh] max-h-[85vh] overflow-y-auto mx-auto max-w-lg flex flex-col md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-6 md:top-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl"
+                className="fixed bottom-0 left-0 right-0 z-[61] bg-card rounded-t-3xl border-t border-border pb-[var(--sai-bottom,var(--sai-bottom))] h-[85vh] max-h-[85vh] overflow-y-auto mx-auto max-w-lg flex flex-col md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-6 md:top-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl"
               >
                 <div className="pt-3 pb-2 flex justify-center">
                   <span className="w-10 h-1 rounded-full bg-border" />

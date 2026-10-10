@@ -138,7 +138,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
         </div>
 
         {/* Botões de Notificação e Menu flutuantes no topo direito */}
-        <header className="absolute top-0 right-0 left-0 z-20 pt-[calc(0.75rem+var(--sai-top,env(safe-area-inset-top,0px)))] md:pt-[calc(1rem+var(--sai-top,env(safe-area-inset-top,0px)))] lg:pt-[calc(1.5rem+var(--sai-top,env(safe-area-inset-top,0px)))] pointer-events-none">
+        <header className="absolute top-0 right-0 left-0 z-20 pt-[calc(0.75rem+var(--sai-top,var(--sai-top)))] md:pt-[calc(1rem+var(--sai-top,var(--sai-top)))] lg:pt-[calc(1.5rem+var(--sai-top,var(--sai-top)))] pointer-events-none">
           <div className="pointer-events-auto px-4 pb-2 pt-2 flex items-center justify-end gap-2 sm:gap-3">
             <button
               onClick={() => setNotifOpen(true)}

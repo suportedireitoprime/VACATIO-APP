@@ -575,7 +575,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
-              className="fixed bottom-0 left-0 right-0 z-[1401] flex h-[90dvh] flex-col rounded-t-3xl border-t border-border bg-background pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]"
+              className="fixed bottom-0 left-0 right-0 z-[1401] flex h-[90dvh] flex-col rounded-t-3xl border-t border-border bg-background pb-[calc(1rem+var(--sai-bottom,var(--sai-bottom)))]"
             >
               <div className="flex items-center justify-center pt-2 pb-1">
                 <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />

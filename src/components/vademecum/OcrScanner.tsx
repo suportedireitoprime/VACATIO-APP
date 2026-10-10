@@ -124,7 +124,7 @@ const OcrScanner = ({ open, onClose, leiNome, leiSlug, onArtigoSelect }: OcrScan
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] bg-background flex flex-col pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] pt-[var(--sai-top,env(safe-area-inset-top,0px))]"
+        className="fixed inset-0 z-[100] bg-background flex flex-col pb-[var(--sai-bottom,var(--sai-bottom))] pt-[var(--sai-top,var(--sai-top))]"
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 h-14 border-b border-border/60 shrink-0">

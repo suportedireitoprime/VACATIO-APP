@@ -515,7 +515,7 @@ const MeExplique = () => {
         </div>
 
         {/* Header da Tela de Escolha */}
-        <header className="relative z-20 flex items-center justify-between px-4 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.875rem)] pb-2 max-w-lg mx-auto w-full">
+        <header className="relative z-20 flex items-center justify-between px-4 pt-[calc(var(--sai-top,var(--sai-top))+0.875rem)] pb-2 max-w-lg mx-auto w-full">
           <button
             onClick={() => {
               encerrar();
@@ -606,7 +606,7 @@ const MeExplique = () => {
           </motion.button>
 
           {/* Opção adicional sutil: Me Explique de Leis (sem câmera) — Protegido contra navigation bar */}
-          <div className="pt-2 pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+1.25rem)] text-center">
+          <div className="pt-2 pb-[calc(var(--sai-bottom,var(--sai-bottom))+1.25rem)] text-center">
             <button
               onClick={() => {
                 void haptic.light();
@@ -704,7 +704,7 @@ const MeExplique = () => {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/75 via-transparent to-black/90" />
 
       {/* ── TOPO / HEADER ── */}
-      <header className="relative z-20 flex items-center justify-between gap-3 px-4 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.875rem)] pb-2">
+      <header className="relative z-20 flex items-center justify-between gap-3 px-4 pt-[calc(var(--sai-top,var(--sai-top))+0.875rem)] pb-2">
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Botão de voltar para a tela de escolha */}
           <button
@@ -1051,7 +1051,7 @@ const MeExplique = () => {
       </div>
 
       {/* ── FOOTER / CONTROLES RESPONSIVOS ── */}
-      <footer className="relative z-20 flex items-center justify-center gap-3 px-4 pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+1rem)] pt-3 max-w-md mx-auto w-full">
+      <footer className="relative z-20 flex items-center justify-center gap-3 px-4 pb-[calc(var(--sai-bottom,var(--sai-bottom))+1rem)] pt-3 max-w-md mx-auto w-full">
         {ativo ? (
           <>
             {/* Botão Microfone */}

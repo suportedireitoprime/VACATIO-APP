@@ -97,7 +97,7 @@ export function KaraokeOverlay({ open, audio, timings, fullText, title, onClose 
           className={
             expanded
               ? 'fixed inset-0 z-[130] flex flex-col bg-background/98 backdrop-blur-xl'
-              : 'fixed left-3 right-3 bottom-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+140px)] z-[130] rounded-3xl bg-background/95 backdrop-blur-xl border border-border shadow-2xl overflow-hidden'
+              : 'fixed left-3 right-3 bottom-[calc(var(--sai-bottom,var(--sai-bottom))+140px)] z-[130] rounded-3xl bg-background/95 backdrop-blur-xl border border-border shadow-2xl overflow-hidden'
           }
         >
           {/* Header */}

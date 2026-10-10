@@ -27,7 +27,7 @@ const DesktopPageLayout = ({ children, activeId, title, subtitle, mobileHeader }
 
   if (!isDesktop) {
     return (
-      <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))]">
         <div className="mx-auto w-full md:max-w-[900px] md:px-6">
           {mobileHeader}
           {children}

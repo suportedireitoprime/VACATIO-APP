@@ -122,9 +122,9 @@ function TopBar() {
           scrolled ? 'bg-background/85 backdrop-blur-md border-b border-primary/20' : 'bg-transparent'
         }`}
         style={{
-          paddingTop: 'var(--sai-top, env(safe-area-inset-top, 0px))',
-          paddingLeft: 'var(--sai-left, env(safe-area-inset-left, 0px))',
-          paddingRight: 'var(--sai-right, env(safe-area-inset-right, 0px))',
+          paddingTop: 'var(--sai-top, var(--sai-top))',
+          paddingLeft: 'var(--sai-left, var(--sai-left))',
+          paddingRight: 'var(--sai-right, var(--sai-right))',
         }}
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 lg:px-8 h-16">
@@ -180,7 +180,7 @@ function TopBar() {
           >
             <div
               className="flex items-center justify-between px-4 h-16 border-b border-border"
-              style={{ paddingTop: 'var(--sai-top, env(safe-area-inset-top, 0px))' }}
+              style={{ paddingTop: 'var(--sai-top, var(--sai-top))' }}
             >
               <div className="flex items-center gap-2.5">
                 <img src={logo} alt="Vacatio" className="w-9 h-9 rounded-md object-cover" />

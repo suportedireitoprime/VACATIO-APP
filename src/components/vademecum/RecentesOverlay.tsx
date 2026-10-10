@@ -37,7 +37,7 @@ const RecentesOverlay = ({ open, onClose, onSelectLei }: Props) => {
           exit={{ opacity: 0, x: 40 }}
           transition={{ type: 'spring', stiffness: 200, damping: 25 }}
         >
-          <header className="sticky top-0 z-10 bg-[#1c1c1c] border-b border-white/5 pt-[var(--sai-top,env(safe-area-inset-top,0px))]">
+          <header className="sticky top-0 z-10 bg-[#1c1c1c] border-b border-white/5 pt-[var(--sai-top,var(--sai-top))]">
             <div className="flex items-center gap-3 px-4 h-20 md:h-[76px]">
               <button
                 onClick={onClose}

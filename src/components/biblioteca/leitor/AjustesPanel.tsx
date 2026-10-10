@@ -91,9 +91,9 @@ export default function AjustesPanel({
             transition={{ type: 'spring', stiffness: 340, damping: 30 }}
             className="fixed z-[1331] flex flex-col overflow-hidden"
             style={{
-              right: 'max(16px, env(safe-area-inset-right, 0px))',
-              top: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 5.25rem)',
-              bottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 6.5rem)',
+              right: 'max(16px, var(--sai-right))',
+              top: 'calc(var(--sai-top, var(--sai-top)) + 5.25rem)',
+              bottom: 'calc(var(--sai-bottom, var(--sai-bottom)) + 6.5rem)',
               width: 'min(360px, calc(100vw - 32px))',
               maxHeight: 'min(640px, calc(100vh - 12rem))',
               background: panelBg,

@@ -233,7 +233,7 @@ const PerguntarSheet = ({ open, onClose, tabelaNome, artigoNumero, artigoTexto }
         </div>
 
         {/* Input bar */}
-        <div className="px-5 py-3 border-t border-border pb-[calc(0.75rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
+        <div className="px-5 py-3 border-t border-border pb-[calc(0.75rem+var(--sai-bottom,var(--sai-bottom)))]">
           <form
             onSubmit={e => { e.preventDefault(); sendMessage(input); }}
             className="flex gap-2"

@@ -16,7 +16,7 @@ const Seguranca = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <AppHeader
         title={
           <span className="flex items-center gap-1.5">

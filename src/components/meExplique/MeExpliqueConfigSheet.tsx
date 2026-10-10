@@ -137,7 +137,7 @@ const MeExpliqueConfigSheet = ({ open, onClose, configAtual, onSave }: Props) =>
           </div>
         </div>
 
-        <div className="border-t border-border p-4 pb-[max(1rem,var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
+        <div className="border-t border-border p-4 pb-[max(1rem,var(--sai-bottom,var(--sai-bottom)))]">
           <button
             onClick={handleSave}
             className="w-full h-14 bg-primary text-primary-foreground font-black text-base rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-transform"

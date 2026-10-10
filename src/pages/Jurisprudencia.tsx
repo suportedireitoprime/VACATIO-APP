@@ -259,7 +259,7 @@ const Jurisprudencia = () => {
         <div className="absolute -bottom-20 -left-10 w-64 h-64 rounded-full bg-teal-300/10 blur-3xl pointer-events-none" />
 
         {/* Header com voltar */}
-        <div className="relative flex items-center justify-between px-4 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.875rem)] pb-2">
+        <div className="relative flex items-center justify-between px-4 pt-[calc(var(--sai-top,var(--sai-top))+0.875rem)] pb-2">
           <button
             onClick={() => navigate('/')}
             aria-label="Voltar"

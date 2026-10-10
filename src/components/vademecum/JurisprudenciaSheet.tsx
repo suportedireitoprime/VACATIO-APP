@@ -64,7 +64,7 @@ const JurisprudenciaSheet = ({ open, onClose }: Props) => {
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="fixed bottom-0 left-0 right-0 z-[1401] bg-card border-t border-border rounded-t-3xl pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] h-[90dvh] flex flex-col overflow-y-auto md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-6 md:top-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl"
+        className="fixed bottom-0 left-0 right-0 z-[1401] bg-card border-t border-border rounded-t-3xl pb-[calc(1rem+var(--sai-bottom,var(--sai-bottom)))] h-[90dvh] flex flex-col overflow-y-auto md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-6 md:top-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl"
       >
         {/* Cabeçalho */}
         <div className="shrink-0 pt-2 pb-1 bg-card">

@@ -147,7 +147,7 @@ const MeusLembretes = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-md">
         <div className="max-w-3xl mx-auto">
           <PageHeader
@@ -269,7 +269,7 @@ const MeusLembretes = () => {
 
       {/* Bottom Menu (App Style - 100% igual ao inicio) */}
       <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
-        <div className="pointer-events-auto bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10 pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] md:border md:rounded-full md:shadow-2xl md:shadow-black/30 md:pb-0">
+        <div className="pointer-events-auto bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10 pb-[var(--sai-bottom,var(--sai-bottom))] md:border md:rounded-full md:shadow-2xl md:shadow-black/30 md:pb-0">
           <div className="grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto md:gap-2 md:px-4 md:py-2">
             <FilterTab icon={Grid2x2} label="Todos" active={filter === 'all'} onClick={() => setFilter('all')} />
             <FilterTab icon={AlarmClock} label="Horário" active={filter === 'time'} onClick={() => setFilter('time')} />

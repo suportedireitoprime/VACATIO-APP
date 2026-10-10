@@ -198,7 +198,7 @@ const AprenderArea = () => {
     >
       <div 
         className="mx-auto w-full max-w-3xl lg:px-0"
-        style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 6rem)' }}
+        style={{ paddingBottom: 'calc(var(--sai-bottom, var(--sai-bottom)) + 6rem)' }}
       >
         {loading && !data ? (
           <div className="space-y-4 px-4 py-5 sm:px-6">

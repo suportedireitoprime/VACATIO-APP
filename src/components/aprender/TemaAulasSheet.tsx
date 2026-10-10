@@ -43,7 +43,7 @@ const TemaAulasSheet = ({ open, onOpenChange, numero, titulo, aulas, progresso }
         {/* Header */}
         <div 
           className="relative z-10 flex items-center gap-3 px-5 pb-4 pr-14 sm:px-6 sm:pr-16 border-b border-white/10 bg-black/20 backdrop-blur-md"
-          style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 1rem)' }}
+          style={{ paddingTop: 'calc(var(--sai-top, var(--sai-top)) + 1rem)' }}
         >
           <button 
             onClick={() => onOpenChange(false)}
@@ -67,7 +67,7 @@ const TemaAulasSheet = ({ open, onOpenChange, numero, titulo, aulas, progresso }
         {/* Lista de aulas do tema (Trail) */}
         <div 
           className="relative z-10 min-h-0 flex-1 overflow-y-auto px-4 sm:px-6 scroll-smooth"
-          style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 5rem)' }}
+          style={{ paddingBottom: 'calc(var(--sai-bottom, var(--sai-bottom)) + 5rem)' }}
         >
           <TeoriaTab aulas={aulas} progresso={progresso} onNavigate={() => onOpenChange(false)} />
         </div>

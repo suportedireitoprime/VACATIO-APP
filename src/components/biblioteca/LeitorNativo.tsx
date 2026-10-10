@@ -977,8 +977,8 @@ const LeitorNativo = ({
       <header
         className="flex items-center gap-3 px-4 py-3.5 shrink-0 border-b backdrop-blur"
         style={{
-          paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 0.875rem)',
-          minHeight: 'calc(5rem + var(--sai-top, env(safe-area-inset-top, 0px)))',
+          paddingTop: 'calc(var(--sai-top, var(--sai-top)) + 0.875rem)',
+          minHeight: 'calc(5rem + var(--sai-top, var(--sai-top)))',
           paddingLeft:
             isDesktop && status === 'pronto' && tocItems.length > 0
               ? `calc(${railExpanded ? 380 : 56}px + 1rem)`
@@ -1027,7 +1027,7 @@ const LeitorNativo = ({
               setRailExpanded(false);
             }
           }}
-          className="hidden md:flex md:flex-col fixed left-0 top-0 bottom-0 z-[1305] border-r transition-[width] duration-300 ease-out backdrop-blur-md pt-[calc(5rem+var(--sai-top,env(safe-area-inset-top,0px)))]"
+          className="hidden md:flex md:flex-col fixed left-0 top-0 bottom-0 z-[1305] border-r transition-[width] duration-300 ease-out backdrop-blur-md pt-[calc(5rem+var(--sai-top,var(--sai-top)))]"
           style={{ width: railExpanded ? 380 : 56, background: `${tema.bg}f2`, borderColor: tema.border, color: tema.text }}
         >
           <div
@@ -1127,7 +1127,7 @@ const LeitorNativo = ({
       {isDesktop && status === 'pronto' && currentPage && (
         <aside
           aria-label="Ferramentas de leitura"
-          className="hidden md:flex md:flex-col fixed right-0 top-0 bottom-0 z-[1305] border-l backdrop-blur-md pt-[calc(5rem+var(--sai-top,env(safe-area-inset-top,0px)))] pb-4"
+          className="hidden md:flex md:flex-col fixed right-0 top-0 bottom-0 z-[1305] border-l backdrop-blur-md pt-[calc(5rem+var(--sai-top,var(--sai-top)))] pb-4"
           style={{ width: DESKTOP_FN_RAIL, background: `${tema.bg}f2`, borderColor: tema.border, color: tema.text }}
         >
           <div className="flex flex-col items-center gap-2 px-2 pt-3">
@@ -1433,7 +1433,7 @@ const LeitorNativo = ({
             transition={{ type: 'tween', duration: 0.2 }}
             className="fixed z-[1310] inset-x-0 bottom-0 border-t shadow-2xl"
             style={{
-              paddingBottom: 'var(--sai-bottom,env(safe-area-inset-bottom,0px))',
+              paddingBottom: 'var(--sai-bottom,var(--sai-bottom))',
               maxWidth:
                 typeof window !== 'undefined' && window.innerWidth >= 768
                   ? `min(720px, calc(100vw - ${(railExpanded ? 380 : 56) + 32}px))`
@@ -1536,8 +1536,8 @@ const LeitorNativo = ({
             <div
               className="fixed inset-0 z-[1321] flex items-center justify-center px-4 pointer-events-none"
               style={{
-                paddingTop: 'calc(env(safe-area-inset-top,0px))',
-                paddingBottom: 'calc(env(safe-area-inset-bottom,0px))',
+                paddingTop: 'calc(var(--sai-top))',
+                paddingBottom: 'calc(var(--sai-bottom))',
               }}
             >
               <motion.div
@@ -1657,7 +1657,7 @@ const LeitorNativo = ({
               exit={{ x: '100%' }}
               transition={{ type: 'spring', stiffness: 320, damping: 34 }}
               className="fixed top-0 right-0 bottom-0 w-[90%] max-w-sm z-[1323] md:hidden shadow-2xl flex flex-col"
-              style={{ background: tema.bg, color: tema.text, paddingTop: 'var(--sai-top,env(safe-area-inset-top,0px))' }}
+              style={{ background: tema.bg, color: tema.text, paddingTop: 'var(--sai-top,var(--sai-top))' }}
             >
               <div className="px-4 h-14 flex items-center gap-3 border-b border-current/10 shrink-0">
                 <p className="text-sm font-semibold flex-1">Sumário</p>
@@ -1713,7 +1713,7 @@ const LeitorNativo = ({
               exit={{ y: '100%' }}
               transition={{ type: 'spring', stiffness: 320, damping: 34 }}
               className="fixed inset-x-0 bottom-0 z-[1325] rounded-t-3xl shadow-2xl flex flex-col max-h-[80vh]"
-              style={{ background: tema.bg, color: tema.text, paddingBottom: 'var(--sai-bottom,env(safe-area-inset-bottom,0px))' }}
+              style={{ background: tema.bg, color: tema.text, paddingBottom: 'var(--sai-bottom,var(--sai-bottom))' }}
             >
               <div className="flex justify-center pt-3 pb-1">
                 <div className={`w-10 h-1 rounded-full ${dark ? 'bg-white/20' : 'bg-black/20'}`} />
@@ -1816,8 +1816,8 @@ const LeitorNativo = ({
           aria-label="Assistente de leitura"
           className="fixed z-[1310] w-14 h-14 rounded-full flex items-center justify-center active:scale-95 transition group"
           style={{
-            right: 'calc(env(safe-area-inset-right, 0px) + 18px)',
-            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 148px)',
+            right: 'calc(var(--sai-right) + 18px)',
+            bottom: 'calc(var(--sai-bottom) + 148px)',
             background: 'hsl(var(--primary))',
             color: 'hsl(var(--primary-foreground))',
             boxShadow:
@@ -1847,8 +1847,8 @@ const LeitorNativo = ({
           aria-label="Compartilhar frase"
           className="fixed z-[1310] w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition"
           style={{
-            right: 'calc(env(safe-area-inset-right, 0px) + 20px)',
-            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 220px)',
+            right: 'calc(var(--sai-right) + 20px)',
+            bottom: 'calc(var(--sai-bottom) + 220px)',
             background: 'hsl(var(--background))',
             color: 'hsl(var(--foreground))',
             border: '1px solid hsl(var(--border))',

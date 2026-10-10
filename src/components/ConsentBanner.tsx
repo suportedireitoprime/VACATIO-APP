@@ -30,7 +30,7 @@ export function ConsentBanner() {
       role="dialog"
       aria-live="polite"
       aria-label="Aviso de privacidade e cookies"
-      className="fixed inset-x-0 bottom-0 z-[9999] px-2 pb-[max(0.5rem,var(--sai-bottom,env(safe-area-inset-bottom,0px)))] sm:px-3 sm:pb-4 sm:text-right pointer-events-none animate-in fade-in slide-in-from-bottom-3 duration-500"
+      className="fixed inset-x-0 bottom-0 z-[9999] px-2 pb-[max(0.5rem,var(--sai-bottom,var(--sai-bottom)))] sm:px-3 sm:pb-4 sm:text-right pointer-events-none animate-in fade-in slide-in-from-bottom-3 duration-500"
     >
       <div
         className="pointer-events-auto mx-auto sm:ml-auto sm:mr-0 w-full max-w-[min(100%,20rem)] overflow-hidden rounded-xl border border-primary/20 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)]"

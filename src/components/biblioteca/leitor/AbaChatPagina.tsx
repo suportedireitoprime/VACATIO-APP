@@ -222,7 +222,7 @@ export default function AbaChatPagina({
         style={{
           borderColor: tema.border,
           background: dark ? 'rgba(0,0,0,0.35)' : `${tema.bg}f2`,
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)',
+          paddingBottom: 'calc(var(--sai-bottom) + 0.75rem)',
         }}
       >
         <textarea

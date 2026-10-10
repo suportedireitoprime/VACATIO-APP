@@ -287,7 +287,7 @@ const MentorOverlay = ({ open, onClose }: MentorOverlayProps) => {
                     <Plus className="w-4 h-4" />
                     Nova conversa
                   </button>
-                  <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
+                  <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 pb-[calc(1rem+var(--sai-bottom,var(--sai-bottom)))]">
                     {loadingConv && conversas.length === 0 && (
                       <p className="text-center text-xs text-muted-foreground py-8">Carregando…</p>
                     )}
@@ -553,7 +553,7 @@ const MentorOverlay = ({ open, onClose }: MentorOverlayProps) => {
           </div>
 
           {/* Input */}
-          <div className="px-4 py-3 border-t border-border bg-card/95 backdrop-blur-md pb-[calc(0.75rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
+          <div className="px-4 py-3 border-t border-border bg-card/95 backdrop-blur-md pb-[calc(0.75rem+var(--sai-bottom,var(--sai-bottom)))]">
             {anexo && (
               <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/70 border border-border">
                 <FileText className="w-4 h-4 text-primary shrink-0" />

@@ -21,7 +21,7 @@ const VoiceCaptureOverlay = ({ open, partial, onStop }: Props) => {
           className="fixed inset-0 z-[120] flex flex-col bg-background/95 backdrop-blur-2xl"
         >
           {/* Close */}
-          <div className="flex items-center justify-between px-5 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+1rem)] pb-3">
+          <div className="flex items-center justify-between px-5 pt-[calc(var(--sai-top,var(--sai-top))+1rem)] pb-3">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-70" />

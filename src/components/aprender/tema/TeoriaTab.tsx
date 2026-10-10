@@ -139,7 +139,7 @@ const TeoriaTab = ({ aulas, progresso, onNavigate }: Props) => {
 
       {/* Floating Button for Mobile to easily jump into the action */}
       {targetIdx < aulas.length && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] left-0 right-0 flex justify-center z-50 pointer-events-none">
+        <div className="fixed bottom-[calc(var(--sai-bottom)+1rem)] left-0 right-0 flex justify-center z-50 pointer-events-none">
           <button
             onClick={() => {
               onNavigate();

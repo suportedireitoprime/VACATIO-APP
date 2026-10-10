@@ -127,7 +127,7 @@ export default function ResumosJuridicosAreas() {
   const filtered = rows.filter((r) => r.area.toLowerCase().includes(q.toLowerCase()));
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border">
         <PageHeader
           title="Resumos Jurídicos"

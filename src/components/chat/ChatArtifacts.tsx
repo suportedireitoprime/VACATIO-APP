@@ -221,7 +221,7 @@ export const QuestoesRunner = ({ questoes, onClose }: { questoes: Questao[]; onC
         </div>
 
         {/* Nav */}
-        <div className="px-5 pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] pt-3 border-t border-border flex items-center gap-3">
+        <div className="px-5 pb-[calc(1rem+var(--sai-bottom,var(--sai-bottom)))] pt-3 border-t border-border flex items-center gap-3">
           <button
             onClick={() => setI(v => Math.max(0, v - 1))}
             disabled={i === 0}
@@ -358,7 +358,7 @@ export const MapaMentalCanvas = ({ data, onClose }: { data: MapaNode; onClose: (
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-[85] bg-black/85 backdrop-blur-md flex flex-col"
     >
-      <div className="flex items-center justify-between px-4 pt-[calc(0.75rem+var(--sai-top,env(safe-area-inset-top,0px)))] pb-3">
+      <div className="flex items-center justify-between px-4 pt-[calc(0.75rem+var(--sai-top,var(--sai-top)))] pb-3">
         <div>
           <h3 className="font-display text-base font-bold text-white">Mapa mental</h3>
           <p className="text-[11px] text-white/60 truncate max-w-[60vw]">{data.titulo}</p>
@@ -458,7 +458,7 @@ export const TermosViewer = ({ termos, onClose }: { termos: Termo[]; onClose: ()
             <X className="w-4 h-4" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 pb-[calc(1.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))] space-y-3">
+        <div className="flex-1 overflow-y-auto px-5 pb-[calc(1.5rem+var(--sai-bottom,var(--sai-bottom)))] space-y-3">
           {termos.map((t, i) => (
             <motion.div
               key={i}
@@ -514,7 +514,7 @@ export const ShareSheet = ({ text, onClose }: { text: string; onClose: () => voi
     >
       <motion.div
         initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-        className="w-full bg-card rounded-t-3xl p-5 pb-[calc(2rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]"
+        className="w-full bg-card rounded-t-3xl p-5 pb-[calc(2rem+var(--sai-bottom,var(--sai-bottom)))]"
         onClick={e => e.stopPropagation()}
       >
         <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-4" />

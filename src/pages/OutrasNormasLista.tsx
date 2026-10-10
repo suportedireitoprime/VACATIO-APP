@@ -191,14 +191,14 @@ export default function OutrasNormasLista() {
 
   if (detail) {
     return (
-      <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
         <LeiOrdinariaDetail lei={detail} onBack={() => setDetail(null)} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <PageHeader
         title={meta.titulo}
         subtitle={meta.subtitulo}

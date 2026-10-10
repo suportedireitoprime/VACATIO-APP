@@ -81,7 +81,7 @@ const IntroLivro = ({
       {/* Top bar: skip + step indicator */}
       <div
         className="relative z-10 flex items-center justify-between px-5 pt-4 pb-2 shrink-0"
-        style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 1rem)' }}
+        style={{ paddingTop: 'calc(var(--sai-top, var(--sai-top)) + 1rem)' }}
       >
         <div className="flex items-center gap-2">
           <span
@@ -331,7 +331,7 @@ const IntroLivro = ({
         style={{
           borderColor: tema.border,
           background: dark ? 'rgba(0,0,0,0.35)' : `${tema.bg}dd`,
-          paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 1.25rem)',
+          paddingBottom: 'calc(var(--sai-bottom, var(--sai-bottom)) + 1.25rem)',
         }}
       >
         <div className="max-w-2xl mx-auto flex gap-3 items-center">

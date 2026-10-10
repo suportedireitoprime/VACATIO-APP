@@ -106,7 +106,7 @@ const AprenderLembretesSheet = ({ open, onOpenChange }: Props) => {
           </button>
         </div>
 
-        <div className="border-t border-border bg-background/95 backdrop-blur px-4 py-3 pb-[calc(env(safe-area-inset-bottom,0px)+12px)]">
+        <div className="border-t border-border bg-background/95 backdrop-blur px-4 py-3 pb-[calc(var(--sai-bottom)+12px)]">
           <Button className="w-full h-12 rounded-xl font-semibold" onClick={goConfigure}>
             Salvar preferências
           </Button>

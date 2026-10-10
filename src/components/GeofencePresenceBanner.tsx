@@ -27,7 +27,7 @@ export function GeofencePresenceBanner() {
   return (
     <div
       className="fixed left-1/2 z-[70] -translate-x-1/2 max-w-[94vw] w-full sm:w-[560px] px-3"
-      style={{ top: 'calc(env(safe-area-inset-top, 0px) + 88px)' }}
+      style={{ top: 'calc(var(--sai-top) + 88px)' }}
       role="status"
       aria-live="polite"
     >

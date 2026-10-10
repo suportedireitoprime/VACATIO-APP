@@ -103,7 +103,7 @@ const DesktopPromo = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <div className="sticky top-0 z-30">
         <PageHeader
           title="Versão Desktop"

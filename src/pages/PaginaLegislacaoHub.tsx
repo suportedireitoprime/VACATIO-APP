@@ -166,7 +166,7 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
           </div>
 
           {/* Header Superior: Botão Voltar à esquerda; Notificação e Menu à direita */}
-          <header className="relative z-20 pt-[calc(0.75rem+var(--sai-top,env(safe-area-inset-top,0px)))] md:pt-[calc(1rem+var(--sai-top,env(safe-area-inset-top,0px)))] px-4 pb-2 flex items-center justify-between">
+          <header className="relative z-20 pt-[calc(0.75rem+var(--sai-top,var(--sai-top)))] md:pt-[calc(1rem+var(--sai-top,var(--sai-top)))] px-4 pb-2 flex items-center justify-between">
             <button
               onClick={handleGoBack}
               aria-label="Voltar para o início"
