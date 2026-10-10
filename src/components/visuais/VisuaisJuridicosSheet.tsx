@@ -393,6 +393,7 @@ export default function VisuaisJuridicosSheet({ open, onClose, tipoInicial, modo
 
     setGerando(true);
     setGerandoKey(chave);
+    toast.loading(`Gerando ${TIPO_INFO[tipo].label.toLowerCase()} com IA. Pode levar alguns segundos...`, { id: 'gerando-visual' });
     try {
       const rotulo = valor
         ? kind === 'tema'
@@ -416,13 +417,15 @@ export default function VisuaisJuridicosSheet({ open, onClose, tipoInicial, modo
       setProntos((p) => ({ ...p, [registro.item_key]: registro }));
       marcarRecente(registro.item_key);
       setAberto(registro);
+      toast.success('Visual gerado com sucesso!', { id: 'gerando-visual' });
 
     } catch (e: any) {
       const msg = String(e?.message || '');
-      toast.error(msg.includes('429') ? 'Muitas gerações agora. Tente em alguns minutos.' : 'Não foi possível gerar o visual agora.');
+      toast.error(msg.includes('429') ? 'Muitas gerações agora. Tente em alguns minutos.' : 'Não foi possível gerar o visual agora.', { id: 'gerando-visual' });
     } finally {
       setGerando(false);
       setGerandoKey(null);
+      setTimeout(() => toast.dismiss('gerando-visual'), 2000);
     }
   };
 

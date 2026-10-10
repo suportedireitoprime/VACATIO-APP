@@ -214,7 +214,7 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
         res = await generateOmniText({
           prompt,
           systemPrompt: "Você é um jurista e especialista sênior em Legal Design e Visual Law. Retorne ESTRITAMENTE um objeto JSON válido, sem blocos markdown (```json), sem introdução ou texto fora do JSON. Siga com precisão cirúrgica os limites de caracteres e a lógica de cada campo, sem usar reticências ou textos prolixos.",
-          complexity: 'high'
+          complexity: 'low'
         });
       } catch (networkErr: any) {
         throw networkErr;
