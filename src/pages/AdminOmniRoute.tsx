@@ -229,7 +229,7 @@ export default function AdminOmniRoute() {
   const [mainTab, setMainTab] = useState<MainTabType>('texto');
 
   // Tab Texto
-  const [textModel, setTextModel] = useState(() => localStorage.getItem(STORAGE_KEYS.LAST_MODEL) || 'antigravity/gemini-3.6-flash-high');
+  const [textModel, setTextModel] = useState(() => localStorage.getItem(STORAGE_KEYS.LAST_MODEL) || 'antigravity/gemini-3.8-flash-tiered');
   const [textPrompt, setTextPrompt] = useState('Explique de forma concisa e didática o princípio da dignidade da pessoa humana para um estudante de direito, destacando base constitucional e jurisprudência.');
   const [textSystem, setTextSystem] = useState('Você é um jurista e tutor de alta precisão do Vade Mecum Prime. Utilize formatação rica em Markdown (negritos, listas e títulos claros).');
   const [textLoading, setTextLoading] = useState(false);
@@ -247,7 +247,7 @@ export default function AdminOmniRoute() {
   // Tab Visão (Análise Multimodal & OCR)
   const [visionImageBase64, setVisionImageBase64] = useState<string | null>(null);
   const [visionPrompt, setVisionPrompt] = useState('Descreva os elementos jurídicos e visuais presentes nesta imagem.');
-  const [visionModel, setVisionModel] = useState('antigravity/gemini-3.6-flash-high');
+  const [visionModel, setVisionModel] = useState('antigravity/gemini-3.8-flash-tiered');
   const [visionLoading, setVisionLoading] = useState(false);
   const [visionResponse, setVisionResponse] = useState<string | null>(null);
 
@@ -408,7 +408,7 @@ export default function AdminOmniRoute() {
       toast.success(`OmniRoute conectado (${combined.length} modelos Antigravity)!`);
 
       if (combined.length > 0 && !combined.includes(textModel)) {
-        const found = combined.find((m) => m === 'antigravity/gemini-3.6-flash-high') || combined[0];
+        const found = combined.find((m) => m === 'antigravity/gemini-3.8-flash-tiered') || combined[0];
         setTextModel(found);
       }
     } catch (err: unknown) {
