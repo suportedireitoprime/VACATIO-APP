@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, FileText, Loader2, PlayCircle, Sparkles, ChevronRight, NotebookText } from 'lucide-react';
+import { ArrowLeft, FileText, Loader2, PlayCircle, Sparkles, ChevronRight, NotebookText, BookOpen, Brain } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateOmniText } from '@/lib/omniRouteClient';
 import ResumoJuridicoReaderSheet, { type ResumoRow } from '@/components/resumos-juridicos/ResumoJuridicoReaderSheet';
@@ -192,7 +192,7 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
                   Escolha o formato
                 </h3>
                 <p className="text-sm text-center text-muted-foreground mb-6">
-                  Como você quer estudar o {artigoParaMetodo.numero}?
+                  Como você quer estudar o {artigoParaMetodo.numero.toLowerCase().includes('art') ? artigoParaMetodo.numero : `Art. ${artigoParaMetodo.numero}`}?
                 </p>
 
                 <div className="flex flex-col gap-3">
@@ -200,12 +200,12 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
                     onClick={() => iniciarGeracao("conceitos")}
                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-colors text-left"
                   >
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                      <FileText className="w-5 h-5 text-primary" />
+                    <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                      <FileText className="w-7 h-7 text-primary" strokeWidth={1.5} />
                     </div>
                     <div>
                       <h4 className="font-bold text-foreground">Resumo Conceitual</h4>
-                      <p className="text-xs text-muted-foreground">Markdown direto com exemplos e termos</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-snug">Uma explicação profunda e detalhada com exemplos práticos, ideal para absorver o conteúdo por completo.</p>
                     </div>
                   </button>
 
@@ -213,12 +213,12 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
                     onClick={() => iniciarGeracao("cornell")}
                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-colors text-left"
                   >
-                    <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0">
-                      <FileText className="w-5 h-5 text-orange-500" />
+                    <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                      <BookOpen className="w-7 h-7 text-orange-500" strokeWidth={1.5} />
                     </div>
                     <div>
                       <h4 className="font-bold text-foreground">Método Cornell</h4>
-                      <p className="text-xs text-muted-foreground">Palavras-chave, perguntas e anotações</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-snug">Organize as ideias principais com perguntas e anotações para facilitar suas revisões ativas.</p>
                     </div>
                   </button>
 
@@ -226,12 +226,12 @@ export default function ResumosOverlay({ capituloGroups, leiNome, onClose }: Res
                     onClick={() => iniciarGeracao("feynman")}
                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-secondary/80 transition-colors text-left"
                   >
-                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
-                      <Sparkles className="w-5 h-5 text-blue-500" />
+                    <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                      <Brain className="w-7 h-7 text-blue-500" strokeWidth={1.5} />
                     </div>
                     <div>
                       <h4 className="font-bold text-foreground">Técnica Feynman</h4>
-                      <p className="text-xs text-muted-foreground">Explicação simples em 4 passos</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-snug">Aprenda através de uma explicação em linguagem simples e analogias, como se ensinasse a alguém.</p>
                     </div>
                   </button>
                 </div>
