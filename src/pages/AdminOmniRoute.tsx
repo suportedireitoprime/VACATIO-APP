@@ -395,13 +395,9 @@ export default function AdminOmniRoute() {
         m.toLowerCase().startsWith('antigravity/')
       );
 
-      // Combina com os modelos canônicos do Antigravity sem duplicatas
-      const combined = Array.from(
-        new Set([
-          ...ANTIGRAVITY_TEXT_MODELS.map((m) => m.id),
-          ...remoteAntigravity,
-        ])
-      );
+      // Usa apenas os modelos retornados pelo servidor se houver algum, 
+      // caso contrário cai num fallback para não quebrar a interface
+      const combined = remoteAntigravity.length > 0 ? remoteAntigravity : ANTIGRAVITY_TEXT_MODELS.map((m) => m.id);
 
       setAvailableModels(combined);
       setConnStatus('connected');
