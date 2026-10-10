@@ -373,13 +373,20 @@ Deno.serve(async (req) => {
         });
 
         const data = await proxyRes.text();
+        
+        if (!proxyRes.ok) {
+          return new Response(JSON.stringify({ error: data, status: proxyRes.status }), {
+            status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
         return new Response(data, {
-          status: proxyRes.status,
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } catch (e: any) {
-        return new Response(JSON.stringify({ error: e.message }), {
-          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ error: e.message, status: 500 }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
