@@ -1010,13 +1010,7 @@ const CategoriaLegislacao = () => {
     return [];
   }, [capituloGroups, expandedTitulo, filteredArtigos, isDesktop]);
 
-  const shouldVirtualizeArtigos = Boolean(
-    selectedLeiId &&
-    activeTab === 'art' &&
-    !isDesktop &&
-    !searchQuery.trim() &&
-    visibleArtigos.length > MOBILE_ARTIGOS_VIRTUAL_THRESHOLD
-  );
+  const shouldVirtualizeArtigos = false; // Desabilitado a pedido do usuário
 
   useLayoutEffect(() => {
     if (!shouldVirtualizeArtigos) return;
