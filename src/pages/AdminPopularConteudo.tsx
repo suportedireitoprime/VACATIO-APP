@@ -158,6 +158,13 @@ export default function AdminPopularConteudo() {
   const [rangeStart, setRangeStart] = useState<string>('');
   const [rangeEnd, setRangeEnd] = useState<string>('');
   
+  // Item 20: Fila de Falhas
+  const [failedItems, setFailedItems] = useState<any[]>([]);
+  
+  // Item 24: Editor Rápido no Log
+  const [editingResumoId, setEditingResumoId] = useState<string | null>(null);
+  const [editingResumoMarkdown, setEditingResumoMarkdown] = useState<string>('');
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [total, setTotal] = useState(0);
@@ -246,6 +253,7 @@ export default function AdminPopularConteudo() {
     setProgress(0);
     setEstimatedTime(null);
     setAvgTimePerItem(null);
+    setFailedItems([]);
     
     const controller = new AbortController();
     setAbortController(controller);
@@ -397,12 +405,14 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
                 markdown: raw.markdown, exemplos: raw.exemplos, termos_chave: raw.termos, _raw: raw, _origResult: res
               });
             } catch (e: any) {
-              addLog(`❌ [JSON ERRO] ${res.numLabel}: ${e.message}`);
+              addLog(`❌ [JSON ERRO] ${res.numLabel}: ${e.message}`, 'error');
               hasErrorInBatch = true;
+              setFailedItems(prev => { if (!prev.find(p => p.id === res.artigo.id)) return [...prev, res.artigo]; return prev; });
             }
           } else if (res.resConceitual?.status === 'rejected') {
-            addLog(`⚠️ [CONCEITUAL] ${res.numLabel} Falhou: ${res.resConceitual.reason?.message}`);
+            addLog(`⚠️ [CONCEITUAL] ${res.numLabel} Falhou: ${res.resConceitual.reason?.message}`, 'error');
             hasErrorInBatch = true;
+            setFailedItems(prev => { if (!prev.find(p => p.id === res.artigo.id)) return [...prev, res.artigo]; return prev; });
           }
         }
 
@@ -421,11 +431,11 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
                 r._origResult.resumoId = dbRow.id;
                 existingMap.set(r.subtema, dbRow.id);
                 metodologiasMap.set(dbRow.id, new Set());
-                addLog(`✅ [CONCEITUAL BULK] ${r.subtema} salvo.`);
+                addLog(`✅ [CONCEITUAL BULK] ${r.subtema} salvo. (Clique para editar)`, 'success', { id: dbRow.id, markdown: r.markdown });
               }
             }
           } catch (e: any) {
-            addLog(`❌ [BULK INSERT ERRO]: ${e.message}`);
+            addLog(`❌ [BULK INSERT ERRO]: ${e.message}`, 'error');
             hasErrorInBatch = true;
           }
         }
@@ -440,18 +450,18 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
               const raw = safeJsonParse(res.resCornell.value);
               toInsertMetodologias.push({ resumo_id: rid, metodo: 'cornell', conteudo: raw });
               metodologiasMap.get(rid)!.add('cornell');
-              addLog(`✅ [CORNELL] ${res.numLabel} processado.`);
-            } catch (e) { hasErrorInBatch = true; }
-          } else if (res.resCornell?.status === 'rejected') { hasErrorInBatch = true; }
+              addLog(`✅ [CORNELL] ${res.numLabel} processado.`, 'success');
+            } catch (e) { hasErrorInBatch = true; setFailedItems(prev => { if (!prev.find(p => p.id === res.artigo.id)) return [...prev, res.artigo]; return prev; }); }
+          } else if (res.resCornell?.status === 'rejected') { hasErrorInBatch = true; setFailedItems(prev => { if (!prev.find(p => p.id === res.artigo.id)) return [...prev, res.artigo]; return prev; }); }
 
           if (res.missingFeynman && res.resFeynman.status === 'fulfilled' && res.resFeynman.value && rid) {
             try {
               const raw = safeJsonParse(res.resFeynman.value);
               toInsertMetodologias.push({ resumo_id: rid, metodo: 'feynman', conteudo: raw });
               metodologiasMap.get(rid)!.add('feynman');
-              addLog(`✅ [FEYNMAN] ${res.numLabel} processado.`);
-            } catch (e) { hasErrorInBatch = true; }
-          } else if (res.resFeynman?.status === 'rejected') { hasErrorInBatch = true; }
+              addLog(`✅ [FEYNMAN] ${res.numLabel} processado.`, 'success');
+            } catch (e) { hasErrorInBatch = true; setFailedItems(prev => { if (!prev.find(p => p.id === res.artigo.id)) return [...prev, res.artigo]; return prev; }); }
+          } else if (res.resFeynman?.status === 'rejected') { hasErrorInBatch = true; setFailedItems(prev => { if (!prev.find(p => p.id === res.artigo.id)) return [...prev, res.artigo]; return prev; }); }
         }
 
         if (toInsertMetodologias.length > 0) {
@@ -528,6 +538,19 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
     toast.info("Pausando após o término do lote atual...");
     if (abortController) {
       abortController.abort(); // Re-purposed to act as Pause signal
+    }
+  };
+
+  // Item 24: Salvar Edição Rápida
+  const saveQuickEdit = async () => {
+    if (!editingResumoId) return;
+    try {
+      const { error } = await supabase.from('resumos_juridicos').update({ markdown: editingResumoMarkdown }).eq('id', editingResumoId);
+      if (error) throw error;
+      toast.success('Resumo atualizado!');
+      setEditingResumoId(null);
+    } catch (e: any) {
+      toast.error('Erro ao salvar: ' + e.message);
     }
   };
 
@@ -776,8 +799,17 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
                   <div className="text-white/30 h-full flex items-center justify-center pt-20">Aguardando início...</div>
                 ) : (
                   <div className="space-y-1 pb-4">
-                    {logs.slice(0, 50).map((log, i) => (
-                      <div key={log.id} className={log.type === 'error' ? 'text-red-400' : log.type === 'success' ? 'text-green-400' : log.type === 'warn' ? 'text-yellow-400' : (log.text.includes('[ROBÔ') || log.text.includes('lote') ? 'text-blue-300 font-bold' : 'text-green-400/80')}>
+                    {logs.slice(0, 50).map((log) => (
+                      <div 
+                        key={log.id} 
+                        onClick={() => {
+                          if (log.data?.id) {
+                            setEditingResumoId(log.data.id);
+                            setEditingResumoMarkdown(log.data.markdown || '');
+                          }
+                        }}
+                        className={`${log.data?.id ? 'cursor-pointer hover:bg-white/5 p-1 rounded transition-colors' : ''} ${log.type === 'error' ? 'text-red-400' : log.type === 'success' ? 'text-green-400' : log.type === 'warn' ? 'text-yellow-400' : (log.text.includes('[ROBÔ') || log.text.includes('lote') ? 'text-blue-300 font-bold' : 'text-green-400/80')}`}
+                      >
                         {log.text}
                       </div>
                     ))}
@@ -788,6 +820,36 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
                 )}
               </ScrollArea>
             </div>
+            
+            {failedItems.length > 0 && !isGenerating && (
+              <div className="col-span-1 lg:col-span-2 bg-red-500/10 border border-red-500/20 p-6 rounded-3xl mt-6">
+                <h3 className="text-red-500 font-bold mb-2 flex items-center gap-2">
+                  <StopCircle className="w-5 h-5" /> Fila de Falhas ({failedItems.length} itens)
+                </h3>
+                <p className="text-sm text-red-400/80 mb-4">Esses artigos falharam por timeout, JSON malformado ou Rate Limit.</p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {failedItems.slice(0, 10).map((item, idx) => (
+                    <span key={idx} className="bg-red-500/20 text-red-300 px-3 py-1 rounded-full text-xs font-mono">
+                      {item.numero}
+                    </span>
+                  ))}
+                  {failedItems.length > 10 && <span className="text-red-400/60 text-xs py-1">... e mais {failedItems.length - 10}</span>}
+                </div>
+                <button 
+                  onClick={() => {
+                    // Start retrying only failed items
+                    const minOrdem = Math.min(...failedItems.map(i => i.ordem));
+                    const maxOrdem = Math.max(...failedItems.map(i => i.ordem));
+                    setRangeStart(minOrdem.toString());
+                    setRangeEnd(maxOrdem.toString());
+                    toast.info("Filtro configurado para a fila de falhas. Clique em Iniciar.");
+                  }}
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-colors"
+                >
+                  Configurar filtro para Falhas
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -815,13 +877,55 @@ Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas":
             </div>
             <ScrollArea className="flex-1 w-full bg-black rounded-xl p-4 font-mono text-sm">
               <div className="space-y-1 pb-4">
-                {logs.map((log, i) => (
-                  <div key={log.id} className={log.type === 'error' ? 'text-red-400' : log.type === 'success' ? 'text-green-400' : log.type === 'warn' ? 'text-yellow-400' : (log.text.includes('[ROBÔ') || log.text.includes('lote') ? 'text-blue-300 font-bold' : 'text-green-400/80')}>
+                {logs.map((log) => (
+                  <div 
+                    key={log.id} 
+                    onClick={() => {
+                      if (log.data?.id) {
+                        setEditingResumoId(log.data.id);
+                        setEditingResumoMarkdown(log.data.markdown || '');
+                        setIsLogsModalOpen(false); // Close logs modal to show edit modal
+                      }
+                    }}
+                    className={`${log.data?.id ? 'cursor-pointer hover:bg-white/5 p-1 rounded transition-colors' : ''} ${log.type === 'error' ? 'text-red-400' : log.type === 'success' ? 'text-green-400' : log.type === 'warn' ? 'text-yellow-400' : (log.text.includes('[ROBÔ') || log.text.includes('lote') ? 'text-blue-300 font-bold' : 'text-green-400/80')}`}
+                  >
                     {log.text}
                   </div>
                 ))}
               </div>
             </ScrollArea>
+          </div>
+        </div>
+      )}
+
+      {/* Item 24: Modal de Edição Rápida */}
+      {editingResumoId && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-card rounded-3xl p-6 shadow-xl border border-border w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                Editor Rápido de Conteúdo
+              </h2>
+              <button onClick={() => setEditingResumoId(null)} className="p-2 hover:bg-secondary rounded-full text-muted-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <textarea 
+                value={editingResumoMarkdown}
+                onChange={e => setEditingResumoMarkdown(e.target.value)}
+                className="w-full h-[400px] bg-background border border-border rounded-xl p-4 text-foreground font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Markdown..."
+              />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setEditingResumoId(null)} className="px-4 py-2 rounded-xl font-bold hover:bg-secondary text-foreground transition-colors">
+                  Cancelar
+                </button>
+                <button onClick={saveQuickEdit} className="px-6 py-2 rounded-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                  Salvar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
