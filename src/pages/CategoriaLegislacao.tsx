@@ -2698,6 +2698,9 @@ const CategoriaLegislacao = () => {
                       <span className="w-1 h-5 rounded-full shrink-0" style={{ backgroundColor: '#60a5fa' }} />
                       <span className="truncate">Recentes</span>
                     </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5 ml-3">
+                      Últimos artigos que você acessou
+                    </p>
                   </div>
                 </div>
                 <div className="flex gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
