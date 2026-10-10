@@ -97,6 +97,46 @@ const fetchAllMetodologias = async (resumoIds: string[]) => {
   return allData;
 };
 
+// Item 1 e 6: Timeout e Retry Automático
+const generateWithTimeoutAndRetry = async (params: any, retries = 2, timeoutMs = 45000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await Promise.race([
+        generateOmniText(params),
+        new Promise<string>((_, reject) => setTimeout(() => reject(new Error("Timeout da IA (mais de 45s)")), timeoutMs))
+      ]);
+      return res;
+    } catch (err: any) {
+      if (i === retries - 1) throw err;
+      await new Promise(r => setTimeout(r, 2000 * (i + 1))); // Exponential backoff
+    }
+  }
+};
+
+// Item 2 e 4: Resiliência de JSON e Sanitização de Chaves
+const safeJsonParse = (str: string) => {
+  try {
+    let clean = str.replace(/```json/gi, '').replace(/```/g, '').trim();
+    if (clean.includes('{') && clean.includes('}')) {
+      clean = clean.substring(clean.indexOf('{'), clean.lastIndexOf('}') + 1);
+    }
+    // Remove vírgulas soltas antes de chaves ou colchetes (erro comum de IA)
+    clean = clean.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+    
+    const obj = JSON.parse(clean);
+    
+    // Sanitizar chaves para lowercase (ex: Markdown -> markdown)
+    const sanitizedObj: any = {};
+    for (const key in obj) {
+      sanitizedObj[key.toLowerCase()] = obj[key];
+    }
+    
+    return sanitizedObj;
+  } catch (err: any) {
+    throw new Error(`Erro de JSON: ${err.message}`);
+  }
+};
+
 export default function AdminPopularConteudo() {
   const [activeView, setActiveView] = useState<'hub' | 'lista' | 'robo'>('hub');
   const [activeModulo, setActiveModulo] = useState<string | null>(null);
@@ -199,6 +239,9 @@ export default function AdminPopularConteudo() {
       const cleanArtigos = artigos.filter(a => {
         if (!a.texto || a.texto.trim() === '') return false;
         if (!a.numero) return false;
+        // Item 3: Pular artigos revogados
+        if (a.texto.toLowerCase().includes('revogado')) return false;
+        
         const n = a.numero.toLowerCase();
         return n.startsWith('art') || /^\d/.test(n);
       });
@@ -267,57 +310,63 @@ export default function AdminPopularConteudo() {
           if (missingConcept) {
             addLog(`[CONCEITUAL] Gerando ${numLabel}...`);
             const p = `LEGISLAÇÃO: ${lei.nome}\nARTIGO: ${artigo.numero}\nCAPUT: ${artigo.texto}\nGere uma explicação conceitual ESTRITAMENTE em JSON. A chave "markdown" DEVE começar com '# Artigo ${num}' e NENHUM outro título (PROIBIDO títulos como 'Análise Profunda'). O texto deve ser super explicadinho, como se fosse para um leigo entender do zero, mas mantendo o rigor e os termos técnicos ao mesmo tempo. Vá direto ao ponto, sem saudações. Use markdown, tabelas se útil. Formato exigido: {"markdown": "...", "exemplos": "...", "termos": "..."}`;
-            pConceitual = generateOmniText({ prompt: p, systemPrompt: "Apenas JSON. SEM SAUDAÇÕES. DIRETO AO PONTO. Título '# Artigo X' OBRIGATÓRIO.", modelOverride: 'antigravity/gemini-3.8-flash-tiered', complexity: 'tiered' });
+            pConceitual = generateWithTimeoutAndRetry({ prompt: p, systemPrompt: "Apenas JSON. SEM SAUDAÇÕES. DIRETO AO PONTO. Título '# Artigo X' OBRIGATÓRIO.", modelOverride: 'antigravity/gemini-3.8-flash-tiered', complexity: 'tiered' });
           }
 
           if (missingCornell) {
             addLog(`[CORNELL] Gerando ${numLabel}...`);
             const p = `LEGISLAÇÃO: ${lei.nome} / ${numLabel}\nCrie um resumo Método Cornell. Retorne ESTRITAMENTE JSON: {"palavras_chave": [], "perguntas": [{"pergunta":"", "resposta":""}], "anotacoes": [{"topico":"", "conteudo":""}], "resumo_geral": ""}`;
-            pCornell = generateOmniText({ prompt: p, systemPrompt: "Apenas JSON.", complexity: 'low' });
+            pCornell = generateWithTimeoutAndRetry({ prompt: p, systemPrompt: "Apenas JSON.", complexity: 'low' });
           }
 
           if (missingFeynman) {
             addLog(`[FEYNMAN] Gerando ${numLabel}...`);
             const p = `LEGISLAÇÃO: ${lei.nome} / ${numLabel}\nCrie um resumo Técnica Feynman. Retorne ESTRITAMENTE JSON: {"conceito": "", "explicacao_simples": "", "lacunas": [{"ponto":"", "explicacao":""}], "analogias": [{"analogia":"", "relacao":""}], "revisao_final": ""}`;
-            pFeynman = generateOmniText({ prompt: p, systemPrompt: "Apenas JSON.", complexity: 'low' });
+            pFeynman = generateWithTimeoutAndRetry({ prompt: p, systemPrompt: "Apenas JSON.", complexity: 'low' });
           }
 
           // Await all AI generations in parallel
-          const [resConceitual, resCornell, resFeynman] = await Promise.all([pConceitual, pCornell, pFeynman]);
+          const [resConceitual, resCornell, resFeynman] = await Promise.allSettled([pConceitual, pCornell, pFeynman]);
 
           // Now save sequentially since relations depend on ResumoId
-          if (missingConcept && resConceitual) {
-            let clean = resConceitual.replace(/```json/gi, '').replace(/```/g, '').trim();
-            clean = clean.substring(clean.indexOf('{'), clean.lastIndexOf('}') + 1);
-            const raw = JSON.parse(clean);
+          try {
+            if (missingConcept && resConceitual.status === 'fulfilled' && resConceitual.value) {
+              const raw = safeJsonParse(resConceitual.value);
 
-            const { data: ins, error: errIns } = await supabase.from('resumos_juridicos').insert({
-              area: lei.nome, tema: lei.nome, subtema: numLabel, ordem_subtema: artigo.ordem || 0,
-              markdown: raw.markdown, exemplos: raw.exemplos, termos_chave: raw.termos
-            }).select('id').single();
-            if (errIns) throw errIns;
-            resumoId = ins.id;
-            existingMap.set(numLabel, resumoId);
-            metodologiasMap.set(resumoId, new Set());
-            
-            const snippet = raw.markdown.substring(0, 45).replace(/\n/g, ' ') + '...';
-            addLog(`✅ [CONCEITUAL] ${numLabel}: "${snippet}"`);
-          }
+              const { data: ins, error: errIns } = await supabase.from('resumos_juridicos').insert({
+                area: lei.nome, tema: lei.nome, subtema: numLabel, ordem_subtema: artigo.ordem || 0,
+                markdown: raw.markdown, exemplos: raw.exemplos, termos_chave: raw.termos
+              } as any).select('id').single();
+              if (errIns) throw errIns;
+              resumoId = ins.id;
+              existingMap.set(numLabel, resumoId);
+              metodologiasMap.set(resumoId, new Set());
+              
+              const snippet = raw.markdown ? raw.markdown.substring(0, 45).replace(/\n/g, ' ') + '...' : 'OK';
+              addLog(`✅ [CONCEITUAL] ${numLabel}: "${snippet}"`);
+            } else if (resConceitual?.status === 'rejected') {
+              addLog(`⚠️ [CONCEITUAL] ${numLabel} Falhou: ${resConceitual.reason?.message}`);
+            }
 
-          if (missingCornell && resCornell && resumoId) {
-            let cl = resCornell.replace(/```json/gi, '').replace(/```/g, '').trim();
-            cl = cl.substring(cl.indexOf('{'), cl.lastIndexOf('}') + 1);
-            await supabase.from('resumo_metodologias').insert({ resumo_id: resumoId, metodo: 'cornell', conteudo: JSON.parse(cl) });
-            metodologiasMap.get(resumoId)!.add('cornell');
-            addLog(`✅ [CORNELL] ${numLabel} salvo com sucesso.`);
-          }
+            if (missingCornell && resCornell.status === 'fulfilled' && resCornell.value && resumoId) {
+              const raw = safeJsonParse(resCornell.value);
+              await supabase.from('resumo_metodologias').insert({ resumo_id: resumoId, metodo: 'cornell', conteudo: raw });
+              metodologiasMap.get(resumoId)!.add('cornell');
+              addLog(`✅ [CORNELL] ${numLabel} salvo com sucesso.`);
+            } else if (resCornell?.status === 'rejected') {
+              addLog(`⚠️ [CORNELL] ${numLabel} Falhou: ${resCornell.reason?.message}`);
+            }
 
-          if (missingFeynman && resFeynman && resumoId) {
-            let cl = resFeynman.replace(/```json/gi, '').replace(/```/g, '').trim();
-            cl = cl.substring(cl.indexOf('{'), cl.lastIndexOf('}') + 1);
-            await supabase.from('resumo_metodologias').insert({ resumo_id: resumoId, metodo: 'feynman', conteudo: JSON.parse(cl) });
-            metodologiasMap.get(resumoId)!.add('feynman');
-            addLog(`✅ [FEYNMAN] ${numLabel} salvo com sucesso.`);
+            if (missingFeynman && resFeynman.status === 'fulfilled' && resFeynman.value && resumoId) {
+              const raw = safeJsonParse(resFeynman.value);
+              await supabase.from('resumo_metodologias').insert({ resumo_id: resumoId, metodo: 'feynman', conteudo: raw });
+              metodologiasMap.get(resumoId)!.add('feynman');
+              addLog(`✅ [FEYNMAN] ${numLabel} salvo com sucesso.`);
+            } else if (resFeynman?.status === 'rejected') {
+              addLog(`⚠️ [FEYNMAN] ${numLabel} Falhou: ${resFeynman.reason?.message}`);
+            }
+          } catch (e: any) {
+            addLog(`❌ Erro ao salvar/parsear ${numLabel}: ${e.message}`);
           }
           
           setProgress(prev => prev + 1);
