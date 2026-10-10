@@ -338,16 +338,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    const GEMINI_API_KEY_RESERVA = Deno.env.get('GEMINI_API_KEY_RESERVA');
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    const geminiKeys = [GEMINI_API_KEY, GEMINI_API_KEY_RESERVA].filter(Boolean) as string[];
-    if (!geminiKeys.length && !LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: 'Nenhuma chave de IA configurada' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     const body = await req.json();
     let { messages, mode, artigoTexto, artigoNumero, leiNome, ementa, plNumero, plAno, autorNome, urlInteiroTeor, referencia, parteModificada, tipo: tipoAlteracao } = body;
     const tabelaNomeRaw = body.tabelaNome || body.tabela_nome;
@@ -357,8 +347,8 @@ Deno.serve(async (req) => {
       try {
         const apiKey = Deno.env.get('OMNIROUTE_API_KEY_NOVA') || Deno.env.get('OMNIROUTE_API_KEY');
         if (!apiKey) {
-          return new Response(JSON.stringify({ error: 'OMNIROUTE_API_KEY_NOVA secret not set in Supabase' }), {
-            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          return new Response(JSON.stringify({ error: 'OMNIROUTE_API_KEY_NOVA secret not set in Supabase', status: 500 }), {
+            status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
         
@@ -389,6 +379,16 @@ Deno.serve(async (req) => {
           status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+    }
+
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    const GEMINI_API_KEY_RESERVA = Deno.env.get('GEMINI_API_KEY_RESERVA');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const geminiKeys = [GEMINI_API_KEY, GEMINI_API_KEY_RESERVA].filter(Boolean) as string[];
+    if (!geminiKeys.length && !LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: 'Nenhuma chave de IA configurada' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Identifica o usuário autenticado (para contabilizar quem fez a chamada de IA)
