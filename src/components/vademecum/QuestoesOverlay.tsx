@@ -208,4 +208,4 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
   );
 }
 
-export default AulasOverlay;
+export default QuestoesOverlay;

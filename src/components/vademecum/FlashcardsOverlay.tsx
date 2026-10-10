@@ -208,4 +208,4 @@ export function FlashcardsOverlay({ capituloGroups, leiNome, onClose, onArtigoSe
   );
 }
 
-export default AulasOverlay;
+export default FlashcardsOverlay;

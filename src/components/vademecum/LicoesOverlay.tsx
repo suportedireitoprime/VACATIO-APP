@@ -208,4 +208,4 @@ export function LicoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSelect
   );
 }
 
-export default AulasOverlay;
+export default LicoesOverlay;
