@@ -84,6 +84,7 @@ export async function generateOmniText({
     
     if (!res.ok) {
       const err = await res.text();
+      console.error(`OmniRoute Error: HTTP ${res.status}: ${err}`);
       throw new Error(`OmniRoute HTTP ${res.status}: ${err}`);
     }
 
@@ -91,16 +92,8 @@ export async function generateOmniText({
     return data.choices?.[0]?.message?.content || '';
   } catch (err: any) {
     clearTimeout(timeoutId);
-    console.warn(`[OmniRoute] Falhou ou deu timeout (${err.name}). Usando fallback Supabase...`);
-    
-    // Fallback silencioso para Supabase (assistente-juridica)
-    const { data, error } = await supabase.functions.invoke('assistente-juridica', {
-      body: { prompt, systemPrompt, temperature }
-    });
-    
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
-    return data.text || data.response || '';
+    console.error(`[OmniRoute] Falhou ou deu timeout:`, err);
+    throw err;
   }
 }
 
@@ -152,6 +145,7 @@ export async function generateOmniChat({
     
     if (!res.ok) {
       const err = await res.text();
+      console.error(`OmniRoute Chat Error: HTTP ${res.status}: ${err}`);
       throw new Error(`OmniRoute Chat HTTP ${res.status}: ${err}`);
     }
 
@@ -159,16 +153,8 @@ export async function generateOmniChat({
     return data.choices?.[0]?.message?.content || '';
   } catch (err: any) {
     clearTimeout(timeoutId);
-    console.warn(`[OmniRoute Chat] Falhou ou deu timeout (${err.name}). Usando fallback Supabase...`);
-    
-    const fallbackPrompt = messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n');
-    const { data, error } = await supabase.functions.invoke('assistente-juridica', {
-      body: { prompt: fallbackPrompt, temperature }
-    });
-    
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
-    return data.text || data.response || '';
+    console.error(`[OmniRoute Chat] Falhou ou deu timeout:`, err);
+    throw err;
   }
 }
 

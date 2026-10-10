@@ -67,7 +67,8 @@ Gere um resumo deste artigo jurídico. Retorne ESTRITAMENTE um objeto JSON váli
       let res = await generateOmniText({
         prompt,
         systemPrompt,
-        complexity: 'low'
+        modelOverride: 'antigravity/gemini-3.8-flash-tiered',
+        complexity: 'tiered'
       });
 
       let cleanJson = res.replace(/```json/gi, '').replace(/```/g, '').trim();

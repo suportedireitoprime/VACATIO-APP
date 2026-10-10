@@ -1328,19 +1328,55 @@ const ArtigoBottomSheet = ({
 
         // Try up to 2 times
         for (let attempt = 0; attempt < 2; attempt++) {
-          const { data, error } = await supabase.functions.invoke('assistente-juridica', {
-            body: {
-              mode: 'grifo_magico',
-              artigoTexto: fullText,
-              artigoNumero: artigo.numero,
-              leiNome: tabelaNome,
-            },
-          });
-          if (error) { console.error('Grifo mágico invoke error:', error); continue; }
-          const rawReply = data?.reply ?? data?.response ?? data?.text ?? data?.content ?? '';
-          const rawStr = typeof rawReply === 'string' ? rawReply : JSON.stringify(rawReply);
-          grifos = parseGrifos(rawStr);
-          if (grifos) break;
+          try {
+            const { generateOmniText } = await import('@/lib/omniRouteClient');
+            
+            const sys = `Você é um professor de Direito Brasileiro especialista em concursos e OAB. Você vai grifar o artigo abaixo como um professor experiente grifa o material do aluno: SELETIVO e cirúrgico. Grifar tudo é o mesmo que não grifar nada — marque só o que o aluno precisa mesmo saber para a prova.
+
+FORMATO
+- Responda SOMENTE com um array JSON válido, sem markdown, sem texto antes ou depois.
+- Cada item: "trechoExato" (trecho EXATO copiado do texto), "cor" (uma das 5 cores), "explicacao" (1 a 2 frases dizendo por que importa e como cai em prova), "hierarquia" (nome exato da categoria da cor).
+
+CORES E CATEGORIAS (classifique corretamente — não jogue tudo em amarelo/verde)
+- "amarelo" = "Conceito-chave" — a regra principal, o núcleo normativo, o verbo do comando legal, o sujeito obrigado, o objeto protegido.
+- "verde" = "Exceção / Condição" — requisitos, condicionantes ("desde que", "salvo", "ressalvado", "quando", "se", "exceto"), prazos, hipóteses de incidência e de afastamento.
+- "azul" = "Efeito jurídico" — consequência, pena, sanção, nulidade, responsabilidade, competência atribuída, direito gerado.
+- "rosa" = "Termo técnico" — institutos e expressões que o aluno precisa saber definir.
+- "laranja" = "Pegadinha de prova" — palavras que invertem sentido ou trocam regime ("não", "somente", "sempre", "vedado", "facultado", "poderá" x "deverá"), números, prazos e quóruns trocáveis, rol taxativo x exemplificativo.
+
+SELETIVIDADE (o ponto mais importante)
+- REGRA DE OURO: no máximo ~25% do texto do artigo pode ficar grifado. Se ao final você grifou mais que isso, corte os grifos menos decisivos antes de responder.
+- Quantidade: 3 a 6 grifos em artigos curtos (caput simples), 6 a 12 em artigos longos (com vários parágrafos/incisos). Nunca mais que 12.
+- Não é obrigatório grifar todo parágrafo/inciso: dispositivos repetitivos, meramente remissivos ou procedimentais ficam SEM grifo.
+- Trechos curtos e cirúrgicos (2 a 8 palavras). Jamais grife uma frase inteira, um inciso inteiro ou o caput inteiro.
+- NUNCA grife conectivos, expressões vazias ou texto genérico ("na forma da lei", "para os efeitos deste artigo") a não ser que sejam a pegadinha em si.
+- Varie as categorias: se o artigo tem pena/consequência, use azul; se tem instituto técnico, use rosa; se tem palavra que inverte sentido, número ou prazo, use laranja. Não devolva um resultado só com amarelo e verde quando as outras categorias existirem no texto.
+- Nunca marque o mesmo trecho duas vezes e não sobreponha trechos que se contenham.
+- Ordene os grifos na mesma sequência em que aparecem no texto.
+
+TESTE FINAL antes de responder: para cada grifo pergunte "uma banca cobraria exatamente isso?". Se a resposta for não, remova.
+
+PRECISÃO
+- O "trechoExato" DEVE ser copiado caractere por caractere do texto (acentos, maiúsculas, pontuação, "§", numerais). Se não tiver certeza da grafia exata, escolha outro trecho.
+- Não invente trechos, não parafraseie, não junte partes distantes do texto.
+- Explicações objetivas, em português brasileiro, sem repetir a mesma justificativa em vários grifos.`;
+            
+            const prompt = `LEGISLAÇÃO: ${tabelaNome || ''}\nARTIGO: ${artigo.numero}\nTEXTO:\n${fullText}`;
+            
+            const rawReply = await generateOmniText({ 
+              prompt, 
+              systemPrompt: sys, 
+              complexity: 'high', 
+              responseFormat: 'json' 
+            });
+
+            const rawStr = typeof rawReply === 'string' ? rawReply : JSON.stringify(rawReply);
+            grifos = parseGrifos(rawStr);
+            if (grifos) break;
+          } catch (error) {
+            console.error('Grifo mágico invoke error:', error);
+            continue;
+          }
           console.warn(`Grifo mágico: parse failed attempt ${attempt + 1}, retrying...`);
         }
 
@@ -1787,33 +1823,93 @@ const ArtigoBottomSheet = ({
           setAiGeneratingStep(prev => (prev < 2 ? prev + 1 : prev));
         }, 1800);
 
-        supabase.functions.invoke('assistente-juridica', {
-          body: {
-            mode: activeTab,
-            artigoTexto: artigo.caput,
-            artigoNumero: artigo.numero,
-            leiNome: tabelaNome || '',
-          },
-        }).then(({ data, error }) => {
-          clearInterval(stepInterval);
-          if (!error && data?.reply) {
-            setAiGeneratingStep(3);
-            setAiContent(prev => ({ ...prev, [activeTab]: data.reply }));
-            setLocalAiCache(cacheKey.tabela, cacheKey.numero, cacheKey.modo, data.reply);
-            // Save to DB cache
-            supabase.from('artigo_ai_cache').upsert({
-              tabela_codigo: cacheKey.tabela,
-              numero_artigo: cacheKey.numero,
-              tipo: cacheKey.modo,
-              conteudo: data.reply,
-            }, { onConflict: 'tabela_codigo,numero_artigo,tipo' }).then(() => {});
-          } else {
+        (async () => {
+          try {
+            const { generateOmniText } = await import('@/lib/omniRouteClient');
+            
+            let sys = '';
+            if (mode === 'explicacao') {
+              sys = `Você é um jurista brasileiro que explica artigos de lei de forma direta, técnica e didática — o mesmo método usado no chat jurídico do app.
+
+REGRAS ABSOLUTAS DE ESTILO (NUNCA VIOLE):
+- NUNCA se apresente. NUNCA use saudações como "Olá", "Oi", "Bem-vindo", "Prazer", "meus caros alunos", "pessoal", "galera".
+- NUNCA fale sobre você mesmo, sobre "hoje vamos aprender", "vamos descomplicar", "professor aqui". Vá DIRETO ao conteúdo.
+- A primeira linha de cada seção já entra na explicação do dispositivo, sem preâmbulo.
+- Tom técnico-didático, sem enrolação, sem "espero ter ajudado" no final. Como o chat jurídico do app.
+- Português brasileiro, com markdown (negrito, listas) quando ajudar a leitura.
+- CITE ARTIGOS NO FORMATO CANÔNICO quando referir outra norma: "art. N do CP", "art. N da CF", "art. N da Lei nº 8.429/1992".
+
+ESTRUTURA:
+- Organize a explicação por CADA PARTE do artigo separadamente. Use o marcador "---SECAO---" em uma linha sozinha entre as seções.
+- A primeira seção DEVE ser "## Caput" e explicar o caput.
+- Depois, para CADA inciso presente: "## Inciso I", "## Inciso II", etc.
+- Para cada parágrafo: "## Parágrafo único" ou "## § 1º", "## § 2º", etc.
+- Alíneas ficam dentro do inciso correspondente.
+- Cada seção explica aquela parte com clareza; não repita o texto do artigo, apenas explique.`;
+            } else if (mode === 'exemplo') {
+              sys = `Você é um jurista brasileiro que ilustra artigos de lei com exemplos práticos — mesmo método direto e técnico do chat jurídico do app.
+
+REGRAS ABSOLUTAS DE ESTILO (NUNCA VIOLE):
+- NUNCA se apresente. NUNCA use saudações como "Olá, meus caros alunos e alunas", "pessoal", "galera", "professor aqui".
+- NUNCA fale sobre si mesmo nem sobre o que "vamos aprender". Vá DIRETO ao exemplo.
+- Cada exemplo abre com a situação em si (nome fictício + fato), sem preâmbulo. Sem "espero ter ajudado" no final.
+- Tom técnico-didático, direto ao ponto, igual ao chat jurídico. Português brasileiro, markdown quando ajudar.
+- CITE ARTIGOS NO FORMATO CANÔNICO quando referir a norma explicada ou outras: "art. N do CP", "art. N da CF".
+
+ESTRUTURA:
+- Crie exatamente 3 exemplos práticos, realistas e diferentes entre si.
+- Use nomes fictícios (Maria, João, empresa XYZ).
+- Separe os exemplos com o marcador "---EXEMPLO---" em uma linha sozinha antes de cada título.
+- Cada exemplo tem título "## Exemplo 1: Título", "## Exemplo 2: Título", "## Exemplo 3: Título".
+- Cada exemplo contém: a situação narrada de forma objetiva e como o artigo se aplica (com o dispositivo citado).`;
+            } else {
+              sys = `Você é um glossarista jurídico que traduz termos técnicos do Direito para linguagem popular. Analise o texto do artigo e identifique TODOS os termos jurídicos ou técnicos que um leigo não entenderia.
+
+Regras:
+- Responda SEMPRE em português brasileiro
+- Identifique cada termo técnico presente no artigo
+- IMPORTANTE: Separe cada termo com o marcador "---TERMO---" em uma linha sozinha antes do termo
+- Para cada termo, use como título o próprio termo: "## República Federativa", "## Estado Democrático de Direito", etc.
+- Depois do título, dê uma explicação simples, direta e acessível
+- Use analogias do dia a dia quando possível
+- Se houver expressões latinas, explique também
+- Não pule nenhum termo técnico, mesmo os que pareçam simples
+- Use formatação markdown`;
+            }
+
+            const fullTextForAI = [artigo.caput, ...(artigo.incisos || []), ...(artigo.paragrafos || [])].filter(Boolean).join('\n');
+            const prompt = `LEGISLAÇÃO: ${tabelaNome || ''}\nARTIGO: ${artigo.numero}\nTEXTO:\n${fullTextForAI}`;
+            
+            const reply = await generateOmniText({ 
+              prompt, 
+              systemPrompt: sys, 
+              complexity: 'low' 
+            });
+            
+            clearInterval(stepInterval);
+            if (reply) {
+              setAiGeneratingStep(3);
+              setAiContent(prev => ({ ...prev, [activeTab]: reply }));
+              setLocalAiCache(cacheKey.tabela, cacheKey.numero, cacheKey.modo, reply);
+              // Save to DB cache
+              supabase.from('artigo_ai_cache').upsert({
+                tabela_codigo: cacheKey.tabela,
+                numero_artigo: cacheKey.numero,
+                tipo: cacheKey.modo,
+                conteudo: reply,
+              }, { onConflict: 'tabela_codigo,numero_artigo,tipo' }).then(() => {});
+            } else {
+              setAiContent(prev => ({ ...prev, [activeTab]: 'Não foi possível gerar o conteúdo. Tente novamente.' }));
+            }
+            setAiLoading(prev => ({ ...prev, [activeTab]: false }));
+            setTimeout(() => setAiGeneratingMode(null), 500);
+          } catch (error) {
+            clearInterval(stepInterval);
             setAiContent(prev => ({ ...prev, [activeTab]: 'Não foi possível gerar o conteúdo. Tente novamente.' }));
+            setAiLoading(prev => ({ ...prev, [activeTab]: false }));
+            setTimeout(() => setAiGeneratingMode(null), 500);
           }
-          setAiLoading(prev => ({ ...prev, [activeTab]: false }));
-          // Pequeno delay para o usuário ver o passo "Pronto"
-          setTimeout(() => setAiGeneratingMode(null), 500);
-        });
+        })();
       });
     });
   }, [activeTab, artigo?.id]);
