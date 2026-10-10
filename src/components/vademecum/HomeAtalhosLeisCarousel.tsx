@@ -190,7 +190,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
   );
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true, align: 'center', skipSnaps: false },
+    { loop: true, align: 'center', skipSnaps: false, dragFree: true },
     [autoplayPlugin.current]
   );
 
