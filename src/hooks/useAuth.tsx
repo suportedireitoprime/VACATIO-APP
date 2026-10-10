@@ -108,6 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             phone: (session?.user?.user_metadata as any)?.telefone ?? null,
           });
           appEvents.login(provider);
+          // Sync Leis Recentes / Artigos Recentes do Supabase pro localStorage
+          import('@/lib/leisRecentes').then((m) => m.syncRecentesFromSupabase().catch(() => {}));
         } else if (_event === 'SIGNED_OUT') appEvents.logout();
       }).catch(() => {});
     });
