@@ -67,9 +67,6 @@ export async function generateOmniText({
     ? `${config.baseUrl}/chat/completions`
     : `${config.baseUrl.replace(/\/$/, '')}/v1/chat/completions`;
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
-
   const messages = [];
   if (systemPrompt) {
     messages.push({ role: 'system', content: systemPrompt });
@@ -78,26 +75,34 @@ export async function generateOmniText({
 
   const finalModel = modelOverride || (complexity ? OMNI_MODELS[complexity] : config.defaultModel) || 'omniroute/auto';
 
-  const body = JSON.stringify({
+  const payload = {
     model: finalModel,
     messages
-  });
+  };
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout
 
   try {
-    const res = await fetch(url, { method: 'POST', headers, body, signal: controller.signal });
+    const { data, error } = await supabase.functions.invoke('assistente-juridica', {
+      body: { 
+        mode: 'omniroute_proxy',
+        url,
+        payload 
+      }
+    });
     clearTimeout(timeoutId);
     
-    if (!res.ok) {
-      const err = await res.text();
-      console.error(`OmniRoute Error: HTTP ${res.status}: ${err}`);
-      throw new Error(`OmniRoute HTTP ${res.status}: ${err}`);
+    if (error) {
+      console.error(`OmniRoute Proxy Error:`, error);
+      throw new Error(`OmniRoute Proxy: ${error.message || JSON.stringify(error)}`);
     }
 
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content || '';
+    if (data?.error) {
+       throw new Error(`OmniRoute HTTP Error: ${JSON.stringify(data.error)}`);
+    }
+
+    return data?.choices?.[0]?.message?.content || '';
   } catch (err: any) {
     clearTimeout(timeoutId);
     console.error(`[OmniRoute] Falhou ou deu timeout:`, err);
@@ -134,31 +139,36 @@ export async function generateOmniChat({
     ? `${config.baseUrl}/chat/completions`
     : `${config.baseUrl.replace(/\/$/, '')}/v1/chat/completions`;
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
-
   const finalModel = modelOverride || (complexity ? OMNI_MODELS[complexity] : config.defaultModel) || 'omniroute/auto';
 
-  const body = JSON.stringify({
+  const payload = {
     model: finalModel,
     messages
-  });
+  };
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 90000);
 
   try {
-    const res = await fetch(url, { method: 'POST', headers, body, signal: controller.signal });
+    const { data, error } = await supabase.functions.invoke('assistente-juridica', {
+      body: { 
+        mode: 'omniroute_proxy',
+        url,
+        payload 
+      }
+    });
     clearTimeout(timeoutId);
     
-    if (!res.ok) {
-      const err = await res.text();
-      console.error(`OmniRoute Chat Error: HTTP ${res.status}: ${err}`);
-      throw new Error(`OmniRoute Chat HTTP ${res.status}: ${err}`);
+    if (error) {
+      console.error(`OmniRoute Chat Proxy Error:`, error);
+      throw new Error(`OmniRoute Chat Proxy: ${error.message || JSON.stringify(error)}`);
     }
 
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content || '';
+    if (data?.error) {
+       throw new Error(`OmniRoute Chat HTTP Error: ${JSON.stringify(data.error)}`);
+    }
+
+    return data?.choices?.[0]?.message?.content || '';
   } catch (err: any) {
     clearTimeout(timeoutId);
     console.error(`[OmniRoute Chat] Falhou ou deu timeout:`, err);

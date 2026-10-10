@@ -353,6 +353,37 @@ Deno.serve(async (req) => {
     const tabelaNomeRaw = body.tabelaNome || body.tabela_nome;
     const tabelaNome = isTabelaLeiPermitida(tabelaNomeRaw) ? tabelaNomeRaw : null;
 
+    if (mode === 'omniroute_proxy') {
+      try {
+        const apiKey = Deno.env.get('OMNIROUTE_API_KEY_NOVA') || Deno.env.get('OMNIROUTE_API_KEY');
+        if (!apiKey) {
+          return new Response(JSON.stringify({ error: 'OMNIROUTE_API_KEY_NOVA secret not set in Supabase' }), {
+            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        
+        const omniUrl = body.url || 'https://omniroute-production-fb57.up.railway.app/v1/chat/completions';
+        const proxyRes = await fetch(omniUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(body.payload),
+        });
+
+        const data = await proxyRes.text();
+        return new Response(data, {
+          status: proxyRes.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     // Identifica o usuário autenticado (para contabilizar quem fez a chamada de IA)
     let _callerUserId: string | null = null;
     try {
