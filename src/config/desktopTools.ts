@@ -46,6 +46,7 @@ export const DESKTOP_TOOL_GROUPS: DesktopToolGroup[] = [
     hint: 'Consulta rápida de conceitos, resumos e referências',
     tools: [
       { id: 'desktop', label: 'Modo Desktop', desc: 'Acesso via computador', icon: Monitor, route: '/desktop', color: '#10B981' },
+      { id: 'biblioteca', label: 'Biblioteca', desc: 'Livros, manuais e doutrinas', icon: Library, route: '/biblioteca', color: '#F59E0B' },
       { id: 'dicionario', label: 'Dicionário Jurídico', desc: 'Termos e conceitos do Direito', icon: BookOpenText, route: '/ferramentas/dicionario', color: '#3B82F6' },
       { id: 'resumos', label: 'Resumos Jurídicos', desc: 'Biblioteca por área, tema e subtema', icon: NotebookText, route: '/resumos-juridicos', color: '#A855F7' },
       { id: 'locais', label: 'Locais Jurídicos', desc: 'Tribunais, cartórios e delegacias', icon: MapPin, route: '/ferramentas/locais', color: '#14B8A6' },
