@@ -1,6 +1,4 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -51,6 +49,11 @@ import { getLeiColor, shade } from '@/lib/leiTheme';
 
 const STORAGE_KEY = 'home_atalhos_leis_v5';
 const MAX_ATALHOS = 13;
+
+const CARD_W = 126; // px
+const GAP = 14; // px
+const STEP = CARD_W + GAP;
+const sidePad = 'calc(50% - 63px)';
 
 /** Ordem padrão solicitada: CF, CPC, CC, CP, CPP, CLT + restantes */
 const DEFAULT_ATALHOS_IDS = [
@@ -185,33 +188,6 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<string>('em-alta');
 
-  const autoplayPlugin = useRef(
-    Autoplay({ delay: 3500, stopOnInteraction: true, stopOnMouseEnter: true })
-  );
-
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true, align: 'center', skipSnaps: false, dragFree: true },
-    [autoplayPlugin.current]
-  );
-
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    onSelect();
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onSelect);
-    return () => { 
-      emblaApi.off('select', onSelect); 
-      emblaApi.off('reInit', onSelect); 
-    };
-  }, [emblaApi, onSelect]);
-
   const activeLeis = useMemo(() => {
     const map = new Map<string, LeiCatalogItem>();
     LEIS_CATALOG.forEach((lei) => map.set(lei.id, lei));
@@ -219,6 +195,159 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
       .map((id) => map.get(id))
       .filter((item): item is LeiCatalogItem => Boolean(item));
   }, [selectedIds]);
+
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const didInitRef = useRef(false);
+
+  // Triplica para simular loop infinito com fluidez perfeita: [base | base | base]
+  const lista = useMemo(() => (activeLeis.length ? [...activeLeis, ...activeLeis, ...activeLeis] : []), [activeLeis]);
+  const BASE_LEN = activeLeis.length;
+
+  const dragRef = useRef<{
+    active: boolean;
+    startX: number;
+    startScroll: number;
+    moved: number;
+    pointerId: number;
+  } | null>(null);
+
+  const lastOpenRef = useRef(0);
+
+  const tapRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+    leiId: string;
+    itemIdx: number;
+    t: number;
+    moved: number;
+    startScroll: number;
+  } | null>(null);
+
+  // Detecta o item central via scroll
+  const updateActive = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el || !BASE_LEN) return;
+    const center = el.scrollLeft + el.clientWidth / 2;
+    const first = el.querySelector<HTMLElement>('[data-cover-item]');
+    if (!first) return;
+    const startOffset = first.offsetLeft + first.offsetWidth / 2;
+    const idx = Math.round((center - startOffset) / STEP);
+    const clamped = Math.max(0, Math.min(lista.length - 1, idx));
+    setActiveIdx(clamped);
+  }, [lista.length, BASE_LEN]);
+
+  // Salta invisivelmente para o bloco central se estiver muito perto das bordas
+  const normalizeLoop = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el || !BASE_LEN) return;
+    const items = el.querySelectorAll<HTMLElement>('[data-cover-item]');
+    if (items.length < BASE_LEN * 3) return;
+    const centerOf = (i: number) =>
+      items[i].offsetLeft - (el.clientWidth - items[i].offsetWidth) / 2;
+    if (activeIdx < BASE_LEN * 0.5) {
+      el.scrollTo({ left: centerOf(activeIdx + BASE_LEN), behavior: 'auto' });
+    } else if (activeIdx >= BASE_LEN * 2.5) {
+      el.scrollTo({ left: centerOf(activeIdx - BASE_LEN), behavior: 'auto' });
+    }
+  }, [activeIdx, BASE_LEN]);
+
+  // Inicializa o scroll no meio (bloco central) assim que os itens montarem
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || !BASE_LEN || didInitRef.current) return;
+    const items = el.querySelectorAll<HTMLElement>('[data-cover-item]');
+    if (items.length < BASE_LEN * 3) return;
+    const mid = items[BASE_LEN];
+    el.scrollTo({
+      left: mid.offsetLeft - (el.clientWidth - mid.offsetWidth) / 2,
+      behavior: 'auto',
+    });
+    didInitRef.current = true;
+    updateActive();
+  }, [BASE_LEN, updateActive, lista.length]);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    updateActive();
+    const onScroll = () => updateActive();
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [updateActive]);
+
+  // Normaliza loop quando o usuário para de interagir
+  useEffect(() => {
+    if (paused) return;
+    const t = window.setTimeout(normalizeLoop, 200);
+    return () => clearTimeout(t);
+  }, [paused, activeIdx, normalizeLoop]);
+
+  // Auto-avanço a cada 3.5s (pausa ao interagir)
+  useEffect(() => {
+    if (paused || lista.length === 0) return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    const id = window.setInterval(() => {
+      if (document.querySelector('[role="dialog"],[data-state="open"][data-radix-dialog-content]')) return;
+      const next = (activeIdx + 1) % lista.length;
+      const target = el.querySelectorAll<HTMLElement>('[data-cover-item]')[next];
+      if (target) {
+        const left = target.offsetLeft - (el.clientWidth - target.offsetWidth) / 2;
+        el.scrollTo({ left, behavior: 'smooth' });
+      }
+    }, 3500);
+    return () => clearInterval(id);
+  }, [paused, activeIdx, lista.length]);
+
+  const onScrollerPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    setPaused(true);
+    const scroller = scrollerRef.current;
+    if (scroller) scroller.scrollTo({ left: scroller.scrollLeft, behavior: 'auto' });
+    if (e.pointerType !== 'mouse') return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    dragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startScroll: el.scrollLeft,
+      moved: 0,
+      pointerId: e.pointerId,
+    };
+  };
+
+  const onScrollerPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (!d?.active || e.pointerId !== d.pointerId) return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    const dx = e.clientX - d.startX;
+    d.moved = Math.max(d.moved, Math.abs(dx));
+    if (d.moved > 6) {
+      if (!el.hasPointerCapture(e.pointerId)) {
+        try { el.setPointerCapture(e.pointerId); } catch {}
+        el.style.cursor = 'grabbing';
+      }
+      el.scrollLeft = d.startScroll - dx;
+    }
+  };
+
+  const endDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    const el = scrollerRef.current;
+    if (el) el.style.cursor = '';
+    if (d?.active && el?.hasPointerCapture(e.pointerId)) {
+      el.releasePointerCapture(e.pointerId);
+    }
+    setTimeout(() => setPaused(false), 1500);
+    if (d) {
+      setTimeout(() => {
+        if (dragRef.current === d) dragRef.current = null;
+      }, 0);
+    }
+  };
 
   const filteredCatalog = useMemo(() => {
     let list: LeiCatalogItem[];
@@ -329,15 +458,30 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
         </button>
       </div>
 
-      {/* Carrossel de Atalhos com Embla Autoplay + Center Zoom */}
+      {/* Carrossel de Atalhos fluido (mesmo motor nativo de Selecionados Para Você) */}
       <div className="relative -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 -mt-10">
-        <div ref={emblaRef} className="overflow-hidden pb-4 pt-10" tabIndex={0} aria-label="Carrossel de atalhos de leis em alta">
-          <div className="flex items-center touch-pan-y">
-            {activeLeis.map((lei, index) => {
+        <div
+          ref={scrollerRef}
+          className="overflow-x-auto no-scrollbar snap-x snap-mandatory md:cursor-grab select-none pb-4 pt-10"
+          style={{ scrollPaddingInline: sidePad }}
+          onPointerDown={onScrollerPointerDown}
+          onPointerMove={onScrollerPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          onPointerLeave={() => setPaused(false)}
+          tabIndex={0}
+          aria-label="Carrossel de atalhos de leis em alta"
+        >
+          <div
+            className="flex items-center"
+            style={{ gap: `${GAP}px`, paddingInline: sidePad }}
+          >
+            {lista.map((lei, index) => {
               const LawIcon = getLawIcon(lei.id, lei.tipo);
               const baseColor = getLeiColor(lei.id, lei.tipo);
-              const isCenter = index === selectedIndex;
-              
+              const isCenter = index === activeIdx;
+              const cardKey = `${lei.id}-${index}`;
+
               let coverImage = null;
               if (lei.id === 'cdc') coverImage = '/assets/cdc-girl.webp';
               else if (lei.id === 'clt') coverImage = '/assets/cdc-worker.webp';
@@ -352,67 +496,128 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
               else if (lei.id === 'epd') coverImage = '/assets/epd-wheelchair.webp';
               else if (lei.id === 'ce') coverImage = '/assets/ce-vote.webp';
 
+              const openThis = () => {
+                const now = Date.now();
+                if (now - lastOpenRef.current < 800) return;
+                lastOpenRef.current = now;
+                if (!isCenter) {
+                  const el = scrollerRef.current;
+                  if (el) {
+                    const items = el.querySelectorAll<HTMLElement>('[data-cover-item]');
+                    const target = items[index];
+                    if (target) {
+                      const left = target.offsetLeft - (el.clientWidth - target.offsetWidth) / 2;
+                      el.scrollTo({ left, behavior: 'smooth' });
+                      return;
+                    }
+                  }
+                }
+                onOpenLei(lei.id);
+              };
+
               return (
-                <div key={lei.id} className="flex-[0_0_auto] min-w-0 pl-3 sm:pl-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!isCenter && emblaApi) {
-                        emblaApi.scrollTo(index);
-                      } else {
-                        onOpenLei(lei.id);
-                      }
-                    }}
-                    className={`border-0 w-[124px] sm:w-[136px] h-[106px] sm:h-[114px] shrink-0 rounded-2xl relative flex flex-col text-left cursor-pointer select-none transition-all duration-300 shadow-md group outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${isCenter ? 'scale-105 z-20 shadow-xl' : 'scale-95 opacity-80 z-10'}`}
+                <button
+                  key={cardKey}
+                  data-cover-item
+                  type="button"
+                  onPointerDown={(e) => {
+                    const sc = scrollerRef.current;
+                    if (sc) sc.scrollLeft = sc.scrollLeft;
+                    tapRef.current = {
+                      pointerId: e.pointerId,
+                      x: e.clientX,
+                      y: e.clientY,
+                      leiId: lei.id,
+                      itemIdx: index,
+                      t: Date.now(),
+                      moved: 0,
+                      startScroll: sc?.scrollLeft ?? 0,
+                    };
+                  }}
+                  onPointerMove={(e) => {
+                    const t = tapRef.current;
+                    if (!t || t.pointerId !== e.pointerId) return;
+                    t.moved = Math.max(t.moved, Math.abs(e.clientX - t.x), Math.abs(e.clientY - t.y));
+                  }}
+                  onPointerUp={(e) => {
+                    const t = tapRef.current;
+                    tapRef.current = null;
+                    if (!t || t.pointerId !== e.pointerId || t.itemIdx !== index) return;
+                    const dx = Math.abs(e.clientX - t.x);
+                    const dy = Math.abs(e.clientY - t.y);
+                    if (dx > 10 || dy > 10) return;
+                    const scrolled = Math.abs((scrollerRef.current?.scrollLeft ?? 0) - t.startScroll);
+                    if (scrolled > 4) return;
+                    if (Date.now() - t.t > 800) return;
+                    if ((dragRef.current?.moved ?? 0) > 6) return;
+                    e.preventDefault();
+                    openThis();
+                  }}
+                  onPointerCancel={() => {
+                    tapRef.current = null;
+                  }}
+                  onClick={(e) => {
+                    if ((dragRef.current?.moved ?? 0) > 6) {
+                      e.preventDefault();
+                      return;
+                    }
+                    openThis();
+                  }}
+                  draggable={false}
+                  className={`border-0 w-[124px] sm:w-[136px] h-[106px] sm:h-[114px] shrink-0 snap-center rounded-2xl relative flex flex-col text-left cursor-pointer select-none transition-all duration-300 shadow-md group outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                    isCenter ? 'scale-105 z-20 shadow-xl' : 'scale-95 opacity-80 z-10'
+                  }`}
+                  style={{ touchAction: 'manipulation' }}
+                >
+                  {/* Fundo com clip para a cor e o ícone de marca d'água */}
+                  <div 
+                    className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
+                    style={{ background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.3)} 100%)` }}
                   >
-                    {/* Fundo com clip para a cor e o ícone de marca d'água */}
-                    <div 
-                      className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-                      style={{ background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.3)} 100%)` }}
-                    >
+                    <LawIcon
+                      className="absolute -right-2 -bottom-2 w-16 h-16 sm:w-20 sm:h-20 text-white/[0.15] drop-shadow-md group-hover:scale-105 group-hover:text-white/[0.2] transition-all duration-300"
+                      strokeWidth={1.3}
+                    />
+                    <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
+                  </div>
+
+                  {coverImage && (
+                    <img
+                      src={coverImage}
+                      alt={`Capa da lei ${lei.sigla}`}
+                      className={`absolute -top-5 right-0 h-[104px] w-auto max-w-none object-contain pointer-events-none z-10 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] transition-all duration-300 ${
+                        isCenter ? 'scale-110 drop-shadow-[0_12px_20px_rgba(0,0,0,0.7)]' : 'scale-100'
+                      }`}
+                    />
+                  )}
+
+                  {/* Conteúdo visível (Sigla da lei no fundo e ícone no canto superior) */}
+                  <div className="relative z-20 flex flex-col justify-between w-full h-full p-2.5 pointer-events-none">
+                    <div className="flex justify-between items-start">
                       <LawIcon
-                        className="absolute -right-2 -bottom-2 w-16 h-16 sm:w-20 sm:h-20 text-white/[0.15] drop-shadow-md group-hover:scale-105 group-hover:text-white/[0.2] transition-all duration-300"
-                        strokeWidth={1.3}
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-white shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-200"
+                        strokeWidth={1.8}
                       />
-                      <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
                     </div>
-
-                    {coverImage && (
-                      <img
-                        src={coverImage}
-                        alt={`Capa da lei ${lei.sigla}`}
-                        className={`absolute -top-5 right-0 h-[104px] w-auto max-w-none object-contain pointer-events-none z-10 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] transition-all duration-300 ${isCenter ? 'scale-110 drop-shadow-[0_12px_20px_rgba(0,0,0,0.7)]' : 'scale-100'}`}
-                      />
-                    )}
-
-                    {/* Conteúdo visível (Sigla da lei no fundo e ícone no canto superior) */}
-                    <div className="relative z-20 flex flex-col justify-between w-full h-full p-2.5 pointer-events-none">
-                      <div className="flex justify-between items-start">
-                        <LawIcon
-                          className="w-4 h-4 sm:w-5 sm:h-5 text-white shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-200"
-                          strokeWidth={1.8}
-                        />
-                      </div>
-                      
-                      <div className="flex justify-between items-end mt-auto">
-                        <div className="flex flex-col">
-                          <span className="font-display text-white text-[22px] sm:text-[24px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] leading-none">
-                            {lei.sigla}
+                    
+                    <div className="flex justify-between items-end mt-auto">
+                      <div className="flex flex-col">
+                        <span className="font-display text-white text-[22px] sm:text-[24px] font-black tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] leading-none">
+                          {lei.sigla}
+                        </span>
+                        {lei.tipo && (
+                          <span className="text-white/80 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mt-0.5">
+                            {lei.tipo}
                           </span>
-                          {lei.tipo && (
-                            <span className="text-white/80 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mt-0.5">
-                              {lei.tipo}
-                            </span>
-                          )}
-                        </div>
-                        <ChevronRight
-                          className="w-3.5 h-3.5 text-white/70 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200 shrink-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] mb-0.5"
-                          strokeWidth={2.4}
-                        />
+                        )}
                       </div>
+                      <ChevronRight
+                        className="w-3.5 h-3.5 text-white/70 group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200 shrink-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] mb-0.5"
+                        strokeWidth={2.4}
+                      />
                     </div>
-                  </button>
-                </div>
+                  </div>
+                </button>
               );
             })}
           </div>
