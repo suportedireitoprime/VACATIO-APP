@@ -42,7 +42,7 @@ const HomeActionShortcuts = () => {
             style={{
               '--shimmer-delay': `${index * 150}ms`,
             } as React.CSSProperties}
-            className="flex-1 group relative flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-all duration-200 active:scale-95 gap-2 text-center select-none cursor-pointer overflow-hidden"
+            className="flex-1 group relative flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-200 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden"
           >
             {badgeCount > 0 && item.badgeColor && (
               <span
@@ -54,11 +54,11 @@ const HomeActionShortcuts = () => {
             )}
 
             <Icon
-              className="w-[26px] h-[26px] sm:w-7 sm:h-7 shrink-0 transition-transform duration-200 group-hover:scale-110"
-              style={{ color: item.color, filter: 'saturate(1.25) drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}
-              strokeWidth={2.2}
+              className="w-[22px] h-[22px] sm:w-[23px] sm:h-[23px] shrink-0 transition-transform duration-200 group-hover:scale-105"
+              style={{ color: item.color, filter: 'saturate(1.2) drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
+              strokeWidth={1.5}
             />
-            <span className="font-sans text-white text-[13.5px] sm:text-[14px] font-semibold leading-tight tracking-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <span className="font-sans text-white/95 text-[12px] sm:text-[12.5px] font-medium leading-tight tracking-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               {item.label}
             </span>
           </button>
