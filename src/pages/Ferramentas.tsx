@@ -39,13 +39,14 @@ const Ferramentas = () => {
     />
   );
 
+  const itemMeExplique = DESKTOP_TOOLS_FLAT.find(t => t.id === 'me-explique');
   const itemDesktop = DESKTOP_TOOLS_FLAT.find(t => t.id === 'desktop');
   const itemBiblioteca = DESKTOP_TOOLS_FLAT.find(t => t.id === 'biblioteca');
   const itemDicionario = DESKTOP_TOOLS_FLAT.find(t => t.id === 'dicionario');
   const itemBoletins = DESKTOP_TOOLS_FLAT.find(t => t.id === 'boletins');
   const itemOffline = DESKTOP_TOOLS_FLAT.find(t => t.id === 'offline');
   
-  const primaryTools = [itemDesktop, itemBiblioteca, itemDicionario, itemBoletins, itemOffline].filter(Boolean);
+  const primaryTools = [itemMeExplique, itemDesktop, itemBiblioteca, itemDicionario, itemBoletins, itemOffline].filter(Boolean);
   const primaryIds = primaryTools.map(t => t?.id);
   // Tematica will be handled separately by the carousel, so we exclude it from the list
   const usedIds = new Set([...primaryIds, 'tematica', 'noticias', 'resumos']);
