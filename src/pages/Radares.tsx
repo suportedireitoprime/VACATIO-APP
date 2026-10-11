@@ -15,7 +15,7 @@ if (typeof window !== 'undefined') {
 }
 
 const item = {
-  label: 'Radar Legislativo',
+  label: 'Radar 360',
   short: 'Projetos em Tramitação',
   cover: radarLeisSrc,
   icon: ScanEye,
@@ -26,7 +26,7 @@ const item = {
     'Deputados e Senadores autores das proposições',
     'Destaque para projetos que alteram Leis e Códigos',
   ],
-  cta: 'Abrir Radar Legislativo',
+  cta: 'Abrir Radar 360',
   route: '/radar',
   gradient:
     'radial-gradient(120% 90% at 50% 30%, #3a0f0a 0%, #1a0605 45%, #080303 100%)',

@@ -79,9 +79,14 @@ export async function syncRecentesFromSupabase() {
 export function pushRecente(lei: Omit<LeiRecente, 'openedAt'>) {
   if (typeof window === 'undefined') return;
   try {
-    const list = getRecentes().filter((l) => l.leiId !== lei.leiId || l.artigoNumero !== lei.artigoNumero);
-    list.unshift({ ...lei, openedAt: Date.now() });
-    localStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX)));
+    const list = getRecentes();
+    // Preserva o artigo existente se a chamada atual não forneceu um novo
+    const existing = list.find((l) => l.leiId === lei.leiId && l.artigoNumero);
+    const artigoNumeroResolvido = lei.artigoNumero || existing?.artigoNumero;
+
+    const filtered = list.filter((l) => l.leiId !== lei.leiId);
+    filtered.unshift({ ...lei, artigoNumero: artigoNumeroResolvido, openedAt: Date.now() });
+    localStorage.setItem(KEY, JSON.stringify(filtered.slice(0, MAX)));
     
     // Sincroniza em background
     void (async () => {

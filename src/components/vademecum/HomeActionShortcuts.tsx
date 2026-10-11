@@ -7,7 +7,7 @@ import { prefetchRoute, type PrefetchKey } from '@/lib/routePrefetch';
 const SHORTCUT_ITEMS = [
   { label: 'Blog', icon: Scroll, to: '/blog' as string | null, action: null as (() => void) | null, color: '#F87171', badgeColor: null, badgeKey: null, prefetch: 'blog' as PrefetchKey | null },
   { label: 'Novidades', icon: AlertTriangle, to: '/novidades' as string | null, action: null as (() => void) | null, color: '#FACC15', badgeColor: null, badgeKey: null, prefetch: 'novidades' as PrefetchKey | null },
-  { label: 'Radar', icon: ScanEye, to: '/radar' as string | null, action: null as (() => void) | null, color: '#A78BFA', badgeColor: null, badgeKey: null, prefetch: 'radar' as PrefetchKey | null },
+  { label: 'Radar 360', icon: ScanEye, to: '/radar' as string | null, action: null as (() => void) | null, color: '#A78BFA', badgeColor: null, badgeKey: null, prefetch: 'radar' as PrefetchKey | null },
   { label: 'Boletins', icon: Headphones, to: '/boletins' as string | null, action: null as (() => void) | null, color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: 'boletins' as PrefetchKey | null },
 ];
 

@@ -68,7 +68,11 @@ const HORUS_COLOR: Record<string, { bg: string; text: string }> = {
 // NavShine removido — o brilho contínuo pesava demais na barra
 // inferior (montada em toda navegação mobile/tablet).
 
-const BottomNav = () => {
+interface BottomNavProps {
+  forceVisible?: boolean;
+}
+
+const BottomNav = ({ forceVisible = false }: BottomNavProps = {}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
@@ -154,7 +158,7 @@ const BottomNav = () => {
     { id: 'desktop', label: 'Desktop', desc: 'Versão para computador', icon: Monitor, action: () => navigate('/desktop'), hot: true, prefetch: 'desktop' },
 
     { id: 'dicionario', label: 'Dicionário Jurídico', desc: 'Consulte termos e conceitos do Direito', icon: BookOpen, action: () => navigate('/ferramentas/dicionario'), prefetch: 'dicionario' },
-    { id: 'radar', label: 'Radar Legislativo', desc: 'Projetos em tramitação no Congresso', icon: ScanEye, action: () => navigate('/radar'), prefetch: 'radar' },
+    { id: 'radar', label: 'Radar 360', desc: 'Projetos em tramitação no Congresso', icon: ScanEye, action: () => navigate('/radar'), prefetch: 'radar' },
     { id: 'novidades', label: 'Novidades', desc: 'Resenha diária do Planalto', icon: Bell, action: () => navigate('/novidades'), prefetch: 'novidades' },
     { id: 'locais', label: 'Locais Jurídicos', desc: 'Tribunais, cartórios, delegacias e museus perto de você', icon: Scale, action: () => navigate('/ferramentas/locais'), prefetch: 'locais' },
     { id: 'assistente', label: 'Assistente IA', desc: 'IA jurídica para tirar dúvidas', icon: Bot, action: () => navigate('/assistente-horus'), prefetch: 'assistenteHorus' },
@@ -181,13 +185,12 @@ const BottomNav = () => {
 
   return (
     <>
-    {/* Bottom bar — visível em celular e tablet (< lg).
-        Desktop (lg+) usa a sidebar lateral. */}
+    {/* Bottom bar — visível em celular e tablet (< lg) ou sempre quando forceVisible. */}
     <nav
       aria-label="Navegação principal"
       role="navigation"
       data-bottom-nav
-      className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,var(--sai-bottom))] transition-all duration-300 ease-out ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
+      className={`fixed bottom-0 left-0 right-0 z-50 ${forceVisible ? '' : 'lg:hidden'} border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,var(--sai-bottom))] transition-all duration-300 ease-out ${hideNav ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
     >
       {/* Degradê escuro subindo do rodapé para dar profundidade */}
       <div
@@ -625,7 +628,7 @@ const BottomNav = () => {
                     { icon: Newspaper, color: 'sky', label: 'Boletim jurídico diário', desc: 'Resumo diário das principais notícias do Direito.' },
                     { icon: Gavel, color: 'amber', label: 'Boletim de leis diárias', desc: 'Novas leis e decretos publicados no DOU.' },
                     { icon: Star, color: 'rose', label: 'Mudança em artigo favorito', desc: 'Aviso quando um artigo que você favoritou for alterado.' },
-                    { icon: ScanEye, color: 'violet', label: 'Radar Legislativo', desc: 'Andamento de PLs que você acompanha.' },
+                    { icon: ScanEye, color: 'violet', label: 'Radar 360', desc: 'Andamento de PLs que você acompanha.' },
                   ].map((n, i) => {
                     const Icon = n.icon;
                     return (

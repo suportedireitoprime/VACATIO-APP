@@ -270,8 +270,29 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   // #41 — Continuar Leitura: última lei visitada
   const [ultimaLei, setUltimaLei] = useState<ReturnType<typeof getRecentes>[0] | null>(null);
   useEffect(() => {
-    const recentes = getRecentes();
-    setUltimaLei(recentes[0] || null);
+    const carregarUltima = () => {
+      const recentes = getRecentes();
+      if (recentes.length > 0) {
+        const top = { ...recentes[0] };
+        if (!top.artigoNumero) {
+          try {
+            const raw = localStorage.getItem(`recentes_artigos_${top.tabela_nome || top.leiId}`);
+            if (raw) {
+              const arr = JSON.parse(raw);
+              if (arr && arr[0]) {
+                top.artigoNumero = String(arr[0]);
+              }
+            }
+          } catch {}
+        }
+        setUltimaLei(top);
+      } else {
+        setUltimaLei(null);
+      }
+    };
+    carregarUltima();
+    window.addEventListener('storage', carregarUltima);
+    return () => window.removeEventListener('storage', carregarUltima);
   }, []);
 
   useEffect(() => {
@@ -311,12 +332,16 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const handleOpenLei = useCallback((leiId: string) => {
     const lei = LEIS_CATALOG.find(l => l.id === leiId);
     if (!lei) return;
+    // Preserva artigo existente se houver
+    const existentes = getRecentes();
+    const prev = existentes.find(l => l.leiId === lei.id);
     pushRecente({
       tipo: lei.tipo,
       leiId: lei.id,
       nome: lei.nome,
       descricao: lei.descricao,
       tabela_nome: lei.tabela_nome,
+      artigoNumero: prev?.artigoNumero,
     });
     navigate(leiPath(lei));
   }, [navigate]);
@@ -372,13 +397,14 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           transition={{ duration: 0.3 }}
           onClick={() => {
             const lei = { id: ultimaLei.leiId, nome: ultimaLei.nome };
-            navigate(`/legislacao/${tipoToSlug(ultimaLei.tipo)}/${leiToSlug(lei)}`);
+            const base = `/legislacao/${tipoToSlug(ultimaLei.tipo)}/${leiToSlug(lei)}`;
+            navigate(ultimaLei.artigoNumero ? `${base}/${encodeURIComponent(ultimaLei.artigoNumero)}` : base);
           }}
           style={{
             background: `linear-gradient(to right, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}33, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}0D)`,
             borderColor: `${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}4D`
           }}
-          className="w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl border text-left active:scale-[0.98] transition-transform overflow-hidden relative"
+          className="w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl border text-left active:scale-[0.98] transition-transform overflow-hidden relative shadow-lg"
         >
           {(() => {
             const bgCor = getLeiColor(ultimaLei.leiId, ultimaLei.tipo);
@@ -391,28 +417,39 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             const IconeLei = isCf ? Landmark : (LAW_ICON_MAP[ultimaLei.leiId] || BookOpen);
             return (
               <>
-                <div className="flex items-center justify-center shrink-0">
+                <div className="flex items-center justify-center shrink-0 z-10">
                   <IconeLei className="w-8 h-8 drop-shadow-sm" style={{ color: shade(bgCor, 0.2) }} strokeWidth={1.5} />
                 </div>
                 <div className="flex-1 min-w-0 z-10">
                   <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: shade(bgCor, 0.2) }}>Continuar Leitura</p>
                   <p className="font-display text-[13px] font-bold text-foreground truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{ultimaLei.nome}</p>
                   {ultimaLei.artigoNumero ? (
-                    <p className="text-[11px] font-medium truncate" style={{ color: shade(bgCor, 0.3) }}>
-                      Parou em: {ultimaLei.artigoNumero}
+                    <p className="text-[11px] font-semibold truncate flex items-center gap-1.5" style={{ color: shade(bgCor, 0.25) }}>
+                      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: bgCor }} />
+                      <span>{ultimaLei.artigoNumero.toLowerCase().includes('art') ? `Parou no ${ultimaLei.artigoNumero}` : `Parou no Art. ${ultimaLei.artigoNumero}`}</span>
                     </p>
                   ) : (
-                    <p className="text-[10px] text-muted-foreground truncate drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]">{ultimaLei.descricao}</p>
+                    <p className="text-[11px] font-medium truncate flex items-center gap-1.5" style={{ color: shade(bgCor, 0.25) }}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: bgCor }} />
+                      <span>{ultimaLei.descricao || 'Parou no Art. 1º'}</span>
+                    </p>
                   )}
                 </div>
                 <ArrowRight className="w-5 h-5 shrink-0 z-10" style={{ color: shade(bgCor, 0.2) }} />
                 
-                {/* Bg decoration */}
-                <IconeLei 
-                  className="absolute -right-3 -bottom-3 w-22 h-22 opacity-[0.20] pointer-events-none" 
-                  style={{ color: bgCor }} 
-                  strokeWidth={1.3}
-                />
+                {/* Bg decoration — SVG translúcido no lado direito com sombra marcante */}
+                <div
+                  className="absolute -right-3 -bottom-3 pointer-events-none select-none z-0 overflow-visible flex items-center justify-center"
+                  style={{
+                    filter: `drop-shadow(0 4px 12px rgba(0,0,0,0.9)) drop-shadow(0 0 10px ${bgCor}40)`,
+                  }}
+                >
+                  <IconeLei 
+                    className="w-24 h-24 opacity-30" 
+                    style={{ color: bgCor }} 
+                    strokeWidth={1.2}
+                  />
+                </div>
               </>
             );
           })()}
