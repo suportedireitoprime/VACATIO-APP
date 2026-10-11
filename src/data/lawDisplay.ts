@@ -12,6 +12,10 @@ import {
 } from 'lucide-react';
 
 export const LAW_ICON_MAP: Record<string, LucideIcon> = {
+  cf: Landmark,
+  cf88: Landmark,
+  constituicao: Landmark,
+  'constituicao-federal': Landmark,
   cp: PocketKnife,
   cc: House,
   cpc: FileText,

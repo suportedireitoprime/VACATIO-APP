@@ -127,6 +127,10 @@ const JURI_OPCOES = [
 
 
 const LAW_ICON_MAP: Record<string, LucideIcon> = {
+  cf: Landmark,
+  cf88: Landmark,
+  constituicao: Landmark,
+  'constituicao-federal': Landmark,
   cp: PocketKnife,
   cc: House,
   cpc: FileText,
@@ -378,7 +382,13 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
         >
           {(() => {
             const bgCor = getLeiColor(ultimaLei.leiId, ultimaLei.tipo);
-            const IconeLei = LAW_ICON_MAP[ultimaLei.leiId] || BookOpen;
+            const isCf =
+              ultimaLei.tipo === 'constituicao' ||
+              ultimaLei.leiId === 'cf88' ||
+              ultimaLei.leiId === 'cf' ||
+              ultimaLei.leiId === 'constituicao' ||
+              ultimaLei.nome?.toLowerCase().includes('constitui');
+            const IconeLei = isCf ? Landmark : (LAW_ICON_MAP[ultimaLei.leiId] || BookOpen);
             return (
               <>
                 <div className="flex items-center justify-center shrink-0">
@@ -395,12 +405,13 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                     <p className="text-[10px] text-muted-foreground truncate drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]">{ultimaLei.descricao}</p>
                   )}
                 </div>
-                <ArrowRight className="w-5 h-5 shrink-0" style={{ color: shade(bgCor, 0.2) }} />
+                <ArrowRight className="w-5 h-5 shrink-0 z-10" style={{ color: shade(bgCor, 0.2) }} />
                 
                 {/* Bg decoration */}
                 <IconeLei 
-                  className="absolute -right-4 -bottom-4 w-20 h-20 opacity-[0.04] pointer-events-none" 
+                  className="absolute -right-3 -bottom-3 w-22 h-22 opacity-[0.20] pointer-events-none" 
                   style={{ color: bgCor }} 
+                  strokeWidth={1.3}
                 />
               </>
             );
