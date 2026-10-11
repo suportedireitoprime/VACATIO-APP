@@ -15,19 +15,19 @@ if (typeof window !== 'undefined') {
 }
 
 const item = {
-  label: 'Radar de Leis',
-  short: 'Alterações em tempo real',
+  label: 'Radar Legislativo',
+  short: 'Projetos em Tramitação',
   cover: radarLeisSrc,
   icon: ScanEye,
   descricao:
-    'Monitora, em tempo real, publicações no Diário Oficial da União e no Planalto. Você vê o que foi alterado, revogado ou incluído em cada lei do Vade Mecum, com análise da IA.',
+    'Acompanha em tempo real os Projetos de Lei e PECs em tramitação na Câmara dos Deputados e no Senado Federal que podem alterar artigos e leis vigentes.',
   bullets: [
-    'Novidades diárias da CF/88, Códigos e Estatutos',
-    'Comparativo do texto original vs. atualizado',
-    '"O que pode mudar" — projeções contextuais',
+    'Projetos de Lei (PL, PLP, PEC) em tramitação',
+    'Deputados e Senadores autores das proposições',
+    'Destaque para projetos que alteram Leis e Códigos',
   ],
-  cta: 'Abrir Radar de Leis',
-  route: '/radar-360',
+  cta: 'Abrir Radar Legislativo',
+  route: '/radar',
   gradient:
     'radial-gradient(120% 90% at 50% 30%, #3a0f0a 0%, #1a0605 45%, #080303 100%)',
 };

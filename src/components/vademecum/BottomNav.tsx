@@ -154,7 +154,8 @@ const BottomNav = () => {
     { id: 'desktop', label: 'Desktop', desc: 'Versão para computador', icon: Monitor, action: () => navigate('/desktop'), hot: true, prefetch: 'desktop' },
 
     { id: 'dicionario', label: 'Dicionário Jurídico', desc: 'Consulte termos e conceitos do Direito', icon: BookOpen, action: () => navigate('/ferramentas/dicionario'), prefetch: 'dicionario' },
-    { id: 'radar360', label: 'Radar 360', desc: 'Alterações recentes e projetos de lei', icon: ScanEye, action: () => navigate('/radar-360'), prefetch: 'radar360' },
+    { id: 'radar', label: 'Radar Legislativo', desc: 'Projetos em tramitação no Congresso', icon: ScanEye, action: () => navigate('/radar'), prefetch: 'radar' },
+    { id: 'novidades', label: 'Novidades', desc: 'Resenha diária do Planalto', icon: Bell, action: () => navigate('/novidades'), prefetch: 'novidades' },
     { id: 'locais', label: 'Locais Jurídicos', desc: 'Tribunais, cartórios, delegacias e museus perto de você', icon: Scale, action: () => navigate('/ferramentas/locais'), prefetch: 'locais' },
     { id: 'assistente', label: 'Assistente IA', desc: 'IA jurídica para tirar dúvidas', icon: Bot, action: () => navigate('/assistente-horus'), prefetch: 'assistenteHorus' },
     { id: 'gravar-aula', label: 'Gravar aula', desc: 'Grave aulas longas com resumo automático por IA', icon: Mic, action: () => navigate('/anotacoes/audio'), prefetch: 'gravarAula' },

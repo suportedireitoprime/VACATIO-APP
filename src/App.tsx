@@ -99,6 +99,7 @@ const RadarDeputados = lazy(() => import("./pages/RadarDeputados.tsx"));
 const RadarVotacoes = lazy(() => import("./pages/RadarVotacoes.tsx"));
 const RadarRankings = lazy(() => import("./pages/RadarRankings.tsx"));
 const RadarProposicoes = lazy(() => import("./pages/RadarProposicoes.tsx"));
+const RadarLegislativo = lazy(() => import("./pages/RadarLegislativo.tsx"));
 const RadarDeputadoDetalhe = lazy(() => import("./pages/RadarDeputadoDetalhe.tsx"));
 const LegislacaoEstadual = lazy(() => import("./pages/LegislacaoEstadual.tsx"));
 const EstadoDetalhe = lazy(() => import("./pages/EstadoDetalhe.tsx"));
@@ -600,6 +601,8 @@ function AnimatedRoutes() {
           <Route path="/me-explique" element={<ProtectedRoute><PageTransition><MeExplique /></PageTransition></ProtectedRoute>} />
           <Route path="/admin/locais" element={<ProtectedRoute><PageTransition><AdminLocais /></PageTransition></ProtectedRoute>} />
           <Route path="/tematica-juridica" element={<ProtectedRoute><PageTransition><TematicaJuridica /></PageTransition></ProtectedRoute>} />
+          <Route path="/radar" element={<ProtectedRoute><PageTransition><RadarLegislativo /></PageTransition></ProtectedRoute>} />
+          <Route path="/radar-legislativo" element={<ProtectedRoute><PageTransition><RadarLegislativo /></PageTransition></ProtectedRoute>} />
           <Route path="/radar-360" element={<ProtectedRoute><PageTransition><Radar360 /></PageTransition></ProtectedRoute>} />
           <Route path="/normas/:slug" element={<ProtectedRoute><PageTransition><OutrasNormasLista /></PageTransition></ProtectedRoute>} />
           <Route path="/radares" element={<ProtectedRoute><PageTransition><Radares /></PageTransition></ProtectedRoute>} />

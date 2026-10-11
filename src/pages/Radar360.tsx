@@ -228,7 +228,7 @@ export default function Radar360() {
     <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <div className="bg-gradient-to-b from-primary/30 via-primary/15 to-background pb-4">
         <PageHeader
-          title="Radar de Leis"
+          title="Novidades"
           subtitle="Resenha diária do Planalto"
           onBack={() => navigate(-1)}
           rightAction={

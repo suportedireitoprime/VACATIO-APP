@@ -202,7 +202,7 @@ const DesktopSidebar = ({ activeTab, onTabChange }: DesktopSidebarProps) => {
             </p>
           )}
           {[
-            { id: 'radar', label: 'Radar Legislativo', icon: Radar, color: '#0EA5E9', route: '/radar-360' },
+            { id: 'radar', label: 'Radar Legislativo', icon: Radar, color: '#0EA5E9', route: '/radar' },
             { id: 'legislacao' as Tab, label: 'Legislação', icon: Scale, color: '#F59E0B' },
             { id: 'noticias' as Tab, label: 'Atualizações', icon: RefreshCw, color: '#10B981' },
           ].map(item => {
