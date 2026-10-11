@@ -1,14 +1,15 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Scroll, Headphones, AlertTriangle, ScanEye } from 'lucide-react';
+import { Scroll, Headphones, AlertTriangle, ScanEye, Library } from 'lucide-react';
 import { useShortcutBadges } from '@/hooks/useShortcutBadges';
 import { prefetchRoute, type PrefetchKey } from '@/lib/routePrefetch';
 
 const SHORTCUT_ITEMS = [
-  { label: 'Blog', icon: Scroll, to: '/blog' as string | null, action: null as (() => void) | null, color: '#F87171', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
-  { label: 'Novidades', icon: AlertTriangle, to: '/noticias' as string | null, action: null as (() => void) | null, color: '#FACC15', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+  { label: 'Blog', icon: Scroll, to: '/blog' as string | null, action: null as (() => void) | null, color: '#F87171', badgeColor: null, badgeKey: null, prefetch: 'blog' as PrefetchKey | null },
+  { label: 'Novidades', icon: AlertTriangle, to: '/noticias' as string | null, action: null as (() => void) | null, color: '#FB923C', badgeColor: null, badgeKey: null, prefetch: 'noticias' as PrefetchKey | null },
   { label: 'Radar', icon: ScanEye, to: '/radar-360' as string | null, action: null as (() => void) | null, color: '#A78BFA', badgeColor: null, badgeKey: null, prefetch: 'radar360' as PrefetchKey | null },
-  { label: 'Boletins', icon: Headphones, to: '/boletins' as string | null, action: null as (() => void) | null, color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: null as PrefetchKey | null },
+  { label: 'Boletins', icon: Headphones, to: '/boletins' as string | null, action: null as (() => void) | null, color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: 'boletins' as PrefetchKey | null },
+  { label: 'Biblioteca', icon: Library, to: '/biblioteca' as string | null, action: null as (() => void) | null, color: '#FACC15', badgeColor: null, badgeKey: null, prefetch: 'biblioteca' as PrefetchKey | null },
 ];
 
 const HomeActionShortcuts = () => {
@@ -16,7 +17,7 @@ const HomeActionShortcuts = () => {
   const shortcutBadges = useShortcutBadges();
 
   return (
-    <div className="flex items-center justify-between gap-2 mx-1 mt-1 bg-black/40 backdrop-blur-md border border-white/10 rounded-3xl p-2 shadow-2xl">
+    <div className="flex items-center justify-between gap-1 sm:gap-2 mx-1 mt-1 bg-black/40 backdrop-blur-md border border-white/10 rounded-3xl p-1.5 sm:p-2 shadow-2xl">
       {SHORTCUT_ITEMS.map((item, index) => {
         const Icon = item.icon;
         const badgeCount = item.badgeKey ? shortcutBadges.counts[item.badgeKey] : 0;
@@ -42,7 +43,7 @@ const HomeActionShortcuts = () => {
             style={{
               '--shimmer-delay': `${index * 150}ms`,
             } as React.CSSProperties}
-            className="flex-1 group relative flex flex-col items-center justify-center py-2 px-1 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-200 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden"
+            className="flex-1 min-w-0 group relative flex flex-col items-center justify-center py-2 px-0.5 sm:px-1 rounded-xl hover:bg-white/5 active:bg-white/10 transition-all duration-200 active:scale-95 gap-1.5 text-center select-none cursor-pointer overflow-hidden"
           >
             {badgeCount > 0 && item.badgeColor && (
               <span
@@ -54,11 +55,11 @@ const HomeActionShortcuts = () => {
             )}
 
             <Icon
-              className="w-[22px] h-[22px] sm:w-[23px] sm:h-[23px] shrink-0 transition-transform duration-200 group-hover:scale-105"
+              className="w-[21px] h-[21px] sm:w-[22px] sm:h-[22px] shrink-0 transition-transform duration-200 group-hover:scale-105"
               style={{ color: item.color, filter: 'saturate(1.2) drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
               strokeWidth={1.5}
             />
-            <span className="font-sans text-white/95 text-[12px] sm:text-[12.5px] font-medium leading-tight tracking-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <span className="font-sans text-white/95 text-[11.5px] sm:text-[12px] font-medium leading-tight tracking-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] truncate max-w-full">
               {item.label}
             </span>
           </button>
