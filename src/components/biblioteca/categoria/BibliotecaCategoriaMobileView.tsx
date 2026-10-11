@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Mic, MicOff } from 'lucide-react';
-import { PageHeader } from '@/components/vademecum/navigation/PageHeader';
+import { PageHeader } from '@/components/vademecum/PageHeader';
 import { Input } from '@/components/ui/input';
 import LivroDetailSheet from '@/components/biblioteca/LivroDetailSheet';
 import BibliotecaAtalhosBar from '@/components/biblioteca/BibliotecaAtalhosBar';

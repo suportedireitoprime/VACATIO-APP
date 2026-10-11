@@ -5,6 +5,7 @@ import { Network } from '@capacitor/network';
 import { supabase } from '@/integrations/supabase/client';
 import { COLECOES } from '@/lib/bibliotecaColecoes';
 import { directImg } from '@/lib/cdnImg';
+import { getImageOfflineUrl, fetchAndCacheImageOffline, clearImageCache } from '@/services/imageOfflineStore';
 
 const CAPAS_DIR = 'biblioteca-capas';
 const KEY_DONE = 'biblioteca-capas:done';
@@ -68,39 +69,50 @@ async function fileExists(name: string) {
 }
 
 async function downloadOne(remoteUrl: string, index: IndexMap): Promise<void> {
-  if (index[remoteUrl]) {
-    if (await fileExists(index[remoteUrl])) return;
+  const isNative = Capacitor.isNativePlatform();
+  if (isNative) {
+    if (index[remoteUrl]) {
+      if (await fileExists(index[remoteUrl])) return;
+    }
+    const name = safeName(remoteUrl);
+    const optimized = directImg(remoteUrl, 300);
+    const res = await fetch(optimized);
+    if (!res.ok) throw new Error(`http ${res.status}`);
+    const blob = await res.blob();
+    const b64 = await blobToBase64(blob);
+    await Filesystem.writeFile({
+      path: `${CAPAS_DIR}/${name}`,
+      data: b64,
+      directory: Directory.Data,
+      recursive: true,
+    });
+    index[remoteUrl] = name;
+  } else {
+    // Web / PWA / Desktop: armazena no IndexedDB via imageOfflineStore
+    const optimized = directImg(remoteUrl, 300);
+    await fetchAndCacheImageOffline(optimized);
+    index[remoteUrl] = 'idb';
   }
-  const name = safeName(remoteUrl);
-  const optimized = directImg(remoteUrl, 300);
-  const res = await fetch(optimized);
-  if (!res.ok) throw new Error(`http ${res.status}`);
-  const blob = await res.blob();
-  const b64 = await blobToBase64(blob);
-  await Filesystem.writeFile({
-    path: `${CAPAS_DIR}/${name}`,
-    data: b64,
-    directory: Directory.Data,
-    recursive: true,
-  });
-  index[remoteUrl] = name;
 }
 
 /**
- * Retorna URL local (capacitor://) para uma capa se já baixada, senão null.
- * Segura para chamar em web: sempre retorna null.
+ * Retorna URL local (capacitor:// no nativo ou blob: via IndexedDB na Web) se já baixada, senão null.
  */
 export async function getLocalCoverUrl(remoteUrl: string): Promise<string | null> {
-  if (!remoteUrl || !Capacitor.isNativePlatform()) return null;
-  try {
-    const idx = await loadIndex();
-    const name = idx[remoteUrl];
-    if (!name) return null;
-    const stat = await Filesystem.stat({ path: `${CAPAS_DIR}/${name}`, directory: Directory.Data });
-    return Capacitor.convertFileSrc(stat.uri);
-  } catch {
-    return null;
+  if (!remoteUrl) return null;
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const idx = await loadIndex();
+      const name = idx[remoteUrl];
+      if (!name) return null;
+      const stat = await Filesystem.stat({ path: `${CAPAS_DIR}/${name}`, directory: Directory.Data });
+      return Capacitor.convertFileSrc(stat.uri);
+    } catch {
+      return null;
+    }
   }
+  // Web / PWA / Desktop: busca do IndexedDB
+  return getImageOfflineUrl(remoteUrl);
 }
 
 export interface CapasPrefetchProgress {
@@ -144,16 +156,27 @@ async function collectCovers(): Promise<string[]> {
 }
 
 export async function startCapasPrefetch(opts?: { wifiOnly?: boolean }) {
-  if (!Capacitor.isNativePlatform()) return;
   if (running) return;
   running = true;
   try {
-    const net = await Network.getStatus();
-    if (!net.connected) { running = false; return; }
-    if (opts?.wifiOnly === true && net.connectionType !== 'wifi') {
-      running = false; return;
+    const isNative = Capacitor.isNativePlatform();
+    if (isNative) {
+      const net = await Network.getStatus();
+      if (!net.connected) { running = false; return; }
+      if (opts?.wifiOnly === true && net.connectionType !== 'wifi') {
+        running = false; return;
+      }
+      await ensureDir();
+    } else {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        running = false; return;
+      }
+      // @ts-expect-error NetworkInformation API experimental
+      if (typeof navigator !== 'undefined' && navigator.connection?.saveData === true) {
+        running = false; return;
+      }
     }
-    await ensureDir();
+
     const idx = await loadIndex();
     const urls = await collectCovers();
     // Só baixa o que ainda falta — revalida sempre em busca de novas capas.
@@ -162,7 +185,7 @@ export async function startCapasPrefetch(opts?: { wifiOnly?: boolean }) {
     emit({ status: 'running', done: already, total: urls.length });
 
     let done = already;
-    const CONC = 8;
+    const CONC = isNative ? 8 : 3; // Respeita concorrência máxima em navegadores
     let i = 0;
     async function worker() {
       while (i < pending.length) {
@@ -187,9 +210,12 @@ export async function startCapasPrefetch(opts?: { wifiOnly?: boolean }) {
 }
 
 export async function resetCapasCache() {
-  try {
-    await Filesystem.rmdir({ path: CAPAS_DIR, directory: Directory.Data, recursive: true });
-  } catch { /* ignore */ }
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await Filesystem.rmdir({ path: CAPAS_DIR, directory: Directory.Data, recursive: true });
+    } catch { /* ignore */ }
+  }
+  await clearImageCache();
   await Preferences.remove({ key: KEY_DONE });
   await Preferences.remove({ key: KEY_INDEX });
   inMemoryIndex = null;
