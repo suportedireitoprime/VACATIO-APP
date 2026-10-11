@@ -57,6 +57,51 @@ let memoryCache: CachePayload | null = null;
 
 /**
  * Detecta se a ementa do projeto altera ou revoga artigos de legislação existente
+// Mapeamento de Leis Federais célebres para exibição amigável
+const NOMES_LEIS_CONHECIDAS: Record<string, string> = {
+  '11.771': 'Lei Geral do Turismo',
+  '12.764': 'Direitos da Pessoa com TEA / Autismo',
+  '11.738': 'Piso Salarial do Magistério',
+  '4.769': 'Profissão de Administrador',
+  '11.340': 'Lei Maria da Penha',
+  '13.146': 'Estatuto da Pessoa com Deficiência',
+  '10.741': 'Estatuto da Pessoa Idosa',
+  '14.423': 'Estatuto da Pessoa Idosa',
+  '12.965': 'Marco Civil da Internet',
+  '13.709': 'LGPD (Proteção de Dados)',
+  '11.343': 'Lei de Drogas',
+  '12.850': 'Organizações Criminosas',
+  '9.296': 'Interceptação Telefônica',
+  '9.099': 'Juizados Especiais (JEC)',
+  '7.210': 'Lei de Execução Penal (LEP)',
+  '8.112': 'Estatuto dos Servidores Públicos',
+  '9.394': 'LDB (Diretrizes e Bases da Educação)',
+  '8.080': 'Lei Orgânica da Saúde (SUS)',
+  '8.142': 'Participação da Comunidade no SUS',
+  '12.527': 'Lei de Acesso à Informação (LAI)',
+  '10.826': 'Estatuto do Desarmamento',
+  '9.605': 'Lei de Crimes Ambientais',
+  '14.133': 'Nova Lei de Licitações',
+  '8.666': 'Lei de Licitações',
+  '8.429': 'Lei de Improbidade Administrativa',
+  '11.101': 'Lei de Falências e Recuperação Judicial',
+  '6.404': 'Lei das S.A. (Sociedades Anônimas)',
+  '13.303': 'Lei das Estatais',
+  '9.503': 'Código de Trânsito Brasileiro (CTB)',
+  '5.172': 'Código Tributário Nacional (CTN)',
+  '8.078': 'Código de Defesa do Consumidor (CDC)',
+  '10.406': 'Código Civil (CC)',
+  '2.848': 'Código Penal (CP)',
+  '3.689': 'Código de Processo Penal (CPP)',
+  '13.105': 'Código de Processo Civil (CPC)',
+  '5.452': 'CLT (Leis do Trabalho)',
+  '8.069': 'Estatuto da Criança e do Adolescente (ECA)',
+  '8.906': 'Estatuto da OAB',
+  '12.651': 'Código Florestal',
+};
+
+/**
+ * Detecta se a ementa do projeto altera ou revoga artigos de legislação existente
  * e extrai o nome simplificado do código/lei afetada para exibição em destaque.
  */
 export function extrairLeiAlterada(ementa: string): { alteraLegislacao: boolean; leiAlvo?: string } {
@@ -83,51 +128,64 @@ export function extrairLeiAlterada(ementa: string): { alteraLegislacao: boolean;
 
   const ehAlteracao = termosAlteracao.some((termo) => texto.includes(termo));
 
-  // Reconhecimento de leis célebres e códigos principais
+  // 1. Reconhecimento de Códigos Principais e Constituição
   if (texto.includes('código penal') || texto.includes('decreto-lei nº 2.848')) {
-    return { alteraLegislacao: true, leiAlvo: 'Código Penal' };
+    return { alteraLegislacao: true, leiAlvo: 'Código Penal (CP)' };
   }
   if (texto.includes('código civil') || texto.includes('lei nº 10.406')) {
-    return { alteraLegislacao: true, leiAlvo: 'Código Civil' };
+    return { alteraLegislacao: true, leiAlvo: 'Código Civil (CC)' };
   }
   if (texto.includes('consolidação das leis do trabalho') || texto.includes('clt') || texto.includes('decreto-lei nº 5.452')) {
-    return { alteraLegislacao: true, leiAlvo: 'CLT (Trabalho)' };
+    return { alteraLegislacao: true, leiAlvo: 'CLT (Leis do Trabalho)' };
   }
   if (texto.includes('código de processo civil') || texto.includes('cpc') || texto.includes('lei nº 13.105')) {
-    return { alteraLegislacao: true, leiAlvo: 'CPC (Proc. Civil)' };
+    return { alteraLegislacao: true, leiAlvo: 'Código de Processo Civil (CPC)' };
   }
   if (texto.includes('código de processo penal') || texto.includes('cpp') || texto.includes('decreto-lei nº 3.689')) {
-    return { alteraLegislacao: true, leiAlvo: 'CPP (Proc. Penal)' };
+    return { alteraLegislacao: true, leiAlvo: 'Código de Processo Penal (CPP)' };
   }
   if (texto.includes('código de defesa do consumidor') || texto.includes('cdc') || texto.includes('lei nº 8.078')) {
-    return { alteraLegislacao: true, leiAlvo: 'CDC (Consumidor)' };
+    return { alteraLegislacao: true, leiAlvo: 'Código de Defesa do Consumidor (CDC)' };
   }
   if (texto.includes('código tributário') || texto.includes('ctn') || texto.includes('lei nº 5.172')) {
-    return { alteraLegislacao: true, leiAlvo: 'CTN (Tributário)' };
+    return { alteraLegislacao: true, leiAlvo: 'Código Tributário Nacional (CTN)' };
   }
   if (texto.includes('código de trânsito') || texto.includes('ctb') || texto.includes('lei nº 9.503')) {
-    return { alteraLegislacao: true, leiAlvo: 'CTB (Trânsito)' };
+    return { alteraLegislacao: true, leiAlvo: 'Código de Trânsito Brasileiro (CTB)' };
   }
   if (texto.includes('constituição federal') || texto.includes('cf/88') || texto.includes('adct')) {
-    return { alteraLegislacao: true, leiAlvo: 'Constituição Federal' };
+    return { alteraLegislacao: true, leiAlvo: 'Constituição Federal (CF/88)' };
   }
   if (texto.includes('maria da penha') || texto.includes('lei nº 11.340')) {
     return { alteraLegislacao: true, leiAlvo: 'Lei Maria da Penha' };
   }
   if (texto.includes('estatuto da criança') || texto.includes('eca') || texto.includes('lei nº 8.069')) {
-    return { alteraLegislacao: true, leiAlvo: 'ECA' };
+    return { alteraLegislacao: true, leiAlvo: 'Estatuto da Criança e do Adolescente (ECA)' };
   }
   if (texto.includes('estatuto da oab') || texto.includes('lei nº 8.906')) {
     return { alteraLegislacao: true, leiAlvo: 'Estatuto da OAB' };
   }
-  if (texto.includes('lei de licitações') || texto.includes('lei nº 14.133') || texto.includes('lei nº 8.666')) {
-    return { alteraLegislacao: true, leiAlvo: 'Licitações' };
-  }
-  if (texto.includes('lei de execução penal') || texto.includes('lei nº 7.210')) {
-    return { alteraLegislacao: true, leiAlvo: 'Lei Execução Penal' };
+
+  // 2. Tentar casar com o mapa de leis conhecidas pelo número
+  for (const [numeroLei, nomeLei] of Object.entries(NOMES_LEIS_CONHECIDAS)) {
+    if (texto.includes(numeroLei)) {
+      return { alteraLegislacao: true, leiAlvo: `${nomeLei} (Lei ${numeroLei})` };
+    }
   }
 
-  // Regex para capturar menção a lei específica (ex: "Altera a Lei nº 11.771, de...")
+  // 3. Extrair nome popular entre parênteses na ementa: ex: (Lei Geral do Turismo), (Marco Civil...)
+  const regexParenteses = /\(([^)]*(?:Lei|Estatuto|Código|Política|Marco|Regulamentação|Plano|Diretrizes)[^)]*)\)/i;
+  const matchParen = ementa.match(regexParenteses);
+  if (matchParen) {
+    const nomeCurto = matchParen[1].trim();
+    // Tentar achar o número da lei antes do parêntese
+    const regexNum = /lei\s+(?:complementar\s+)?n[ºo°]?\s*([\d\.]+)/i;
+    const matchNum = ementa.match(regexNum);
+    const numPart = matchNum ? ` (${matchNum[1]})` : '';
+    return { alteraLegislacao: true, leiAlvo: `${nomeCurto}${numPart}` };
+  }
+
+  // 4. Regex genérico para capturar menção a lei específica (ex: "Altera a Lei nº 11.771")
   const regexLei = /(?:altera|acrescenta|modifica|revoga)\s+(?:a\s+|o\s+)?(lei\s+(?:complementar\s+)?n[ºo°]?\s*[\d\.]+)/i;
   const match = ementa.match(regexLei);
   if (match) {

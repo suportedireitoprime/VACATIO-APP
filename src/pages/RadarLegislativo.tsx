@@ -17,13 +17,15 @@ import {
   Building2,
   Loader2,
   X,
-  SlidersHorizontal,
+  Filter,
+  Calendar,
+  Layers,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
 import { PageHeader } from '@/components/vademecum/PageHeader';
-import { Badge } from '@/components/ui/badge';
+import BottomNav from '@/components/vademecum/BottomNav';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,6 +45,46 @@ import {
   type TipoProposicao,
 } from '@/services/radarTramitacaoService';
 
+// Estilos de Tags Coloridas por Tipo de Proposição (PL, PLP, PEC)
+function getTipoStyle(tipo: string) {
+  const t = (tipo || '').toUpperCase();
+  if (t === 'PLP') {
+    return {
+      badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-500/10',
+      activeFilter: 'bg-amber-600 text-white shadow-md shadow-amber-600/30',
+      dot: 'bg-amber-400',
+      label: 'PLP (Complementar)',
+    };
+  }
+  if (t === 'PEC') {
+    return {
+      badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-500/10',
+      activeFilter: 'bg-rose-600 text-white shadow-md shadow-rose-600/30',
+      dot: 'bg-rose-400',
+      label: 'PEC (Constituição)',
+    };
+  }
+  // Padrão PL
+  return {
+    badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40 shadow-sm shadow-blue-500/10',
+    activeFilter: 'bg-blue-600 text-white shadow-md shadow-blue-600/30',
+    dot: 'bg-blue-400',
+    label: 'PL (Lei Ordinária)',
+  };
+}
+
+const CODIGOS_POPULARES = [
+  { id: 'todos', label: 'Todas as leis' },
+  { id: 'penal', label: 'Código Penal' },
+  { id: 'civil', label: 'Código Civil' },
+  { id: 'trabalho', label: 'CLT (Trabalho)' },
+  { id: 'processo', label: 'Processo (CPC/CPP)' },
+  { id: 'constituicao', label: 'Constituição Federal' },
+  { id: 'consumidor', label: 'CDC (Consumidor)' },
+  { id: 'tributario', label: 'Tributário' },
+  { id: 'transito', label: 'Trânsito (CTB)' },
+];
+
 export default function RadarLegislativo() {
   const navigate = useNavigate();
 
@@ -54,8 +96,12 @@ export default function RadarLegislativo() {
   const [busca, setBusca] = useState('');
   const [casaFiltro, setCasaFiltro] = useState<CasaLegislativa>('todas');
   const [tipoFiltro, setTipoFiltro] = useState<TipoProposicao>('todos');
+  const [anoFiltro, setAnoFiltro] = useState<string>('todos');
+  const [parlamentarFiltro, setParlamentarFiltro] = useState<string>('todos');
+  const [codigoFiltro, setCodigoFiltro] = useState<string>('todos');
   const [apenasAlteracao, setApenasAlteracao] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [filtrosAvancadosAbertos, setFiltrosAvancadosAbertos] = useState(false);
 
   // Detalhe selecionado (Modal)
   const [selecionado, setSelecionado] = useState<ProposicaoTramitando | null>(null);
@@ -106,7 +152,7 @@ export default function RadarLegislativo() {
   };
 
   const compartilhar = async (p: ProposicaoTramitando) => {
-    const texto = `⚖️ Radar Legislativo: ${p.codigoIdentificacao}\nAutor: ${p.autorNome}\nStatus: ${p.situacao}\n\nEmenta: ${p.ementa}`;
+    const texto = `⚖️ Radar Legislativo: ${p.codigoIdentificacao}\nAltera: ${p.leiAlvo || 'Legislação Federal'}\nAutor: ${p.autorNome}\nStatus: ${p.situacao}\n\nEmenta: ${p.ementa}`;
     try {
       if (navigator.share) {
         await navigator.share({
@@ -116,12 +162,34 @@ export default function RadarLegislativo() {
         });
       } else {
         await navigator.clipboard.writeText(`${texto}\n${p.urlTramitacao || ''}`);
-        toast.success('Informações do projeto copiadas para a área de transferência!');
+        toast.success('Informações do projeto copiadas!');
       }
     } catch {
-      // Cancelado pelo usuário
+      // Cancelado
     }
   };
+
+  // Lista de parlamentares disponíveis para filtro
+  const parlamentaresDisponiveis = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const i of itens) {
+      if (i.autorNome && i.autorNome !== 'Deputado(a) Federal' && i.autorNome !== 'Senador(a)') {
+        map.set(i.autorNome, (map.get(i.autorNome) || 0) + 1);
+      }
+    }
+    return Array.from(map.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([nome, count]) => ({ nome, count }));
+  }, [itens]);
+
+  // Lista de anos disponíveis
+  const anosDisponiveis = useMemo(() => {
+    const set = new Set<string>();
+    for (const i of itens) {
+      if (i.ano) set.add(String(i.ano));
+    }
+    return Array.from(set).sort().reverse();
+  }, [itens]);
 
   // Filtragem dos itens
   const filtrados = useMemo(() => {
@@ -133,6 +201,31 @@ export default function RadarLegislativo() {
 
     if (tipoFiltro !== 'todos') {
       lista = lista.filter((i) => i.siglaTipo.toUpperCase() === tipoFiltro.toUpperCase());
+    }
+
+    if (anoFiltro !== 'todos') {
+      lista = lista.filter((i) => String(i.ano) === String(anoFiltro));
+    }
+
+    if (parlamentarFiltro !== 'todos') {
+      lista = lista.filter((i) => i.autorNome === parlamentarFiltro);
+    }
+
+    if (codigoFiltro !== 'todos') {
+      const matchKey = codigoFiltro.toLowerCase();
+      lista = lista.filter((i) => {
+        const alvo = (i.leiAlvo || '').toLowerCase();
+        const em = i.ementa.toLowerCase();
+        if (matchKey === 'penal') return alvo.includes('penal') || em.includes('código penal');
+        if (matchKey === 'civil') return alvo.includes('civil') || em.includes('código civil');
+        if (matchKey === 'trabalho') return alvo.includes('trabalho') || alvo.includes('clt') || em.includes('clt');
+        if (matchKey === 'processo') return alvo.includes('process') || alvo.includes('cpc') || alvo.includes('cpp');
+        if (matchKey === 'constituicao') return alvo.includes('constitui') || alvo.includes('cf') || em.includes('constituição');
+        if (matchKey === 'consumidor') return alvo.includes('consumidor') || alvo.includes('cdc');
+        if (matchKey === 'tributario') return alvo.includes('tribut') || alvo.includes('ctn');
+        if (matchKey === 'transito') return alvo.includes('trânsito') || alvo.includes('ctb');
+        return true;
+      });
     }
 
     if (apenasAlteracao) {
@@ -158,15 +251,34 @@ export default function RadarLegislativo() {
     }
 
     return lista;
-  }, [itens, casaFiltro, tipoFiltro, apenasAlteracao, busca]);
+  }, [itens, casaFiltro, tipoFiltro, anoFiltro, parlamentarFiltro, codigoFiltro, apenasAlteracao, busca]);
 
   // Estatísticas rápidas
   const totalCamara = useMemo(() => itens.filter((i) => i.casa === 'camara').length, [itens]);
   const totalSenado = useMemo(() => itens.filter((i) => i.casa === 'senado').length, [itens]);
   const totalAlteracoes = useMemo(() => itens.filter((i) => i.alteraLegislacao).length, [itens]);
 
+  const temFiltroAtivo =
+    busca !== '' ||
+    casaFiltro !== 'todas' ||
+    tipoFiltro !== 'todos' ||
+    anoFiltro !== 'todos' ||
+    parlamentarFiltro !== 'todos' ||
+    codigoFiltro !== 'todos' ||
+    apenasAlteracao;
+
+  const limparFiltros = () => {
+    setBusca('');
+    setCasaFiltro('todas');
+    setTipoFiltro('todos');
+    setAnoFiltro('todos');
+    setParlamentarFiltro('todos');
+    setCodigoFiltro('todos');
+    setApenasAlteracao(false);
+  };
+
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-8 text-foreground selection:bg-primary/20">
+    <div className="min-h-dvh bg-background pb-[calc(7.5rem+var(--sai-bottom))] lg:pb-12 text-foreground selection:bg-primary/20">
       {/* Header com Gradiente Temático do Radar */}
       <div className="bg-gradient-to-b from-purple-900/25 via-primary/10 to-background pb-3">
         <PageHeader
@@ -216,10 +328,10 @@ export default function RadarLegislativo() {
                   </h3>
                 </div>
                 <p className="font-body text-[12.5px] leading-relaxed text-muted-foreground">
-                  O Radar acompanha em tempo real as <strong className="text-foreground">proposições legislativas (PL, PLP, PEC)</strong> que estão tramitando na <strong className="text-foreground">Câmara dos Deputados</strong> e no <strong className="text-foreground">Senado Federal</strong>.
+                  O Radar acompanha em tempo real as <strong className="text-foreground">proposições legislativas (PL, PLP, PEC)</strong> em tramitação na <strong className="text-foreground">Câmara dos Deputados</strong> e no <strong className="text-foreground">Senado Federal</strong>.
                 </p>
                 <p className="font-body text-[12.5px] leading-relaxed text-muted-foreground">
-                  São projetos que <strong className="text-foreground">ainda não foram aprovados em definitivo</strong> e que podem transformar o ordenamento jurídico, alterar artigos dos Códigos (Penal, Civil, CLT, etc.) ou criar novas leis.
+                  São projetos que <strong className="text-foreground">ainda não foram aprovados em definitivo</strong> e que podem alterar artigos de Códigos (Penal, Civil, CLT, etc.) ou criar novas leis.
                 </p>
                 <div className="pt-1 flex items-center gap-2 text-[11px] text-purple-400 font-semibold">
                   <Sparkles className="w-3.5 h-3.5" />
@@ -259,7 +371,7 @@ export default function RadarLegislativo() {
             <Input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              placeholder="Buscar por número (ex: PL 5539), parlamentar, código ou ementa..."
+              placeholder="Buscar por número (ex: PL 5539), parlamentar, código ou assunto..."
               className="pl-10 pr-9 h-11 bg-card/60 backdrop-blur-md border-border rounded-xl text-[14px] placeholder:text-muted-foreground/70"
             />
             {busca && (
@@ -274,8 +386,8 @@ export default function RadarLegislativo() {
           </div>
         </div>
 
-        {/* Filtros de Casa e Tipo */}
-        <div className="max-w-3xl mx-auto px-4 mt-3 space-y-2">
+        {/* Filtros Principais */}
+        <div className="max-w-3xl mx-auto px-4 mt-3 space-y-2.5">
           {/* Seletor de Casa Legislativa */}
           <div className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <button
@@ -315,36 +427,165 @@ export default function RadarLegislativo() {
             </button>
           </div>
 
-          {/* Seletor de Tipo e Altera Legislação */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {(['todos', 'PL', 'PLP', 'PEC'] as TipoProposicao[]).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTipoFiltro(t)}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${
-                  tipoFiltro === t
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted/60 text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                {t === 'todos' ? 'Todos os tipos' : t}
-              </button>
-            ))}
+          {/* Tags Coloridas por Tipo (PL, PLP, PEC) + Botão de Filtros Extras */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <button
+              type="button"
+              onClick={() => setTipoFiltro('todos')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${
+                tipoFiltro === 'todos'
+                  ? 'bg-primary text-primary-foreground shadow'
+                  : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              Todos os Tipos
+            </button>
+
+            {(['PL', 'PLP', 'PEC'] as TipoProposicao[]).map((t) => {
+              const style = getTipoStyle(t);
+              const isActive = tipoFiltro === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTipoFiltro(t)}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wider whitespace-nowrap transition-all border ${
+                    isActive
+                      ? style.activeFilter
+                      : `${style.badge} hover:brightness-125`
+                  }`}
+                >
+                  {t}
+                </button>
+              );
+            })}
 
             <button
               type="button"
               onClick={() => setApenasAlteracao((v) => !v)}
-              className={`ml-auto px-2.5 py-1 rounded-md text-[11px] font-bold whitespace-nowrap flex items-center gap-1 transition-all ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-bold whitespace-nowrap flex items-center gap-1 transition-all ${
                 apenasAlteracao
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
-                  : 'bg-muted/40 text-muted-foreground border border-transparent hover:bg-muted/60'
+                  ? 'bg-amber-500 text-black border border-amber-400 font-extrabold shadow-sm'
+                  : 'bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25'
               }`}
             >
-              <Scale className="w-3 h-3 text-amber-400" />
-              <span>Só que alteram Leis</span>
+              <Scale className="w-3 h-3" />
+              <span>Altera Legislação</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFiltrosAvancadosAbertos((v) => !v)}
+              className={`ml-auto px-2 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap flex items-center gap-1 transition-colors ${
+                filtrosAvancadosAbertos || anoFiltro !== 'todos' || parlamentarFiltro !== 'todos' || codigoFiltro !== 'todos'
+                  ? 'bg-purple-600 text-white shadow'
+                  : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              <Filter className="w-3 h-3" />
+              <span>Filtros</span>
             </button>
           </div>
+
+          {/* Painel Expansível de Filtros Avançados: Por Ano, Por Parlamentar e Por Código */}
+          <AnimatePresence>
+            {filtrosAvancadosAbertos && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden rounded-2xl border border-white/10 bg-card/90 backdrop-blur-md p-3 space-y-3"
+              >
+                {/* Linha 1: Filtro por Ano */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <Calendar className="w-3 h-3 text-purple-400" />
+                    <span>Filtrar por Ano</span>
+                  </div>
+                  <div className="flex gap-1.5 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setAnoFiltro('todos')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                        anoFiltro === 'todos' ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground'
+                      }`}
+                    >
+                      Todos os anos
+                    </button>
+                    {anosDisponiveis.map((ano) => (
+                      <button
+                        key={ano}
+                        type="button"
+                        onClick={() => setAnoFiltro(ano)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                          anoFiltro === ano ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground'
+                        }`}
+                      >
+                        {ano}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Linha 2: Filtro por Parlamentar (Deputado / Senador) */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <User className="w-3 h-3 text-blue-400" />
+                    <span>Filtrar por Deputado / Senador</span>
+                  </div>
+                  <select
+                    value={parlamentarFiltro}
+                    onChange={(e) => setParlamentarFiltro(e.target.value)}
+                    className="w-full h-9 rounded-xl bg-muted/60 border border-white/10 text-foreground text-xs px-3 focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="todos">Todos os parlamentares ({parlamentaresDisponiveis.length})</option>
+                    {parlamentaresDisponiveis.map((p) => (
+                      <option key={p.nome} value={p.nome}>
+                        {p.nome} ({p.count} {p.count === 1 ? 'proposição' : 'proposições'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Linha 3: Filtro por Código / Matéria Alvo */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <Scale className="w-3 h-3 text-amber-400" />
+                    <span>Filtrar por Código / Lei Alvo</span>
+                  </div>
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    {CODIGOS_POPULARES.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setCodigoFiltro(c.id)}
+                        className={`px-2 py-0.5 rounded-md text-[11px] font-medium whitespace-nowrap transition-colors ${
+                          codigoFiltro === c.id
+                            ? 'bg-amber-400 text-black font-bold'
+                            : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {temFiltroAtivo && (
+                  <div className="pt-1 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={limparFiltros}
+                      className="text-xs text-rose-400 hover:text-rose-300 font-semibold"
+                    >
+                      Limpar todos os filtros
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -368,16 +609,11 @@ export default function RadarLegislativo() {
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
               Tente ajustar os filtros ou digitar outro termo de pesquisa (como número ou assunto).
             </p>
-            {(busca || casaFiltro !== 'todas' || tipoFiltro !== 'todos' || apenasAlteracao) && (
+            {temFiltroAtivo && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setBusca('');
-                  setCasaFiltro('todas');
-                  setTipoFiltro('todos');
-                  setApenasAlteracao(false);
-                }}
+                onClick={limparFiltros}
                 className="mt-2 text-xs"
               >
                 Limpar todos os filtros
@@ -393,18 +629,21 @@ export default function RadarLegislativo() {
               ? 'bg-blue-500/15 text-blue-400 border-blue-500/25'
               : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25';
 
+            const tipoStyle = getTipoStyle(item.siglaTipo);
+
             return (
               <motion.article
                 key={item.id}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(idx * 0.025, 0.25) }}
+                transition={{ delay: Math.min(idx * 0.02, 0.2) }}
                 onClick={() => abrirDetalhe(item)}
                 className="group relative rounded-2xl border border-white/10 bg-card/60 backdrop-blur-md p-4 transition-all duration-200 hover:border-purple-500/40 hover:bg-card/90 active:scale-[0.99] cursor-pointer shadow-lg shadow-black/20"
               >
-                {/* Linha superior: Tags, Código e Status */}
+                {/* Linha superior: Tags Coloridas (Casa, Tipo PL/PLP/PEC), Código e Status */}
                 <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                   <div className="flex items-center gap-1.5 flex-wrap">
+                    {/* Tag da Casa */}
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold border ${casaBadgeColor}`}
                     >
@@ -412,16 +651,16 @@ export default function RadarLegislativo() {
                       {ehCamara ? 'Câmara' : 'Senado'}
                     </span>
 
-                    <span className="font-display font-bold text-[14px] text-foreground tracking-tight">
-                      {item.codigoIdentificacao}
+                    {/* Tag Colorida Exclusiva por Tipo (PL, PLP, PEC) */}
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-extrabold border ${tipoStyle.badge}`}
+                    >
+                      {item.siglaTipo}
                     </span>
 
-                    {item.alteraLegislacao && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/25 text-[10px] font-bold">
-                        <Scale className="w-2.5 h-2.5" />
-                        {item.leiAlvo || 'Altera Legislação'}
-                      </span>
-                    )}
+                    <span className="font-display font-extrabold text-[14.5px] text-foreground tracking-tight">
+                      {item.codigoIdentificacao}
+                    </span>
                   </div>
 
                   <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-400/90 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
@@ -429,6 +668,28 @@ export default function RadarLegislativo() {
                     Em tramitação
                   </span>
                 </div>
+
+                {/* BANNER EM DESTAQUE: QUAL LEI / CÓDIGO O PROJETO ALTERA */}
+                {item.alteraLegislacao && item.leiAlvo && (
+                  <div className="my-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border border-amber-500/35 px-3 py-2 flex items-center justify-between gap-2 shadow-sm">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0 border border-amber-500/30">
+                        <Scale className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9.5px] font-extrabold uppercase tracking-widest text-amber-400/90 block">
+                          Altera Legislação:
+                        </span>
+                        <span className="text-[13px] font-bold text-white block truncate leading-tight">
+                          {item.leiAlvo}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-400 text-black shrink-0 shadow">
+                      Impacto Direto
+                    </span>
+                  </div>
+                )}
 
                 {/* Ementa do Projeto */}
                 <p className="font-body text-[13px] text-foreground/90 leading-relaxed line-clamp-3 mb-3">
@@ -489,9 +750,17 @@ export default function RadarLegislativo() {
                       {selecionado.casa === 'camara' ? 'Câmara dos Deputados' : 'Senado Federal'}
                     </span>
 
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-extrabold border ${getTipoStyle(
+                        selecionado.siglaTipo
+                      ).badge}`}
+                    >
+                      {selecionado.siglaTipo}
+                    </span>
+
                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                      Em tramitação (não aprovado)
+                      Em tramitação
                     </span>
                   </div>
 
@@ -660,6 +929,9 @@ export default function RadarLegislativo() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Menu de Rodapé (Bottom Navigation bar) idêntico ao da Home */}
+      <BottomNav />
     </div>
   );
 }
