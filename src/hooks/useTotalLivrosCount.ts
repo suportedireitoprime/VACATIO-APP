@@ -23,6 +23,6 @@ export function useTotalLivrosCount() {
       
       return total;
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 }

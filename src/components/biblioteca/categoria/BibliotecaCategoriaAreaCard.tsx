@@ -31,21 +31,28 @@ export const BibliotecaCategoriaAreaCard = memo(function BibliotecaCategoriaArea
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.4) }}
-        whileHover={{ scale: 1.02 }}
+        whileHover={{ scale: 1.015 }}
         whileTap={{ scale: 0.98 }}
         onClick={onClick}
-        className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary/40 hover:bg-secondary/50 transition-colors text-left group"
+        className="flex items-center gap-4 p-5 rounded-2xl bg-zinc-900/70 border border-white/10 hover:border-white/25 hover:bg-zinc-800/80 transition-all text-left group shadow-lg"
       >
-        <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
-          <Icon className="w-6 h-6" style={{ color: s.color }} strokeWidth={1.6} />
+        <div className="shrink-0 flex items-center justify-center">
+          <Icon
+            className="w-9 h-9 transition-transform group-hover:scale-110 duration-200"
+            style={{ color: s.color, filter: `drop-shadow(0 2px 8px ${s.color}50)` }}
+            strokeWidth={1.8}
+          />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="font-display font-bold text-foreground text-sm uppercase truncate group-hover:text-primary transition-colors">
+          <div className="font-sans font-semibold text-white text-[16px] sm:text-[17px] tracking-tight truncate group-hover:text-primary transition-colors">
             {area.name}
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {area.count} {area.count === 1 ? 'livro' : 'livros'}
+          <p className="text-[12px] sm:text-[13px] text-zinc-400 font-medium mt-0.5">
+            {area.count} {area.count === 1 ? 'livro catalogado' : 'livros catalogados'}
           </p>
+        </div>
+        <div className="w-8 h-8 rounded-full bg-white/5 group-hover:bg-primary/20 flex items-center justify-center text-zinc-400 group-hover:text-white transition-all shrink-0">
+          <ChevronRight className="w-4 h-4" />
         </div>
       </motion.button>
     );
@@ -55,24 +62,34 @@ export const BibliotecaCategoriaAreaCard = memo(function BibliotecaCategoriaArea
     <motion.button
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.4) }}
-      whileHover={{ scale: 1.015 }}
-      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
+      whileTap={{ scale: 0.985 }}
       onClick={onClick}
-      className="flex items-center gap-3 p-3.5 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors text-left w-full relative overflow-hidden"
+      className="group flex items-center gap-4 px-4 py-4 sm:py-4.5 rounded-2xl bg-zinc-900/80 border border-white/10 hover:border-white/20 active:bg-zinc-850 transition-all text-left w-full shadow-md active:scale-[0.99] relative overflow-hidden"
     >
-      <div className="w-11 h-11 rounded-xl bg-secondary/70 flex items-center justify-center shrink-0">
-        <Icon className="w-6 h-6" style={{ color: s.color }} strokeWidth={1.6} />
+      {/* Ícone sem fundo quadrado cinza, maior e com destaque elegante */}
+      <div className="shrink-0 flex items-center justify-center pl-1">
+        <Icon
+          className="w-8 h-8 sm:w-9 sm:h-9 transition-transform group-active:scale-105 duration-200"
+          style={{ color: s.color, filter: `drop-shadow(0 2px 6px ${s.color}45)` }}
+          strokeWidth={1.8}
+        />
       </div>
+
+      {/* Tipografia elegante e harmoniosa */}
       <div className="min-w-0 flex-1">
-        <div className="font-display font-bold text-foreground text-[14px] leading-tight uppercase truncate">
+        <div className="font-sans font-semibold text-white text-[16px] sm:text-[17px] leading-tight tracking-tight truncate group-hover:text-primary transition-colors">
           {area.name}
         </div>
-        <p className="text-[11px] text-muted-foreground mt-0.5">
-          {area.count} {area.count === 1 ? 'livro' : 'livros'}
+        <p className="text-[12px] sm:text-[12.5px] text-zinc-400 font-medium mt-1">
+          {area.count} {area.count === 1 ? 'livro catalogado' : 'livros catalogados'}
         </p>
       </div>
-      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+
+      {/* Chevron de navegação */}
+      <div className="w-8 h-8 rounded-full bg-white/5 group-hover:bg-primary/20 flex items-center justify-center text-zinc-400 group-hover:text-white transition-all shrink-0 pr-0.5">
+        <ChevronRight className="w-4 h-4" />
+      </div>
     </motion.button>
   );
 });

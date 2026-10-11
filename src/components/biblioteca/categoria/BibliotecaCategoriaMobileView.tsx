@@ -48,7 +48,7 @@ export const BibliotecaCategoriaMobileView: React.FC<BibliotecaCategoriaMobileVi
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(24px+var(--sai-bottom,0px))]">
+    <div className="min-h-dvh bg-background pb-[calc(6rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]">
       <PageHeader
         title={areaAtiva || colecao.label}
         subtitle={areaAtiva ? colecao.label : undefined}
@@ -148,7 +148,7 @@ export const BibliotecaCategoriaMobileView: React.FC<BibliotecaCategoriaMobileVi
             </p>
           </div>
         ) : mostrarAreas ? (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {areas
               .filter((a) => !query || norm(a.name).includes(norm(query)))
               .map((a, index) => (
@@ -164,7 +164,7 @@ export const BibliotecaCategoriaMobileView: React.FC<BibliotecaCategoriaMobileVi
               ))}
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             {livrosVisiveis.map((l, i) => (
               <BibliotecaCategoriaLivroCard
                 key={`${colecao.id}-${l.id}`}
@@ -189,6 +189,8 @@ export const BibliotecaCategoriaMobileView: React.FC<BibliotecaCategoriaMobileVi
         open={!!livroAberto}
         onClose={handleCloseLivro}
       />
+
+      <BibliotecaBottomNav />
     </div>
   );
 };

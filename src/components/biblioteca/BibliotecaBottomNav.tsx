@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { BookMarked, Heart, HardDrive, Library, Route as RouteIcon } from 'lucide-react';
+import { Layers, BookMarked, Search, Scale, Mic } from 'lucide-react';
 import { haptic } from '@/lib/nativeHaptics';
 
 export type BibliotecaAtalhoTab = 'leitura' | 'favoritos' | 'recentes' | 'offline' | 'trilhas';
@@ -11,105 +9,166 @@ export function abrirAtalhoBiblioteca(tab: BibliotecaAtalhoTab) {
   window.dispatchEvent(new CustomEvent('biblioteca-atalho', { detail: { tab } }));
 }
 
-type Slot = {
-  id: 'leitura' | 'favoritos' | 'biblioteca' | 'recentes' | 'offline' | 'trilhas';
-  label: string;
-  icon: typeof Heart;
-};
-
-const SLOTS: Slot[] = [
-  { id: 'biblioteca', label: 'Biblioteca', icon: Library },
-  { id: 'leitura', label: 'Leitura', icon: BookMarked },
-  { id: 'trilhas', label: 'Trilhas', icon: RouteIcon },
-  { id: 'favoritos', label: 'Favoritos', icon: Heart },
-  { id: 'offline', label: 'Offline', icon: HardDrive },
-];
-
 /**
- * Rodapé da Biblioteca — mesmo padrão visual do rodapé do Vade Mecum
- * (painel cinza translúcido com pílula de item ativo).
+ * Menu de rodapé da Biblioteca idêntico ao menu de rodapé do início do aplicativo (Vade Mecum),
+ * contendo as 5 funções solicitadas:
+ * 1. Áreas do Direito
+ * 2. Clássicos do Direito
+ * 3. Pesquisar (FAB centralizado em relevo)
+ * 4. OAB
+ * 5. Oratória
  */
 const BibliotecaBottomNav = ({ hidden = false }: { hidden?: boolean }) => {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const [active, setActive] = useState<Slot['id']>(() => {
-    if (pathname.includes('/trilhas')) return 'trilhas';
-    return 'biblioteca';
-  });
+  const location = useLocation();
+  const path = location.pathname;
 
-  useEffect(() => {
-    if (pathname.includes('/trilhas')) setActive('trilhas');
-    else if (pathname.endsWith('/bibliotecas')) setActive('biblioteca');
-    
-    // Opcional: Escutar quando um modal fecha para voltar o visual para a aba atual da URL
-    const handleClose = () => {
-      if (window.location.hash.includes('/trilhas') || window.location.pathname.includes('/trilhas')) {
-        setActive('trilhas');
-      } else {
-        setActive('biblioteca');
-      }
-    };
-    window.addEventListener('biblioteca-atalho-close', handleClose);
-    return () => window.removeEventListener('biblioteca-atalho-close', handleClose);
-  }, [pathname]);
+  const isAreas = path.includes('/bibliotecas/areas');
+  const isClassicos = path.includes('/bibliotecas/classicos');
+  const isOab = path.includes('/bibliotecas/oab');
+  const isOratoria = path.includes('/bibliotecas/oratoria');
 
-  const handle = (slot: Slot) => {
-    haptic.selection();
-    setActive(slot.id);
-    if (slot.id === 'biblioteca') {
-      if (pathname !== '/bibliotecas') navigate('/bibliotecas');
-      return;
-    }
-    if (slot.id === 'trilhas') {
-      if (!pathname.includes('/trilhas')) navigate('/bibliotecas/trilhas');
-      return;
-    }
-    abrirAtalhoBiblioteca(slot.id);
+  const handleSearch = () => {
+    haptic.light();
+    window.dispatchEvent(new CustomEvent('biblioteca-abrir-pesquisa'));
   };
 
   return (
-    <motion.nav
+    <nav
       aria-label="Navegação da Biblioteca"
+      role="navigation"
       data-bottom-nav
-      initial={false}
-      animate={hidden ? { y: 120, opacity: 0 } : { y: 0, opacity: 1 }}
-      transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-      className="fixed bottom-0 left-0 right-0 z-[60] md:bottom-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-auto"
+      className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,var(--sai-bottom))] transition-all duration-300 ease-out ${
+        hidden ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+      }`}
     >
-      <div className="bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10 pb-[var(--sai-bottom,var(--sai-bottom))] md:border md:rounded-full md:shadow-2xl md:shadow-black/30 md:pb-0">
-        <div className="grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto md:gap-1 md:px-3 md:py-2">
-          {SLOTS.map((slot) => {
-            const isActive = active === slot.id;
-            const Icon = slot.icon;
-            return (
-              <button
-                key={slot.id}
-                type="button"
-                onClick={() => handle(slot)}
-                className={`relative flex flex-col items-center justify-end gap-1 py-1.5 px-1 rounded-2xl transition-colors ${
-                  isActive ? 'text-white' : 'text-muted-foreground hover:text-white/80'
-                }`}
-                aria-label={slot.label}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="biblioteca-nav-active-pill"
-                    className="absolute inset-0 rounded-2xl bg-white/10 ring-1 ring-white/20"
-                    transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                    aria-hidden="true"
-                  />
-                )}
-                <Icon className="relative w-7 h-7 sm:w-8 sm:h-8" strokeWidth={isActive ? 1.4 : 1.2} />
-                <span className={`relative text-[10px] sm:text-[11px] leading-none ${isActive ? 'font-medium' : 'font-normal'}`}>
-                  {slot.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      {/* Degradê escuro subindo do rodapé para dar profundidade */}
+      <div
+        aria-hidden="true"
+        className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
+      />
+
+      <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
+        {/* 1. Áreas do Direito */}
+        <button
+          onClick={() => {
+            haptic.selection();
+            navigate('/bibliotecas/areas');
+          }}
+          data-track="bottom_nav_click"
+          data-track-destino="areas"
+          className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
+            isAreas ? 'text-white' : 'text-white/80 hover:text-white'
+          }`}
+          aria-label="Áreas do Direito"
+        >
+          <Layers
+            className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
+              isAreas ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+            }`}
+            strokeWidth={1.5}
+          />
+          <span className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${isAreas ? 'font-semibold text-primary' : ''}`}>
+            Áreas
+          </span>
+        </button>
+
+        {/* 2. Clássicos do Direito */}
+        <button
+          onClick={() => {
+            haptic.selection();
+            navigate('/bibliotecas/classicos');
+          }}
+          data-track="bottom_nav_click"
+          data-track-destino="classicos"
+          className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
+            isClassicos ? 'text-white' : 'text-white/80 hover:text-white'
+          }`}
+          aria-label="Clássicos do Direito"
+        >
+          <BookMarked
+            className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
+              isClassicos ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+            }`}
+            strokeWidth={1.5}
+          />
+          <span className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${isClassicos ? 'font-semibold text-primary' : ''}`}>
+            Clássicos
+          </span>
+        </button>
+
+        {/* 3. Pesquisar (FAB centralizado em relevo idêntico ao início do app) */}
+        <button
+          onPointerDown={(e) => {
+            if (e.button === 0) handleSearch();
+          }}
+          onClick={handleSearch}
+          data-track="bottom_nav_click"
+          data-track-destino="pesquisar_biblioteca"
+          className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 min-h-[6.25rem] min-w-[5.75rem] touch-manipulation select-none"
+          aria-label="Pesquisar na Biblioteca"
+        >
+          <span className="relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden bg-primary shadow-[0_8px_30px_rgba(0,0,0,0.6)] ring-1 ring-black/5 transition-transform fab-search-shine active:scale-95">
+            <Search
+              className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground drop-shadow-sm"
+              aria-hidden="true"
+              strokeWidth={1.5}
+            />
+          </span>
+          <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white drop-shadow-sm truncate px-0.5">
+            Pesquisar
+          </span>
+        </button>
+
+        {/* 4. OAB */}
+        <button
+          onClick={() => {
+            haptic.selection();
+            navigate('/bibliotecas/oab');
+          }}
+          data-track="bottom_nav_click"
+          data-track-destino="oab"
+          className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
+            isOab ? 'text-white' : 'text-white/80 hover:text-white'
+          }`}
+          aria-label="OAB"
+        >
+          <Scale
+            className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
+              isOab ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+            }`}
+            strokeWidth={1.5}
+          />
+          <span className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${isOab ? 'font-semibold text-primary' : ''}`}>
+            OAB
+          </span>
+        </button>
+
+        {/* 5. Oratória */}
+        <button
+          onClick={() => {
+            haptic.selection();
+            navigate('/bibliotecas/oratoria');
+          }}
+          data-track="bottom_nav_click"
+          data-track-destino="oratoria"
+          className={`flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative ${
+            isOratoria ? 'text-white' : 'text-white/80 hover:text-white'
+          }`}
+          aria-label="Oratória"
+        >
+          <Mic
+            className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
+              isOratoria ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+            }`}
+            strokeWidth={1.5}
+          />
+          <span className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${isOratoria ? 'font-semibold text-primary' : ''}`}>
+            Oratória
+          </span>
+        </button>
       </div>
-    </motion.nav>
+    </nav>
   );
 };
 
