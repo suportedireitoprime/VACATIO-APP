@@ -41,7 +41,7 @@ export default function HomeNoticiasCarousel({ onOpenChange }: Props) {
 
   useEffect(() => {
     if (noticias.length === 0) {
-      prefetchNoticias().catch(() => {});
+      prefetchNoticias(true).catch(() => {});
     }
     const unsub = subscribeNoticias((data) => {
       const sorted = [...data].sort(

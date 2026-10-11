@@ -85,7 +85,7 @@ export function getNoticiasCache(): Noticia[] | null {
 
 export async function prefetchNoticias(force = false): Promise<void> {
   const now = Date.now();
-  if (!force && noticiasCache && (now - lastFetchTime) < MIN_REFETCH_MS) return;
+  if (!force && noticiasCache && noticiasCache.length > 0 && (now - lastFetchTime) < MIN_REFETCH_MS) return;
   if (fetchPromise) return fetchPromise;
   // Offline: mantém o snapshot já hidratado e nem tenta rede.
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
