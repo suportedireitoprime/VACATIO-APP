@@ -150,7 +150,7 @@ async function ensureClassicosPool(): Promise<LivroNormalizado[]> {
     try {
       const query = supabase
         .from('biblioteca_classicos')
-        .select('id, livro, autor, area, imagem, sobre, link, download, capa_horizontal, ano_lancamento, editora, curiosidades, analise_detalhada, audio_resumo_url, paginas, minutos_leitura')
+        .select('id, livro, autor, area, imagem, sobre, link, download, capa_horizontal, ano_lancamento, editora, curiosidades, analise_detalhada')
         .not('imagem', 'is', null)
         .limit(30);
 
