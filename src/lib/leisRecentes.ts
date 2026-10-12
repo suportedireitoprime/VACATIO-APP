@@ -72,7 +72,18 @@ export async function syncRecentesFromSupabase() {
       .slice(0, MAX);
       
     localStorage.setItem(KEY, JSON.stringify(merged));
+    notifyRecentesUpdated();
   }
+}
+
+export const LEIS_RECENTES_EVENT = 'LEIS_RECENTES_UPDATED';
+
+export function notifyRecentesUpdated() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new CustomEvent(LEIS_RECENTES_EVENT));
+    window.dispatchEvent(new Event('storage'));
+  } catch {}
 }
 
 // Adiciona no cache local e envia para o Supabase assincronamente
@@ -87,6 +98,7 @@ export function pushRecente(lei: Omit<LeiRecente, 'openedAt'>) {
     const filtered = list.filter((l) => l.leiId !== lei.leiId);
     filtered.unshift({ ...lei, artigoNumero: artigoNumeroResolvido, openedAt: Date.now() });
     localStorage.setItem(KEY, JSON.stringify(filtered.slice(0, MAX)));
+    notifyRecentesUpdated();
     
     // Sincroniza em background
     void (async () => {
@@ -105,7 +117,10 @@ export function pushRecente(lei: Omit<LeiRecente, 'openedAt'>) {
 }
 
 export function clearRecentes() {
-  try { localStorage.removeItem(KEY); } catch {}
+  try {
+    localStorage.removeItem(KEY);
+    notifyRecentesUpdated();
+  } catch {}
 }
 
 // ---- Popularidade de busca (leis mais procuradas) ----

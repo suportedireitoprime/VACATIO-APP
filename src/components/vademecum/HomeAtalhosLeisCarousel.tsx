@@ -459,10 +459,10 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
       </div>
 
       {/* Carrossel de Atalhos fluido (mesmo motor nativo de Selecionados Para Você) */}
-      <div className="relative -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 -mt-10">
+      <div className="relative -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12">
         <div
           ref={scrollerRef}
-          className="overflow-x-auto no-scrollbar snap-x snap-mandatory md:cursor-grab select-none pb-4 pt-10"
+          className="overflow-x-auto no-scrollbar snap-x snap-mandatory md:cursor-grab select-none pt-2.5 pb-3.5"
           style={{ scrollPaddingInline: sidePad }}
           onPointerDown={onScrollerPointerDown}
           onPointerMove={onScrollerPointerMove}
@@ -481,20 +481,6 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
               const baseColor = getLeiColor(lei.id, lei.tipo);
               const isCenter = index === activeIdx;
               const cardKey = `${lei.id}-${index}`;
-
-              let coverImage = null;
-              if (lei.id === 'cdc') coverImage = '/assets/cdc-girl.webp';
-              else if (lei.id === 'clt') coverImage = '/assets/cdc-worker.webp';
-              else if (lei.id === 'cpp') coverImage = '/assets/cpp-court.webp';
-              else if (lei.id === 'cpc') coverImage = '/assets/cpc-lawyer.webp';
-              else if (lei.id === 'cc') coverImage = '/assets/cc-couple.webp';
-              else if (['cf88', 'cf'].includes(lei.id)) coverImage = '/assets/cf88-cover.webp';
-              else if (['cp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.webp';
-              else if (lei.id === 'ctn') coverImage = '/assets/ctn-taxes.webp';
-              else if (lei.id === 'eca') coverImage = '/assets/eca-kids.webp';
-              else if (lei.id === 'eoab') coverImage = '/assets/eoab-woman.webp';
-              else if (lei.id === 'epd') coverImage = '/assets/epd-wheelchair.webp';
-              else if (lei.id === 'ce') coverImage = '/assets/ce-vote.webp';
 
               const openThis = () => {
                 const now = Date.now();
@@ -580,16 +566,6 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                     />
                     <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl group-hover:bg-white/20 transition-all" />
                   </div>
-
-                  {coverImage && (
-                    <img
-                      src={coverImage}
-                      alt={`Capa da lei ${lei.sigla}`}
-                      className={`absolute -top-5 right-0 h-[104px] w-auto max-w-none object-contain pointer-events-none z-10 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] transition-all duration-300 ${
-                        isCenter ? 'scale-110 drop-shadow-[0_12px_20px_rgba(0,0,0,0.7)]' : 'scale-100'
-                      }`}
-                    />
-                  )}
 
                   {/* Conteúdo visível (Sigla da lei no fundo e ícone no canto superior) */}
                   <div className="relative z-20 flex flex-col justify-between w-full h-full p-2.5 pointer-events-none">

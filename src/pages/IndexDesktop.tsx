@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Search, X, BookMarked, Gavel, ArrowRight, Zap, MessageCircle, ScrollText, Feather, Heart, Wrench, ShieldAlert, House, CircleDollarSign, Landmark, FileText, ShieldCheck, Briefcase, Store, Building, Vote, HeartPulse, TreePine, ShoppingCart, Baby, Shield, Globe, ChevronLeft, Clock, BookOpen, ChevronRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -16,7 +16,7 @@ import HomeCard from '@/components/vademecum/HomeCard';
 
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 import { LAW_ICON_MAP, CODIGO_DISPLAY_NAMES, ESTATUTO_DISPLAY_NAMES } from '@/data/lawDisplay';
-import { pushRecente, getRecentes, type LeiRecente } from '@/lib/leisRecentes';
+import { pushRecente, getRecentes, LEIS_RECENTES_EVENT, type LeiRecente } from '@/lib/leisRecentes';
 import { leiPath, leiToSlug, tipoToSlug } from '@/lib/legislacaoSlugs';
 import { prefetchAllArtigos } from '@/services/legislacaoService';
 import { prefetchResenha } from '@/services/atualizacaoService';
@@ -66,14 +66,21 @@ const IndexDesktop = () => {
   const [activeArea, setActiveArea] = useState<AreaCat | null>(null);
   const [modalOpen, setModalOpen] = useState<'favoritos' | 'anotacoes' | 'grifos' | 'ferramentas' | null>(null);
 
+  const location = useLocation();
   const [recentes, setRecentes] = useState<LeiRecente[]>([]);
 
   useEffect(() => {
     const carregar = () => setRecentes(getRecentes().slice(0, 3));
     carregar();
-    window.addEventListener('LEIS_RECENTES_UPDATED', carregar);
-    return () => window.removeEventListener('LEIS_RECENTES_UPDATED', carregar);
-  }, []);
+    window.addEventListener(LEIS_RECENTES_EVENT, carregar);
+    window.addEventListener('storage', carregar);
+    window.addEventListener('focus', carregar);
+    return () => {
+      window.removeEventListener(LEIS_RECENTES_EVENT, carregar);
+      window.removeEventListener('storage', carregar);
+      window.removeEventListener('focus', carregar);
+    };
+  }, [location.pathname]);
   useHotkeys('mod+k', (e) => { e.preventDefault(); setSearchOpen(true); }, { enableOnFormTags: true });
   useHotkeys('escape', () => { setSearchOpen(false); setAssistenteOpen(false); });
 

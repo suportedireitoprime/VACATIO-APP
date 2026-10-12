@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { getRecentes } from '@/lib/leisRecentes';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getRecentes, LEIS_RECENTES_EVENT } from '@/lib/leisRecentes';
 import {
   Accessibility, Baby, Banknote, BookMarked, Briefcase, BriefcaseBusiness, Building,
   Cannabis, Car, ChevronRight, CircleDollarSign, Clock, Columns3, Cross, Drama,
@@ -311,6 +311,7 @@ interface Props {
 
 const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('categorias');
   const [juriOpen, setJuriOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState<Cat | AreaCat | CategoriaFormal | null>(null);
@@ -318,7 +319,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const [listFilter, setListFilter] = useState<'todos' | 'favoritos'>('todos');
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
-  // #41 — Continuar Leitura: última lei visitada
+  // #41 — Continuar Leitura: última lei visitada (atualização instantânea ao navegar ou alternar abas)
   const [ultimaLei, setUltimaLei] = useState<ReturnType<typeof getRecentes>[0] | null>(null);
   useEffect(() => {
     const carregarUltima = () => {
@@ -341,10 +342,24 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
         setUltimaLei(null);
       }
     };
+
     carregarUltima();
+
     window.addEventListener('storage', carregarUltima);
-    return () => window.removeEventListener('storage', carregarUltima);
-  }, []);
+    window.addEventListener(LEIS_RECENTES_EVENT, carregarUltima);
+    window.addEventListener('focus', carregarUltima);
+    const onVisibility = () => {
+      if (!document.hidden) carregarUltima();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      window.removeEventListener('storage', carregarUltima);
+      window.removeEventListener(LEIS_RECENTES_EVENT, carregarUltima);
+      window.removeEventListener('focus', carregarUltima);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!categoryOpen) return;
@@ -448,8 +463,8 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           onClick={() => {
-            const lei = { id: ultimaLei.leiId, nome: ultimaLei.nome };
-            const base = `/legislacao/${tipoToSlug(ultimaLei.tipo)}/${leiToSlug(lei)}`;
+            const leiCat = LEIS_CATALOG.find(l => l.id === ultimaLei.leiId);
+            const base = leiCat ? leiPath(leiCat) : `/legislacao/${tipoToSlug(ultimaLei.tipo)}/${leiToSlug({ id: ultimaLei.leiId, nome: ultimaLei.nome })}`;
             navigate(ultimaLei.artigoNumero ? `${base}/${encodeURIComponent(ultimaLei.artigoNumero)}` : base);
           }}
           style={{

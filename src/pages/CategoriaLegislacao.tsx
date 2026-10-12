@@ -39,7 +39,7 @@ const brasaoImg = brasaoImgAsset;
 import { useIsDesktop } from '@/hooks/use-desktop';
 import RadarLegislacaoContent, { prefetchRadarData } from '@/components/vademecum/RadarLegislacaoContent';
 import { getLeiColor, getLeiCover, shade } from '@/lib/leiTheme';
-import { pushRecente } from '@/lib/leisRecentes';
+import { pushRecente, getRecentes } from '@/lib/leisRecentes';
 import { warmCoverCache } from '@/lib/coverLoader';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 import { slugToTipo, tipoToSlug, leiToSlug, leiPath, findLeiBySlug, CATEGORIAS_FIXAS } from '@/lib/legislacaoSlugs';
@@ -219,12 +219,22 @@ const CategoriaLegislacao = () => {
     return () => { cancelled = true; };
   }, [selectedLeiId, selectedLeiNome]);
 
-  // Analytics: lei selecionada
+  // Analytics e registro imediato de lei aberta para o "Continuar Leitura"
   useEffect(() => {
-    if (selectedLeiId) {
+    if (selectedLeiId && selectedTabelaNome) {
       track('legislacao_lei_opened', { lei_id: selectedLeiId, lei_nome: selectedLeiNome, tipo });
+      const existentes = getRecentes();
+      const prev = existentes.find(l => l.leiId === selectedLeiId);
+      pushRecente({
+        tipo: tipo || 'lei',
+        leiId: selectedLeiId,
+        nome: selectedLeiNome || selectedLeiId.toUpperCase(),
+        descricao: selectedLeiDescricao || '',
+        tabela_nome: selectedTabelaNome,
+        artigoNumero: prev?.artigoNumero,
+      });
     }
-  }, [selectedLeiId, selectedLeiNome, tipo]);
+  }, [selectedLeiId, selectedLeiNome, selectedLeiDescricao, selectedTabelaNome, tipo, track]);
 
   const searchBarRef = useRef<HTMLDivElement | null>(null);
   const artigosListRef = useRef<HTMLDivElement | null>(null);
