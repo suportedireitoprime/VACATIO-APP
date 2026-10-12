@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -11,20 +11,17 @@ import {
   RotateCcw, 
   Sparkles, 
   CheckCircle2, 
-  XCircle, 
-  HelpCircle, 
-  BookOpen, 
   Scale, 
   Clock, 
   Lightbulb, 
   ShieldCheck, 
-  Users, 
   MessageSquare, 
   Layers, 
   BrainCircuit, 
-  ExternalLink,
   Info,
-  Maximize2
+  Play,
+  BookOpen,
+  ArrowRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
@@ -45,31 +42,53 @@ interface SlideData {
   titulo: string;
   subtitulo?: string;
   conteudoPrincipal: React.ReactNode;
-  textoAudio: string; // Texto limpo para síntese de voz
-  interacaoTipo?: 'flip' | 'quiz' | 'simulador' | 'faq' | 'leitura';
+  textoAudio: string;
 }
 
 interface MecanicaDef {
   id: MecanicaId;
   nome: string;
+  badge: string;
   icone: any;
+  corPrimaria: string;
+  gradienteFundo: string;
+  bordaCor: string;
+  botaoCor: string;
   subtitulo: string;
-  descricaoPedagogica: string;
+  descricaoCurta: string;
   focoLeigo: string;
   slides: Record<ArtigoId, SlideData[]>;
 }
 
+const ARTIGOS_INFO: Record<ArtigoId, { titulo: string; subtitulo: string; texto: string }> = {
+  art1: {
+    titulo: 'Artigo 1º — Anterioridade da Lei Penal',
+    subtitulo: 'Legalidade estrita e segurança jurídica',
+    texto: '“Não há crime sem lei anterior que o defina. Não há pena sem prévia cominação legal.”',
+  },
+  art2: {
+    titulo: 'Artigo 2º — Lei Penal no Tempo & Retroatividade',
+    subtitulo: 'Abolitio criminis e a lei que favorece o cidadão',
+    texto: '“Ninguém pode ser punido por fato que lei posterior deixa de considerar crime... A lei posterior, que favorecer o agente, aplica-se aos fatos anteriores...”',
+  },
+};
+
 const MECANICAS: MecanicaDef[] = [
   // ----------------------------------------------------
-  // MECÂNICA 1: ANATOMIA & TRADUÇÃO PALAVRA POR PALAVRA
+  // MECÂNICA 1: ANATOMIA & TRADUÇÃO
   // ----------------------------------------------------
   {
     id: 'anatomia',
-    nome: '1. Anatomia & Tradução',
+    nome: '1. Anatomia & Tradução Palavra por Palavra',
+    badge: 'Legal Design & Micro-Tradução',
     icone: Layers,
+    corPrimaria: 'text-emerald-400',
+    gradienteFundo: 'from-emerald-950/40 via-emerald-900/10 to-transparent',
+    bordaCor: 'border-emerald-500/40 hover:border-emerald-400',
+    botaoCor: 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/25',
     subtitulo: 'Desconstrução do juridiquês em português claro',
-    descricaoPedagogica: 'Divide o texto arcaico em blocos isolados, mostrando o que a lei diz vs o que significa no dia a dia.',
-    focoLeigo: 'Elimina o medo do juridiquês e traduz cada termo técnico imediatamente.',
+    descricaoCurta: 'Fatia o artigo em blocos e traduz termos difíceis como "cominação" e "anterioridade" em linguagem do dia a dia.',
+    focoLeigo: 'Elimina o medo de ler a lei pura e explica o que cada frase significa na vida real.',
     slides: {
       art1: [
         {
@@ -80,15 +99,15 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Artigo primeiro do Código Penal. Não há crime sem lei anterior que o defina. Não há pena sem prévia cominação legal. Parece difícil, mas vamos destrinchar cada palavra agora.',
           conteudoPrincipal: (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 text-center space-y-2">
-                <span className="text-[11px] font-semibold tracking-wider uppercase text-teal-400">
+              <div className="p-4 rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-950/30 to-background text-center space-y-2 shadow-inner">
+                <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-400">
                   Texto Literal da Lei
                 </span>
                 <p className="font-serif text-lg sm:text-xl text-foreground font-medium leading-relaxed italic">
                   “Não há crime sem lei anterior que o defina. Não há pena sem prévia cominação legal.”
                 </p>
               </div>
-              <div className="p-3.5 rounded-xl border border-border bg-card/60 flex items-start gap-3">
+              <div className="p-3.5 rounded-xl border border-border/80 bg-secondary/40 flex items-start gap-3">
                 <Lightbulb className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                   À primeira vista, soa formal e distante. Porém, este pequeno artigo é o seu maior escudo contra abusos do governo. Ele é dividido em duas partes fundamentais. Vamos ver a primeira?
@@ -106,12 +125,12 @@ const MECANICAS: MecanicaDef[] = [
           conteudoPrincipal: (
             <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-950/20 space-y-1.5">
+                <div className="p-3.5 rounded-xl border border-rose-500/40 bg-rose-950/25 space-y-1.5">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400">Na Lei</span>
                   <p className="text-xs font-mono text-foreground">“...sem lei anterior que o defina”</p>
                   <p className="text-xs text-muted-foreground">Exige anterioridade e reserva legal estrita.</p>
                 </div>
-                <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20 space-y-1.5">
+                <div className="p-3.5 rounded-xl border border-emerald-500/40 bg-emerald-950/25 space-y-1.5">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Na Vida Real</span>
                   <p className="text-xs font-medium text-emerald-200">“A placa tem que estar lá antes de você passar”</p>
                   <p className="text-xs text-muted-foreground">Se você fez algo hoje que não é proibido, nenhum policial ou juiz pode inventar um crime amanhã para te prender.</p>
@@ -131,8 +150,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Segunda parte: Não há pena sem prévia cominação legal. Cominação significa apenas ameaça ou previsão de castigo. O juiz não pode inventar a punição da própria cabeça.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-teal-500/30 bg-card space-y-2">
-                <div className="flex items-center gap-2 text-teal-400 font-semibold text-xs">
+              <div className="p-4 rounded-xl border border-emerald-500/40 bg-card space-y-2">
+                <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs">
                   <Info className="w-4 h-4" />
                   O que significa a palavra "Cominação"?
                 </div>
@@ -157,8 +176,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Antigamente, reis e ditadores mandavam prender qualquer pessoa inventando crimes de surpresa. O artigo primeiro garante segurança jurídica para você viver em paz.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3.5 rounded-xl border border-teal-500/20 bg-teal-950/15">
-                <ShieldCheck className="w-6 h-6 text-teal-400 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20">
+                <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
                 <div className="text-xs sm:text-sm space-y-1">
                   <strong className="text-foreground">Segurança Jurídica Total:</strong>
                   <p className="text-muted-foreground leading-relaxed">
@@ -178,7 +197,6 @@ const MECANICAS: MecanicaDef[] = [
           titulo: 'Teste o que você aprendeu!',
           subtitulo: 'Situação real de teste',
           textoAudio: 'Quiz rápido. O prefeito da sua cidade fez um decreto proibindo soltar pipa às terças-feiras e mandou a polícia prender quem soltou pipa na semana passada. Isso é permitido?',
-          interacaoTipo: 'quiz',
           conteudoPrincipal: <QuizArtigo1Anatomia />,
         },
       ],
@@ -191,8 +209,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Artigo segundo do Código Penal: Ninguém pode ser punido por fato que lei posterior deixa de considerar crime, cessando em virtude dela a execução e os efeitos penais da sentença condenatória.',
           conteudoPrincipal: (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 text-center space-y-2">
-                <span className="text-[11px] font-semibold tracking-wider uppercase text-teal-400">
+              <div className="p-4 rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-950/30 to-background text-center space-y-2">
+                <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-400">
                   Caput do Artigo 2º
                 </span>
                 <p className="font-serif text-base sm:text-lg text-foreground font-medium leading-relaxed italic">
@@ -213,7 +231,7 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Abolitio criminis. Se uma nova lei diz que aquilo não é mais crime, quem está preso é solto e a ficha criminal fica limpa desse crime imediatamente.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20 space-y-1.5">
+              <div className="p-3.5 rounded-xl border border-emerald-500/40 bg-emerald-950/25 space-y-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Efeito Imediato</span>
                 <h4 className="text-sm font-bold text-emerald-200">Soltura e Ficha Limpa</h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
@@ -234,8 +252,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Parágrafo único do artigo segundo: A lei posterior que de qualquer modo favorecer o agente aplica-se aos fatos anteriores, ainda que decididos por sentença condenatória transitada em julgado.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-3.5 rounded-xl border border-blue-500/30 bg-blue-950/20 space-y-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">Parágrafo Único</span>
+              <div className="p-3.5 rounded-xl border border-teal-500/40 bg-teal-950/20 space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">Parágrafo Único</span>
                 <p className="text-xs font-mono text-foreground">
                   “A lei posterior, que de qualquer modo favorecer o agente, aplica-se aos fatos anteriores...”
                 </p>
@@ -257,7 +275,7 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Atenção leiga: a lei nova apaga os efeitos penais, como a prisão e reincidência. Mas se você causou prejuízo financeiro para alguém, a obrigação de pagar a indenização cível continua valendo.',
           conteudoPrincipal: (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-950/15 space-y-1">
+              <div className="p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/20 space-y-1">
                 <span className="text-[10px] font-bold text-emerald-400 uppercase">O que é cancelado:</span>
                 <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
                   <li>Pena de prisão e multa criminal</li>
@@ -265,7 +283,7 @@ const MECANICAS: MecanicaDef[] = [
                   <li>Execução penal</li>
                 </ul>
               </div>
-              <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-950/15 space-y-1">
+              <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-950/20 space-y-1">
                 <span className="text-[10px] font-bold text-amber-400 uppercase">O que permanece:</span>
                 <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
                   <li>Dever civil de indenizar dano causado</li>
@@ -281,7 +299,6 @@ const MECANICAS: MecanicaDef[] = [
           titulo: 'Teste o que você aprendeu!',
           subtitulo: 'Situação real do Artigo 2º',
           textoAudio: 'Quiz do artigo segundo. Um homem foi condenado a 8 anos e já cumpriu 3 anos. Se hoje for aprovada uma lei reduzindo a pena máxima para 3 anos, o que acontece com ele?',
-          interacaoTipo: 'quiz',
           conteudoPrincipal: <QuizArtigo2Anatomia />,
         },
       ],
@@ -289,15 +306,20 @@ const MECANICAS: MecanicaDef[] = [
   },
 
   // ----------------------------------------------------
-  // MECÂNICA 2: STORYTELLING & CASO DA VIDA REAL
+  // MECÂNICA 2: STORYTELLING & CASOS DA VIDA REAL
   // ----------------------------------------------------
   {
     id: 'storytelling',
-    nome: '2. Storytelling & Casos Reais',
+    nome: '2. Storytelling & Casos da Vida Real',
+    badge: 'Narrativa em Capítulos',
     icone: BookOpen,
-    subtitulo: 'História em capítulos com dilemas humanos',
-    descricaoPedagogica: 'Ensina o princípio através de uma narrativa com personagens do cotidiano, gerando empatia e conexão prática.',
-    focoLeigo: 'Mostra o impacto na vida de uma pessoa comum sem termos jurídicos frios.',
+    corPrimaria: 'text-amber-400',
+    gradienteFundo: 'from-amber-950/40 via-amber-900/10 to-transparent',
+    bordaCor: 'border-amber-500/40 hover:border-amber-400',
+    botaoCor: 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/25',
+    subtitulo: 'Histórias ilustradas com dilemas humanos cotidianos',
+    descricaoCurta: 'Acompanhe Dona Clara (vendedora de chás) e Lucas (condenado no passado) para entender a aplicação prática da lei na vida das pessoas.',
+    focoLeigo: 'Cria empatia imediata através de uma historinha sem termos jurídicos frios.',
     slides: {
       art1: [
         {
@@ -308,8 +330,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Capítulo 1. Dona Clara tem uma quitanda no bairro e vende um chá de ervas artesanal que ela mesma prepara há mais de 10 anos. Tudo com nota fiscal e dentro da lei.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-border/80 bg-secondary/30 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-2xl shrink-0">
+              <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-950/20 flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/25 text-amber-300 flex items-center justify-center font-bold text-2xl shrink-0 shadow-inner">
                   👵
                 </div>
                 <div>
@@ -331,7 +353,7 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Capítulo 2. No dia 1º de junho, o Congresso aprova uma nova lei dizendo que o capim-cidreira concentrado agora é substância controlada sob pena de até 3 anos de prisão.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-950/20 space-y-1">
+              <div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/25 space-y-1">
                 <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">📅 1º de Junho</span>
                 <p className="text-xs font-semibold text-foreground">Entra em vigor a Lei nº 99.999</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
@@ -352,14 +374,14 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Capítulo 3. O fiscal mostra o caderninho de vendas de Dona Clara do mês de maio e diz: a senhora vendeu 50 frascos semana passada, então vamos te levar presa.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-950/20 space-y-2">
+              <div className="p-3.5 rounded-xl border border-rose-500/40 bg-rose-950/25 space-y-2">
                 <div className="text-xs font-bold text-rose-300">👮 O Fiscal diz:</div>
                 <p className="text-xs text-muted-foreground italic">
                   “Dona Clara, temos as notas do mês passado. A senhora cometeu crime ao vender esses frascos!”
                 </p>
               </div>
-              <div className="p-3.5 rounded-xl border border-teal-500/30 bg-teal-950/20 space-y-2">
-                <div className="text-xs font-bold text-teal-300">👵 Dona Clara responde em prantos:</div>
+              <div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-950/25 space-y-2">
+                <div className="text-xs font-bold text-amber-300">👵 Dona Clara responde em prantos:</div>
                 <p className="text-xs text-muted-foreground italic">
                   “Mas semana passada não era proibido! Como eu ia adivinhar o futuro?”
                 </p>
@@ -375,8 +397,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Capítulo 4. O advogado de Dona Clara chega e cita o artigo primeiro do Código Penal: Não há crime sem lei anterior que o defina. Dona Clara está livre de qualquer acusação.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-teal-500/30 bg-card space-y-2">
-                <div className="flex items-center gap-2 text-teal-400 font-bold text-xs uppercase">
+              <div className="p-4 rounded-xl border border-amber-500/40 bg-card space-y-2">
+                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase">
                   <ShieldCheck className="w-4 h-4" />
                   Decisão do Delegado e do Juiz:
                 </div>
@@ -397,8 +419,8 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'Resumo da lição para a sua vida',
           textoAudio: 'Lição final: Ninguém pode te punir por algo que não era crime no momento em que você fez. Guarde o artigo primeiro como seu escudo de liberdade.',
           conteudoPrincipal: (
-            <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 text-center space-y-3">
-              <CheckCircle2 className="w-10 h-10 text-teal-400 mx-auto" />
+            <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-950/30 text-center space-y-3">
+              <CheckCircle2 className="w-10 h-10 text-amber-400 mx-auto" />
               <h4 className="text-sm font-bold text-foreground">Regra de Ouro Gravada!</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Você agora entende perfeitamente o <strong>Princípio da Anterioridade</strong>. Você tem o direito de viver tranquilo sem medo de leis futuras inventadas por surpresa.
@@ -416,8 +438,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Capítulo 1. Lucas foi condenado a 4 anos de prisão em 2021 por uma conduta que na época era considerada crime. Ele já cumpriu 2 anos e o processo já terminou com sentença definitiva.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-border/80 bg-secondary/30 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-2xl shrink-0">
+              <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-950/20 flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/25 text-amber-300 flex items-center justify-center font-bold text-2xl shrink-0">
                   👨
                 </div>
                 <div>
@@ -438,7 +460,7 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'A sociedade decidiu que aquilo não é mais motivo de cadeia',
           textoAudio: 'Capítulo 2. Em 2024, o Congresso Nacional percebe que aquela conduta não faz sentido como crime e revoga totalmente o artigo da lei.',
           conteudoPrincipal: (
-            <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20 space-y-2">
+            <div className="p-3.5 rounded-xl border border-emerald-500/40 bg-emerald-950/25 space-y-2">
               <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">📢 Notícia Nacional</span>
               <h4 className="text-sm font-bold text-emerald-200">Aprovada a Descriminalização</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -455,8 +477,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Capítulo 3. O artigo segundo do Código Penal determina: ninguém pode ser punido por fato que lei posterior deixa de considerar crime, cessando a execução da pena.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-teal-500/30 bg-card space-y-2">
-                <span className="text-xs font-bold text-teal-400">O Defensor Público solicita:</span>
+              <div className="p-4 rounded-xl border border-amber-500/40 bg-card space-y-2">
+                <span className="text-xs font-bold text-amber-400">O Defensor Público solicita:</span>
                 <p className="text-xs sm:text-sm text-foreground leading-relaxed">
                   Com base no <strong>Art. 2º do Código Penal</strong>, a execução da pena cessa imediatamente! O juiz da vara de execuções emite o alvará de soltura e Lucas volta para casa hoje mesmo.
                 </p>
@@ -471,7 +493,7 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'O crime é apagado do histórico penal',
           textoAudio: 'Capítulo 4. Lucas não apenas sai da prisão, mas a condenação criminal deixa de constar como reincidência. Ele volta a ter a ficha limpa quanto a esse crime.',
           conteudoPrincipal: (
-            <div className="p-3.5 rounded-xl border border-blue-500/30 bg-blue-950/20 space-y-2">
+            <div className="p-3.5 rounded-xl border border-blue-500/40 bg-blue-950/25 space-y-2">
               <span className="text-[10px] font-bold text-blue-400 uppercase">Efeito Jurídico Completo</span>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Diferente de um perdão comum, a <strong>Abolitio Criminis</strong> apaga os efeitos penais. Se amanhã Lucas pedir uma certidão de antecedentes, aquele fato não o prejudica mais.
@@ -486,8 +508,8 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'A lição permanente do Artigo 2º',
           textoAudio: 'Lição final do artigo segundo: Quando a lei melhora, ela alcança todo mundo no passado. Mas se a lei piorasse, Lucas estaria protegido pelo artigo primeiro.',
           conteudoPrincipal: (
-            <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 text-center space-y-3">
-              <CheckCircle2 className="w-10 h-10 text-teal-400 mx-auto" />
+            <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-950/30 text-center space-y-3">
+              <CheckCircle2 className="w-10 h-10 text-amber-400 mx-auto" />
               <h4 className="text-sm font-bold text-foreground">A Lei Sempre Ajuda o Cidadão no Passado</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Agora você sabe: quando uma lei penal melhora ou acaba com um crime, ninguém fica preso por teimosia do Estado. O Artigo 2º é a chave da cela.
@@ -504,11 +526,16 @@ const MECANICAS: MecanicaDef[] = [
   // ----------------------------------------------------
   {
     id: 'dialogo',
-    nome: '3. Diálogo Tutor & Aluno',
+    nome: '3. Diálogo Tutor & Aluno Curioso',
+    badge: 'Chat Socrático com Metáforas',
     icone: MessageSquare,
-    subtitulo: 'Bate-papo descontraído com metáforas simples',
-    descricaoPedagogica: 'Conversa no formato chat moderno onde um aluno leigo faz perguntas naturais e o tutor responde com clareza cristalina.',
-    focoLeigo: 'Dúvidas reais que qualquer pessoa tem sem medo de passar vergonha.',
+    corPrimaria: 'text-cyan-400',
+    gradienteFundo: 'from-cyan-950/40 via-blue-900/10 to-transparent',
+    bordaCor: 'border-cyan-500/40 hover:border-cyan-400',
+    botaoCor: 'bg-cyan-500 hover:bg-cyan-600 shadow-cyan-500/25',
+    subtitulo: 'Bate-papo estilo WhatsApp com analogias descontraídas',
+    descricaoCurta: 'Um cidadão leigo faz perguntas sinceras e o tutor responde usando a pelada de futebol e cupons de compras.',
+    focoLeigo: 'Linguagem natural, sem cerimônia, tirando exatamente as dúvidas que qualquer leigo teria.',
     slides: {
       art1: [
         {
@@ -520,7 +547,7 @@ const MECANICAS: MecanicaDef[] = [
           conteudoPrincipal: (
             <div className="space-y-3">
               <div className="flex gap-2.5 items-start">
-                <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs font-bold shrink-0">
                   Aluno
                 </div>
                 <div className="p-3 rounded-2xl rounded-tl-none bg-secondary/80 border border-border text-xs sm:text-sm text-foreground max-w-[85%]">
@@ -528,10 +555,10 @@ const MECANICAS: MecanicaDef[] = [
                 </div>
               </div>
               <div className="flex gap-2.5 items-start justify-end">
-                <div className="p-3 rounded-2xl rounded-tr-none bg-teal-500/20 border border-teal-500/30 text-xs sm:text-sm text-foreground max-w-[85%] text-right">
+                <div className="p-3 rounded-2xl rounded-tr-none bg-cyan-500/20 border border-cyan-500/30 text-xs sm:text-sm text-foreground max-w-[85%] text-right">
                   “Haha! Excelente pergunta! A resposta é um sonoro <strong>NÃO</strong>. E o seu super-herói aqui é o <strong>Artigo 1º do Código Penal</strong>.”
                 </div>
-                <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="w-8 h-8 rounded-full bg-cyan-500/30 text-cyan-300 flex items-center justify-center text-xs font-bold shrink-0">
                   Tutor
                 </div>
               </div>
@@ -546,8 +573,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Tutor explica: Imagina que você está jogando futebol no domingo. No segundo tempo, o juiz inventa que dar passe de calcanhar dá expulsão e expulsa você pelo passe que deu no primeiro tempo. Faria sentido?',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-3.5 rounded-xl border border-teal-500/30 bg-card space-y-2">
-                <div className="font-semibold text-xs text-teal-400">⚽ A Pelada de Domingo:</div>
+              <div className="p-3.5 rounded-xl border border-cyan-500/30 bg-card space-y-2">
+                <div className="font-semibold text-xs text-cyan-400">⚽ A Pelada de Domingo:</div>
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                   Se o árbitro inventasse uma regra nova aos 40 do segundo tempo e expulsasse alguém por algo feito no início do jogo, seria roubo puro. 
                 </p>
@@ -603,9 +630,9 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'A frase que você nunca mais vai esquecer',
           textoAudio: 'Para guardar: Sem lei prévia, não existe crime nem castigo. Você é livre para fazer tudo o que a lei anterior não proíbe.',
           conteudoPrincipal: (
-            <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 text-center space-y-2">
+            <div className="p-4 rounded-xl border border-cyan-500/40 bg-cyan-950/30 text-center space-y-2">
               <span className="text-2xl">🎓</span>
-              <p className="text-sm font-bold text-teal-300">
+              <p className="text-sm font-bold text-cyan-300">
                 “Sem lei antes, sem crime e sem castigo!”
               </p>
               <p className="text-xs text-muted-foreground">
@@ -625,7 +652,7 @@ const MECANICAS: MecanicaDef[] = [
           conteudoPrincipal: (
             <div className="space-y-3">
               <div className="flex gap-2.5 items-start">
-                <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs font-bold shrink-0">
                   Aluno
                 </div>
                 <div className="p-3 rounded-2xl rounded-tl-none bg-secondary/80 border border-border text-xs sm:text-sm text-foreground max-w-[85%]">
@@ -633,10 +660,10 @@ const MECANICAS: MecanicaDef[] = [
                 </div>
               </div>
               <div className="flex gap-2.5 items-start justify-end">
-                <div className="p-3 rounded-2xl rounded-tr-none bg-teal-500/20 border border-teal-500/30 text-xs sm:text-sm text-foreground max-w-[85%] text-right">
+                <div className="p-3 rounded-2xl rounded-tr-none bg-cyan-500/20 border border-cyan-500/30 text-xs sm:text-sm text-foreground max-w-[85%] text-right">
                   “Calma! A regra é simples: <strong>a lei penal tem alergia de voltar no tempo para prejudicar, mas adora voltar para AJUDAR!</strong>”
                 </div>
-                <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="w-8 h-8 rounded-full bg-cyan-500/30 text-cyan-300 flex items-center justify-center text-xs font-bold shrink-0">
                   Tutor
                 </div>
               </div>
@@ -650,8 +677,8 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'Entendendo a retroatividade benigna',
           textoAudio: 'Tutor explica: Imagina que você comprou um curso parcelado em dez vezes. Se amanhã a escola der 50% de desconto para todos os alunos antigos, você vai querer? Com certeza! Mas se quisesse cobrar mais, você aceitaria? Claro que não!',
           conteudoPrincipal: (
-            <div className="p-3.5 rounded-xl border border-teal-500/30 bg-card space-y-2">
-              <div className="font-semibold text-xs text-teal-400">🛍️ O Cupom de Desconto:</div>
+            <div className="p-3.5 rounded-xl border border-cyan-500/30 bg-card space-y-2">
+              <div className="font-semibold text-xs text-cyan-400">🛍️ O Cupom de Desconto:</div>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Se a lei muda para ser mais boazinha (diminuir pena ou acabar com o crime), ela viaja no tempo e beneficia quem já foi condenado. Mas se a lei for mais severa, ela fica presa no presente.
               </p>
@@ -703,9 +730,9 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'Feedback do tutor',
           textoAudio: 'Excelente! Agora você sabe que a lei penal viaja no tempo apenas quando for para proteger e aliviar a pena do cidadão. Parabéns!',
           conteudoPrincipal: (
-            <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 text-center space-y-2">
+            <div className="p-4 rounded-xl border border-cyan-500/40 bg-cyan-950/30 text-center space-y-2">
               <span className="text-2xl">🎉</span>
-              <p className="text-sm font-bold text-teal-300">
+              <p className="text-sm font-bold text-cyan-300">
                 “Lei boa viaja no tempo, lei ruim fica no presente!”
               </p>
               <p className="text-xs text-muted-foreground">
@@ -719,15 +746,20 @@ const MECANICAS: MecanicaDef[] = [
   },
 
   // ----------------------------------------------------
-  // MECÂNICA 4: LINHA DO TEMPO VISUAL & SIMULADOR TEMPORAL
+  // MECÂNICA 4: LINHA DO TEMPO VISUAL & SIMULADOR
   // ----------------------------------------------------
   {
     id: 'linha_tempo',
-    nome: '4. Linha do Tempo & Simulador',
+    nome: '4. Linha do Tempo & Simulador Temporal',
+    badge: 'Visual Law Cronológico',
     icone: Clock,
+    corPrimaria: 'text-purple-400',
+    gradienteFundo: 'from-purple-950/40 via-violet-900/10 to-transparent',
+    bordaCor: 'border-purple-500/40 hover:border-purple-400',
+    botaoCor: 'bg-purple-500 hover:bg-purple-600 shadow-purple-500/25',
     subtitulo: 'Régua cronológica com teste de causa e efeito',
-    descricaoPedagogica: 'Apresenta uma linha do tempo interativa onde o usuário clica e vê se a lei retroage ou para no muro do tempo.',
-    focoLeigo: 'Visualiza graficamente o passado, presente e futuro da lei penal.',
+    descricaoCurta: 'Visualiza graficamente o momento do fato vs publicação da lei. Mostra o "Muro do Tempo" e o "Portal da Retroatividade".',
+    focoLeigo: 'Demonstração espacial e cronológica perfeita para quem aprende melhor visualmente.',
     slides: {
       art1: [
         {
@@ -740,16 +772,16 @@ const MECANICAS: MecanicaDef[] = [
             <div className="space-y-4">
               <div className="relative py-4 px-2">
                 <div className="h-1 bg-border rounded-full w-full relative">
-                  <div className="absolute left-1/4 -top-2 w-5 h-5 rounded-full bg-blue-500 border-2 border-background flex items-center justify-center text-[10px] text-white font-bold" />
-                  <div className="absolute left-3/4 -top-2 w-5 h-5 rounded-full bg-teal-500 border-2 border-background flex items-center justify-center text-[10px] text-white font-bold" />
+                  <div className="absolute left-1/4 -top-2 w-5 h-5 rounded-full bg-purple-500 border-2 border-background flex items-center justify-center text-[10px] text-white font-bold" />
+                  <div className="absolute left-3/4 -top-2 w-5 h-5 rounded-full bg-violet-400 border-2 border-background flex items-center justify-center text-[10px] text-white font-bold" />
                 </div>
                 <div className="flex justify-between text-[11px] text-muted-foreground mt-3">
                   <span className="w-1/2 text-left">
-                    <strong className="text-blue-400 block">1. Momento do Fato</strong>
+                    <strong className="text-purple-400 block">1. Momento do Fato</strong>
                     Ação praticada (sem lei)
                   </span>
                   <span className="w-1/2 text-right">
-                    <strong className="text-teal-400 block">2. Lei Nova Criada</strong>
+                    <strong className="text-violet-300 block">2. Lei Nova Criada</strong>
                     Congresso cria o crime
                   </span>
                 </div>
@@ -768,7 +800,7 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Etapa 2. O artigo primeiro funciona como um muro de titânio. A nova lei tenta voltar no tempo para punir quem agiu antes, mas bate na barreira e é bloqueada.',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-950/20 text-center space-y-2">
+              <div className="p-4 rounded-xl border border-rose-500/40 bg-rose-950/25 text-center space-y-2">
                 <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto text-lg font-bold">
                   🛡️
                 </div>
@@ -786,7 +818,6 @@ const MECANICAS: MecanicaDef[] = [
           titulo: 'Teste você mesmo na linha do tempo!',
           subtitulo: 'Clique nos botões e veja o resultado',
           textoAudio: 'Simulador interativo. Teste o que acontece quando a ação é antes ou depois da lei.',
-          interacaoTipo: 'simulador',
           conteudoPrincipal: <SimuladorArtigo1Tempo />,
         },
         {
@@ -796,8 +827,8 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'A anterioridade vale para o crime e para a pena',
           textoAudio: 'Etapa 4. Se o crime já existia com pena de 1 ano, e depois do fato a lei aumentou para 10 anos, aplica-se a pena de 1 ano. A pena mais severa não viaja no tempo.',
           conteudoPrincipal: (
-            <div className="p-3.5 rounded-xl border border-teal-500/30 bg-card space-y-2">
-              <span className="text-xs font-bold text-teal-400">Regra da Pena Prévia:</span>
+            <div className="p-3.5 rounded-xl border border-purple-500/40 bg-card space-y-2">
+              <span className="text-xs font-bold text-purple-400">Regra da Pena Prévia:</span>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Você nunca pode ser surpreendido com um aumento retroativo de castigo. O Estado é obrigado a respeitar a tabela de penas que vigorava no momento do fato.
               </p>
@@ -811,7 +842,7 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'Conclusão visual da mecânica',
           textoAudio: 'Conclusão do artigo primeiro: O relógio penal só corre para a frente quando se trata de criar crimes ou aumentar penas. Você está seguro.',
           conteudoPrincipal: (
-            <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 text-center space-y-2">
+            <div className="p-4 rounded-xl border border-purple-500/40 bg-purple-950/30 text-center space-y-2">
               <span className="text-2xl">⏳</span>
               <p className="text-sm font-bold text-foreground">Relógio Penal Travado para Trás</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -830,9 +861,9 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Etapa 1 do artigo segundo. No artigo segundo, abrimos um portal no tempo. Quando a lei nova for mais boazinha, ela viaja ao passado para beneficiar quem agiu antes.',
           conteudoPrincipal: (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 text-center space-y-2">
+              <div className="p-4 rounded-xl border border-purple-500/40 bg-purple-950/25 text-center space-y-2">
                 <span className="text-2xl">🌀</span>
-                <h4 className="text-sm font-bold text-emerald-300">Portal de Retroatividade Aberto</h4>
+                <h4 className="text-sm font-bold text-purple-300">Portal de Retroatividade Aberto</h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Diferente do Artigo 1º que ergue um muro, o Artigo 2º abre uma ponte temporal para trás quando a lei for favorável ao cidadão.
                 </p>
@@ -846,7 +877,6 @@ const MECANICAS: MecanicaDef[] = [
           titulo: 'Simulador Temporal do Artigo 2º',
           subtitulo: 'Alterne entre os cenários para ver a reação',
           textoAudio: 'Simulador interativo do artigo segundo. Veja o que acontece quando o crime acaba ou quando a pena diminui.',
-          interacaoTipo: 'simulador',
           conteudoPrincipal: <SimuladorArtigo2Tempo />,
         },
         {
@@ -856,8 +886,8 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'Mesmo com julgamento encerrado',
           textoAudio: 'Etapa 3. O artigo segundo é tão poderoso que nem a sentença final transitada em julgado impede o benefício. O juiz da execução penal é obrigado a aplicar a nova lei.',
           conteudoPrincipal: (
-            <div className="p-3.5 rounded-xl border border-blue-500/30 bg-blue-950/20 space-y-2">
-              <span className="text-xs font-bold text-blue-300">Súmula 611 do STF:</span>
+            <div className="p-3.5 rounded-xl border border-purple-500/40 bg-purple-950/25 space-y-2">
+              <span className="text-xs font-bold text-purple-300">Súmula 611 do STF:</span>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 <em>"Transitada em julgado a sentença condenatória, compete ao Juízo das Execuções a aplicação de lei mais benigna."</em>
               </p>
@@ -875,12 +905,12 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Etapa 4. Existem duas viagens no tempo: a abolitio criminis, que apaga o crime todo, e a novatio legis in mellius, que só diminui a pena ou dá um benefício.',
           conteudoPrincipal: (
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-3 rounded-xl border border-teal-500/30 bg-card space-y-1">
-                <span className="font-bold text-teal-400">Abolitio Criminis:</span>
+              <div className="p-3 rounded-xl border border-purple-500/30 bg-card space-y-1">
+                <span className="font-bold text-purple-400">Abolitio Criminis:</span>
                 <p className="text-muted-foreground">O crime é 100% extinto. Liberdade total e ficha limpa.</p>
               </div>
-              <div className="p-3 rounded-xl border border-teal-500/30 bg-card space-y-1">
-                <span className="font-bold text-blue-400">Lei Mais Suave:</span>
+              <div className="p-3 rounded-xl border border-purple-500/30 bg-card space-y-1">
+                <span className="font-bold text-violet-300">Lei Mais Suave:</span>
                 <p className="text-muted-foreground">O crime continua existindo, mas a pena encolhe.</p>
               </div>
             </div>
@@ -893,9 +923,9 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'Você agora domina a aplicação da lei no tempo',
           textoAudio: 'Parabéns! Você compreendeu a dinâmica temporal do artigo segundo do Código Penal com total clareza.',
           conteudoPrincipal: (
-            <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 text-center space-y-2">
+            <div className="p-4 rounded-xl border border-purple-500/40 bg-purple-950/30 text-center space-y-2">
               <span className="text-2xl">🏆</span>
-              <p className="text-sm font-bold text-teal-300">O Tempo a Favor da Liberdade</p>
+              <p className="text-sm font-bold text-purple-300">O Tempo a Favor da Liberdade</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Você visualizou perfeitamente quando a lei penal retroage e quando ela avança.
               </p>
@@ -907,15 +937,20 @@ const MECANICAS: MecanicaDef[] = [
   },
 
   // ----------------------------------------------------
-  // MECÂNICA 5: MAPA MENTAL & DECISÃO GAMIFICADA
+  // MECÂNICA 5: MAPA MENTAL & DESAFIO GAMIFICADO
   // ----------------------------------------------------
   {
     id: 'mapa_decisao',
-    nome: '5. Mapa Mental & Desafio',
+    nome: '5. Mapa Mental & Desafio Gamificado',
+    badge: 'Você é o Juiz · Flip Card 3D',
     icone: BrainCircuit,
-    subtitulo: 'Árvore de decisão Sim/Não com flashcard 3D',
-    descricaoPedagogica: 'Apresenta a regra em formato de fluxograma de decisão visual, flashcards interativos com virada 3D e o desafio "Você é o Juiz".',
-    focoLeigo: 'Simplicidade lógica e memorização rápida em 1 clique.',
+    corPrimaria: 'text-pink-400',
+    gradienteFundo: 'from-pink-950/40 via-rose-900/10 to-transparent',
+    bordaCor: 'border-pink-500/40 hover:border-pink-400',
+    botaoCor: 'bg-pink-500 hover:bg-pink-600 shadow-pink-500/25',
+    subtitulo: 'Árvore de decisão simples e flashcard com revelação',
+    descricaoCurta: 'Resolva um caso real tocando para virar o cartão 3D, siga a árvore de decisão Sim/Não e teste sua maestria jurídica.',
+    focoLeigo: 'Divertido, gamificado e fácil de fixar na memória em poucos segundos.',
     slides: {
       art1: [
         {
@@ -926,8 +961,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Você é o juiz. Em janeiro, Marcos andou de patinete elétrico a 40 por hora na calçada. Em março, saiu uma lei criando o crime de direção perigosa de patinete. O promotor pede a prisão de Marcos. O que você decide?',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-950/20 space-y-2">
-                <span className="text-[10px] font-bold text-amber-400 uppercase">Caso Prático</span>
+              <div className="p-4 rounded-xl border border-pink-500/40 bg-pink-950/20 space-y-2">
+                <span className="text-[10px] font-bold text-pink-400 uppercase">Caso Prático</span>
                 <p className="text-xs sm:text-sm text-foreground leading-relaxed">
                   Em janeiro, Marcos andou de patinete elétrico na calçada. Em março, foi publicada uma lei prevendo prisão de 6 meses para quem andar de patinete na calçada. O Ministério Público denunciou Marcos pelo fato de janeiro.
                 </p>
@@ -944,7 +979,6 @@ const MECANICAS: MecanicaDef[] = [
           titulo: 'Toque no cartão para revelar a sentença!',
           subtitulo: 'Flip Card Interativo',
           textoAudio: 'Toque para girar o cartão. A decisão é rejeitar a acusação porque em janeiro não existia lei penal definindo a conduta como crime.',
-          interacaoTipo: 'flip',
           conteudoPrincipal: (
             <FlipCardItem 
               frente="Marcos pode ser punido criminalmente pelo fato de janeiro?"
@@ -964,7 +998,7 @@ const MECANICAS: MecanicaDef[] = [
                 1. Alguém praticou uma conduta?
               </div>
               <div className="text-center text-muted-foreground">↓</div>
-              <div className="p-2.5 rounded-lg border border-teal-500/40 bg-teal-950/20 text-center font-bold text-teal-300">
+              <div className="p-2.5 rounded-lg border border-pink-500/40 bg-pink-950/25 text-center font-bold text-pink-300">
                 2. Já havia LEI ESCRITA proibindo no exato momento?
               </div>
               <div className="grid grid-cols-2 gap-2 pt-2">
@@ -989,13 +1023,13 @@ const MECANICAS: MecanicaDef[] = [
           conteudoPrincipal: (
             <div className="space-y-2 text-xs">
               <div className="p-2 rounded-lg border border-border/70 bg-secondary/30">
-                <strong className="text-teal-400">Anterioridade:</strong> A lei tem que nascer antes da atitude.
+                <strong className="text-pink-400">Anterioridade:</strong> A lei tem que nascer antes da atitude.
               </div>
               <div className="p-2 rounded-lg border border-border/70 bg-secondary/30">
-                <strong className="text-teal-400">Cominação Legal:</strong> O castigo fixado previamente na lei pelo Congresso.
+                <strong className="text-pink-400">Cominação Legal:</strong> O castigo fixado previamente na lei pelo Congresso.
               </div>
               <div className="p-2 rounded-lg border border-border/70 bg-secondary/30">
-                <strong className="text-teal-400">Fato Atípico:</strong> Quando a conduta não se encaixa em nenhum crime escrito.
+                <strong className="text-pink-400">Fato Atípico:</strong> Quando a conduta não se encaixa em nenhum crime escrito.
               </div>
             </div>
           ),
@@ -1007,8 +1041,8 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'Você dominou o princípio da legalidade',
           textoAudio: 'Parabéns! Você concluiu a trilha do artigo primeiro do Código Penal. Você agora domina o conceito com segurança de um especialista.',
           conteudoPrincipal: (
-            <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 text-center space-y-3">
-              <CheckCircle2 className="w-10 h-10 text-teal-400 mx-auto" />
+            <div className="p-4 rounded-xl border border-pink-500/40 bg-pink-950/30 text-center space-y-3">
+              <CheckCircle2 className="w-10 h-10 text-pink-400 mx-auto" />
               <h4 className="text-sm font-bold text-foreground">Conhecimento Fixado com Sucesso!</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Você agora tem o mapa mental do Artigo 1º gravado na mente. Ninguém engana você quando o assunto for criação de crimes e penas.
@@ -1026,8 +1060,8 @@ const MECANICAS: MecanicaDef[] = [
           textoAudio: 'Você é o juiz. Roberto foi condenado a 5 anos de prisão e já cumpriu 2 anos. Hoje o Congresso aprovou uma lei reduzindo a pena máxima para 2 anos. O que você decide?',
           conteudoPrincipal: (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20 space-y-2">
-                <span className="text-[10px] font-bold text-blue-400 uppercase">Caso Prático</span>
+              <div className="p-4 rounded-xl border border-pink-500/40 bg-pink-950/20 space-y-2">
+                <span className="text-[10px] font-bold text-pink-400 uppercase">Caso Prático</span>
                 <p className="text-xs sm:text-sm text-foreground leading-relaxed">
                   Roberto foi condenado a 5 anos de reclusão em 2022. Em 2024, após Roberto já ter cumprido 2 anos de cadeia, entra em vigor uma nova lei que reduz a pena máxima desse crime para 2 anos.
                 </p>
@@ -1044,7 +1078,6 @@ const MECANICAS: MecanicaDef[] = [
           titulo: 'Toque para virar o cartão!',
           subtitulo: 'Decisão do Juiz das Execuções',
           textoAudio: 'Toque para girar o cartão. Roberto deve ser posto em liberdade imediatamente porque ele já cumpriu a nova pena máxima fixada pela nova lei.',
-          interacaoTipo: 'flip',
           conteudoPrincipal: (
             <FlipCardItem 
               frente="Roberto deve ser solto imediatamente ou continuar preso?"
@@ -1064,7 +1097,7 @@ const MECANICAS: MecanicaDef[] = [
                 Surgiu uma LEI NOVA após o fato?
               </div>
               <div className="text-center text-muted-foreground">↓</div>
-              <div className="p-2.5 rounded-lg border border-teal-500/40 bg-teal-950/20 text-center font-bold text-teal-300">
+              <div className="p-2.5 rounded-lg border border-pink-500/40 bg-pink-950/25 text-center font-bold text-pink-300">
                 Ela FAVORECE o réu de alguma forma?
               </div>
               <div className="grid grid-cols-2 gap-2 pt-2">
@@ -1089,13 +1122,13 @@ const MECANICAS: MecanicaDef[] = [
           conteudoPrincipal: (
             <div className="space-y-2 text-xs">
               <div className="p-2 rounded-lg border border-border/70 bg-secondary/30">
-                <strong className="text-blue-400">Abolitio Criminis:</strong> O crime deixou de existir na lei. Ficha limpa e soltura.
+                <strong className="text-pink-400">Abolitio Criminis:</strong> O crime deixou de existir na lei. Ficha limpa e soltura.
               </div>
               <div className="p-2 rounded-lg border border-border/70 bg-secondary/30">
-                <strong className="text-blue-400">Trânsito em Julgado:</strong> Decisão definitiva onde não cabe mais recurso.
+                <strong className="text-pink-400">Trânsito em Julgado:</strong> Decisão definitiva onde não cabe mais recurso.
               </div>
               <div className="p-2 rounded-lg border border-border/70 bg-secondary/30">
-                <strong className="text-blue-400">Lex Mitior:</strong> Expressão em latim que significa apenas "lei mais boazinha".
+                <strong className="text-pink-400">Lex Mitior:</strong> Expressão em latim que significa apenas "lei mais boazinha".
               </div>
             </div>
           ),
@@ -1107,8 +1140,8 @@ const MECANICAS: MecanicaDef[] = [
           subtitulo: 'Você é mestre na retroatividade benigna',
           textoAudio: 'Parabéns! Você concluiu a trilha do artigo segundo do Código Penal. Você agora sabe exatamente como a lei viaja no tempo para beneficiar qualquer cidadão.',
           conteudoPrincipal: (
-            <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 text-center space-y-3">
-              <CheckCircle2 className="w-10 h-10 text-teal-400 mx-auto" />
+            <div className="p-4 rounded-xl border border-pink-500/40 bg-pink-950/30 text-center space-y-3">
+              <CheckCircle2 className="w-10 h-10 text-pink-400 mx-auto" />
               <h4 className="text-sm font-bold text-foreground">Conhecimento Fixado com Sucesso!</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Você dominou o Artigo 2º do Código Penal. Você entende os efeitos práticos da lei penal no tempo como poucos profissionais dominam!
@@ -1139,10 +1172,10 @@ function FlipCardItem({ frente, verso }: { frente: string; verso: string }) {
         className={`relative min-h-[160px] rounded-2xl border transition-all duration-500 p-5 flex flex-col items-center justify-center text-center shadow-md ${
           virado 
             ? 'border-emerald-500/40 bg-emerald-950/30 text-emerald-100 rotate-y-180' 
-            : 'border-teal-500/30 bg-secondary/40 text-foreground hover:bg-secondary/60'
+            : 'border-pink-500/40 bg-secondary/40 text-foreground hover:bg-secondary/60'
         }`}
       >
-        <div className="text-[10px] font-bold uppercase tracking-wider text-teal-400 mb-2">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-pink-400 mb-2">
           {virado ? '💡 Resposta Fundamentada' : '❓ Toque para Virar'}
         </div>
         <p className="text-xs sm:text-sm font-medium leading-relaxed">
@@ -1254,7 +1287,7 @@ function SimuladorArtigo1Tempo() {
           onClick={() => setCenario('antes')}
           className={`p-2.5 rounded-xl border text-xs font-medium transition-all ${
             cenario === 'antes'
-              ? 'border-teal-500 bg-teal-950/40 text-teal-300'
+              ? 'border-purple-500 bg-purple-950/40 text-purple-300'
               : 'border-border bg-secondary/30 text-muted-foreground'
           }`}
         >
@@ -1264,7 +1297,7 @@ function SimuladorArtigo1Tempo() {
           onClick={() => setCenario('depois')}
           className={`p-2.5 rounded-xl border text-xs font-medium transition-all ${
             cenario === 'depois'
-              ? 'border-teal-500 bg-teal-950/40 text-teal-300'
+              ? 'border-purple-500 bg-purple-950/40 text-purple-300'
               : 'border-border bg-secondary/30 text-muted-foreground'
           }`}
         >
@@ -1364,7 +1397,7 @@ function SimuladorArtigo2Tempo() {
 }
 
 // ==========================================
-// PÁGINA PRINCIPAL DO LABORATÓRIO
+// PÁGINA PRINCIPAL DO LABORATÓRIO (ORGANIZADA & COLORIDA)
 // ==========================================
 
 const AdminAprenderLeisLaboratorio = () => {
@@ -1372,16 +1405,16 @@ const AdminAprenderLeisLaboratorio = () => {
   const { user } = useAuth();
   const isAdmin = isAdminEmail(user?.email);
 
-  // Estados de navegação do Laboratório
+  // Estados principais
   const [artigoAtual, setArtigoAtual] = useState<ArtigoId>('art1');
-  const [mecanicaAtual, setMecanicaAtual] = useState<MecanicaId>('anatomia');
+  const [mecanicaSelecionadaId, setMecanicaSelecionadaId] = useState<MecanicaId>('anatomia');
+  const [emAula, setEmAula] = useState(false); // Alterna entre LISTA DE MECÂNICAS e MODO AULA
   const [slideIndex, setSlideIndex] = useState(0);
   const [falando, setFalando] = useState(false);
 
-  // Recupera mecânica e slides atuais
   const mecanica = useMemo(() => {
-    return MECANICAS.find(m => m.id === mecanicaAtual) || MECANICAS[0];
-  }, [mecanicaAtual]);
+    return MECANICAS.find(m => m.id === mecanicaSelecionadaId) || MECANICAS[0];
+  }, [mecanicaSelecionadaId]);
 
   const slides = useMemo(() => {
     return mecanica.slides[artigoAtual] || [];
@@ -1391,17 +1424,26 @@ const AdminAprenderLeisLaboratorio = () => {
     return slides[slideIndex] || slides[0];
   }, [slides, slideIndex]);
 
-  // Reseta o slide index ao trocar de artigo ou mecânica
-  const handleTrocarArtigo = (art: ArtigoId) => {
+  // Ações de alternância de artigo
+  const handleAlternarArtigo = (art: ArtigoId) => {
     pararVoz();
     setArtigoAtual(art);
     setSlideIndex(0);
   };
 
-  const handleTrocarMecanica = (mec: MecanicaId) => {
+  // Iniciar aula para uma mecânica específica
+  const handleIniciarAula = (mecId: MecanicaId) => {
     pararVoz();
-    setMecanicaAtual(mec);
+    setMecanicaSelecionadaId(mecId);
     setSlideIndex(0);
+    setEmAula(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Voltar para a lista de mecânicas
+  const handleVoltarParaLista = () => {
+    pararVoz();
+    setEmAula(false);
   };
 
   // Controles de slide
@@ -1419,17 +1461,18 @@ const AdminAprenderLeisLaboratorio = () => {
     }
   };
 
-  // Suporte a teclado (setas esquerda e direita)
+  // Teclado (← e →)
   useEffect(() => {
+    if (!emAula) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') proximoSlide();
       if (e.key === 'ArrowLeft') slideAnterior();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [slideIndex, slides.length]);
+  }, [emAula, slideIndex, slides.length]);
 
-  // Síntese de Voz (Text-to-Speech nativo)
+  // Síntese de Voz (TTS)
   const falarSlide = () => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       toast.info('Síntese de voz não suportada neste navegador.');
@@ -1468,10 +1511,14 @@ const AdminAprenderLeisLaboratorio = () => {
 
   const mobileHeader = (
     <PageHeader 
-      title="Laboratório — Aprender Leis" 
+      title={emAula ? mecanica.nome : "Laboratório — Aprender Leis"} 
       onBack={() => {
         pararVoz();
-        navigate('/admin-aprender-leis');
+        if (emAula) {
+          setEmAula(false);
+        } else {
+          navigate('/admin-aprender-leis');
+        }
       }} 
     />
   );
@@ -1479,236 +1526,300 @@ const AdminAprenderLeisLaboratorio = () => {
   return (
     <DesktopPageLayout
       activeId="admin"
-      title="Laboratório de Aulas de Leis"
-      subtitle="Teste e valide 5 mecânicas de aulas do Código Penal para pessoas leigas"
+      title="Laboratório — Aprender Leis"
+      subtitle="Teste e avalie 5 mecânicas de aulas do Código Penal para pessoas leigas"
       mobileHeader={mobileHeader}
     >
       <div className="px-4 sm:px-6 py-4 lg:px-0 lg:py-0 max-w-4xl mx-auto w-full space-y-5">
         
-        {/* Barra Superior: Seletor de Artigo (Art 1º vs Art 2º) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border border-border/80 bg-card">
-          <div className="flex items-center gap-2">
-            <Scale className="w-5 h-5 text-teal-400 shrink-0" />
-            <div>
-              <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                Legislação Modelo: Código Penal (DL 2.848/1940)
-              </span>
-              <h3 className="text-sm font-bold text-foreground">
-                {artigoAtual === 'art1' ? 'Art. 1º — Anterioridade da Lei' : 'Art. 2º — Lei Penal no Tempo'}
-              </h3>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <button
-              onClick={() => handleTrocarArtigo('art1')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                artigoAtual === 'art1'
-                  ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20'
-                  : 'bg-secondary/60 text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Artigo 1º (Anterioridade)
-            </button>
-            <button
-              onClick={() => handleTrocarArtigo('art2')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                artigoAtual === 'art2'
-                  ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20'
-                  : 'bg-secondary/60 text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Artigo 2º (Retroatividade)
-            </button>
-          </div>
-        </div>
-
-        {/* Barra de Abas das 5 Mecânicas de Aula */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-xs px-1">
-            <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[11px]">
-              Escolha a Mecânica Didática:
-            </span>
-            <span className="text-teal-400 font-medium text-[11px]">
-              {mecanica.subtitulo}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {MECANICAS.map(mec => {
-              const Icon = mec.icone;
-              const ativa = mec.id === mecanicaAtual;
-              return (
-                <button
-                  key={mec.id}
-                  onClick={() => handleTrocarMecanica(mec.id)}
-                  className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
-                    ativa
-                      ? 'border-teal-500 bg-teal-500/10 text-teal-300 shadow-sm'
-                      : 'border-border/60 bg-secondary/30 hover:bg-secondary/60 text-muted-foreground'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <Icon className={`w-4 h-4 ${ativa ? 'text-teal-400' : 'text-muted-foreground'}`} />
-                    {ativa && <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />}
-                  </div>
-                  <span className="text-xs font-bold truncate">{mec.nome}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Card Explicativo da Mecânica Ativa */}
-        <div className="p-3.5 rounded-xl border border-teal-500/20 bg-teal-950/20 flex items-start gap-3 text-xs">
-          <Sparkles className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-teal-200">
-              {mecanica.descricaoPedagogica}
-            </p>
-            <p className="text-muted-foreground mt-0.5">
-              <strong>Foco para leigos:</strong> {mecanica.focoLeigo}
-            </p>
-          </div>
-        </div>
-
-        {/* ============================================================== */}
-        {/* PLAYER DE AULA / SLIDE DECK INTERATIVO */}
-        {/* ============================================================== */}
-        <div className="rounded-2xl border border-border/90 bg-card overflow-hidden shadow-xl flex flex-col min-h-[480px]">
-          
-          {/* Topo do Player: Barra de Progresso tipo Stories */}
-          <div className="p-4 border-b border-border/50 bg-secondary/20 flex flex-col gap-3">
-            
-            {/* Linhas de Progresso */}
-            <div className="flex items-center gap-1.5 w-full">
-              {slides.map((_, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => {
-                    pararVoz();
-                    setSlideIndex(idx);
-                  }}
-                  className="flex-1 h-1.5 rounded-full cursor-pointer overflow-hidden bg-muted/40 transition-all hover:h-2"
-                >
-                  <div
-                    className={`h-full transition-all duration-300 ${
-                      idx < slideIndex
-                        ? 'bg-teal-400'
-                        : idx === slideIndex
-                        ? 'bg-teal-400 shadow-sm'
-                        : 'bg-transparent'
-                    }`}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Cabeçalho do Slide: Badge, Título e Botão de Áudio */}
-            <div className="flex items-center justify-between gap-3">
+        {/* ========================================================= */}
+        {/* SEÇÃO 1: MENU DE ALTERNÂNCIA (ARTIGO 1º vs ARTIGO 2º)     */}
+        {/* ========================================================= */}
+        <div className="p-4 sm:p-5 rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card to-secondary/30 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/30">
+                <Scale className="w-5 h-5" />
+              </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">
-                  {slideAtual.badge}
+                <span className="text-[10px] uppercase tracking-wider font-extrabold text-teal-400">
+                  Código Penal (DL 2.848/1940)
                 </span>
-                <h3 className="text-base sm:text-lg font-bold text-foreground">
-                  {slideAtual.titulo}
+                <h3 className="text-sm sm:text-base font-bold text-foreground">
+                  Selecione o Artigo para o Laboratório:
                 </h3>
-                {slideAtual.subtitulo && (
-                  <p className="text-xs text-muted-foreground">
-                    {slideAtual.subtitulo}
-                  </p>
+              </div>
+            </div>
+
+            {/* Alternador em destaque com cores vivas */}
+            <div className="grid grid-cols-2 p-1.5 rounded-2xl bg-secondary/80 border border-border/70 self-stretch sm:self-auto gap-1">
+              <button
+                onClick={() => handleAlternarArtigo('art1')}
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  artigoAtual === 'art1'
+                    ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md shadow-teal-500/30 scale-[1.02]'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <span>Artigo 1º</span>
+                <span className="hidden sm:inline text-[11px] opacity-80">(Anterioridade)</span>
+              </button>
+              <button
+                onClick={() => handleAlternarArtigo('art2')}
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  artigoAtual === 'art2'
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/30 scale-[1.02]'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <span>Artigo 2º</span>
+                <span className="hidden sm:inline text-[11px] opacity-80">(Retroatividade)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Card com o texto do Artigo Atual Selecionado */}
+          <div className="p-3.5 rounded-xl border border-teal-500/25 bg-teal-950/20 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">
+              {ARTIGOS_INFO[artigoAtual].titulo}
+            </span>
+            <p className="font-serif text-xs sm:text-sm italic text-foreground/90 leading-relaxed">
+              {ARTIGOS_INFO[artigoAtual].texto}
+            </p>
+          </div>
+        </div>
+
+        {/* ========================================================= */}
+        {/* SE NÃO ESTIVER EM AULA: MOSTRA A LISTA DAS 5 MECÂNICAS   */}
+        {/* ========================================================= */}
+        {!emAula ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <div>
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  Mecânicas Didáticas Disponíveis (5 Versões):
+                </h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Cada formato explora um método pedagógico diferente. Clique em <strong>Iniciar Aula</strong> para testar.
+                </p>
+              </div>
+            </div>
+
+            {/* LISTA VERTICAL (NUNCA UM DO LADO DO OUTRO) */}
+            <div className="space-y-3">
+              {MECANICAS.map((mec) => {
+                const Icon = mec.icone;
+                return (
+                  <div
+                    key={mec.id}
+                    className={`group relative overflow-hidden rounded-2xl border ${mec.bordaCor} bg-gradient-to-br ${mec.gradienteFundo} bg-card p-4 sm:p-5 transition-all duration-200 shadow-sm hover:shadow-md`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      
+                      {/* Lado Esquerdo: Ícone + Título + Descrição */}
+                      <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                        <div className={`w-12 h-12 rounded-2xl bg-background/80 border ${mec.bordaCor} flex items-center justify-center shrink-0 shadow-sm`}>
+                          <Icon className={`w-6 h-6 ${mec.corPrimaria}`} />
+                        </div>
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-background/80 border ${mec.bordaCor} ${mec.corPrimaria} uppercase tracking-wider`}>
+                              {mec.badge}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground">
+                              5 Slides · 3 min
+                            </span>
+                          </div>
+                          <h4 className="text-base font-bold text-foreground">
+                            {mec.nome}
+                          </h4>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {mec.descricaoCurta}
+                          </p>
+                          <p className="text-[11px] text-foreground/80 font-medium pt-0.5">
+                            <strong>Destaque para o aluno:</strong> {mec.focoLeigo}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Lado Direito: Botão "Iniciar Aula" destacado e colorido */}
+                      <div className="self-end sm:self-center shrink-0 w-full sm:w-auto">
+                        <button
+                          onClick={() => handleIniciarAula(mec.id)}
+                          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-white font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95 ${mec.botaoCor}`}
+                        >
+                          <Play className="w-4 h-4 fill-white" />
+                          <span>Iniciar Aula</span>
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          /* ========================================================= */
+          /* MODO AULA: PLAYER INTERATIVO EM TELA CHEIA / FOCO         */
+          /* ========================================================= */
+          <div className="space-y-4">
+            
+            {/* Barra de Retorno da Aula */}
+            <div className="flex items-center justify-between gap-3">
+              <button
+                onClick={handleVoltarParaLista}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border bg-card hover:bg-secondary text-foreground text-xs font-semibold transition-colors shadow-sm"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Voltar para a Lista de Mecânicas</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-bold ${mecanica.corPrimaria}`}>
+                  {mecanica.nome}
+                </span>
+              </div>
+            </div>
+
+            {/* O Player de Slide Deck */}
+            <div className={`rounded-2xl border ${mecanica.bordaCor} bg-gradient-to-b ${mecanica.gradienteFundo} bg-card overflow-hidden shadow-2xl flex flex-col min-h-[500px]`}>
+              
+              {/* Topo do Player: Barra de Progresso com Cor Temática */}
+              <div className="p-4 sm:p-5 border-b border-border/50 bg-background/50 backdrop-blur-sm flex flex-col gap-3.5">
+                
+                {/* Linhas de Progresso tipo Stories */}
+                <div className="flex items-center gap-1.5 w-full">
+                  {slides.map((_, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        pararVoz();
+                        setSlideIndex(idx);
+                      }}
+                      className="flex-1 h-1.5 sm:h-2 rounded-full cursor-pointer overflow-hidden bg-muted/40 transition-all hover:h-2.5"
+                    >
+                      <div
+                        className={`h-full transition-all duration-300 ${
+                          idx < slideIndex
+                            ? 'bg-foreground'
+                            : idx === slideIndex
+                            ? `${mecanica.corPrimaria.replace('text-', 'bg-')} shadow-sm`
+                            : 'bg-transparent'
+                        }`}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Cabeçalho do Slide: Badge, Título e Botão de Áudio */}
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${mecanica.corPrimaria}`}>
+                      {slideAtual.badge}
+                    </span>
+                    <h3 className="text-base sm:text-lg font-bold text-foreground">
+                      {slideAtual.titulo}
+                    </h3>
+                    {slideAtual.subtitulo && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {slideAtual.subtitulo}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Botão de Narração em Áudio (TTS) */}
+                  <button
+                    onClick={falarSlide}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all shrink-0 shadow-sm ${
+                      falando
+                        ? `${mecanica.botaoCor} text-white animate-pulse`
+                        : 'border-border bg-background hover:bg-secondary text-foreground'
+                    }`}
+                    title="Ouvir explicação do slide com voz"
+                  >
+                    {falando ? (
+                      <>
+                        <VolumeX className="w-4 h-4" />
+                        <span>Pausar</span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className={`w-4 h-4 ${mecanica.corPrimaria}`} />
+                        <span>Ouvir Aula</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Área Central: Conteúdo Animado do Slide */}
+              <div className="p-5 sm:p-7 flex-1 flex flex-col justify-center">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={slideAtual.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                    className="w-full max-w-2xl mx-auto"
+                  >
+                    {slideAtual.conteudoPrincipal}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Rodapé do Player: Controles de Navegação */}
+              <div className="p-4 border-t border-border/50 bg-background/60 backdrop-blur-sm flex items-center justify-between gap-3">
+                <button
+                  onClick={slideAnterior}
+                  disabled={slideIndex === 0}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border bg-card hover:bg-secondary text-foreground font-semibold text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Anterior</span>
+                </button>
+
+                <div className="text-xs text-muted-foreground font-medium">
+                  Slide <strong>{slideIndex + 1}</strong> de <strong>{slides.length}</strong>
+                </div>
+
+                {slideIndex < slides.length - 1 ? (
+                  <button
+                    onClick={proximoSlide}
+                    className={`flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 ${mecanica.botaoCor}`}
+                  >
+                    <span>Próximo</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      pararVoz();
+                      setSlideIndex(0);
+                      toast.success('Você concluiu esta mecânica! Experimente outra na lista.');
+                    }}
+                    className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-white font-bold text-xs transition-all ${mecanica.botaoCor}`}
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Reiniciar Aula</span>
+                  </button>
                 )}
               </div>
 
-              {/* Botão de Narração em Áudio (TTS) */}
-              <button
-                onClick={falarSlide}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shrink-0 ${
-                  falando
-                    ? 'border-teal-500 bg-teal-500 text-white animate-pulse'
-                    : 'border-border bg-secondary/60 hover:bg-secondary text-foreground'
-                }`}
-                title="Ouvir explicação do slide com voz"
-              >
-                {falando ? (
-                  <>
-                    <VolumeX className="w-3.5 h-3.5" />
-                    <span>Pausar</span>
-                  </>
-                ) : (
-                  <>
-                    <Volume2 className="w-3.5 h-3.5 text-teal-400" />
-                    <span>Ouvir Aula</span>
-                  </>
-                )}
-              </button>
             </div>
           </div>
+        )}
 
-          {/* Área Central: Conteúdo Animado do Slide Atual */}
-          <div className="p-5 sm:p-6 flex-1 flex flex-col justify-center">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={slideAtual.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-                className="w-full max-w-2xl mx-auto"
-              >
-                {slideAtual.conteudoPrincipal}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Rodapé do Player: Controles de Navegação */}
-          <div className="p-4 border-t border-border/50 bg-secondary/30 flex items-center justify-between gap-3">
-            <button
-              onClick={slideAnterior}
-              disabled={slideIndex === 0}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-background hover:bg-secondary text-foreground font-semibold text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Anterior</span>
-            </button>
-
-            <div className="text-xs text-muted-foreground font-medium">
-              Slide <strong>{slideIndex + 1}</strong> de <strong>{slides.length}</strong>
-            </div>
-
-            {slideIndex < slides.length - 1 ? (
-              <button
-                onClick={proximoSlide}
-                className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-bold text-xs shadow-md shadow-teal-500/20 transition-all"
-              >
-                <span>Próximo</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  pararVoz();
-                  setSlideIndex(0);
-                  toast.success('Você concluiu esta aula! Reiniciando...');
-                }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-bold text-xs transition-all"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reiniciar Aula</span>
-              </button>
-            )}
-          </div>
-
-        </div>
-
-        {/* Atalho Rápido para Criar Aulas via OmniRoute */}
-        <div className="p-4 rounded-2xl border border-border/80 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Rodapé: Atalho para Criar Aulas via OmniRoute */}
+        <div className="p-4 sm:p-5 rounded-2xl border border-border/80 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
           <div>
             <h4 className="text-xs sm:text-sm font-bold text-foreground">
-              Gostou destas mecânicas?
+              Quer gerar trilhas completas usando estas mecânicas?
             </h4>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Utilize o <strong>OmniRoute</strong> para gerar automaticamente aulas no mesmo formato para todos os artigos do Código Penal, CLT, CF/88 ou Código Civil.
+              O gerador <strong>OmniRoute</strong> permite aplicar qualquer uma dessas mecânicas para todo o Código Penal, CLT ou CF/88 em lote.
             </p>
           </div>
           <button
@@ -1716,9 +1827,10 @@ const AdminAprenderLeisLaboratorio = () => {
               pararVoz();
               navigate('/admin-aprender-leis/criar');
             }}
-            className="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs shrink-0 transition-colors shadow-sm"
+            className="px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs shrink-0 transition-colors shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
           >
-            Abrir Criador OmniRoute
+            <span>Abrir Criador OmniRoute</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
