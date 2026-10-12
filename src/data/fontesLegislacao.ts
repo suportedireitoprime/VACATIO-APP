@@ -486,3 +486,130 @@ export const FONTES_LEGISLACAO: FonteLegislacao[] = [
     permiteBuscaTexto: true,
   },
 ];
+
+// ─── ESTATÍSTICAS E HELPERS ───
+
+export interface EstatisticasFontes {
+  totalFontes: number;
+  totalAtosEstimados: number;
+  totalFederal: number;
+  totalEstadual: number;
+  totalMunicipal: number;
+  totalInternacional: number;
+  operacionais: number;
+}
+
+export function getEstatisticasFontes(): EstatisticasFontes {
+  const totalFontes = FONTES_LEGISLACAO.length;
+  const totalAtosEstimados = FONTES_LEGISLACAO.reduce((acc, f) => acc + (f.totalAtosEstimados || 0), 0);
+  const totalFederal = FONTES_LEGISLACAO.filter(f => f.esfera === 'FEDERAL').length;
+  const totalEstadual = FONTES_LEGISLACAO.filter(f => f.esfera === 'ESTADUAL').length;
+  const totalMunicipal = FONTES_LEGISLACAO.filter(f => f.esfera === 'MUNICIPAL').length;
+  const totalInternacional = FONTES_LEGISLACAO.filter(f => f.esfera === 'INTERNACIONAL').length;
+  const operacionais = FONTES_LEGISLACAO.filter(f => f.status === 'operacional').length;
+
+  return {
+    totalFontes,
+    totalAtosEstimados,
+    totalFederal,
+    totalEstadual,
+    totalMunicipal,
+    totalInternacional,
+    operacionais,
+  };
+}
+
+export function obterEsferasComContador(): { esfera: EsferaLegis; total: number }[] {
+  return [
+    { esfera: 'FEDERAL', total: FONTES_LEGISLACAO.filter(f => f.esfera === 'FEDERAL').length },
+    { esfera: 'ESTADUAL', total: FONTES_LEGISLACAO.filter(f => f.esfera === 'ESTADUAL').length },
+    { esfera: 'MUNICIPAL', total: FONTES_LEGISLACAO.filter(f => f.esfera === 'MUNICIPAL').length },
+    { esfera: 'INTERNACIONAL', total: FONTES_LEGISLACAO.filter(f => f.esfera === 'INTERNACIONAL').length },
+  ];
+}
+
+export function filtrarFontes(esfera: EsferaLegis | 'TODAS', termo: string, uf?: string): FonteLegislacao[] {
+  let resultado = FONTES_LEGISLACAO;
+
+  if (esfera !== 'TODAS') {
+    resultado = resultado.filter(f => f.esfera === esfera);
+  }
+
+  if (uf && uf !== 'TODOS') {
+    resultado = resultado.filter(f => 
+      f.subesfera?.toLowerCase().includes(uf.toLowerCase()) ||
+      f.sigla.toLowerCase().includes(uf.toLowerCase()) ||
+      f.nome.toLowerCase().includes(uf.toLowerCase())
+    );
+  }
+
+  if (termo && termo.trim()) {
+    const q = termo.toLowerCase().trim();
+    resultado = resultado.filter(f =>
+      f.nome.toLowerCase().includes(q) ||
+      f.sigla.toLowerCase().includes(q) ||
+      f.descricao.toLowerCase().includes(q) ||
+      f.orgaoResponsavel.toLowerCase().includes(q) ||
+      (f.subesfera && f.subesfera.toLowerCase().includes(q))
+    );
+  }
+
+  return resultado;
+}
+
+// ─── MAPEAMENTO FEDERATIVO DOS 27 ESTADOS (UFs) ───
+
+export interface EstadoBrasilInfo {
+  uf: string;
+  nome: string;
+  regiao: 'Norte' | 'Nordeste' | 'Centro-Oeste' | 'Sudeste' | 'Sul';
+  capital: string;
+  totalMunicipios: number;
+  totalAtosEstimados: number;
+  assembleia: string;
+  urlAssembleia: string;
+  urlDiario?: string;
+  status: 'operacional' | 'em_monitoramento';
+  // Posição no grid cartográfico interativo
+  gridPos: { col: number; row: number };
+}
+
+export const ESTADOS_BRASIL: EstadoBrasilInfo[] = [
+  // Região Norte
+  { uf: 'RR', nome: 'Roraima', regiao: 'Norte', capital: 'Boa Vista', totalMunicipios: 15, totalAtosEstimados: 48000, assembleia: 'ALE-RR', urlAssembleia: 'https://al.rr.leg.br', status: 'em_monitoramento', gridPos: { col: 3, row: 1 } },
+  { uf: 'AP', nome: 'Amapá', regiao: 'Norte', capital: 'Macapá', totalMunicipios: 16, totalAtosEstimados: 52000, assembleia: 'ALAP', urlAssembleia: 'https://al.ap.leg.br', status: 'em_monitoramento', gridPos: { col: 5, row: 1 } },
+  { uf: 'AM', nome: 'Amazonas', regiao: 'Norte', capital: 'Manaus', totalMunicipios: 62, totalAtosEstimados: 135000, assembleia: 'ALEAM', urlAssembleia: 'https://aleam.gov.br', status: 'em_monitoramento', gridPos: { col: 2, row: 2 } },
+  { uf: 'PA', nome: 'Pará', regiao: 'Norte', capital: 'Belém', totalMunicipios: 144, totalAtosEstimados: 210000, assembleia: 'ALEPA', urlAssembleia: 'https://alepa.pa.gov.br', status: 'em_monitoramento', gridPos: { col: 4, row: 2 } },
+  { uf: 'AC', nome: 'Acre', regiao: 'Norte', capital: 'Rio Branco', totalMunicipios: 22, totalAtosEstimados: 42000, assembleia: 'ALEAC', urlAssembleia: 'https://al.ac.leg.br', status: 'em_monitoramento', gridPos: { col: 1, row: 3 } },
+  { uf: 'RO', nome: 'Rondônia', regiao: 'Norte', capital: 'Porto Velho', totalMunicipios: 52, totalAtosEstimados: 89000, assembleia: 'ALE-RO', urlAssembleia: 'https://al.ro.leg.br', status: 'em_monitoramento', gridPos: { col: 2, row: 3 } },
+  { uf: 'TO', nome: 'Tocantins', regiao: 'Norte', capital: 'Palmas', totalMunicipios: 139, totalAtosEstimados: 115000, assembleia: 'AL-TO', urlAssembleia: 'https://al.to.leg.br', status: 'em_monitoramento', gridPos: { col: 4, row: 3 } },
+
+  // Região Nordeste
+  { uf: 'MA', nome: 'Maranhão', regiao: 'Nordeste', capital: 'São Luís', totalMunicipios: 217, totalAtosEstimados: 198000, assembleia: 'ALEMA', urlAssembleia: 'https://al.ma.leg.br', status: 'em_monitoramento', gridPos: { col: 5, row: 2 } },
+  { uf: 'PI', nome: 'Piauí', regiao: 'Nordeste', capital: 'Teresina', totalMunicipios: 224, totalAtosEstimados: 185000, assembleia: 'ALEPI', urlAssembleia: 'https://alepi.pi.gov.br', status: 'em_monitoramento', gridPos: { col: 6, row: 2 } },
+  { uf: 'CE', nome: 'Ceará', regiao: 'Nordeste', capital: 'Fortaleza', totalMunicipios: 184, totalAtosEstimados: 310000, assembleia: 'ALECE', urlAssembleia: 'https://al.ce.leg.br', status: 'operacional', gridPos: { col: 7, row: 2 } },
+  { uf: 'RN', nome: 'Rio Grande do Norte', regiao: 'Nordeste', capital: 'Natal', totalMunicipios: 167, totalAtosEstimados: 142000, assembleia: 'ALRN', urlAssembleia: 'https://al.rn.leg.br', status: 'em_monitoramento', gridPos: { col: 8, row: 2 } },
+  { uf: 'PB', nome: 'Paraíba', regiao: 'Nordeste', capital: 'João Pessoa', totalMunicipios: 223, totalAtosEstimados: 176000, assembleia: 'ALPB', urlAssembleia: 'https://al.pb.leg.br', status: 'em_monitoramento', gridPos: { col: 8, row: 3 } },
+  { uf: 'PE', nome: 'Pernambuco', regiao: 'Nordeste', capital: 'Recife', totalMunicipios: 185, totalAtosEstimados: 290000, assembleia: 'ALEPE', urlAssembleia: 'https://alepe.pe.gov.br', status: 'em_monitoramento', gridPos: { col: 7, row: 3 } },
+  { uf: 'AL', nome: 'Alagoas', regiao: 'Nordeste', capital: 'Maceió', totalMunicipios: 102, totalAtosEstimados: 124000, assembleia: 'ALE-AL', urlAssembleia: 'https://al.al.leg.br', status: 'em_monitoramento', gridPos: { col: 8, row: 4 } },
+  { uf: 'SE', nome: 'Sergipe', regiao: 'Nordeste', capital: 'Aracaju', totalMunicipios: 75, totalAtosEstimados: 98000, assembleia: 'ALESE', urlAssembleia: 'https://al.se.leg.br', status: 'em_monitoramento', gridPos: { col: 7, row: 4 } },
+  { uf: 'BA', nome: 'Bahia', regiao: 'Nordeste', capital: 'Salvador', totalMunicipios: 417, totalAtosEstimados: 540000, assembleia: 'ALBA', urlAssembleia: 'https://al.ba.gov.br', status: 'operacional', gridPos: { col: 6, row: 4 } },
+
+  // Região Centro-Oeste
+  { uf: 'MT', nome: 'Mato Grosso', regiao: 'Centro-Oeste', capital: 'Cuiabá', totalMunicipios: 141, totalAtosEstimados: 245000, assembleia: 'ALMT', urlAssembleia: 'https://al.mt.gov.br', status: 'em_monitoramento', gridPos: { col: 3, row: 4 } },
+  { uf: 'GO', nome: 'Goiás', regiao: 'Centro-Oeste', capital: 'Goiânia', totalMunicipios: 246, totalAtosEstimados: 320000, assembleia: 'ALEGO', urlAssembleia: 'https://portal.al.go.leg.br', status: 'operacional', gridPos: { col: 4, row: 4 } },
+  { uf: 'DF', nome: 'Distrito Federal', regiao: 'Centro-Oeste', capital: 'Brasília', totalMunicipios: 1, totalAtosEstimados: 480000, assembleia: 'CLDF', urlAssembleia: 'https://cl.df.gov.br', status: 'operacional', gridPos: { col: 5, row: 4 } },
+  { uf: 'MS', nome: 'Mato Grosso do Sul', regiao: 'Centro-Oeste', capital: 'Campo Grande', totalMunicipios: 79, totalAtosEstimados: 168000, assembleia: 'ALEMS', urlAssembleia: 'https://al.ms.leg.br', status: 'em_monitoramento', gridPos: { col: 3, row: 5 } },
+
+  // Região Sudeste
+  { uf: 'MG', nome: 'Minas Gerais', regiao: 'Sudeste', capital: 'Belo Horizonte', totalMunicipios: 853, totalAtosEstimados: 920000, assembleia: 'ALMG', urlAssembleia: 'https://almg.gov.br', status: 'operacional', gridPos: { col: 5, row: 5 } },
+  { uf: 'ES', nome: 'Espírito Santo', regiao: 'Sudeste', capital: 'Vitória', totalMunicipios: 78, totalAtosEstimados: 195000, assembleia: 'ALES', urlAssembleia: 'https://al.es.leg.br', status: 'em_monitoramento', gridPos: { col: 6, row: 5 } },
+  { uf: 'RJ', nome: 'Rio de Janeiro', regiao: 'Sudeste', capital: 'Rio de Janeiro', totalMunicipios: 92, totalAtosEstimados: 850000, assembleia: 'ALERJ', urlAssembleia: 'https://alerj.rj.gov.br', status: 'operacional', gridPos: { col: 6, row: 6 } },
+  { uf: 'SP', nome: 'São Paulo', regiao: 'Sudeste', capital: 'São Paulo', totalMunicipios: 645, totalAtosEstimados: 1250000, assembleia: 'ALESP', urlAssembleia: 'https://al.sp.gov.br', status: 'operacional', gridPos: { col: 5, row: 6 } },
+
+  // Região Sul
+  { uf: 'PR', nome: 'Paraná', regiao: 'Sul', capital: 'Curitiba', totalMunicipios: 399, totalAtosEstimados: 430000, assembleia: 'ALEP', urlAssembleia: 'https://assembleia.pr.leg.br', status: 'operacional', gridPos: { col: 4, row: 6 } },
+  { uf: 'SC', nome: 'Santa Catarina', regiao: 'Sul', capital: 'Florianópolis', totalMunicipios: 295, totalAtosEstimados: 380000, assembleia: 'ALESC', urlAssembleia: 'https://alesc.sc.gov.br', status: 'operacional', gridPos: { col: 4, row: 7 } },
+  { uf: 'RS', nome: 'Rio Grande do Sul', regiao: 'Sul', capital: 'Porto Alegre', totalMunicipios: 497, totalAtosEstimados: 610000, assembleia: 'ALRS', urlAssembleia: 'https://al.rs.gov.br', status: 'operacional', gridPos: { col: 3, row: 7 } },
+];
+

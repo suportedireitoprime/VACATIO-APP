@@ -25,12 +25,15 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { MapaLegislacaoBrasil } from '@/components/admin/MapaLegislacaoBrasil';
 
 export default function AdminFontesLegislacao() {
   const navigate = useNavigate();
   const [esferaAtiva, setEsferaAtiva] = useState<EsferaLegis | 'TODAS'>('TODAS');
   const [termoBusca, setTermoBusca] = useState('');
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>('TODAS');
+  const [ufSelecionada, setUfSelecionada] = useState<string | null>(null);
+  const [exibirMapa, setExibirMapa] = useState(true);
   const [fonteSelecionada, setFonteSelecionada] = useState<FonteLegislacao | null>(null);
 
   // Estatísticas gerais
@@ -45,12 +48,12 @@ export default function AdminFontesLegislacao() {
 
   // Lista filtrada
   const fontesFiltradas = useMemo(() => {
-    let list = filtrarFontes(esferaAtiva, termoBusca);
+    let list = filtrarFontes(esferaAtiva, termoBusca, ufSelecionada || undefined);
     if (categoriaAtiva !== 'TODAS') {
       list = list.filter(f => f.categoria === categoriaAtiva);
     }
     return list;
-  }, [esferaAtiva, termoBusca, categoriaAtiva]);
+  }, [esferaAtiva, termoBusca, categoriaAtiva, ufSelecionada]);
 
   const getEsferaBadgeColor = (esfera: EsferaLegis) => {
     switch (esfera) {
@@ -194,6 +197,42 @@ export default function AdminFontesLegislacao() {
             </div>
           </div>
         </div>
+
+        {/* Botão de Toggle do Mapa do Brasil */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Compass className="w-4 h-4 text-blue-400" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Cobertura Geográfica Federativa
+            </span>
+            {ufSelecionada && (
+              <span className="text-xs px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold">
+                UF: {ufSelecionada}
+              </span>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setExibirMapa(!exibirMapa)}
+            className="text-xs text-slate-400 hover:text-white hover:bg-slate-900 border border-slate-800/80 h-7 px-2.5 rounded-lg"
+          >
+            {exibirMapa ? 'Ocultar Mapa' : 'Visualizar Mapa do Brasil'}
+          </Button>
+        </div>
+
+        {/* Seção do Mapa Interativo do Brasil */}
+        {exibirMapa && (
+          <MapaLegislacaoBrasil
+            ufSelecionada={ufSelecionada}
+            onSelecionarUF={(uf) => {
+              setUfSelecionada(uf);
+              if (uf) {
+                toast.info(`Filtrando portais e câmaras da UF ${uf}`);
+              }
+            }}
+          />
+        )}
 
         {/* Barra de Filtros e Busca */}
         <div className="space-y-4">
