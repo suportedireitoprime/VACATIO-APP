@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { MapaLegislacaoBrasil } from '@/components/admin/MapaLegislacaoBrasil';
+import { CarrosselEvolucaoNormativa } from '@/components/admin/CarrosselEvolucaoNormativa';
 
 export default function AdminFontesLegislacao() {
   const navigate = useNavigate();
@@ -233,6 +234,15 @@ export default function AdminFontesLegislacao() {
             }}
           />
         )}
+
+        {/* Carrossel de Evolução Normativa por Esfera (UNOS) */}
+        <CarrosselEvolucaoNormativa
+          esferaAtiva={esferaAtiva}
+          onSelecionarEsfera={(novaEsfera) => {
+            setEsferaAtiva(novaEsfera);
+            toast.info(`Esfera alterada para ${novaEsfera}`);
+          }}
+        />
 
         {/* Barra de Filtros e Busca */}
         <div className="space-y-4">
