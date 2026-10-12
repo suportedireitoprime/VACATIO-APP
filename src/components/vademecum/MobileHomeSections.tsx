@@ -349,7 +349,6 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   useEffect(() => {
     if (!categoryOpen) return;
     setListFilter('todos');
-    setOabSubFilter('todos');
     const update = () => setFavoriteIds(new Set(getFavoritos().map(f => f.leiId)));
     update();
     window.addEventListener(LEIS_FAVORITOS_EVENT, update);
@@ -534,7 +533,6 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               key={tab.id}
               onClick={() => {
                 setActiveTab(tab.id);
-                if (tab.id === 'cat-oab') setOabSubFilter('todos');
               }}
               className={`min-h-[44px] px-5 py-2.5 rounded-full text-[14px] font-display font-bold uppercase tracking-wide flex items-center justify-center whitespace-nowrap transition-colors ${
                 activeTab === tab.id
