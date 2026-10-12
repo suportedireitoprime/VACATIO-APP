@@ -60,12 +60,12 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
     defaultModel: 'antigravity/gemini-3.8-flash-tiered',
     suggestedModels: [
       {
-        id: 'antigravity/gemini-3.8-flash',
-        name: 'Gemini 3.8 Flash',
+        id: 'antigravity/gemini-3.8-flash-tiered',
+        name: 'Gemini 3.8 Flash Tiered',
         tag: 'Precisão Jurídica',
         costProfile: 'medium',
         recommended: true,
-        notes: 'Mais recente geração: alta velocidade com rigor técnico-jurídico'
+        notes: 'Mais recente geração: alta velocidade com rigor técnico-jurídico e custo otimizado'
       },
       {
         id: 'antigravity/claude-sonnet-4-6',
@@ -75,18 +75,18 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
         notes: 'Superior para teses doutrinárias complexas e redação de peças'
       },
       {
-        id: 'antigravity/gemini-3.6-flash-high',
-        name: 'Gemini 3.7 Flash High',
+        id: 'antigravity/gemini-3.8-flash',
+        name: 'Gemini 3.8 Flash',
         tag: 'Equilibrado',
         costProfile: 'medium',
         notes: 'Excelente balanço entre raciocínio jurídico e latência'
       },
       {
-        id: 'antigravity/gemini-3.6-flash',
-        name: 'Gemini 3.6 Flash',
-        tag: 'Econômico / Rápido',
-        costProfile: 'low',
-        notes: 'Máxima economia de tokens com resposta ultrarrápida'
+        id: 'antigravity/gemini-pro-agent',
+        name: 'Gemini Pro Agent',
+        tag: 'Especializado',
+        costProfile: 'high',
+        notes: 'Agente especializado para raciocínio profundo e pesquisa'
       },
     ],
     samplePrompt: 'Explique a diferença entre prescrição e decadência no Código Civil Brasileiro com exemplos práticos.',
@@ -100,25 +100,25 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
     defaultModel: 'antigravity/gemini-3.8-flash-tiered',
     suggestedModels: [
       {
-        id: 'antigravity/gemini-3.6-flash',
-        name: 'Gemini 3.6 Flash',
-        tag: 'Econômico / Rápido',
-        costProfile: 'low',
+        id: 'antigravity/gemini-3.8-flash-tiered',
+        name: 'Gemini 3.8 Flash Tiered',
+        tag: 'Precisão Jurídica',
+        costProfile: 'medium',
         recommended: true,
-        notes: 'Recomendado: ideal para processar grandes volumes de texto gastando menos'
+        notes: 'Recomendado: ideal para processar grandes volumes de texto com fidelidade à lei'
       },
       {
         id: 'antigravity/gemini-3.8-flash',
         name: 'Gemini 3.8 Flash',
-        tag: 'Precisão Jurídica',
-        costProfile: 'medium',
-        notes: 'Para resumos acadêmicos que demandam máxima fidelidade à letra da lei'
+        tag: 'Econômico / Rápido',
+        costProfile: 'low',
+        notes: 'Para resumos acadêmicos rápidos'
       },
       {
-        id: 'antigravity/gemini-3.6-flash-thinking',
-        name: 'Gemini 3.7 Flash Thinking',
-        tag: 'Equilibrado',
-        costProfile: 'medium',
+        id: 'antigravity/claude-sonnet-4-6',
+        name: 'Claude 3.7 Sonnet / 4.6',
+        tag: 'Precisão Jurídica',
+        costProfile: 'high',
         notes: 'Raciocínio dedutivo aprimorado para casos práticos'
       },
     ],
@@ -133,8 +133,8 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
     defaultModel: 'antigravity/gemini-3.8-flash-tiered',
     suggestedModels: [
       {
-        id: 'antigravity/gemini-3.6-flash-high',
-        name: 'Gemini 3.7 Flash High',
+        id: 'antigravity/gemini-3.8-flash-tiered',
+        name: 'Gemini 3.8 Flash Tiered Multimodal',
         tag: 'Precisão Jurídica',
         costProfile: 'medium',
         recommended: true,
@@ -166,8 +166,8 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
     defaultModel: 'antigravity/gemini-3.8-flash-tiered',
     suggestedModels: [
       {
-        id: 'antigravity/gemini-3.6-flash-high',
-        name: 'Gemini 3.7 Flash High Multimodal',
+        id: 'antigravity/gemini-3.8-flash-tiered',
+        name: 'Gemini 3.8 Flash Tiered Multimodal',
         tag: 'Precisão Jurídica',
         costProfile: 'medium',
         recommended: true,
@@ -252,16 +252,16 @@ export const AI_FEATURES_REGISTRY: AiFeatureDefinition[] = [
     defaultModel: 'antigravity/gemini-3.8-flash-tiered',
     suggestedModels: [
       {
-        id: 'antigravity/gemini-3.6-flash-high',
-        name: 'Gemini 3.7 Flash High',
+        id: 'antigravity/gemini-3.8-flash-tiered',
+        name: 'Gemini 3.8 Flash Tiered',
         tag: 'Equilibrado',
         costProfile: 'medium',
         recommended: true,
         notes: 'Bom equilíbrio para respostas rápidas e contextualizadas no WhatsApp',
       },
       {
-        id: 'antigravity/gemini-3.6-flash',
-        name: 'Gemini 3.6 Flash',
+        id: 'antigravity/gemini-3.8-flash',
+        name: 'Gemini 3.8 Flash',
         tag: 'Econômico / Rápido',
         costProfile: 'low',
         notes: 'Velocidade máxima para alto volume de mensagens curtas',

@@ -99,11 +99,10 @@ export interface AntigravityModelInfo {
 
 const ANTIGRAVITY_TEXT_MODELS: AntigravityModelInfo[] = [
   // Google Gemini
-  { id: 'antigravity/gemini-3.6-flash-high', name: 'Gemini 3.6 Flash High (Recomendado)', group: 'Google Gemini' },
-  { id: 'antigravity/gemini-3.6-flash-low', name: 'Gemini 3.6 Flash Low (Rápido)', group: 'Google Gemini' },
+  { id: 'antigravity/gemini-3.8-flash-tiered', name: 'Gemini 3.8 Flash Tiered (Recomendado)', group: 'Google Gemini' },
+  { id: 'antigravity/gemini-3.8-flash', name: 'Gemini 3.8 Flash', group: 'Google Gemini' },
   { id: 'antigravity/gemini-3.1-pro-high', name: 'Gemini 3.1 Pro High (Precisão Jurídica)', group: 'Google Gemini' },
   { id: 'antigravity/gemini-3.1-pro-low', name: 'Gemini 3.1 Pro Low', group: 'Google Gemini' },
-  { id: 'antigravity/gemini-3.8-flash', name: 'Gemini 3.8 Flash', group: 'Google Gemini' },
   { id: 'antigravity/gemini-pro-agent', name: 'Gemini Pro Agent', group: 'Google Gemini' },
   // Anthropic Claude
   { id: 'antigravity/claude-sonnet-4-6', name: 'Claude 3.7 Sonnet / 4.6 (Redação e Análise)', group: 'Anthropic Claude' },
@@ -121,7 +120,7 @@ const POPULAR_IMAGE_MODELS = [
 ];
 
 const POPULAR_AUDIO_MODELS = [
-  'antigravity/gemini-3.6-flash-high',
+  'antigravity/gemini-3.8-flash-tiered',
   'antigravity/gemini-3.8-flash',
   'whisper-1',
 ];
@@ -688,7 +687,7 @@ export default function AdminOmniRoute() {
       const data = await proxyOmniRoute({
         url: `${cleanUrl}/chat/completions`,
         payload: {
-          model: audioModel.includes('gemini') ? audioModel : 'antigravity/gemini-3.6-flash-high',
+          model: audioModel.includes('gemini') ? audioModel : 'antigravity/gemini-3.8-flash-tiered',
           messages: [
             {
               role: 'user',
