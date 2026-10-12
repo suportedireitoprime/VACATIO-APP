@@ -16,6 +16,10 @@ const GrifoVoiceSheet = lazy(() => import('./GrifoVoiceSheet'));
 import type { VoicePassage } from './GrifoVoiceSheet';
 import GrifoVoicePanel, { type GrifoVoicePanelHandle, type VoicePhase } from './GrifoVoicePanel';
 const KaraokeOverlay = lazy(() => import('./KaraokeOverlay'));
+import { MODOS_PRATICAR, type ModoPraticarId } from './praticar/modosPraticarConfig';
+const CompleteArtigoView = lazy(() => import('./praticar/CompleteArtigoView').then(m => ({ default: m.CompleteArtigoView })));
+const MonteArtigoView = lazy(() => import('./praticar/MonteArtigoView').then(m => ({ default: m.MonteArtigoView })));
+const VerdadeiroFalsoView = lazy(() => import('./praticar/VerdadeiroFalsoView').then(m => ({ default: m.VerdadeiroFalsoView })));
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -366,6 +370,7 @@ const ArtigoBottomSheet = ({
   const [showFontControls, setShowFontControls] = useState(false);
   const [showCommentPanel, setShowCommentPanel] = useState(false);
   const [showPraticarSheet, setShowPraticarSheet] = useState(false);
+  const [activePraticarMode, setActivePraticarMode] = useState<ModoPraticarId | null>(null);
   
   const [videoaula, setVideoaula] = useState<{ titulo: string; url: string; canal: string; videoId: string; transcricao?: string } | null>(null);
   const [videoaulasLoading, setVideoaulasLoading] = useState(false);
@@ -3713,43 +3718,140 @@ Regras:
                 <div className="flex items-center justify-between px-5 pb-3 border-b border-border">
                   <div className="flex items-center gap-2">
                     <Target className="w-5 h-5 text-primary" />
-                    <h3 className="font-heading text-base font-semibold text-foreground">Praticar</h3>
+                    <h3 className="font-heading text-base font-semibold text-foreground">
+                      {activePraticarMode === 'complete'
+                        ? 'Complete o Artigo'
+                        : activePraticarMode === 'monte'
+                        ? 'Monte o Artigo'
+                        : activePraticarMode === 'verdadeiro_falso'
+                        ? 'Certo ou Errado'
+                        : 'Praticar'}
+                    </h3>
                   </div>
                   <button
-                    onClick={() => setShowPraticarSheet(false)}
+                    onClick={() => {
+                      if (activePraticarMode) {
+                        setActivePraticarMode(null);
+                      } else {
+                        setShowPraticarSheet(false);
+                      }
+                    }}
                     className="w-8 h-8 rounded-full hover:bg-secondary flex items-center justify-center text-foreground/70"
                     aria-label="Fechar"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="px-5 pt-3 text-[12.5px] text-foreground/60">Art. {artigo?.numero} — Escolha o modo de estudo</p>
-                <div className="flex-1 py-2">
-                  {[
-                    { icon: Target, label: 'Questões', desc: 'Múltipla escolha com comentários e exemplos', color: '#F59E0B', onClick: () => { setShowPraticarSheet(false); navigate(`/estudos?mode=questoes&tabela=${tabelaNome}&artigo=${artigo?.numero}`); } },
-                    { icon: Layers, label: 'Flashcards', desc: 'Cards com flip animado e exemplos práticos', color: '#EAB308', onClick: () => { setShowPraticarSheet(false); navigate(`/estudos?mode=flashcards&tabela=${tabelaNome}&artigo=${artigo?.numero}`); } },
-                  ].map((item, i, arr) => {
-                    const Icon = item.icon;
-                    return (
-                      <div key={i}>
-                        <button
-                          onClick={item.onClick}
-                          className="w-full flex items-center gap-4 px-5 py-5 transition-colors text-left hover:bg-secondary/60"
-                        >
-                          <span className="w-11 h-11 flex items-center justify-center shrink-0" style={{ color: item.color }}>
-                            <Icon className="w-[26px] h-[26px]" strokeWidth={2} />
-                          </span>
-                          <span className="flex-1 min-w-0">
-                            <span className="block text-[15.5px] font-medium text-foreground truncate">{item.label}</span>
-                            <span className="block text-[12.5px] text-foreground/60 truncate mt-0.5">{item.desc}</span>
-                          </span>
-                          <ChevronRight className="w-5 h-5 text-foreground/40 shrink-0" />
-                        </button>
-                        {i < arr.length - 1 && <div className="mx-5 h-px bg-border/60" />}
-                      </div>
-                    );
-                  })}
-                </div>
+
+                {/* Se um modo interativo estiver ativo, renderiza sua tela dedicada */}
+                {activePraticarMode === 'complete' && (
+                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando exercício...</div>}>
+                    <CompleteArtigoView
+                      artigoNumero={String(artigo?.numero || '')}
+                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                      leiNome={String(tabelaNome || '')}
+                      onVoltar={() => setActivePraticarMode(null)}
+                    />
+                  </Suspense>
+                )}
+
+                {activePraticarMode === 'monte' && (
+                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando quebra-cabeça...</div>}>
+                    <MonteArtigoView
+                      artigoNumero={String(artigo?.numero || '')}
+                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                      leiNome={String(tabelaNome || '')}
+                      onVoltar={() => setActivePraticarMode(null)}
+                    />
+                  </Suspense>
+                )}
+
+                {activePraticarMode === 'verdadeiro_falso' && (
+                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando afirmativas...</div>}>
+                    <VerdadeiroFalsoView
+                      artigoNumero={String(artigo?.numero || '')}
+                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                      leiNome={String(tabelaNome || '')}
+                      onVoltar={() => setActivePraticarMode(null)}
+                    />
+                  </Suspense>
+                )}
+
+                {/* Menu de seleção dos 12 Modos de Prática */}
+                {!activePraticarMode && (
+                  <>
+                    <p className="px-5 pt-3 text-[12.5px] text-foreground/60">
+                      Art. {artigo?.numero} — Escolha o modo de estudo e fixação
+                    </p>
+                    <div className="flex-1 py-2 overflow-y-auto">
+                      {MODOS_PRATICAR.map((item, i, arr) => {
+                        const Icon = item.icon;
+                        const isDisponivel = item.fase === 1;
+
+                        const handleClick = () => {
+                          if (item.id === 'questoes') {
+                            setShowPraticarSheet(false);
+                            navigate(`/estudos?mode=questoes&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
+                          } else if (item.id === 'flashcards') {
+                            setShowPraticarSheet(false);
+                            navigate(`/estudos?mode=flashcards&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
+                          } else if (isDisponivel) {
+                            setActivePraticarMode(item.id);
+                          } else {
+                            toast.info(`O modo "${item.label}" está sendo implementado na próxima fase!`);
+                          }
+                        };
+
+                        return (
+                          <div key={item.id}>
+                            <button
+                              onClick={handleClick}
+                              className={`w-full flex items-center gap-4 px-5 py-4 transition-colors text-left hover:bg-secondary/60 ${
+                                !isDisponivel ? 'opacity-70' : 'opacity-100'
+                              }`}
+                            >
+                              <span
+                                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
+                                style={{
+                                  color: item.color,
+                                  borderColor: `${item.color}30`,
+                                  backgroundColor: `${item.color}15`,
+                                }}
+                              >
+                                <Icon className="w-5 h-5" strokeWidth={2} />
+                              </span>
+                              <span className="flex-1 min-w-0">
+                                <span className="flex items-center gap-2">
+                                  <span className="block text-[15px] font-semibold text-foreground truncate">
+                                    {item.label}
+                                  </span>
+                                  {item.badge && (
+                                    <span
+                                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                                        item.badge === 'NOVO'
+                                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                          : item.badge === 'PRO'
+                                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                          : 'bg-secondary text-foreground/50 border border-border'
+                                      }`}
+                                    >
+                                      {item.badge}
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="block text-[12px] text-foreground/60 truncate mt-0.5">
+                                  {item.desc}
+                                </span>
+                              </span>
+                              <ChevronRight className="w-4 h-4 text-foreground/40 shrink-0" />
+                            </button>
+                            {i < arr.length - 1 && <div className="mx-5 h-px bg-border/60" />}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </motion.div>
             </>
           )}
