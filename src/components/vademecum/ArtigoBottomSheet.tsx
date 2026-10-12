@@ -2434,7 +2434,11 @@ Regras:
               </span>
             )}
             {!highlightMode && (
-              <button onClick={handleSheetClose} className="w-11 h-11 rounded-full bg-amber-400 hover:bg-amber-500 transition-colors flex items-center justify-center" aria-label="Fechar">
+              <button 
+                onClick={handleSheetClose} 
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-amber-400 hover:bg-amber-500 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-sm" 
+                aria-label="Fechar"
+              >
                 <X className="w-5 h-5 text-black" />
               </button>
             )}
@@ -3678,30 +3682,7 @@ Regras:
           {aiGeneratingMode !== null && (
             <GeracaoAnimacaoOverlay
               open={aiGeneratingMode !== null}
-              titulo={
-                aiGeneratingMode === 'explicacao' ? 'Gerando explicação com IA' :
-                aiGeneratingMode === 'exemplo' ? 'Gerando exemplos práticos' :
-                aiGeneratingMode === 'termos' ? 'Analisando termos jurídicos' :
-                'Gerando conteúdo'
-              }
-              steps={[
-                'Preparando o texto do artigo',
-                'Consultando a IA',
-                'Formatando conteúdo',
-                'Pronto para ler',
-              ]}
-              stepIdx={aiGeneratingStep}
-              stepRanges={[[0, 20], [20, 85], [85, 98], [100, 100]]}
-              estTotalSec={12}
-            />
-          )}
-        </Suspense>
-
-
-
-
-
-        {/* Praticar Sheet */}
+                      {/* Praticar Sheet - Tela Inteira Fullscreen */}
         <AnimatePresence>
           {showPraticarSheet && (
             <>
@@ -3709,23 +3690,20 @@ Regras:
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 z-[60]"
+                className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm"
                 onClick={() => setShowPraticarSheet(false)}
               />
               <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="fixed bottom-0 left-0 right-0 z-[61] bg-card rounded-t-3xl border-t border-border pb-[var(--sai-bottom,var(--sai-bottom))] h-[85vh] max-h-[85vh] overflow-y-auto mx-auto max-w-lg flex flex-col md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-6 md:top-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl"
+                initial={{ y: '100%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: '100%', opacity: 0 }}
+                transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+                className="fixed inset-0 z-[61] bg-card flex flex-col w-full h-full max-h-screen overflow-hidden pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]"
               >
-                <div className="pt-3 pb-2 flex justify-center">
-                  <span className="w-10 h-1 rounded-full bg-border" />
-                </div>
-                <div className="flex items-center justify-between px-5 pb-3 border-b border-border">
-                  <div className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-primary" />
-                    <h3 className="font-heading text-base font-semibold text-foreground">
+                <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border/80 bg-background/50 backdrop-blur-md shrink-0 pt-[max(0.875rem,env(safe-area-inset-top))]">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                    <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
+                    <h3 className="font-heading text-base sm:text-lg font-bold text-foreground truncate">
                       {activePraticarMode === 'complete'
                         ? 'Complete o Artigo'
                         : activePraticarMode === 'monte'
@@ -3735,7 +3713,7 @@ Regras:
                         : activePraticarMode === 'caca_palavras'
                         ? 'Caça-Palavras Jurídico'
                         : activePraticarMode === 'relacione'
-                        ? 'Relacione as Colunas'
+                        : 'Relacione as Colunas'
                         : activePraticarMode === 'identifique_erro'
                         ? 'Identifique o Erro'
                         : activePraticarMode === 'casos_praticos'
@@ -3757,197 +3735,180 @@ Regras:
                         setShowPraticarSheet(false);
                       }
                     }}
-                    className="w-8 h-8 rounded-full hover:bg-secondary flex items-center justify-center text-foreground/70"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-secondary/80 hover:bg-secondary active:scale-95 transition-all flex items-center justify-center text-foreground/80 hover:text-foreground shrink-0 border border-border/50"
                     aria-label="Fechar"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 </div>
 
-                {/* Se um modo interativo estiver ativo, renderiza sua tela dedicada */}
-                {activePraticarMode === 'complete' && (
-                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando exercício...</div>}>
-                    <CompleteArtigoView
-                      artigoNumero={String(artigo?.numero || '')}
-                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                      leiNome={String(tabelaNome || '')}
-                      onVoltar={() => setActivePraticarMode(null)}
-                    />
-                  </Suspense>
-                )}
+                {/* Se um modo interativo estiver ativo, renderiza sua tela dedicada em tela cheia */}
+                <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
+                  {activePraticarMode === 'complete' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando exercício...</div>}>
+                      <CompleteArtigoView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
 
-                {activePraticarMode === 'monte' && (
-                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando quebra-cabeça...</div>}>
-                    <MonteArtigoView
-                      artigoNumero={String(artigo?.numero || '')}
-                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                      leiNome={String(tabelaNome || '')}
-                      onVoltar={() => setActivePraticarMode(null)}
-                    />
-                  </Suspense>
-                )}
+                  {activePraticarMode === 'monte' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando quebra-cabeça...</div>}>
+                      <MonteArtigoView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
 
-                {activePraticarMode === 'verdadeiro_falso' && (
-                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando afirmativas...</div>}>
-                    <VerdadeiroFalsoView
-                      artigoNumero={String(artigo?.numero || '')}
-                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                      leiNome={String(tabelaNome || '')}
-                      onVoltar={() => setActivePraticarMode(null)}
-                    />
-                  </Suspense>
-                )}
+                  {activePraticarMode === 'verdadeiro_falso' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando afirmativas...</div>}>
+                      <VerdadeiroFalsoView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
 
-                {activePraticarMode === 'casos_praticos' && (
-                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando casos práticos...</div>}>
-                    <CasosPraticosView
-                      artigoNumero={String(artigo?.numero || '')}
-                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                      leiNome={String(tabelaNome || '')}
-                      onVoltar={() => setActivePraticarMode(null)}
-                    />
-                  </Suspense>
-                )}
+                  {activePraticarMode === 'casos_praticos' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando casos práticos...</div>}>
+                      <CasosPraticosView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
 
-                {activePraticarMode === 'contra_relogio' && (
-                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando desafio contra o relógio...</div>}>
-                    <ContraRelogioView
-                      artigoNumero={String(artigo?.numero || '')}
-                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                      leiNome={String(tabelaNome || '')}
-                      onVoltar={() => setActivePraticarMode(null)}
-                    />
-                  </Suspense>
-                )}
+                  {activePraticarMode === 'contra_relogio' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando desafio contra o relógio...</div>}>
+                      <ContraRelogioView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
 
-                {activePraticarMode === 'caca_palavras' && (
-                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando caça-palavras...</div>}>
-                    <CacaPalavrasView
-                      artigoNumero={String(artigo?.numero || '')}
-                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                      leiNome={String(tabelaNome || '')}
-                      onVoltar={() => setActivePraticarMode(null)}
-                    />
-                  </Suspense>
-                )}
+                  {activePraticarMode === 'caca_palavras' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando caça-palavras...</div>}>
+                      <CacaPalavrasView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
 
-                {activePraticarMode === 'relacione' && (
-                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando colunas...</div>}>
-                    <RelacioneColunasView
-                      artigoNumero={String(artigo?.numero || '')}
-                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                      leiNome={String(tabelaNome || '')}
-                      onVoltar={() => setActivePraticarMode(null)}
-                    />
-                  </Suspense>
-                )}
+                  {activePraticarMode === 'relacione' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando colunas...</div>}>
+                      <RelacioneColunasView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
 
-                {activePraticarMode === 'identifique_erro' && (
-                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando exercício de detecção de erro...</div>}>
-                    <IdentifiqueErroView
-                      artigoNumero={String(artigo?.numero || '')}
-                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                      leiNome={String(tabelaNome || '')}
-                      onVoltar={() => setActivePraticarMode(null)}
-                    />
-                  </Suspense>
-                )}
+                  {activePraticarMode === 'identifique_erro' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando exercício de detecção de erro...</div>}>
+                      <IdentifiqueErroView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
 
-                {activePraticarMode === 'ouca_recite' && (
-                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando reconhecimento de voz...</div>}>
-                    <OucaReciteView
-                      artigoNumero={String(artigo?.numero || '')}
-                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                      leiNome={String(tabelaNome || '')}
-                      onVoltar={() => setActivePraticarMode(null)}
-                    />
-                  </Suspense>
-                )}
+                  {activePraticarMode === 'ouca_recite' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando reconhecimento de voz...</div>}>
+                      <OucaReciteView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
 
-                {activePraticarMode === 'combo' && (
-                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando maratona de estudo...</div>}>
-                    <ComboPraticarView
-                      artigoNumero={String(artigo?.numero || '')}
-                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                      leiNome={String(tabelaNome || '')}
-                      onVoltar={() => setActivePraticarMode(null)}
-                    />
-                  </Suspense>
-                )}
+                  {activePraticarMode === 'combo' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando maratona de estudo...</div>}>
+                      <ComboPraticarView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
 
-                {/* Menu de seleção dos 12 Modos de Prática */}
-                {!activePraticarMode && (
-                  <>
-                    <p className="px-5 pt-3 text-[12.5px] text-foreground/60">
-                      Art. {artigo?.numero} — Escolha o modo de estudo e fixação
-                    </p>
-                    <div className="flex-1 py-2 overflow-y-auto">
-                      {MODOS_PRATICAR.map((item, i, arr) => {
-                        const Icon = item.icon;
-                        const isDisponivel = true; // Todos os 12 modos 100% implementados e disponíveis
+                  {/* Menu de seleção dos 12 Modos de Prática */}
+                  {!activePraticarMode && (
+                    <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col py-2">
+                      <p className="px-5 sm:px-6 pt-3 pb-2 text-[13px] sm:text-sm text-foreground/60 font-medium">
+                        Art. {artigo?.numero} — Escolha o modo de estudo e fixação
+                      </p>
+                      <div className="flex-1 py-1 overflow-y-auto">
+                        {MODOS_PRATICAR.map((item, i, arr) => {
+                          const Icon = item.icon;
+                          const isDisponivel = true;
 
-                        const handleClick = () => {
-                          if (item.id === 'questoes') {
-                            setShowPraticarSheet(false);
-                            navigate(`/estudos?mode=questoes&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
-                          } else if (item.id === 'flashcards') {
-                            setShowPraticarSheet(false);
-                            navigate(`/estudos?mode=flashcards&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
-                          } else {
-                            setActivePraticarMode(item.id);
-                          }
-                        };
+                          const handleClick = () => {
+                            if (item.id === 'questoes') {
+                              setShowPraticarSheet(false);
+                              navigate(`/estudos?mode=questoes&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
+                            } else if (item.id === 'flashcards') {
+                              setShowPraticarSheet(false);
+                              navigate(`/estudos?mode=flashcards&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
+                            } else {
+                              setActivePraticarMode(item.id);
+                            }
+                          };
 
-                        return (
-                          <div key={item.id}>
-                            <button
-                              onClick={handleClick}
-                              className={`w-full flex items-center gap-4 px-5 py-4 transition-colors text-left hover:bg-secondary/60 ${
-                                !isDisponivel ? 'opacity-70' : 'opacity-100'
-                              }`}
-                            >
-                              <span
-                                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
-                                style={{
-                                  color: item.color,
-                                  borderColor: `${item.color}30`,
-                                  backgroundColor: `${item.color}15`,
-                                }}
+                          return (
+                            <div key={item.id}>
+                              <button
+                                onClick={handleClick}
+                                className={`w-full flex items-center gap-4 px-5 sm:px-6 py-4 transition-all text-left hover:bg-secondary/50 active:bg-secondary/70 ${
+                                  !isDisponivel ? 'opacity-70' : 'opacity-100'
+                                }`}
                               >
-                                <Icon className="w-5 h-5" strokeWidth={2} />
-                              </span>
-                              <span className="flex-1 min-w-0">
-                                <span className="flex items-center gap-2">
-                                  <span className="block text-[15px] font-semibold text-foreground truncate">
+                                <span
+                                  className="shrink-0 flex items-center justify-center"
+                                  style={{ color: item.color }}
+                                >
+                                  <Icon className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.2} />
+                                </span>
+                                <span className="flex-1 min-w-0">
+                                  <span className="block text-[15px] sm:text-[16px] font-semibold text-foreground truncate">
                                     {item.label}
                                   </span>
-                                  {item.badge && (
-                                    <span
-                                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                                        item.badge === 'NOVO'
-                                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                          : item.badge === 'PRO'
-                                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                                          : 'bg-secondary text-foreground/50 border border-border'
-                                      }`}
-                                    >
-                                      {item.badge}
-                                    </span>
-                                  )}
+                                  <span className="block text-[12.5px] sm:text-[13px] text-foreground/60 truncate mt-0.5">
+                                    {item.desc}
+                                  </span>
                                 </span>
-                                <span className="block text-[12px] text-foreground/60 truncate mt-0.5">
-                                  {item.desc}
-                                </span>
-                              </span>
-                              <ChevronRight className="w-4 h-4 text-foreground/40 shrink-0" />
-                            </button>
-                            {i < arr.length - 1 && <div className="mx-5 h-px bg-border/60" />}
-                          </div>
-                        );
-                      })}
+                                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-foreground/40 shrink-0" />
+                              </button>
+                              {i < arr.length - 1 && <div className="mx-5 sm:mx-6 h-px bg-border/50" />}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </>
-                )}
+                  )}
+                </div>
               </motion.div>
             </>
           )}

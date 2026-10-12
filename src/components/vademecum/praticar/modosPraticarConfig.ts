@@ -59,14 +59,13 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     fase: 1,
   },
 
-  // Fase 1 - Modos de Texto e Lacunas
+  // Modos de Texto e Lacunas
   {
     id: 'complete',
     label: 'Complete o Artigo',
     desc: 'Preencha as palavras-chave ocultadas no texto da lei',
     icon: PenTool,
     color: '#3B82F6',
-    badge: 'NOVO',
     fase: 1,
   },
   {
@@ -75,7 +74,6 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Quebra-cabeça sequencial: ordene os fragmentos da norma',
     icon: Puzzle,
     color: '#8B5CF6',
-    badge: 'NOVO',
     fase: 1,
   },
   {
@@ -84,18 +82,16 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Acerte afirmativas rápidas e pegadinhas de concursos',
     icon: CheckCircle2,
     color: '#10B981',
-    badge: 'NOVO',
     fase: 1,
   },
 
-  // Fase 2 - Gamificação e Análise (Ativos)
+  // Gamificação e Análise
   {
     id: 'caca_palavras',
     label: 'Caça-Palavras Jurídico',
     desc: 'Encontre termos e institutos jurídicos escondidos na grade',
     icon: Search,
     color: '#06B6D4',
-    badge: 'NOVO',
     fase: 2,
   },
   {
@@ -104,7 +100,6 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Ligue os incisos e alíneas aos seus conceitos corretos',
     icon: Split,
     color: '#EC4899',
-    badge: 'NOVO',
     fase: 2,
   },
   {
@@ -113,18 +108,16 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Descubra a palavra ou prazo sutilmente trocado no texto',
     icon: AlertTriangle,
     color: '#EF4444',
-    badge: 'NOVO',
     fase: 2,
   },
 
-  // Fase 3 - Prática Avançada (Ativos)
+  // Prática Avançada
   {
     id: 'casos_praticos',
     label: 'Casos Práticos',
     desc: 'Situações da vida real resolvidas com a regra deste artigo',
     icon: Briefcase,
     color: '#6366F1',
-    badge: 'NOVO',
     fase: 3,
   },
   {
@@ -133,18 +126,16 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Perguntas de tiro rápido antes que o tempo esgote',
     icon: Timer,
     color: '#F97316',
-    badge: 'NOVO',
     fase: 3,
   },
 
-  // Fase 4 - Voz e Maratona (Ativos)
+  // Voz e Maratona
   {
     id: 'ouca_recite',
     label: 'Ouça e Complete / Recite',
     desc: 'Treine a fala e recite trechos da lei por reconhecimento de voz',
     icon: Mic,
     color: '#14B8A6',
-    badge: 'NOVO',
     fase: 4,
   },
   {
@@ -153,7 +144,6 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Maratona com todas as modalidades em uma única sessão',
     icon: Flame,
     color: '#E11D48',
-    badge: 'PRO',
     fase: 4,
   },
 ];
