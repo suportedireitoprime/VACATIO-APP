@@ -20,6 +20,8 @@ import { MODOS_PRATICAR, type ModoPraticarId } from './praticar/modosPraticarCon
 const CompleteArtigoView = lazy(() => import('./praticar/CompleteArtigoView').then(m => ({ default: m.CompleteArtigoView })));
 const MonteArtigoView = lazy(() => import('./praticar/MonteArtigoView').then(m => ({ default: m.MonteArtigoView })));
 const VerdadeiroFalsoView = lazy(() => import('./praticar/VerdadeiroFalsoView').then(m => ({ default: m.VerdadeiroFalsoView })));
+const CasosPraticosView = lazy(() => import('./praticar/CasosPraticosView').then(m => ({ default: m.CasosPraticosView })));
+const ContraRelogioView = lazy(() => import('./praticar/ContraRelogioView').then(m => ({ default: m.ContraRelogioView })));
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -3777,6 +3779,28 @@ Regras:
                   </Suspense>
                 )}
 
+                {activePraticarMode === 'casos_praticos' && (
+                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando casos práticos...</div>}>
+                    <CasosPraticosView
+                      artigoNumero={String(artigo?.numero || '')}
+                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                      leiNome={String(tabelaNome || '')}
+                      onVoltar={() => setActivePraticarMode(null)}
+                    />
+                  </Suspense>
+                )}
+
+                {activePraticarMode === 'contra_relogio' && (
+                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando desafio contra o relógio...</div>}>
+                    <ContraRelogioView
+                      artigoNumero={String(artigo?.numero || '')}
+                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                      leiNome={String(tabelaNome || '')}
+                      onVoltar={() => setActivePraticarMode(null)}
+                    />
+                  </Suspense>
+                )}
+
                 {/* Menu de seleção dos 12 Modos de Prática */}
                 {!activePraticarMode && (
                   <>
@@ -3786,7 +3810,7 @@ Regras:
                     <div className="flex-1 py-2 overflow-y-auto">
                       {MODOS_PRATICAR.map((item, i, arr) => {
                         const Icon = item.icon;
-                        const isDisponivel = item.fase === 1;
+                        const isDisponivel = item.fase === 1 || item.fase === 3;
 
                         const handleClick = () => {
                           if (item.id === 'questoes') {

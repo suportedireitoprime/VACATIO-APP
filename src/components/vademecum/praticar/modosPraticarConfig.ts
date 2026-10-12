@@ -117,14 +117,14 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     fase: 2,
   },
 
-  // Fase 3 - Prática Avançada
+  // Fase 3 - Prática Avançada (Ativos)
   {
     id: 'casos_praticos',
     label: 'Casos Práticos',
     desc: 'Situações da vida real resolvidas com a regra deste artigo',
     icon: Briefcase,
     color: '#6366F1',
-    badge: 'EM BREVE',
+    badge: 'NOVO',
     fase: 3,
   },
   {
@@ -133,7 +133,7 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Perguntas de tiro rápido antes que o tempo esgote',
     icon: Timer,
     color: '#F97316',
-    badge: 'EM BREVE',
+    badge: 'NOVO',
     fase: 3,
   },
 
