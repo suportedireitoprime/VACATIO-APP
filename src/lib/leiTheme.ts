@@ -40,6 +40,7 @@ export function getLeiColor(id?: string | null, tipo?: string | null): string {
 
 const COVER_MAP: Record<string, string> = {
   cf88: COVERS.cf88,
+  cf:   COVERS.cf88,
   cp:   COVERS.cp,
   cpm:  COVERS.cp,
   cc:   COVERS.cc,

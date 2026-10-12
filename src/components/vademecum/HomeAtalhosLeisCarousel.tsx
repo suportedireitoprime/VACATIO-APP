@@ -488,7 +488,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
               else if (lei.id === 'cpp') coverImage = '/assets/cpp-court.webp';
               else if (lei.id === 'cpc') coverImage = '/assets/cpc-lawyer.webp';
               else if (lei.id === 'cc') coverImage = '/assets/cc-couple.webp';
-              else if (lei.id === 'cf88') coverImage = '/assets/cf88-cover.webp';
+              else if (['cf88', 'cf'].includes(lei.id)) coverImage = '/assets/cf88-cover.webp';
               else if (['cp', 'lep'].includes(lei.id)) coverImage = '/assets/homem-preso-novo.webp';
               else if (lei.id === 'ctn') coverImage = '/assets/ctn-taxes.webp';
               else if (lei.id === 'eca') coverImage = '/assets/eca-kids.webp';
