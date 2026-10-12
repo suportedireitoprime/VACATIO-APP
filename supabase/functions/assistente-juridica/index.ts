@@ -357,14 +357,18 @@ Deno.serve(async (req) => {
            const path = new URL(omniUrl).pathname;
            omniUrl = `https://omniroute-production-fb57.up.railway.app${path}`;
         }
-        const proxyRes = await fetch(omniUrl, {
-          method: 'POST',
+        const proxyMethod = (body.method || 'POST').toUpperCase();
+        const fetchOpts: RequestInit = {
+          method: proxyMethod,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
           },
-          body: JSON.stringify(body.payload),
-        });
+        };
+        if (proxyMethod !== 'GET' && body.payload !== undefined) {
+          fetchOpts.body = JSON.stringify(body.payload);
+        }
+        const proxyRes = await fetch(omniUrl, fetchOpts);
 
         const data = await proxyRes.text();
         

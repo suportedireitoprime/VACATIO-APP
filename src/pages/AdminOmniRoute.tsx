@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,6 @@ import {
   getAiFeaturesRouting,
   updateAiFeatureConfig,
   executeAiTask,
-  getOmniRouteApiKey,
   AiFeatureKey,
   AiFeatureDefinition,
   AiProviderType
@@ -62,12 +62,34 @@ import {
 
 const STORAGE_KEYS = {
   BASE_URL: 'omniroute_test_base_url',
-  API_KEY: 'omniroute_test_api_key',
   LAST_MODEL: 'omniroute_test_model',
 };
 
 const DEFAULT_BASE_URL = 'https://omniroute-production-fb57.up.railway.app/v1';
-const DEFAULT_API_KEY = 'sk-03fcfd719bf0cc25-19fbd7-028392e5';
+
+/** Proxy all OmniRoute calls through the Supabase Edge Function so the
+ *  API key never leaves the server. Supports GET (for /models) and POST. */
+async function proxyOmniRoute(opts: {
+  url: string;
+  method?: string;
+  payload?: unknown;
+}): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('assistente-juridica', {
+    body: {
+      mode: 'omniroute_proxy',
+      url: opts.url,
+      method: opts.method || 'POST',
+      payload: opts.payload,
+    },
+  });
+  if (error) throw new Error(error.message || 'Erro no proxy OmniRoute');
+  if (data?.error) {
+    const status = data.status || 500;
+    const msg = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+    throw new Error(`HTTP ${status}: ${msg}`);
+  }
+  return data;
+}
 
 export interface AntigravityModelInfo {
   id: string;
@@ -202,27 +224,12 @@ export default function AdminOmniRoute() {
 
   // Conexão
   const [baseUrl, setBaseUrl] = useState(() => localStorage.getItem(STORAGE_KEYS.BASE_URL) || DEFAULT_BASE_URL);
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem(STORAGE_KEYS.API_KEY) || DEFAULT_API_KEY);
   const [connStatus, setConnStatus] = useState<'idle' | 'checking' | 'connected' | 'error'>('idle');
   const [connError, setConnError] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<string[]>(() =>
     ANTIGRAVITY_TEXT_MODELS.map((m) => m.id)
   );
   const [showConfig, setShowConfig] = useState(false);
-
-  // Busca a key do Supabase caso o usuário não tenha sobrescrito manualmente
-  useEffect(() => {
-    async function loadKey() {
-      const stored = localStorage.getItem(STORAGE_KEYS.API_KEY);
-      if (!stored) {
-        const key = await getOmniRouteApiKey();
-        if (key && key !== DEFAULT_API_KEY) {
-          setApiKey(key);
-        }
-      }
-    }
-    loadKey();
-  }, []);
 
   // Tab Principal de Alternância ('texto' | 'imagem' | 'visao' | 'audio')
   type MainTabType = 'texto' | 'imagem' | 'visao' | 'audio';
@@ -342,13 +349,11 @@ export default function AdminOmniRoute() {
   // Histórico de requisições
   const [logs, setLogs] = useState<Array<{ id: string; time: string; type: string; model: string; duration: number; status: number | string }>>([]);
 
-  const saveConnection = (newUrl: string, newKey: string) => {
+  const saveConnection = (newUrl: string) => {
     const cleanUrl = newUrl.trim().replace(/\/+$/, '');
     setBaseUrl(cleanUrl);
-    setApiKey(newKey.trim());
     localStorage.setItem(STORAGE_KEYS.BASE_URL, cleanUrl);
-    localStorage.setItem(STORAGE_KEYS.API_KEY, newKey.trim());
-    toast.success('Configurações salvas localmente');
+    toast.success('URL salva localmente. A chave de API é gerenciada pelo Supabase.');
   };
 
   const addLog = (type: string, model: string, duration: number, status: number | string) => {
@@ -368,24 +373,11 @@ export default function AdminOmniRoute() {
   const checkConnection = useCallback(async () => {
     setConnStatus('checking');
     setConnError(null);
-    const start = performance.now();
 
     try {
       const cleanUrl = baseUrl.trim().replace(/\/+$/, '');
-      const res = await fetch(`${cleanUrl}/models`, {
-        headers: {
-          'Authorization': `Bearer ${apiKey.trim()}`,
-        },
-      });
+      const data = await proxyOmniRoute({ url: `${cleanUrl}/models`, method: 'GET' });
 
-      const elapsed = Math.round(performance.now() - start);
-
-      if (!res.ok) {
-        const errorText = await res.text().catch(() => '');
-        throw new Error(`HTTP ${res.status}: ${errorText || res.statusText}`);
-      }
-
-      const data = await res.json();
       const rawList: string[] = Array.isArray(data?.data)
         ? data.data.map((m: { id: string }) => m.id).filter(Boolean)
         : [];
@@ -413,7 +405,7 @@ export default function AdminOmniRoute() {
       setConnError(msg);
       toast.error(`Falha ao conectar no OmniRoute: ${msg}`);
     }
-  }, [baseUrl, apiKey, textModel]);
+  }, [baseUrl, textModel]);
 
   useEffect(() => {
     void checkConnection();
@@ -439,38 +431,12 @@ export default function AdminOmniRoute() {
       }
       messages.push({ role: 'user', content: textPrompt.trim() });
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
-
-      const res = await fetch(`${cleanUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey.trim()}`,
-        },
-        body: JSON.stringify({
-          model: textModel,
-          messages,
-        }),
-        signal: controller.signal,
+      const data = await proxyOmniRoute({
+        url: `${cleanUrl}/chat/completions`,
+        payload: { model: textModel, messages },
       });
 
-      clearTimeout(timeoutId);
-
       const elapsed = Math.round(performance.now() - start);
-
-      if (!res.ok) {
-        const errorText = await res.text().catch(() => '');
-        let parsedMsg = errorText;
-        try {
-          const parsed = JSON.parse(errorText);
-          parsedMsg = parsed?.error?.message || errorText;
-        } catch {}
-        addLog('Texto', textModel, elapsed, res.status);
-        throw new Error(parsedMsg || `HTTP ${res.status}: ${res.statusText}`);
-      }
-
-      const data = await res.json();
       const content = data?.choices?.[0]?.message?.content || 'Sem resposta de texto.';
       const usage = data?.usage;
 
@@ -490,13 +456,7 @@ export default function AdminOmniRoute() {
       addLog('Texto', textModel, elapsed, 200);
       toast.success(`Resposta gerada em ${elapsed}ms!`);
     } catch (err: unknown) {
-      let msg = err instanceof Error ? err.message : String(err);
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        msg = 'Timeout: O OmniRoute não respondeu em 20 segundos (contas em cooldown).';
-      } else if (msg.includes('aborted without reason') || msg.includes('The operation was aborted')) {
-        msg = 'Timeout: O OmniRoute demorou mais de 20s para responder.';
-      }
-      
+      const msg = err instanceof Error ? err.message : String(err);
       setTextResponse(`❌ **Erro na execução:**\n\`\`\`\n${msg}\n\`\`\``);
       toast.error(`Erro: ${msg}`);
     } finally {
@@ -518,40 +478,18 @@ export default function AdminOmniRoute() {
 
     try {
       const cleanUrl = baseUrl.trim().replace(/\/+$/, '');
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
 
-      const res = await fetch(`${cleanUrl}/images/generations`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey.trim()}`,
-        },
-        body: JSON.stringify({
+      const data = await proxyOmniRoute({
+        url: `${cleanUrl}/images/generations`,
+        payload: {
           model: imageModel,
           prompt: imagePrompt.trim(),
           n: 1,
           size: imageSize,
-        }),
-        signal: controller.signal,
+        },
       });
 
-      clearTimeout(timeoutId);
-
       const elapsed = Math.round(performance.now() - start);
-
-      if (!res.ok) {
-        const errorText = await res.text().catch(() => '');
-        let parsedMsg = errorText;
-        try {
-          const parsed = JSON.parse(errorText);
-          parsedMsg = parsed?.error?.message || errorText;
-        } catch {}
-        addLog('Imagem Gerada', imageModel, elapsed, res.status);
-        throw new Error(parsedMsg || `HTTP ${res.status}: ${res.statusText}`);
-      }
-
-      const data = await res.json();
       const generatedUrl = data?.data?.[0]?.url || (data?.data?.[0]?.b64_json ? `data:image/jpeg;base64,${data.data[0].b64_json}` : null);
 
       if (!generatedUrl) {
@@ -603,16 +541,10 @@ export default function AdminOmniRoute() {
 
     try {
       const cleanUrl = baseUrl.trim().replace(/\/+$/, '');
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
 
-      const res = await fetch(`${cleanUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey.trim()}`,
-        },
-        body: JSON.stringify({
+      const data = await proxyOmniRoute({
+        url: `${cleanUrl}/chat/completions`,
+        payload: {
           model: visionModel,
           messages: [
             {
@@ -623,21 +555,10 @@ export default function AdminOmniRoute() {
               ],
             },
           ],
-        }),
-        signal: controller.signal,
+        },
       });
 
-      clearTimeout(timeoutId);
-
       const elapsed = Math.round(performance.now() - start);
-
-      if (!res.ok) {
-        const errorText = await res.text().catch(() => '');
-        addLog('Visão', visionModel, elapsed, res.status);
-        throw new Error(`HTTP ${res.status}: ${errorText || res.statusText}`);
-      }
-
-      const data = await res.json();
       const content = data?.choices?.[0]?.message?.content || 'Sem análise gerada.';
       setVisionResponse(content);
       addLog('Visão', visionModel, elapsed, 200);
@@ -750,92 +671,46 @@ export default function AdminOmniRoute() {
 
     try {
       const cleanUrl = baseUrl.trim().replace(/\/+$/, '');
-      const formData = new FormData();
       const ext = audioBlob.type.includes('webm') ? 'webm' : audioBlob.type.includes('mp3') ? 'mp3' : 'wav';
-      const fileToSend = new File([audioBlob], audioFileName || `audio_${Date.now()}.${ext}`, { type: audioBlob.type || 'audio/webm' });
-      formData.append('file', fileToSend);
-      formData.append('model', audioModel);
 
-      let res;
-      let directFailed = false;
-      try {
-        res = await fetch(`${cleanUrl}/audio/transcriptions`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey.trim()}`,
-          },
-          body: formData,
-        });
-        if (!res.ok) directFailed = true;
-      } catch (err) {
-        directFailed = true;
-      }
+      // Converte o áudio para base64 e envia via /chat/completions (proxy-safe, sem FormData)
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(audioBlob);
+      const base64Audio = await base64Promise;
 
-      // Se o endpoint direto de audio falhar (ex: por erro de CORS, rota inexistente no backend, ou modelo incompatível),
-      // faz fallback automático para /chat/completions enviando o áudio em base64!
-      if (directFailed) {
-        const reader = new FileReader();
-        const base64Promise = new Promise<string>((resolve, reject) => {
-          reader.onloadend = () => {
-            const base64 = (reader.result as string).split(',')[1];
-            resolve(base64);
-          };
-          reader.onerror = reject;
-        });
-        reader.readAsDataURL(audioBlob);
-        const base64Audio = await base64Promise;
-
-        let chatRes;
-        try {
-          chatRes = await fetch(`${cleanUrl}/chat/completions`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey.trim()}`,
-            },
-            body: JSON.stringify({
-              model: audioModel.includes('gemini') ? audioModel : 'antigravity/gemini-3.6-flash-high',
-              messages: [
+      const data = await proxyOmniRoute({
+        url: `${cleanUrl}/chat/completions`,
+        payload: {
+          model: audioModel.includes('gemini') ? audioModel : 'antigravity/gemini-3.6-flash-high',
+          messages: [
+            {
+              role: 'user',
+              content: [
                 {
-                  role: 'user',
-                  content: [
-                    {
-                      type: 'text',
-                      text: 'Transcreva este áudio fielmente para texto em português do Brasil com pontuação rigorosa e estruturação em parágrafos claros. Retorne exclusivamente a transcrição do áudio.',
-                    },
-                    {
-                      type: 'input_audio',
-                      input_audio: {
-                        data: base64Audio,
-                        format: ext,
-                      },
-                    },
-                  ],
+                  type: 'text',
+                  text: 'Transcreva este áudio fielmente para texto em português do Brasil com pontuação rigorosa e estruturação em parágrafos claros. Retorne exclusivamente a transcrição do áudio.',
+                },
+                {
+                  type: 'input_audio',
+                  input_audio: {
+                    data: base64Audio,
+                    format: ext,
+                  },
                 },
               ],
-            }),
-          });
-        } catch (fallbackErr: any) {
-           throw new Error(`A conexão caiu (Failed to fetch). Isso geralmente ocorre se o arquivo for muito pesado para o servidor (Payload Too Large) ou bloqueio de CORS. Erro original: ${fallbackErr.message}`);
-        }
+            },
+          ],
+        },
+      });
 
-        if (!chatRes.ok) {
-          const errText = await chatRes.text().catch(() => '');
-          throw new Error(`Fallback HTTP ${chatRes.status} / ${errText}`);
-        }
-
-        const chatData = await chatRes.json();
-        const content = chatData?.choices?.[0]?.message?.content || 'Áudio processado sem texto.';
-        const elapsed = Math.round(performance.now() - start);
-        setAudioTranscription(content);
-        setAudioMeta({ durationMs: elapsed });
-        addLog('Áudio', audioModel, elapsed, 200);
-        toast.success(`Transcrição concluída em ${elapsed}ms!`);
-        return;
-      }
-
-      const data = await res!.json();
-      const content = data?.text || data?.transcription || JSON.stringify(data);
+      const content = data?.choices?.[0]?.message?.content || 'Áudio processado sem texto.';
       const elapsed = Math.round(performance.now() - start);
       setAudioTranscription(content);
       setAudioMeta({ durationMs: elapsed });
