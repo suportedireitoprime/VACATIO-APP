@@ -1740,11 +1740,11 @@ const CategoriaLegislacao = () => {
                   >
                     <div className="w-2 rounded-l-2xl shrink-0" style={{ background: leiAccent }} />
                     <div className="p-4 md:p-5 flex-1 min-w-0 flex flex-col justify-center">
-                      <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300/90">{capHead}</p>
+                      <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300/90 font-body">{capHead}</p>
                       {capSub ? (
-                        <h5 className="text-base md:text-xl font-bold text-foreground leading-snug mt-0.5 tracking-tight">{toTitleCase(capSub)}</h5>
+                        <p className="font-body text-base md:text-xl font-bold text-foreground leading-snug mt-0.5 tracking-normal">{toTitleCase(capSub)}</p>
                       ) : null}
-                      <p className="text-muted-foreground text-xs md:text-sm mt-1">
+                      <p className="text-muted-foreground text-xs md:text-sm mt-1 font-body">
                         {capGroup.artigos.length} artigos{fA && lA ? ` (${fA} – ${lA})` : ''}
                       </p>
                     </div>
@@ -1791,17 +1791,17 @@ const CategoriaLegislacao = () => {
                 >
                   <div className="w-2 rounded-l-2xl shrink-0" style={{ background: leiAccent }} />
                   <div className="p-4 md:p-5 flex-1 min-w-0 flex flex-col justify-center">
-                    <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300/90">{titHead}</p>
+                    <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300/90 font-body">{titHead}</p>
                     {titSub ? (
-                      <h5 className="text-base md:text-xl font-bold text-foreground leading-snug mt-1 line-clamp-2 tracking-tight">
+                      <p className="font-body text-base md:text-xl font-bold text-foreground leading-snug mt-1 line-clamp-2 tracking-normal">
                         {toTitleCase(titSub)}
-                      </h5>
+                      </p>
                     ) : (
-                      <h5 className="text-base md:text-lg font-semibold text-foreground leading-snug mt-1 opacity-0 select-none" aria-hidden>
+                      <p className="font-body text-base md:text-lg font-semibold text-foreground leading-snug mt-1 opacity-0 select-none" aria-hidden>
                         &nbsp;
-                      </h5>
+                      </p>
                     )}
-                    <p className="text-muted-foreground text-xs md:text-sm mt-1.5">
+                    <p className="text-muted-foreground text-xs md:text-sm mt-1.5 font-body">
                       {totalArts} artigos{firstArt && lastArt ? ` (${firstArt} – ${lastArt})` : ''}
                     </p>
                   </div>
@@ -1840,15 +1840,15 @@ const CategoriaLegislacao = () => {
                               <div className="p-3 md:p-4 flex-1 min-w-0">
                                 {capSub ? (
                                   <>
-                                    <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/80">{capHead}</p>
-                                    <h6 className="text-sm md:text-lg font-bold text-foreground leading-snug mt-0.5 line-clamp-2 tracking-tight">
+                                    <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/80 font-body">{capHead}</p>
+                                    <p className="font-body text-sm md:text-lg font-bold text-foreground leading-snug mt-0.5 line-clamp-2 tracking-normal">
                                       {toTitleCase(capSub)}
-                                    </h6>
+                                    </p>
                                   </>
                                 ) : (
-                                  <h6 className="text-sm md:text-lg font-bold text-foreground leading-snug tracking-tight">{capHead}</h6>
+                                  <p className="font-body text-sm md:text-lg font-bold text-foreground leading-snug tracking-normal">{toTitleCase(capHead)}</p>
                                 )}
-                                <p className="text-muted-foreground text-[11px] md:text-xs mt-1">{capGroup.artigos.length} artigos ({fA} – {lA})</p>
+                                <p className="text-muted-foreground text-[11px] md:text-xs mt-1 font-body">{capGroup.artigos.length} artigos ({fA} – {lA})</p>
                               </div>
                               <div className="flex items-center pr-3">
                                 <ChevronRight
