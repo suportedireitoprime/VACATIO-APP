@@ -389,11 +389,12 @@ Deno.serve(async (req) => {
       }
     }
 
+    const OMNIROUTE_KEY = Deno.env.get('OMNIROUTE_API_KEY_NOVA') || Deno.env.get('OMNIROUTE_API_KEY');
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     const GEMINI_API_KEY_RESERVA = Deno.env.get('GEMINI_API_KEY_RESERVA');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const geminiKeys = [GEMINI_API_KEY, GEMINI_API_KEY_RESERVA].filter(Boolean) as string[];
-    if (!geminiKeys.length && !LOVABLE_API_KEY) {
+    if (!OMNIROUTE_KEY && !geminiKeys.length && !LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: 'Nenhuma chave de IA configurada' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -617,6 +618,65 @@ Regras:
     // Lovable AI Gateway (mesmo modelo, cobrança pela plataforma).
     let geminiDisabled = geminiKeys.length === 0;
 
+    // Prioridade Máxima: OmniRoute com o modelo antigravity/gemini-3.8-flash-tiered solicitado pelo usuário
+    async function omnirouteGenerate(): Promise<any | null> {
+      if (!OMNIROUTE_KEY) return null;
+      try {
+        const msgs: any[] = [{ role: 'system', content: systemPrompt }];
+        for (const c of (contents as any[])) {
+          const textParts = (c.parts || []).filter((p: any) => typeof p?.text === 'string').map((p: any) => p.text).join('\n');
+          const inline = (c.parts || []).find((p: any) => p?.inlineData?.data);
+          if (inline) {
+            msgs.push({
+              role: c.role === 'model' ? 'assistant' : 'user',
+              content: [
+                ...(textParts ? [{ type: 'text', text: textParts }] : []),
+                { type: 'image_url', image_url: { url: `data:${inline.inlineData.mimeType};base64,${inline.inlineData.data}` } },
+              ],
+            });
+          } else {
+            msgs.push({ role: c.role === 'model' ? 'assistant' : 'user', content: textParts || ' ' });
+          }
+        }
+
+        const r = await fetch('https://omniroute-production-fb57.up.railway.app/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${OMNIROUTE_KEY}`,
+          },
+          body: JSON.stringify({
+            model: 'antigravity/gemini-3.8-flash-tiered',
+            messages: msgs,
+            temperature: geminiBody.generationConfig.temperature,
+            max_tokens: geminiBody.generationConfig.maxOutputTokens,
+            ...(isJsonMode ? { response_format: { type: 'json_object' } } : {}),
+          }),
+        });
+
+        if (!r.ok) {
+          const errBody = await r.text();
+          _lastErr = `OmniRoute error ${r.status}: ${errBody.slice(0, 200)}`;
+          console.warn('OmniRoute error:', r.status, _lastErr);
+          return null;
+        }
+
+        const j = await r.json();
+        const text = j?.choices?.[0]?.message?.content ?? '';
+        return {
+          candidates: [{ content: { parts: [{ text }] } }],
+          usageMetadata: {
+            promptTokenCount: j?.usage?.prompt_tokens ?? 0,
+            candidatesTokenCount: j?.usage?.completion_tokens ?? 0,
+          },
+        };
+      } catch (err: any) {
+        _lastErr = `OmniRoute exception: ${err.message}`;
+        console.warn('OmniRoute exception:', err);
+        return null;
+      }
+    }
+
     async function gatewayGenerate(): Promise<any | null> {
       if (!LOVABLE_API_KEY) return null;
       const msgs: any[] = [{ role: 'system', content: systemPrompt }];
@@ -666,7 +726,13 @@ Regras:
       let data: any = null;
       let fatal = false;
 
-      if (!geminiDisabled) {
+      // 1. Tenta OmniRoute como provedor primário
+      if (OMNIROUTE_KEY) {
+        data = await omnirouteGenerate();
+      }
+
+      // 2. Fallback: Gemini Direto
+      if (!data && !geminiDisabled) {
         const keyToUse = geminiKeys[attempt % geminiKeys.length];
         const res = await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${keyToUse}`,
           { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(geminiBody) }
@@ -688,7 +754,8 @@ Regras:
         }
       }
 
-      if (!data && geminiDisabled) {
+      // 3. Fallback: Lovable Gateway
+      if (!data && (geminiDisabled || !geminiKeys.length)) {
         data = await gatewayGenerate();
         if (!data) fatal = true;
       }

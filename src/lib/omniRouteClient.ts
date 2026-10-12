@@ -16,23 +16,36 @@ export const OMNI_MODELS: Record<OmniModelComplexity, string> = {
   tiered: 'antigravity/gemini-3.8-flash-tiered',
 };
 
-export function getOmniRouteConfig(): OmniRouteConfig | null {
+export const DEFAULT_OMNIROUTE_URL = 'https://omniroute-production-fb57.up.railway.app/v1';
+export const DEFAULT_OMNIROUTE_MODEL = 'antigravity/gemini-3.8-flash-tiered';
+
+export function getOmniRouteConfig(): OmniRouteConfig {
   try {
     const raw = localStorage.getItem('omniroute_config');
-    if (!raw) return null;
-    const config = JSON.parse(raw) as OmniRouteConfig;
-    if (!config.enabled || !config.baseUrl) return null;
-    
-    let formattedUrl = config.baseUrl;
-    if (!/^https?:\/\//i.test(formattedUrl)) {
-      formattedUrl = `https://${formattedUrl}`;
+    if (raw) {
+      const config = JSON.parse(raw) as Partial<OmniRouteConfig>;
+      let formattedUrl = config.baseUrl || DEFAULT_OMNIROUTE_URL;
+      if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = `https://${formattedUrl}`;
+      }
+      return {
+        enabled: config.enabled ?? true,
+        baseUrl: formattedUrl,
+        apiKey: config.apiKey || '',
+        defaultModel: config.defaultModel || DEFAULT_OMNIROUTE_MODEL,
+      };
     }
-    
-    return { ...config, baseUrl: formattedUrl };
   } catch (e) {
     console.error('Erro ao ler omniroute_config', e);
-    return null;
   }
+
+  // Padrão do sistema: OmniRoute sempre ativo usando antigravity/gemini-3.8-flash-tiered
+  return {
+    enabled: true,
+    baseUrl: DEFAULT_OMNIROUTE_URL,
+    apiKey: '',
+    defaultModel: DEFAULT_OMNIROUTE_MODEL,
+  };
 }
 
 /**
@@ -98,11 +111,20 @@ export async function generateOmniText({
       throw new Error(`OmniRoute Proxy: ${error.message || JSON.stringify(error)}`);
     }
 
-    if (data?.error) {
-       throw new Error(`OmniRoute HTTP Error: ${JSON.stringify(data.error)}`);
+    let parsedData = data;
+    if (typeof data === 'string') {
+      try {
+        parsedData = JSON.parse(data);
+      } catch {
+        parsedData = null;
+      }
     }
 
-    return data?.choices?.[0]?.message?.content || '';
+    if (parsedData?.error) {
+       throw new Error(`OmniRoute HTTP Error: ${JSON.stringify(parsedData.error)}`);
+    }
+
+    return parsedData?.choices?.[0]?.message?.content || (typeof data === 'string' ? data : '');
   } catch (err: any) {
     clearTimeout(timeoutId);
     console.error(`[OmniRoute] Falhou ou deu timeout:`, err);
@@ -164,11 +186,20 @@ export async function generateOmniChat({
       throw new Error(`OmniRoute Chat Proxy: ${error.message || JSON.stringify(error)}`);
     }
 
-    if (data?.error) {
-       throw new Error(`OmniRoute Chat HTTP Error: ${JSON.stringify(data.error)}`);
+    let parsedData = data;
+    if (typeof data === 'string') {
+      try {
+        parsedData = JSON.parse(data);
+      } catch {
+        parsedData = null;
+      }
     }
 
-    return data?.choices?.[0]?.message?.content || '';
+    if (parsedData?.error) {
+       throw new Error(`OmniRoute Chat HTTP Error: ${JSON.stringify(parsedData.error)}`);
+    }
+
+    return parsedData?.choices?.[0]?.message?.content || (typeof data === 'string' ? data : '');
   } catch (err: any) {
     clearTimeout(timeoutId);
     console.error(`[OmniRoute Chat] Falhou ou deu timeout:`, err);

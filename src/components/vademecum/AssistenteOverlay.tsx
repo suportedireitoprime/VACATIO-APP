@@ -342,9 +342,11 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
       };
       setMessages(prev => [...prev, asMsg]);
       setRevealed(r => ({ ...r, [asMsg.id]: 0 }));
-    } catch (err) {
-      console.error(err);
-      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: '⚠️ Erro ao processar. Tente novamente.', createdAt: Date.now() }]);
+    } catch (err: any) {
+      console.error('Erro no Chat Jurídico:', err);
+      const errMsg = err?.message || 'Erro ao processar. Tente novamente.';
+      toast.error(errMsg);
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `⚠️ ${errMsg}`, createdAt: Date.now() }]);
     } finally {
       setLoading(false);
     }

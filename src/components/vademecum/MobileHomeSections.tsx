@@ -173,7 +173,6 @@ const LAW_ICON_MAP: Record<string, LucideIcon> = {
   cf88: Landmark,
   constituicao: Landmark,
   'constituicao-federal': Landmark,
-  eoab: Landmark,
   ced2015: Scale,
   ced1995: Scale,
   reg_oab: ScrollText,
