@@ -214,9 +214,9 @@ export default function PesquisasProntasTema() {
           <button
             onClick={() => navigate(-1)}
             aria-label="Voltar"
-            className="w-11 h-11 rounded-full bg-black/25 hover:bg-black/35 backdrop-blur-sm flex items-center justify-center transition-colors"
+            className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
           </button>
           <div className="text-center">
             <p className="font-display uppercase tracking-[0.22em] text-[10px] text-white/70">

@@ -3754,10 +3754,10 @@ Regras:
                         setShowPraticarSheet(false);
                       }
                     }}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-secondary/80 hover:bg-secondary active:scale-95 transition-all flex items-center justify-center text-foreground/80 hover:text-foreground shrink-0 border border-border/50"
+                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-secondary/80 hover:bg-secondary active:scale-95 transition-all flex items-center justify-center text-foreground/80 hover:text-foreground shrink-0 border border-border/50 shadow-sm"
                     aria-label="Fechar"
                   >
-                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
                 </div>
 
@@ -3862,71 +3862,102 @@ Regras:
                     </Suspense>
                   )}
 
-                  {activePraticarMode === 'combo' && (
-                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando maratona de estudo...</div>}>
-                      <ComboPraticarView
-                        artigoNumero={String(artigo?.numero || '')}
-                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
-                        leiNome={String(tabelaNome || '')}
-                        onVoltar={() => setActivePraticarMode(null)}
-                      />
-                    </Suspense>
-                  )}
+                  {/* Menu de seleção dos Modos de Prática organizado por seções */}
+                  {!activePraticarMode && (() => {
+                    const grupos = [
+                      {
+                        titulo: 'Em Alta',
+                        badge: 'Prioridade',
+                        accent: '#F59E0B',
+                        itens: MODOS_PRATICAR.filter((m) => m.id === 'questoes' || m.id === 'flashcards'),
+                      },
+                      {
+                        titulo: 'Texto e Fixação da Lei',
+                        itens: MODOS_PRATICAR.filter((m) => ['complete', 'monte', 'verdadeiro_falso'].includes(m.id)),
+                      },
+                      {
+                        titulo: 'Gamificação e Análise',
+                        itens: MODOS_PRATICAR.filter((m) => ['caca_palavras', 'relacione', 'identifique_erro'].includes(m.id)),
+                      },
+                      {
+                        titulo: 'Desafios Avançados',
+                        itens: MODOS_PRATICAR.filter((m) => ['casos_praticos', 'contra_relogio', 'ouca_recite', 'combo'].includes(m.id)),
+                      },
+                    ];
 
-                  {/* Menu de seleção dos 12 Modos de Prática */}
-                  {!activePraticarMode && (
-                    <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col py-2">
-                      <p className="px-5 sm:px-6 pt-3 pb-2 text-[13px] sm:text-sm text-foreground/60 font-medium">
-                        Art. {artigo?.numero} — Escolha o modo de estudo e fixação
-                      </p>
-                      <div className="flex-1 py-1 overflow-y-auto">
-                        {MODOS_PRATICAR.map((item, i, arr) => {
-                          const Icon = item.icon;
-                          const isDisponivel = true;
+                    const handleItemClick = (item: (typeof MODOS_PRATICAR)[number]) => {
+                      if (item.id === 'questoes') {
+                        setShowPraticarSheet(false);
+                        navigate(`/estudos?mode=questoes&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
+                      } else if (item.id === 'flashcards') {
+                        setShowPraticarSheet(false);
+                        navigate(`/estudos?mode=flashcards&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
+                      } else {
+                        setActivePraticarMode(item.id);
+                      }
+                    };
 
-                          const handleClick = () => {
-                            if (item.id === 'questoes') {
-                              setShowPraticarSheet(false);
-                              navigate(`/estudos?mode=questoes&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
-                            } else if (item.id === 'flashcards') {
-                              setShowPraticarSheet(false);
-                              navigate(`/estudos?mode=flashcards&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
-                            } else {
-                              setActivePraticarMode(item.id);
-                            }
-                          };
+                    return (
+                      <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col p-4 sm:p-6 overflow-y-auto space-y-6">
+                        <div className="flex items-center justify-between px-1">
+                          <p className="text-[13px] sm:text-sm text-foreground/70 font-medium">
+                            Art. {artigo?.numero} — Escolha o modo de estudo e fixação
+                          </p>
+                        </div>
 
+                        {grupos.map((grupo) => {
+                          if (grupo.itens.length === 0) return null;
                           return (
-                            <div key={item.id}>
-                              <button
-                                onClick={handleClick}
-                                className={`w-full flex items-center gap-4 px-5 sm:px-6 py-4 transition-all text-left hover:bg-secondary/50 active:bg-secondary/70 ${
-                                  !isDisponivel ? 'opacity-70' : 'opacity-100'
-                                }`}
-                              >
-                                <span
-                                  className="shrink-0 flex items-center justify-center"
-                                  style={{ color: item.color }}
-                                >
-                                  <Icon className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.2} />
-                                </span>
-                                <span className="flex-1 min-w-0">
-                                  <span className="block text-[15px] sm:text-[16px] font-semibold text-foreground truncate">
-                                    {item.label}
+                            <div key={grupo.titulo} className="space-y-2.5">
+                              <div className="flex items-center justify-between px-1">
+                                <h4 className="font-display text-[13px] sm:text-[14px] font-bold text-foreground/90 uppercase tracking-wider flex items-center gap-2">
+                                  <span
+                                    className="w-1.5 h-4 rounded-full"
+                                    style={{ backgroundColor: grupo.accent || 'hsl(var(--primary))' }}
+                                  />
+                                  {grupo.titulo}
+                                </h4>
+                                {grupo.badge && (
+                                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
+                                    {grupo.badge}
                                   </span>
-                                  <span className="block text-[12.5px] sm:text-[13px] text-foreground/60 truncate mt-0.5">
-                                    {item.desc}
-                                  </span>
-                                </span>
-                                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-foreground/40 shrink-0" />
-                              </button>
-                              {i < arr.length - 1 && <div className="mx-5 sm:mx-6 h-px bg-border/50" />}
+                                )}
+                              </div>
+
+                              <div className="rounded-2xl border border-border/60 bg-secondary/30 divide-y divide-border/50 overflow-hidden shadow-sm">
+                                {grupo.itens.map((item) => {
+                                  const Icon = item.icon;
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      onClick={() => handleItemClick(item)}
+                                      className="w-full flex items-center gap-4 px-4 py-4 min-h-[82px] text-left hover:bg-secondary/60 active:bg-secondary transition-colors"
+                                    >
+                                      <div
+                                        className="w-12 h-12 rounded-xl bg-background/80 border border-white/5 flex items-center justify-center shrink-0 shadow-sm"
+                                        style={{ color: item.color }}
+                                      >
+                                        <Icon className="w-6 h-6" strokeWidth={2.2} />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-body text-[15px] sm:text-base font-semibold text-foreground truncate">
+                                          {item.label}
+                                        </div>
+                                        <div className="font-body text-[12px] sm:text-[12.5px] text-muted-foreground line-clamp-2 mt-0.5 leading-snug">
+                                          {item.desc}
+                                        </div>
+                                      </div>
+                                      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
                           );
                         })}
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </motion.div>
             </>

@@ -1082,13 +1082,15 @@ const CategoriaLegislacao = () => {
         <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
           <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
             <div className="max-w-5xl mx-auto">
-              <button
-                onClick={() => { setSelectedAno(null); setSearchLeisOrd(''); }}
-                className="flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-medium transition-all text-sm px-3 py-1.5 rounded-lg mb-4 touch-manipulation select-none"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Voltar
-              </button>
+              <div className="flex items-center gap-4 mb-4">
+                <button
+                  onClick={() => { setSelectedAno(null); setSearchLeisOrd(''); }}
+                  aria-label="Voltar"
+                  className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0"
+                >
+                  <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
+                </button>
+              </div>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
                   <FileText className="w-6 h-6 text-white" />
@@ -1167,13 +1169,15 @@ const CategoriaLegislacao = () => {
       <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
         <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
           <div className="max-w-5xl mx-auto">
-            <button
-              onClick={goBack}
-              className="flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-medium transition-all text-sm px-3 py-1.5 rounded-lg mb-4 touch-manipulation select-none"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Voltar
-            </button>
+            <div className="flex items-center gap-4 mb-4">
+              <button
+                onClick={goBack}
+                aria-label="Voltar"
+                className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0"
+              >
+                <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
+              </button>
+            </div>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
                 <FileText className="w-6 h-6 text-white" />
@@ -1232,13 +1236,15 @@ const CategoriaLegislacao = () => {
         <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
           <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
             <div className="max-w-5xl mx-auto">
-              <button
-                onClick={() => { setSelectedAnoDecreto(null); setSearchDecretos(''); }}
-                className="flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-medium transition-all text-sm px-3 py-1.5 rounded-lg mb-4 touch-manipulation select-none"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Voltar
-              </button>
+              <div className="flex items-center gap-4 mb-4">
+                <button
+                  onClick={() => { setSelectedAnoDecreto(null); setSearchDecretos(''); }}
+                  aria-label="Voltar"
+                  className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0"
+                >
+                  <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
+                </button>
+              </div>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
                   <ScrollText className="w-6 h-6 text-white" />
@@ -1317,13 +1323,15 @@ const CategoriaLegislacao = () => {
       <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
         <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
           <div className="max-w-5xl mx-auto">
-            <button
-              onClick={goBack}
-              className="flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-medium transition-all text-sm px-3 py-1.5 rounded-lg mb-4 touch-manipulation select-none"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Voltar
-            </button>
+            <div className="flex items-center gap-4 mb-4">
+              <button
+                onClick={goBack}
+                aria-label="Voltar"
+                className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0"
+              >
+                <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
+              </button>
+            </div>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
                 <ScrollText className="w-6 h-6 text-white" />
@@ -1375,13 +1383,15 @@ const CategoriaLegislacao = () => {
         <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
           <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
             <div className="max-w-5xl mx-auto">
-              <button
-                onClick={() => { setSelectedTribunal(null); setSearchSumulas(''); }}
-                className="flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-medium transition-all text-sm px-3 py-1.5 rounded-lg mb-4 touch-manipulation select-none"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Voltar
-              </button>
+              <div className="flex items-center gap-4 mb-4">
+                <button
+                  onClick={() => { setSelectedTribunal(null); setSearchSumulas(''); }}
+                  aria-label="Voltar"
+                  className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0"
+                >
+                  <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
+                </button>
+              </div>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
                   <Gavel className="w-6 h-6 text-white" />
@@ -1491,13 +1501,15 @@ const CategoriaLegislacao = () => {
       <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
         <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
           <div className="max-w-5xl mx-auto">
-            <button
-              onClick={goBack}
-              className="flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-medium transition-all text-sm px-3 py-1.5 rounded-lg mb-4 touch-manipulation select-none"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Voltar
-            </button>
+            <div className="flex items-center gap-4 mb-4">
+              <button
+                onClick={goBack}
+                aria-label="Voltar"
+                className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0"
+              >
+                <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
+              </button>
+            </div>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
                 <Gavel className="w-6 h-6 text-white" />
@@ -2770,12 +2782,12 @@ const CategoriaLegislacao = () => {
 
           {/* Mini-Sumário Flutuante removido */}
 
-          {/* Search bar + Tabs — entram juntos com fade sutil (evita "pop") */}
+          {/* Search bar + Tabs + Novidades — renderização instantânea sem delay */}
           {!focusMode && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1], delay: 0.06 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.12 }}
             className="space-y-4"
           >
             {/* Search bar agora fica dentro do hero panel */}

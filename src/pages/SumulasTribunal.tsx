@@ -162,13 +162,15 @@ const SumulasTribunal = ({ tribunal }: Props) => {
     <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <div className={`bg-gradient-to-br ${GRADIENT[tribunal]} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
         <div className="max-w-5xl mx-auto">
-          <button
-            onClick={() => navigate('/jurisprudencia')}
-            className="flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-medium transition-all text-sm px-3 py-1.5 rounded-lg mb-4 touch-manipulation select-none"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar
-          </button>
+          <div className="flex items-center gap-4 mb-4">
+            <button
+              onClick={() => navigate('/jurisprudencia')}
+              aria-label="Voltar"
+              className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0"
+            >
+              <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
+            </button>
+          </div>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
               <Gavel className="w-6 h-6 text-white" />

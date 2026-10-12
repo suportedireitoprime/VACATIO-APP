@@ -42,12 +42,13 @@ const CategoriaAprender = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-background" />
 
-        {/* Back button */}
+        {/* Back button padronizado */}
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 z-20 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center"
+          aria-label="Voltar"
+          className="absolute left-4 top-[calc(var(--sai-top,var(--sai-top))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
         >
-          <ArrowLeft className="w-5 h-5 text-white" />
+          <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
         </button>
 
         {/* Title overlay */}

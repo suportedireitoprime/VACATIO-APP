@@ -170,9 +170,9 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
             <button
               onClick={handleGoBack}
               aria-label="Voltar para o início"
-              className="grid w-11 h-11 sm:w-12 sm:h-12 shrink-0 place-items-center rounded-full bg-black/40 border border-white/10 text-white backdrop-blur-md transition-colors hover:bg-black/60 active:scale-95"
+              className="w-12 h-12 shrink-0 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
             >
-              <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.4} />
+              <ArrowLeft className="w-6 h-6 text-white drop-shadow" strokeWidth={2.2} />
             </button>
 
             <div className="flex items-center gap-2 sm:gap-3">
