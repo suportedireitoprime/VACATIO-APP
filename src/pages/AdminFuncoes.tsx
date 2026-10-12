@@ -5,7 +5,7 @@ import {
   Gamepad2, Brain, BookA, MessageCircle, BellRing, Mic, Lightbulb, Building2,
   Rss, Palette, Users, GitBranch, Github, ImageIcon, KeyRound, Bug, Newspaper,
   Quote, Monitor, Send, RefreshCcw, Lock, Wrench, FileText, Crown, Search, Target, MapPin, PlayCircle,
-  Sparkles, UserPlus, GraduationCap, Scale, Store, Mail, FileSignature, User, Server, NotebookText, Layers,
+  Sparkles, UserPlus, GraduationCap, Scale, Store, Mail, FileSignature, User, Server, NotebookText, Layers, Globe,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -50,6 +50,7 @@ const PREFETCH: Record<string, () => Promise<unknown>> = {
   '/newsletter': () => import('./Newsletter'),
   '/configuracoes': () => import('./Configuracoes'),
   '/admin-omniroute': () => import('./AdminOmniRoute'),
+  '/admin-fontes-legislacao': () => import('./AdminFontesLegislacao'),
 };
 const prefetched = new Set<string>();
 const prefetching = new Map<string, Promise<unknown>>();
@@ -136,6 +137,17 @@ const CATEGORIES: Category[] = [
     color: '#3b82f6',
     items: [
       { id: 'admin-legislacao-editar', label: 'Legislação Editar', icon: Search, desc: 'Extrair leis e ver atualizações em ordem cronológica', route: '/admin-legislacao-editar' },
+    ],
+  },
+  {
+    id: 'fontes-legislacao',
+    title: 'Fontes da Legislação',
+    desc: 'Portais oficiais federais, estaduais, municipais e internacionais monitorados',
+    icon: Globe,
+    color: '#06b6d4',
+    route: '/admin-fontes-legislacao',
+    items: [
+      { id: 'admin-fontes-legislacao', label: 'Fontes da Legislação', icon: Globe, desc: 'Catálogo e rastreadores das 4 esferas normativas', route: '/admin-fontes-legislacao' },
     ],
   },
   {

@@ -178,6 +178,7 @@ const AdminMonitorUsuarios = lazy(() => import("./pages/AdminMonitorUsuarios.tsx
 const AdminMonitoramento = lazy(() => import("./pages/AdminMonitoramento.tsx"));
 const AdminMonitorApis = lazy(() => import("./pages/AdminMonitorApis.tsx"));
 const AdminOmniRoute = lazy(() => import("./pages/AdminOmniRoute.tsx"));
+const AdminFontesLegislacao = lazy(() => import("./pages/AdminFontesLegislacao.tsx"));
 const AdminAprender = lazy(() => import("./pages/AdminAprender.tsx"));
 const AdminRoboResumos = lazy(() => import("./pages/AdminRoboResumos.tsx"));
 const AdminPopularConteudo = lazy(() => import("./pages/AdminPopularConteudo.tsx"));
@@ -667,6 +668,8 @@ function AnimatedRoutes() {
           <Route path="/admin-monitoramento" element={<ProtectedRoute><PageTransition><AdminMonitoramento /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-monitor-apis" element={<ProtectedRoute><PageTransition><AdminMonitorApis /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-omniroute" element={<ProtectedRoute><PageTransition><AdminOmniRoute /></PageTransition></ProtectedRoute>} />
+          <Route path="/admin-fontes-legislacao" element={<ProtectedRoute><PageTransition><AdminFontesLegislacao /></PageTransition></ProtectedRoute>} />
+          <Route path="/admin/fontes-legislacao" element={<Navigate to="/admin-fontes-legislacao" replace />} />
           <Route path="/admin/omniroute" element={<Navigate to="/admin-omniroute" replace />} />
           <Route path="/omniroute" element={<Navigate to="/admin-omniroute" replace />} />
           <Route path="/omni-route" element={<Navigate to="/admin-omniroute" replace />} />
