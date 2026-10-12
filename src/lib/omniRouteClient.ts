@@ -28,11 +28,15 @@ export function getOmniRouteConfig(): OmniRouteConfig {
       if (!/^https?:\/\//i.test(formattedUrl)) {
         formattedUrl = `https://${formattedUrl}`;
       }
+      let model = config.defaultModel;
+      if (!model || model.startsWith('openrouter/') || model === 'omniroute/auto' || model === 'auto') {
+        model = DEFAULT_OMNIROUTE_MODEL;
+      }
       return {
         enabled: config.enabled ?? true,
         baseUrl: formattedUrl,
         apiKey: config.apiKey || '',
-        defaultModel: config.defaultModel || DEFAULT_OMNIROUTE_MODEL,
+        defaultModel: model,
       };
     }
   } catch (e) {
@@ -86,7 +90,10 @@ export async function generateOmniText({
   }
   messages.push({ role: 'user', content: prompt });
 
-  const finalModel = modelOverride || (complexity ? OMNI_MODELS[complexity] : config.defaultModel) || 'omniroute/auto';
+  const candidateModel = modelOverride || (complexity ? OMNI_MODELS[complexity] : config.defaultModel) || DEFAULT_OMNIROUTE_MODEL;
+  const finalModel = (candidateModel.startsWith('openrouter/') || candidateModel === 'omniroute/auto' || candidateModel === 'auto')
+    ? DEFAULT_OMNIROUTE_MODEL
+    : candidateModel;
 
   const payload = {
     model: finalModel,
@@ -161,7 +168,10 @@ export async function generateOmniChat({
     ? `${config.baseUrl}/chat/completions`
     : `${config.baseUrl.replace(/\/$/, '')}/v1/chat/completions`;
 
-  const finalModel = modelOverride || (complexity ? OMNI_MODELS[complexity] : config.defaultModel) || 'omniroute/auto';
+  const candidateModel = modelOverride || (complexity ? OMNI_MODELS[complexity] : config.defaultModel) || DEFAULT_OMNIROUTE_MODEL;
+  const finalModel = (candidateModel.startsWith('openrouter/') || candidateModel === 'omniroute/auto' || candidateModel === 'auto')
+    ? DEFAULT_OMNIROUTE_MODEL
+    : candidateModel;
 
   const payload = {
     model: finalModel,

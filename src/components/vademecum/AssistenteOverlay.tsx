@@ -322,10 +322,10 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
     setLoading(true);
     try {
       const chatReply = await generateOmniChat({
+        modelOverride: 'antigravity/gemini-3.8-flash-tiered',
         messages: newMessages.map(m => ({
           role: m.role === 'assistant' ? 'assistant' : m.role === 'user' ? 'user' : 'system',
           content: m.content
-          // TODO: attachments and webSearch need custom handling in OmniRoute if required
         })),
         temperature: 0.7
       });
