@@ -679,21 +679,6 @@ body {
 }
 
 
-@media (min-width: 1024px) and (pointer: fine) and (hover: hover) {
-  .desktop-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--primary) / 0.3) transparent;
-  }
-  .desktop-scrollbar::-webkit-scrollbar { height: 4px; }
-  .desktop-scrollbar::-webkit-scrollbar-track { background: transparent; }
-  .desktop-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.3);
-    border-radius: 2px;
-  }
-  .desktop-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary) / 0.5);
-  }
-}
 
 .hero-shine {
   filter: brightness(1.1) saturate(1.08) contrast(1.02);
@@ -1268,55 +1253,46 @@ html.light .bg-\[\#212121\]\/95 { background-color: hsl(var(--card) / 0.95) !imp
   mix-blend-mode: screen;
 }
 
-/* Custom Desktop Scrollbars APENAS para computadores/laptops com mouse preciso */
-@media (min-width: 1024px) and (pointer: fine) and (hover: hover) {
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+/* ==========================================================================
+   OCULTAÇÃO DEFINITIVA E UNIVERSAL DE SCROLLBAR (MOBILE, TABLET, DESKTOP, PWA)
+   Impede que a barra de rolagem nativa/overlay apareça durante o scroll
+   (ao subir ou descer a tela, em qualquer container ou janela).
+   ========================================================================== */
+html,
+body,
+#root,
+*,
+*::before,
+*::after {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-/* ==========================================================================
-   OCULTAÇÃO DEFINITIVA DE SCROLLBAR NO MOBILE / TOUCH (ANDROID, IOS, PWA)
-   Impede que a barra de rolagem nativa/overlay apareça durante o scroll
-   (ao subir ou descer a tela, em qualquer container ou folha).
-   ========================================================================== */
-@media (max-width: 1023px), (pointer: coarse), (hover: none) {
-  html,
-  body,
-  #root,
-  *,
-  *::before,
-  *::after {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-  }
-
-  ::-webkit-scrollbar,
-  *::-webkit-scrollbar,
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar,
-  ::-webkit-scrollbar-button,
-  *::-webkit-scrollbar-button,
-  ::-webkit-scrollbar-thumb,
-  *::-webkit-scrollbar-thumb,
-  ::-webkit-scrollbar-track,
-  *::-webkit-scrollbar-track,
-  ::-webkit-scrollbar-track-piece,
-  *::-webkit-scrollbar-track-piece,
-  ::-webkit-scrollbar-corner,
-  *::-webkit-scrollbar-corner {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    max-width: 0 !important;
-    max-height: 0 !important;
-    background: transparent !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    -webkit-appearance: none !important;
-    pointer-events: none !important;
-  }
+::-webkit-scrollbar,
+*::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar,
+::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button,
+::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track,
+::-webkit-scrollbar-track-piece,
+*::-webkit-scrollbar-track-piece,
+::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
+  background: transparent !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  -webkit-appearance: none !important;
+  pointer-events: none !important;
 }
 
 /* Utilitários globais de scrollbar para uso em qualquer elemento */

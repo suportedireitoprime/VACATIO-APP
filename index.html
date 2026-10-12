@@ -39,33 +39,35 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700;800;900&family=Barlow+Condensed:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700;800;900&family=Barlow+Condensed:wght@400;600;700;800&display=swap"></noscript>
 
-    <!-- Scrollbar Mobile Killswitch (oculta barra no mobile durante scroll) -->
-    <style id="mobile-hide-scrollbar">
-      @media (max-width: 1023px), (pointer: coarse), (hover: none) {
-        *, *::before, *::after, html, body, #root {
-          scrollbar-width: none !important;
-          -ms-overflow-style: none !important;
-        }
-        ::-webkit-scrollbar,
-        *::-webkit-scrollbar,
-        html::-webkit-scrollbar,
-        body::-webkit-scrollbar,
-        ::-webkit-scrollbar-thumb,
-        *::-webkit-scrollbar-thumb,
-        ::-webkit-scrollbar-track,
-        *::-webkit-scrollbar-track,
-        ::-webkit-scrollbar-corner,
-        *::-webkit-scrollbar-corner,
-        ::-webkit-scrollbar-button,
-        *::-webkit-scrollbar-button {
-          display: none !important;
-          width: 0 !important;
-          height: 0 !important;
-          opacity: 0 !important;
-          background: transparent !important;
-          -webkit-appearance: none !important;
-          visibility: hidden !important;
-        }
+    <!-- Scrollbar Killswitch (oculta completamente a barra de rolagem em todo o app) -->
+    <style id="global-hide-scrollbar">
+      *, *::before, *::after, html, body, #root {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+      }
+      ::-webkit-scrollbar,
+      *::-webkit-scrollbar,
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar,
+      #root::-webkit-scrollbar,
+      ::-webkit-scrollbar-thumb,
+      *::-webkit-scrollbar-thumb,
+      ::-webkit-scrollbar-track,
+      *::-webkit-scrollbar-track,
+      ::-webkit-scrollbar-corner,
+      *::-webkit-scrollbar-corner,
+      ::-webkit-scrollbar-button,
+      *::-webkit-scrollbar-button,
+      ::-webkit-scrollbar-track-piece,
+      *::-webkit-scrollbar-track-piece {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        opacity: 0 !important;
+        background: transparent !important;
+        -webkit-appearance: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
       }
     </style>
 
