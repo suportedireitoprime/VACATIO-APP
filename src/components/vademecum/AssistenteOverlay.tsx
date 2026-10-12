@@ -9,6 +9,7 @@ import {
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '@/integrations/supabase/client';
+import { generateOmniChat } from '@/lib/omniRouteClient';
 import { toast } from 'sonner';
 import { pdf, Document, Page, Text as PdfText, StyleSheet } from '@react-pdf/renderer';
 import { track } from '@/lib/analyticsEvents';
