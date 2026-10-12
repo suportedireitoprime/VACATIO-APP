@@ -20,6 +20,7 @@ export const TIPO_TO_SLUG: Record<string, string> = {
   'lei-especial': 'leis-especiais',
   previdenciario: 'previdenciario',
   'tratados-convencoes': 'tratados-convencoes',
+  oab: 'oab',
 };
 
 /** Inverso: aceita tanto plural quanto singular (compat) e devolve tipo interno. */
@@ -45,6 +46,7 @@ export const CATEGORIAS_FIXAS = new Set([
   'estatuto',
   'lei-especial',
   'previdenciario',
+  'oab',
 ]);
 
 /** Normaliza um texto para slug URL-safe. */

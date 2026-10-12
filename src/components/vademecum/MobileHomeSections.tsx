@@ -111,6 +111,7 @@ const CATEGORIA_CARDS: AreaCat[] = [
   { id: 'cat-cf', label: 'Constituição Federal', sublabel: 'Constituição de 1988', icon: Landmark, color: '#FACC15', leiIds: ['cf88'] },
   { id: 'cat-codigo', label: 'Códigos', sublabel: 'CP, CC, CPC, CPP...', icon: BookOpen, color: '#3B82F6', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'codigo').map(l => l.id) },
   { id: 'cat-estatuto', label: 'Estatutos', sublabel: 'ECA, Estatuto do Idoso...', icon: Shield, color: '#10B981', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'estatuto').map(l => l.id) },
+  { id: 'cat-oab', label: 'OAB & Advocacia', sublabel: 'Códigos, Estatuto, Regulamento, Provimentos e Resoluções', icon: Scale, color: '#1D4ED8', leiIds: ['ced2015', 'ced1995', 'eoab', 'reg_oab', 'prov205', 'prov188', 'prov112', 'prov144', 'res02', 'res01'] },
   { id: 'cat-lei', label: 'Leis Ordinárias', sublabel: 'Leis Federais Comuns', icon: FileText, color: '#F59E0B', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'lei-especial' && !l.descricao.includes('Decreto') && !l.descricao.includes('Complementar') && !l.descricao.includes('LC')).map(l => l.id) },
   { id: 'cat-lei-complementar', label: 'Leis Complementares', sublabel: 'LC 101, etc', icon: FilePlus, color: '#8B5CF6', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Complementar') || l.descricao.includes('LC nº')).map(l => l.id) },
   { id: 'cat-decreto', label: 'Decretos', sublabel: 'Regulamentos Executivos', icon: Stamp, color: '#06B6D4', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto nº') && !l.descricao.includes('Decreto-Lei')).map(l => l.id) },
@@ -118,19 +119,35 @@ const CATEGORIA_CARDS: AreaCat[] = [
   { id: 'cat-mp', label: 'Medidas Provisórias', sublabel: 'MPs em tramitação', icon: FileWarning, color: '#EF4444', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Medida Provisória') || l.descricao.includes('MPv')).map(l => l.id) },
 ];
 
+const OAB_SUB_ITEMS: Record<string, string[]> = {
+  codigos: ['ced2015', 'ced1995'],
+  estatuto: ['eoab'],
+  regulamentos: ['reg_oab'],
+  provimentos: ['prov205', 'prov188', 'prov112', 'prov144'],
+  resolucoes: ['res02', 'res01'],
+};
+
 const JURI_OPCOES = [
   { id: 'STF_VINCULANTE', nome: 'Súmulas Vinculantes', desc: 'Efeito vinculante para o Judiciário' },
   { id: 'STF',            nome: 'Súmulas do STF',      desc: 'Supremo Tribunal Federal' },
   { id: 'STJ',            nome: 'Súmulas do STJ',      desc: 'Superior Tribunal de Justiça' },
 ];
 
-
-
 const LAW_ICON_MAP: Record<string, LucideIcon> = {
   cf: Landmark,
   cf88: Landmark,
   constituicao: Landmark,
   'constituicao-federal': Landmark,
+  eoab: Scale,
+  ced2015: Scale,
+  ced1995: Scale,
+  reg_oab: ScrollText,
+  prov205: FileText,
+  prov188: ShieldCheck,
+  prov112: BriefcaseBusiness,
+  prov144: GraduationCap,
+  res02: BookMarked,
+  res01: Landmark,
   cp: PocketKnife,
   cc: House,
   cpc: FileText,
@@ -265,6 +282,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const [categoryOpen, setCategoryOpen] = useState<Cat | AreaCat | CategoriaFormal | null>(null);
   const [categorySearch, setCategorySearch] = useState('');
   const [listFilter, setListFilter] = useState<'todos' | 'favoritos'>('todos');
+  const [oabSubFilter, setOabSubFilter] = useState<'todos' | 'codigos' | 'estatuto' | 'regulamentos' | 'provimentos' | 'resolucoes'>('todos');
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
   // #41 — Continuar Leitura: última lei visitada
@@ -298,6 +316,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   useEffect(() => {
     if (!categoryOpen) return;
     setListFilter('todos');
+    setOabSubFilter('todos');
     const update = () => setFavoriteIds(new Set(getFavoritos().map(f => f.leiId)));
     update();
     window.addEventListener(LEIS_FAVORITOS_EVENT, update);
@@ -356,8 +375,13 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
     }
     return LEIS_CATALOG.filter(l => l.tipo === categoryOpen.id);
   }, [categoryOpen]);
+
   const filteredCategoryItems = useMemo(() => {
     let base = categoryItems;
+    if (categoryOpen?.id === 'cat-oab' && oabSubFilter !== 'todos') {
+      const allowed = new Set(OAB_SUB_ITEMS[oabSubFilter] || []);
+      base = base.filter(l => allowed.has(l.id));
+    }
     if (listFilter === 'favoritos') {
       base = base.filter(l => favoriteIds.has(l.id));
     }
@@ -368,7 +392,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       const haystack = normalizeSearch(`${lei.nome} ${lei.sigla} ${lei.descricao} ${(lei.tags || []).join(' ')}`);
       return haystack.includes(needle);
     });
-  }, [categoryItems, categorySearch, listFilter, favoriteIds]);
+  }, [categoryItems, categorySearch, listFilter, oabSubFilter, categoryOpen, favoriteIds]);
   const CategorySheetIcon = categoryOpen?.icon || BookMarked;
 
   // Lock background scroll while any bottom sheet is open
@@ -469,6 +493,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             { id: 'areas', label: 'Áreas' },
             { id: 'cat-codigo', label: 'Códigos' },
             { id: 'cat-estatuto', label: 'Estatutos' },
+            { id: 'cat-oab', label: 'OAB' },
             { id: 'jurisprudencia', label: 'Jurisprudência' },
             { id: 'cat-lei', label: 'Leis Ordinárias' },
             { id: 'cat-lei-complementar', label: 'Leis Complementares' },
@@ -478,7 +503,10 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                if (tab.id === 'cat-oab') setOabSubFilter('todos');
+              }}
               className={`min-h-[44px] px-5 py-2.5 rounded-full text-[14px] font-display font-bold uppercase tracking-wide flex items-center justify-center whitespace-nowrap transition-colors ${
                 activeTab === tab.id
                   ? 'bg-primary text-white shadow-md'
@@ -507,6 +535,32 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             {activeTab.startsWith('cat-') && CATEGORIA_CARDS.find(c => c.id === activeTab)?.sublabel}
           </p>
         </div>
+
+        {/* 5 Sub-áreas dedicadas da OAB */}
+        {activeTab === 'cat-oab' && (
+          <div className="flex overflow-x-auto no-scrollbar gap-1.5 py-1 -mr-4 pr-6">
+            {[
+              { id: 'todos', label: 'Todas as Normas' },
+              { id: 'codigos', label: '1. Códigos (CED)' },
+              { id: 'estatuto', label: '2. Estatuto' },
+              { id: 'regulamentos', label: '3. Regulamentos' },
+              { id: 'provimentos', label: '4. Provimentos' },
+              { id: 'resolucoes', label: '5. Resoluções' },
+            ].map(sub => (
+              <button
+                key={sub.id}
+                onClick={() => setOabSubFilter(sub.id as any)}
+                className={`min-h-[34px] px-3.5 py-1 rounded-full text-[12px] font-display font-semibold transition-all whitespace-nowrap ${
+                  oabSubFilter === sub.id
+                    ? 'bg-blue-600 text-white shadow-sm font-bold'
+                    : 'bg-secondary/70 text-muted-foreground hover:bg-secondary border border-border/50'
+                }`}
+              >
+                {sub.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="h-[1.5px] bg-border/70 w-full mb-2" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 min-h-[200px] content-start">
@@ -549,7 +603,14 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           {activeTab.startsWith('cat-') && activeTab !== 'categorias' && (() => {
             const currentCat = CATEGORIA_CARDS.find(c => c.id === activeTab);
             if (!currentCat) return null;
-            return currentCat.leiIds.map((leiId, i) => {
+
+            let leiIdsToDisplay = currentCat.leiIds;
+            if (activeTab === 'cat-oab' && oabSubFilter !== 'todos') {
+              const allowed = new Set(OAB_SUB_ITEMS[oabSubFilter] || []);
+              leiIdsToDisplay = currentCat.leiIds.filter(id => allowed.has(id));
+            }
+
+            return leiIdsToDisplay.map((leiId, i) => {
               const lei = LEIS_CATALOG.find(l => l.id === leiId);
               if (!lei) return null;
               
@@ -687,7 +748,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               </div>
 
               {categoryOpen?.id !== 'cat-estadual' && (
-                <div className="px-4 pb-2">
+                <div className="px-4 pb-2 space-y-2">
                   <div className="flex bg-secondary/60 rounded-2xl p-1.5 border border-border/50">
                     <button
                       onClick={() => setListFilter('todos')}
@@ -706,6 +767,31 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                       Favoritos
                     </button>
                   </div>
+
+                  {categoryOpen?.id === 'cat-oab' && (
+                    <div className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5">
+                      {[
+                        { id: 'todos', label: 'Todas' },
+                        { id: 'codigos', label: '1. Códigos' },
+                        { id: 'estatuto', label: '2. Estatuto' },
+                        { id: 'regulamentos', label: '3. Regulamentos' },
+                        { id: 'provimentos', label: '4. Provimentos' },
+                        { id: 'resolucoes', label: '5. Resoluções' },
+                      ].map(sub => (
+                        <button
+                          key={sub.id}
+                          onClick={() => setOabSubFilter(sub.id as any)}
+                          className={`min-h-[32px] px-3 py-1 rounded-full text-[12px] font-display font-semibold transition-all whitespace-nowrap ${
+                            oabSubFilter === sub.id
+                              ? 'bg-blue-600 text-white shadow-sm font-bold'
+                              : 'bg-secondary/70 text-muted-foreground hover:bg-secondary border border-border/50'
+                          }`}
+                        >
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
