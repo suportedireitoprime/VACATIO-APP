@@ -119,13 +119,48 @@ const CATEGORIA_CARDS: AreaCat[] = [
   { id: 'cat-mp', label: 'Medidas Provisórias', sublabel: 'MPs em tramitação', icon: FileWarning, color: '#EF4444', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Medida Provisória') || l.descricao.includes('MPv')).map(l => l.id) },
 ];
 
-const OAB_SUB_ITEMS: Record<string, string[]> = {
-  codigos: ['ced2015', 'ced1995'],
-  estatuto: ['eoab'],
-  regulamentos: ['reg_oab'],
-  provimentos: ['prov205', 'prov188', 'prov112', 'prov144'],
-  resolucoes: ['res02', 'res01'],
-};
+const OAB_CARDS: AreaCat[] = [
+  {
+    id: 'oab-codigos',
+    label: 'Códigos',
+    sublabel: 'Código de Ética e Disciplina da OAB (CED 2015 e 1995)',
+    icon: Scale,
+    color: '#EF4444',
+    leiIds: ['ced2015', 'ced1995'],
+  },
+  {
+    id: 'oab-estatuto',
+    label: 'Estatuto',
+    sublabel: 'Estatuto da Advocacia e da OAB · Lei nº 8.906/1994',
+    icon: Landmark,
+    color: '#2563EB',
+    leiIds: ['eoab'],
+  },
+  {
+    id: 'oab-regulamentos',
+    label: 'Regulamentos',
+    sublabel: 'Regulamento Geral do Estatuto da Advocacia e da OAB',
+    icon: ScrollText,
+    color: '#10B981',
+    leiIds: ['reg_oab'],
+  },
+  {
+    id: 'oab-provimentos',
+    label: 'Provimentos',
+    sublabel: 'Marketing Jurídico, Investigação Defensiva e mais',
+    icon: FileText,
+    color: '#F59E0B',
+    leiIds: ['prov205', 'prov188', 'prov112', 'prov144'],
+  },
+  {
+    id: 'oab-resolucoes',
+    label: 'Resoluções',
+    sublabel: 'Resoluções Normativas e Regimento Interno do CFOAB',
+    icon: Stamp,
+    color: '#8B5CF6',
+    leiIds: ['res02', 'res01'],
+  },
+];
 
 const JURI_OPCOES = [
   { id: 'STF_VINCULANTE', nome: 'Súmulas Vinculantes', desc: 'Efeito vinculante para o Judiciário' },
@@ -282,7 +317,6 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const [categoryOpen, setCategoryOpen] = useState<Cat | AreaCat | CategoriaFormal | null>(null);
   const [categorySearch, setCategorySearch] = useState('');
   const [listFilter, setListFilter] = useState<'todos' | 'favoritos'>('todos');
-  const [oabSubFilter, setOabSubFilter] = useState<'todos' | 'codigos' | 'estatuto' | 'regulamentos' | 'provimentos' | 'resolucoes'>('todos');
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
   // #41 — Continuar Leitura: última lei visitada
@@ -378,10 +412,6 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
 
   const filteredCategoryItems = useMemo(() => {
     let base = categoryItems;
-    if (categoryOpen?.id === 'cat-oab' && oabSubFilter !== 'todos') {
-      const allowed = new Set(OAB_SUB_ITEMS[oabSubFilter] || []);
-      base = base.filter(l => allowed.has(l.id));
-    }
     if (listFilter === 'favoritos') {
       base = base.filter(l => favoriteIds.has(l.id));
     }
@@ -392,7 +422,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       const haystack = normalizeSearch(`${lei.nome} ${lei.sigla} ${lei.descricao} ${(lei.tags || []).join(' ')}`);
       return haystack.includes(needle);
     });
-  }, [categoryItems, categorySearch, listFilter, oabSubFilter, categoryOpen, favoriteIds]);
+  }, [categoryItems, categorySearch, listFilter, categoryOpen, favoriteIds]);
   const CategorySheetIcon = categoryOpen?.icon || BookMarked;
 
   // Lock background scroll while any bottom sheet is open
@@ -536,34 +566,26 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           </p>
         </div>
 
-        {/* 5 Sub-áreas dedicadas da OAB */}
-        {activeTab === 'cat-oab' && (
-          <div className="flex overflow-x-auto no-scrollbar gap-1.5 py-1 -mr-4 pr-6">
-            {[
-              { id: 'todos', label: 'Todas as Normas' },
-              { id: 'codigos', label: 'Códigos' },
-              { id: 'estatuto', label: 'Estatuto' },
-              { id: 'regulamentos', label: 'Regulamentos' },
-              { id: 'provimentos', label: 'Provimentos' },
-              { id: 'resolucoes', label: 'Resoluções' },
-            ].map(sub => (
-              <button
-                key={sub.id}
-                onClick={() => setOabSubFilter(sub.id as any)}
-                className={`min-h-[34px] px-3.5 py-1 rounded-full text-[12px] font-display font-semibold transition-all whitespace-nowrap ${
-                  oabSubFilter === sub.id
-                    ? 'bg-blue-600 text-white shadow-sm font-bold'
-                    : 'bg-secondary/70 text-muted-foreground hover:bg-secondary border border-border/50'
-                }`}
-              >
-                {sub.label}
-              </button>
-            ))}
-          </div>
-        )}
-
         <div className="h-[1.5px] bg-border/70 w-full mb-2" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 min-h-[200px] content-start">
+          {activeTab === 'cat-oab' && OAB_CARDS.map((c, i) => (
+            <HomeCard
+              key={c.id}
+              icon={c.icon}
+              label={c.label}
+              sublabel={c.sublabel}
+              color={c.color}
+              delay={i * 0.04}
+              onClick={() => {
+                setCategorySearch('');
+                setCategoryOpen(c);
+              }}
+              data-track="home_card_click"
+              data-track-name={c.label}
+              data-track-section="oab"
+            />
+          ))}
+
           {activeTab === 'areas' && AREA_CATS.map((c, i) => (
             <HomeCard
               key={c.id}
@@ -600,15 +622,11 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             />
           ))}
 
-          {activeTab.startsWith('cat-') && activeTab !== 'categorias' && (() => {
+          {activeTab.startsWith('cat-') && activeTab !== 'categorias' && activeTab !== 'cat-oab' && (() => {
             const currentCat = CATEGORIA_CARDS.find(c => c.id === activeTab);
             if (!currentCat) return null;
 
-            let leiIdsToDisplay = currentCat.leiIds;
-            if (activeTab === 'cat-oab' && oabSubFilter !== 'todos') {
-              const allowed = new Set(OAB_SUB_ITEMS[oabSubFilter] || []);
-              leiIdsToDisplay = currentCat.leiIds.filter(id => allowed.has(id));
-            }
+            const leiIdsToDisplay = currentCat.leiIds;
 
             return leiIdsToDisplay.map((leiId, i) => {
               const lei = LEIS_CATALOG.find(l => l.id === leiId);
@@ -770,31 +788,6 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                       Favoritos
                     </button>
                   </div>
-
-                  {categoryOpen?.id === 'cat-oab' && (
-                    <div className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5">
-                      {[
-                        { id: 'todos', label: 'Todas' },
-                        { id: 'codigos', label: 'Códigos' },
-                        { id: 'estatuto', label: 'Estatuto' },
-                        { id: 'regulamentos', label: 'Regulamentos' },
-                        { id: 'provimentos', label: 'Provimentos' },
-                        { id: 'resolucoes', label: 'Resoluções' },
-                      ].map(sub => (
-                        <button
-                          key={sub.id}
-                          onClick={() => setOabSubFilter(sub.id as any)}
-                          className={`min-h-[32px] px-3 py-1 rounded-full text-[12px] font-display font-semibold transition-all whitespace-nowrap ${
-                            oabSubFilter === sub.id
-                              ? 'bg-blue-600 text-white shadow-sm font-bold'
-                              : 'bg-secondary/70 text-muted-foreground hover:bg-secondary border border-border/50'
-                          }`}
-                        >
-                          {sub.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
               )}
 
