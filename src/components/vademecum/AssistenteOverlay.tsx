@@ -10,6 +10,7 @@ import { useVoiceInput } from '@/hooks/useVoiceInput';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '@/integrations/supabase/client';
 import { generateOmniChat } from '@/lib/omniRouteClient';
+import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
 import { pdf, Document, Page, Text as PdfText, StyleSheet } from '@react-pdf/renderer';
 import { track } from '@/lib/analyticsEvents';
@@ -321,12 +322,28 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
     setAttachment(null);
     setLoading(true);
     try {
+      const systemInstruction = `Você é um assistente jurídico especializado em Direito Brasileiro.
+REGRAS DE ESTILO E FORMATO:
+- Seja direto, técnico e didático. Primeira linha já responde à questão sem saudações ou preâmbulos.
+- Cite artigos e leis com exatidão no formato canônico ("art. X da CF", "art. Y do CP", etc.).
+- Sempre que criar tabelas comparativas ou informativas, use a sintaxe padrão Markdown GFM:
+  * OBRIGATÓRIO: CADA LINHA DA TABELA DEVE ESTAR EM SUA PRÓPRIA LINHA SEPARADA POR QUEBRA DE LINHA REAL (\n). NUNCA emende linhas de tabela na mesma linha de texto com "||".
+  * Exemplo obrigatório de tabela:
+    | Característica | STF | STJ |
+    | :--- | :--- | :--- |
+    | Foco principal | Constituição Federal | Leis Federais |
+    | Hierarquia | Grau máximo | Abaixo do STF |
+- Utilize formatação rica com títulos, subtítulos, negrito e listas quando ajudar na clareza.`;
+
       const chatReply = await generateOmniChat({
         modelOverride: 'antigravity/gemini-3.8-flash-tiered',
-        messages: newMessages.map(m => ({
-          role: m.role === 'assistant' ? 'assistant' : m.role === 'user' ? 'user' : 'system',
-          content: m.content
-        })),
+        messages: [
+          { role: 'system', content: systemInstruction },
+          ...newMessages.map(m => ({
+            role: m.role === 'assistant' ? ('assistant' as const) : m.role === 'user' ? ('user' as const) : ('system' as const),
+            content: m.content
+          }))
+        ],
         temperature: 0.7
       });
       
@@ -546,9 +563,11 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
               const shown = msg.role === 'assistant' ? msg.content.slice(0, revealed[msg.id] ?? msg.content.length) : msg.content;
               const complete = msg.role !== 'assistant' || shown === msg.content;
               const maxN = msg.sources?.length ?? 0;
+              // Se a IA devolver linhas de tabela emendadas com "||" em vez de quebra de linha "\n", normalizamos para linhas individuais de Markdown
+              const normalizedMarkdown = shown.replace(/\|\s*\|\s*(?=[^:\s\n-])/g, '|\n|');
               const shownWithLinks = msg.role === 'assistant' && maxN > 0
-                ? injectCitationLinks(shown, maxN)
-                : shown;
+                ? injectCitationLinks(normalizedMarkdown, maxN)
+                : normalizedMarkdown;
               return (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`${isDesktop ? 'max-w-[92%]' : 'max-w-[88%]'} rounded-2xl px-4 py-2.5 ${
@@ -574,6 +593,7 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
                           }}
                         >
                           <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
                             components={{
                               a: ({ href, children, ...rest }) => {
                                 if (href?.startsWith('cite://')) {
@@ -583,6 +603,33 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
                                 }
                                 return <a href={href} target="_blank" rel="noopener noreferrer" {...rest}>{children}</a>;
                               },
+                              table: ({ children, ...props }) => (
+                                <div className="w-full my-4 overflow-x-auto rounded-xl border border-border/70 bg-card/60 shadow-inner scrollbar-thin">
+                                  <table className="w-full text-left border-collapse text-xs md:text-sm min-w-[420px]" {...props}>
+                                    {children}
+                                  </table>
+                                </div>
+                              ),
+                              thead: ({ children, ...props }) => (
+                                <thead className="bg-muted/80 border-b border-border text-foreground font-semibold uppercase text-[11px] tracking-wider" {...props}>
+                                  {children}
+                                </thead>
+                              ),
+                              tbody: ({ children, ...props }) => (
+                                <tbody className="divide-y divide-border/40" {...props}>
+                                  {children}
+                                </tbody>
+                              ),
+                              th: ({ children, ...props }) => (
+                                <th className="px-3 py-2.5 font-bold text-foreground text-left whitespace-nowrap" {...props}>
+                                  {children}
+                                </th>
+                              ),
+                              td: ({ children, ...props }) => (
+                                <td className="px-3 py-2.5 align-top text-foreground/90 whitespace-normal leading-relaxed" {...props}>
+                                  {children}
+                                </td>
+                              ),
                             }}
                           >
                             {shownWithLinks}
