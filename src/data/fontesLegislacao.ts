@@ -613,3 +613,80 @@ export const ESTADOS_BRASIL: EstadoBrasilInfo[] = [
   { uf: 'RS', nome: 'Rio Grande do Sul', regiao: 'Sul', capital: 'Porto Alegre', totalMunicipios: 497, totalAtosEstimados: 610000, assembleia: 'ALRS', urlAssembleia: 'https://al.rs.gov.br', status: 'operacional', gridPos: { col: 3, row: 7 } },
 ];
 
+// ─── EXPORTAÇÃO DE RELATÓRIOS (CSV / JSON) ───
+
+export function exportarFontesCSV(fontes: FonteLegislacao[] = FONTES_LEGISLACAO) {
+  const colunas = [
+    'ID',
+    'Nome',
+    'Sigla',
+    'Esfera',
+    'Subesfera / UF',
+    'Categoria',
+    'Órgão Responsável',
+    'Status',
+    'Frequência de Atualização',
+    'Atos Estimados',
+    'Formatos',
+    'Busca por Texto',
+    'URL Oficial',
+    'URL de Busca'
+  ];
+
+  const escapeCSV = (str: string | undefined | number | boolean) => {
+    if (str === undefined || str === null) return '""';
+    const s = String(str).replace(/"/g, '""');
+    return `"${s}"`;
+  };
+
+  const linhas = fontes.map(f => [
+    escapeCSV(f.id),
+    escapeCSV(f.nome),
+    escapeCSV(f.sigla),
+    escapeCSV(f.esfera),
+    escapeCSV(f.subesfera || ''),
+    escapeCSV(f.categoria),
+    escapeCSV(f.orgaoResponsavel),
+    escapeCSV(f.status),
+    escapeCSV(f.frequenciaAtualizacao),
+    escapeCSV(f.totalAtosEstimados || 0),
+    escapeCSV(f.tipoFormatos.join('; ')),
+    escapeCSV(f.permiteBuscaTexto ? 'Sim' : 'Não'),
+    escapeCSV(f.url),
+    escapeCSV(f.urlBusca || '')
+  ].join(','));
+
+  const conteudoCSV = '\uFEFF' + [colunas.join(','), ...linhas].join('\r\n');
+  const blob = new Blob([conteudoCSV], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `vacatio-fontes-legislacao-${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function exportarFontesJSON(fontes: FonteLegislacao[] = FONTES_LEGISLACAO) {
+  const payload = {
+    exportadoEm: new Date().toISOString(),
+    sistema: 'VACATIO UNOS Legislação',
+    versao: '1.0',
+    totalFontes: fontes.length,
+    fontes,
+  };
+
+  const jsonStr = JSON.stringify(payload, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `vacatio-fontes-legislacao-${new Date().toISOString().slice(0, 10)}.json`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+
