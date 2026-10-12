@@ -88,14 +88,14 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     fase: 1,
   },
 
-  // Fase 2 - Gamificação e Análise
+  // Fase 2 - Gamificação e Análise (Ativos)
   {
     id: 'caca_palavras',
     label: 'Caça-Palavras Jurídico',
     desc: 'Encontre termos e institutos jurídicos escondidos na grade',
     icon: Search,
     color: '#06B6D4',
-    badge: 'EM BREVE',
+    badge: 'NOVO',
     fase: 2,
   },
   {
@@ -104,7 +104,7 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Ligue os incisos e alíneas aos seus conceitos corretos',
     icon: Split,
     color: '#EC4899',
-    badge: 'EM BREVE',
+    badge: 'NOVO',
     fase: 2,
   },
   {
@@ -113,7 +113,7 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Descubra a palavra ou prazo sutilmente trocado no texto',
     icon: AlertTriangle,
     color: '#EF4444',
-    badge: 'EM BREVE',
+    badge: 'NOVO',
     fase: 2,
   },
 

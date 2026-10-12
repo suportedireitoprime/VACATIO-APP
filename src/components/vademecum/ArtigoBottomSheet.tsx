@@ -22,6 +22,9 @@ const MonteArtigoView = lazy(() => import('./praticar/MonteArtigoView').then(m =
 const VerdadeiroFalsoView = lazy(() => import('./praticar/VerdadeiroFalsoView').then(m => ({ default: m.VerdadeiroFalsoView })));
 const CasosPraticosView = lazy(() => import('./praticar/CasosPraticosView').then(m => ({ default: m.CasosPraticosView })));
 const ContraRelogioView = lazy(() => import('./praticar/ContraRelogioView').then(m => ({ default: m.ContraRelogioView })));
+const CacaPalavrasView = lazy(() => import('./praticar/CacaPalavrasView').then(m => ({ default: m.CacaPalavrasView })));
+const RelacioneColunasView = lazy(() => import('./praticar/RelacioneColunasView').then(m => ({ default: m.RelacioneColunasView })));
+const IdentifiqueErroView = lazy(() => import('./praticar/IdentifiqueErroView').then(m => ({ default: m.IdentifiqueErroView })));
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -3727,6 +3730,16 @@ Regras:
                         ? 'Monte o Artigo'
                         : activePraticarMode === 'verdadeiro_falso'
                         ? 'Certo ou Errado'
+                        : activePraticarMode === 'caca_palavras'
+                        ? 'Caça-Palavras Jurídico'
+                        : activePraticarMode === 'relacione'
+                        ? 'Relacione as Colunas'
+                        : activePraticarMode === 'identifique_erro'
+                        ? 'Identifique o Erro'
+                        : activePraticarMode === 'casos_praticos'
+                        ? 'Casos Práticos'
+                        : activePraticarMode === 'contra_relogio'
+                        ? 'Contra o Relógio'
                         : 'Praticar'}
                     </h3>
                   </div>
@@ -3801,6 +3814,39 @@ Regras:
                   </Suspense>
                 )}
 
+                {activePraticarMode === 'caca_palavras' && (
+                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando caça-palavras...</div>}>
+                    <CacaPalavrasView
+                      artigoNumero={String(artigo?.numero || '')}
+                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                      leiNome={String(tabelaNome || '')}
+                      onVoltar={() => setActivePraticarMode(null)}
+                    />
+                  </Suspense>
+                )}
+
+                {activePraticarMode === 'relacione' && (
+                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando colunas...</div>}>
+                    <RelacioneColunasView
+                      artigoNumero={String(artigo?.numero || '')}
+                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                      leiNome={String(tabelaNome || '')}
+                      onVoltar={() => setActivePraticarMode(null)}
+                    />
+                  </Suspense>
+                )}
+
+                {activePraticarMode === 'identifique_erro' && (
+                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando exercício de detecção de erro...</div>}>
+                    <IdentifiqueErroView
+                      artigoNumero={String(artigo?.numero || '')}
+                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                      leiNome={String(tabelaNome || '')}
+                      onVoltar={() => setActivePraticarMode(null)}
+                    />
+                  </Suspense>
+                )}
+
                 {/* Menu de seleção dos 12 Modos de Prática */}
                 {!activePraticarMode && (
                   <>
@@ -3810,7 +3856,7 @@ Regras:
                     <div className="flex-1 py-2 overflow-y-auto">
                       {MODOS_PRATICAR.map((item, i, arr) => {
                         const Icon = item.icon;
-                        const isDisponivel = item.fase === 1 || item.fase === 3;
+                        const isDisponivel = item.fase <= 3;
 
                         const handleClick = () => {
                           if (item.id === 'questoes') {
