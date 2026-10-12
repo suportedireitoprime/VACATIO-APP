@@ -3732,7 +3732,7 @@ Regras:
                         : activePraticarMode === 'caca_palavras'
                         ? 'Caça-Palavras Jurídico'
                         : activePraticarMode === 'relacione'
-                        : 'Relacione as Colunas'
+                        ? 'Relacione as Colunas'
                         : activePraticarMode === 'identifique_erro'
                         ? 'Identifique o Erro'
                         : activePraticarMode === 'casos_praticos'
