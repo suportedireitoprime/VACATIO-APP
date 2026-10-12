@@ -601,14 +601,15 @@ REGRAS DE ESTILO E FORMATO:
               const shownWithLinks = msg.role === 'assistant' && maxN > 0
                 ? injectCitationLinks(normalizedMarkdown, maxN)
                 : normalizedMarkdown;
+              const isUser = msg.role === 'user';
               return (
-                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`${isDesktop ? 'max-w-[92%]' : 'max-w-[88%]'} rounded-2xl px-4 py-2.5 ${
-                    msg.role === 'user'
-                      ? 'bg-primary/15 text-foreground border border-primary/40 rounded-br-md'
-                      : 'bg-card border border-border text-foreground rounded-bl-md'
+                <div key={msg.id} className={`w-full flex ${isUser ? 'justify-end mt-4 mb-2' : 'justify-start mt-5 mb-4'}`}>
+                  <div className={`rounded-2xl px-4 py-3 ${
+                    isUser
+                      ? 'max-w-[85%] sm:max-w-[80%] bg-primary/15 text-foreground border border-primary/40 rounded-br-md shadow-sm'
+                      : 'w-full bg-card border border-border text-foreground rounded-2xl shadow-sm'
                   }`}>
-                    {msg.attachment && msg.role === 'user' && (
+                    {msg.attachment && isUser && (
                       <div className="mb-2 flex items-center gap-2 text-xs opacity-90">
                         <Paperclip className="w-3 h-3" /> {msg.attachment.name}
                       </div>
