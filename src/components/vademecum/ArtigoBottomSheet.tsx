@@ -25,6 +25,8 @@ const ContraRelogioView = lazy(() => import('./praticar/ContraRelogioView').then
 const CacaPalavrasView = lazy(() => import('./praticar/CacaPalavrasView').then(m => ({ default: m.CacaPalavrasView })));
 const RelacioneColunasView = lazy(() => import('./praticar/RelacioneColunasView').then(m => ({ default: m.RelacioneColunasView })));
 const IdentifiqueErroView = lazy(() => import('./praticar/IdentifiqueErroView').then(m => ({ default: m.IdentifiqueErroView })));
+const OucaReciteView = lazy(() => import('./praticar/OucaReciteView').then(m => ({ default: m.OucaReciteView })));
+const ComboPraticarView = lazy(() => import('./praticar/ComboPraticarView').then(m => ({ default: m.ComboPraticarView })));
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -3740,6 +3742,10 @@ Regras:
                         ? 'Casos Práticos'
                         : activePraticarMode === 'contra_relogio'
                         ? 'Contra o Relógio'
+                        : activePraticarMode === 'ouca_recite'
+                        ? 'Ouça e Recite por Voz'
+                        : activePraticarMode === 'combo'
+                        ? 'Combo Desafio Total'
                         : 'Praticar'}
                     </h3>
                   </div>
@@ -3847,6 +3853,28 @@ Regras:
                   </Suspense>
                 )}
 
+                {activePraticarMode === 'ouca_recite' && (
+                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando reconhecimento de voz...</div>}>
+                    <OucaReciteView
+                      artigoNumero={String(artigo?.numero || '')}
+                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                      leiNome={String(tabelaNome || '')}
+                      onVoltar={() => setActivePraticarMode(null)}
+                    />
+                  </Suspense>
+                )}
+
+                {activePraticarMode === 'combo' && (
+                  <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando maratona de estudo...</div>}>
+                    <ComboPraticarView
+                      artigoNumero={String(artigo?.numero || '')}
+                      artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                      leiNome={String(tabelaNome || '')}
+                      onVoltar={() => setActivePraticarMode(null)}
+                    />
+                  </Suspense>
+                )}
+
                 {/* Menu de seleção dos 12 Modos de Prática */}
                 {!activePraticarMode && (
                   <>
@@ -3856,7 +3884,7 @@ Regras:
                     <div className="flex-1 py-2 overflow-y-auto">
                       {MODOS_PRATICAR.map((item, i, arr) => {
                         const Icon = item.icon;
-                        const isDisponivel = item.fase <= 3;
+                        const isDisponivel = true; // Todos os 12 modos 100% implementados e disponíveis
 
                         const handleClick = () => {
                           if (item.id === 'questoes') {
@@ -3865,10 +3893,8 @@ Regras:
                           } else if (item.id === 'flashcards') {
                             setShowPraticarSheet(false);
                             navigate(`/estudos?mode=flashcards&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
-                          } else if (isDisponivel) {
-                            setActivePraticarMode(item.id);
                           } else {
-                            toast.info(`O modo "${item.label}" está sendo implementado na próxima fase!`);
+                            setActivePraticarMode(item.id);
                           }
                         };
 

@@ -137,14 +137,14 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     fase: 3,
   },
 
-  // Fase 4 - Voz e Maratona
+  // Fase 4 - Voz e Maratona (Ativos)
   {
     id: 'ouca_recite',
     label: 'Ouça e Complete / Recite',
     desc: 'Treine a fala e recite trechos da lei por reconhecimento de voz',
     icon: Mic,
     color: '#14B8A6',
-    badge: 'EM BREVE',
+    badge: 'NOVO',
     fase: 4,
   },
   {
