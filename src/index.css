@@ -162,19 +162,41 @@ body {
 }
 
 @layer base {
-  * {
+  *,
+  *::before,
+  *::after,
+  html,
+  body,
+  #root {
     @apply border-border;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
   }
 
+  ::-webkit-scrollbar,
   *::-webkit-scrollbar,
   html::-webkit-scrollbar,
-  body::-webkit-scrollbar {
+  body::-webkit-scrollbar,
+  ::-webkit-scrollbar-button,
+  *::-webkit-scrollbar-button,
+  ::-webkit-scrollbar-thumb,
+  *::-webkit-scrollbar-thumb,
+  ::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-track-piece,
+  *::-webkit-scrollbar-track-piece,
+  ::-webkit-scrollbar-corner,
+  *::-webkit-scrollbar-corner {
     display: none !important;
     width: 0 !important;
     height: 0 !important;
+    max-width: 0 !important;
+    max-height: 0 !important;
     background: transparent !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    -webkit-appearance: none !important;
+    pointer-events: none !important;
   }
 
   body {
@@ -657,7 +679,7 @@ body {
 }
 
 
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (pointer: fine) and (hover: hover) {
   .desktop-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--primary) / 0.3) transparent;
@@ -1246,10 +1268,84 @@ html.light .bg-\[\#212121\]\/95 { background-color: hsl(var(--card) / 0.95) !imp
   mix-blend-mode: screen;
 }
 
-/* Custom Desktop Scrollbars */
-@media (min-width: 1024px) {
+/* Custom Desktop Scrollbars APENAS para computadores/laptops com mouse preciso */
+@media (min-width: 1024px) and (pointer: fine) and (hover: hover) {
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
 }
+
+/* ==========================================================================
+   OCULTAÇÃO DEFINITIVA DE SCROLLBAR NO MOBILE / TOUCH (ANDROID, IOS, PWA)
+   Impede que a barra de rolagem nativa/overlay apareça durante o scroll
+   (ao subir ou descer a tela, em qualquer container ou folha).
+   ========================================================================== */
+@media (max-width: 1023px), (pointer: coarse), (hover: none) {
+  html,
+  body,
+  #root,
+  *,
+  *::before,
+  *::after {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  ::-webkit-scrollbar,
+  *::-webkit-scrollbar,
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  ::-webkit-scrollbar-button,
+  *::-webkit-scrollbar-button,
+  ::-webkit-scrollbar-thumb,
+  *::-webkit-scrollbar-thumb,
+  ::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-track-piece,
+  *::-webkit-scrollbar-track-piece,
+  ::-webkit-scrollbar-corner,
+  *::-webkit-scrollbar-corner {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    max-width: 0 !important;
+    max-height: 0 !important;
+    background: transparent !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    -webkit-appearance: none !important;
+    pointer-events: none !important;
+  }
+}
+
+/* Utilitários globais de scrollbar para uso em qualquer elemento */
+.no-scrollbar,
+.hide-scrollbar,
+.scrollbar-none,
+.scrollbar-hidden {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar,
+.scrollbar-hidden::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar-thumb,
+.hide-scrollbar::-webkit-scrollbar-thumb,
+.scrollbar-none::-webkit-scrollbar-thumb,
+.scrollbar-hidden::-webkit-scrollbar-thumb,
+.no-scrollbar::-webkit-scrollbar-track,
+.hide-scrollbar::-webkit-scrollbar-track,
+.scrollbar-none::-webkit-scrollbar-track,
+.scrollbar-hidden::-webkit-scrollbar-track {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  background: transparent !important;
+  visibility: hidden !important;
+  -webkit-appearance: none !important;
+}
+

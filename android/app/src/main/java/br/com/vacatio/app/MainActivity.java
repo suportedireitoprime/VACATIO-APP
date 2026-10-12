@@ -78,6 +78,8 @@ public class MainActivity extends BridgeActivity {
         
         webView.setVerticalScrollBarEnabled(false);
         webView.setHorizontalScrollBarEnabled(false);
+        webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
         // Listener direto na WebView — é ela que efetivamente recebe os insets
         // em edge-to-edge no Capacitor.
