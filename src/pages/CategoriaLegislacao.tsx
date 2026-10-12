@@ -2786,7 +2786,7 @@ const CategoriaLegislacao = () => {
             </DialogHeader>
             <div className="py-2">
               <p className="text-sm md:text-base italic leading-relaxed text-red-100/95 whitespace-pre-line border-l-2 border-red-500/40 pl-3.5">
-                {selectedLeiEmenta || selectedLei?.descricao || `${selectedLeiNome} — Legislação federal consolidada.`}
+                {selectedLeiEmenta || selectedLeiDescricao || `${selectedLeiNome} — Legislação federal consolidada.`}
               </p>
             </div>
           </DialogContent>
