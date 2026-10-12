@@ -46,7 +46,7 @@ const COVER_MAP: Record<string, string> = {
   cpm:  COVERS.cp,
   cc:   COVERS.cc,
   cpc:  COVERS.cpc,
-  cpp:  COVERS.cp,
+  cpp:  COVERS.cpp,
   clt:  COVERS.clt,
   cdc:  COVERS.cdc,
   ctn:  COVERS.ctn,

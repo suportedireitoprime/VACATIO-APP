@@ -28,6 +28,7 @@ import ed from '@/assets/lei-cover-ed.webp';
 import eoab from '@/assets/lei-cover-eoab.webp';
 import ctn from '@/assets/lei-cover-ctn.webp';
 import ce from '@/assets/lei-cover-ce.webp';
+import cpp from '@/assets/lei-cover-cpp.webp';
 
 const isNative =
   typeof window !== 'undefined' && Capacitor.isNativePlatform();
@@ -37,6 +38,7 @@ export const COVERS = {
   cf88,
   cc,
   cpc,
+  cpp,
   clt,
   cdc,
   ce,
