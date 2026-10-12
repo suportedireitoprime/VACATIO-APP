@@ -459,10 +459,10 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
       </div>
 
       {/* Carrossel de Atalhos fluido (mesmo motor nativo de Selecionados Para Você) */}
-      <div className="relative -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 -mt-10">
+      <div className="relative -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 -mt-6">
         <div
           ref={scrollerRef}
-          className="overflow-x-auto no-scrollbar snap-x snap-mandatory md:cursor-grab select-none pb-4 pt-10"
+          className="overflow-x-auto no-scrollbar snap-x snap-mandatory md:cursor-grab select-none pb-4 pt-6"
           style={{ scrollPaddingInline: sidePad }}
           onPointerDown={onScrollerPointerDown}
           onPointerMove={onScrollerPointerMove}
@@ -585,8 +585,8 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                     <img
                       src={ilustracao}
                       alt={`Ilustração da lei ${lei.sigla}`}
-                      className={`absolute -top-5 right-0 h-[104px] w-auto max-w-none object-contain pointer-events-none z-10 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] transition-all duration-300 ${
-                        isCenter ? 'scale-110 drop-shadow-[0_12px_20px_rgba(0,0,0,0.7)]' : 'scale-100'
+                      className={`absolute -top-3.5 sm:-top-4 right-0 h-[88px] sm:h-[94px] w-auto max-w-none object-contain pointer-events-none z-10 drop-shadow-[0_6px_14px_rgba(0,0,0,0.55)] transition-all duration-300 ${
+                        isCenter ? 'scale-105 drop-shadow-[0_10px_18px_rgba(0,0,0,0.65)]' : 'scale-100'
                       }`}
                     />
                   )}

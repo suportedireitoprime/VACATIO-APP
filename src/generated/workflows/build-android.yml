@@ -554,7 +554,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
-          name = 'Vacatio'
+          name = 'Vade Mecum'
           src = Path('assets/app-name.txt')
           if src.exists():
               raw = src.read_text(encoding='utf-8').strip()
@@ -869,6 +869,11 @@ jobs:
                   if (webView == null) return;
 
                   final float density = getResources().getDisplayMetrics().density;
+
+                  webView.setVerticalScrollBarEnabled(false);
+                  webView.setHorizontalScrollBarEnabled(false);
+                  webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+                  webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
                   // Listener direto na WebView — é ela que efetivamente recebe os insets
                   // em edge-to-edge no Capacitor.

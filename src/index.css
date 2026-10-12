@@ -1265,6 +1265,7 @@ body,
 *::before,
 *::after {
   scrollbar-width: none !important;
+  scrollbar-color: transparent transparent !important;
   -ms-overflow-style: none !important;
 }
 
