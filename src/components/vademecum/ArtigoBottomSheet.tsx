@@ -3682,7 +3682,26 @@ Regras:
           {aiGeneratingMode !== null && (
             <GeracaoAnimacaoOverlay
               open={aiGeneratingMode !== null}
-                      {/* Praticar Sheet - Tela Inteira Fullscreen */}
+              titulo={
+                aiGeneratingMode === 'explicacao' ? 'Gerando explicação com IA' :
+                aiGeneratingMode === 'exemplo' ? 'Gerando exemplos práticos' :
+                aiGeneratingMode === 'termos' ? 'Analisando termos jurídicos' :
+                'Gerando conteúdo'
+              }
+              steps={[
+                'Preparando o texto do artigo',
+                'Consultando a IA',
+                'Formatando conteúdo',
+                'Pronto para ler',
+              ]}
+              stepIdx={aiGeneratingStep}
+              stepRanges={[[0, 20], [20, 85], [85, 98], [100, 100]]}
+              estTotalSec={12}
+            />
+          )}
+        </Suspense>
+
+        {/* Praticar Sheet - Tela Inteira Fullscreen */}
         <AnimatePresence>
           {showPraticarSheet && (
             <>
