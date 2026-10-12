@@ -43,7 +43,7 @@ const HomeCardImpl = ({
     data-track={dataTrack}
     data-track-name={dataTrackName}
     data-track-section={dataTrackSection}
-    className={`group relative flex flex-col justify-between w-full h-[112px] sm:h-[118px] p-3.5 sm:p-4 rounded-2xl bg-card hover:bg-secondary/60 border border-border/60 hover:border-primary/40 shadow-sm hover:shadow-xl hover:-translate-y-[2px] active:scale-[0.98] transition-all duration-300 text-left overflow-hidden ${className}`}
+    className={`group relative flex flex-col justify-between w-full min-h-[118px] sm:min-h-[124px] h-auto p-3.5 sm:p-4 rounded-2xl bg-card hover:bg-secondary/60 border border-border/60 hover:border-primary/40 shadow-sm hover:shadow-xl hover:-translate-y-[2px] active:scale-[0.98] transition-all duration-300 text-left overflow-hidden ${className}`}
   >
     {statusBadge && (
       <div className="absolute top-2.5 right-3 px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold uppercase tracking-wider hidden sm:block">
@@ -62,13 +62,7 @@ const HomeCardImpl = ({
               }}
               strokeWidth={1.5}
             />
-            <p
-              className={`font-display text-foreground font-bold uppercase leading-[1.15] line-clamp-2 ${
-                label.length <= 6
-                  ? 'text-[17px] sm:text-[18px] font-black tracking-normal mt-0.5'
-                  : 'text-[12.5px] sm:text-[13.5px] tracking-tight pt-[3px]'
-              }`}
-            >
+            <p className="font-display text-foreground font-bold uppercase text-[15px] sm:text-[16px] tracking-wide leading-tight line-clamp-1 min-h-[24px] flex items-center">
               {label}
             </p>
           </div>
@@ -76,7 +70,7 @@ const HomeCardImpl = ({
         <div className="flex items-end justify-between w-full mt-auto pt-1 gap-2">
           <div className="min-w-0 flex-1">
             {sublabel && (
-              <p className="font-body text-muted-foreground text-[11px] sm:text-[11.5px] leading-snug truncate">
+              <p className="font-body text-muted-foreground text-[11.5px] sm:text-[12px] leading-snug line-clamp-2">
                 {sublabel}
               </p>
             )}
@@ -98,11 +92,11 @@ const HomeCardImpl = ({
           <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
         </div>
         <div className="w-full min-w-0 mt-auto">
-          <p className="font-display text-foreground text-[15.5px] sm:text-[16.5px] font-black uppercase tracking-tight leading-tight truncate">
+          <p className="font-display text-foreground text-[15px] sm:text-[16px] font-bold uppercase tracking-wide leading-tight line-clamp-1">
             {label}
           </p>
           {sublabel && (
-            <p className="font-body text-muted-foreground text-[11px] sm:text-[11.5px] leading-snug mt-0.5 truncate">
+            <p className="font-body text-muted-foreground text-[11.5px] sm:text-[12px] leading-snug mt-0.5 line-clamp-2">
               {sublabel}
             </p>
           )}

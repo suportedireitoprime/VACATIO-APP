@@ -138,16 +138,16 @@ const LAW_ICON_MAP: Record<string, LucideIcon> = {
   cf88: Landmark,
   constituicao: Landmark,
   'constituicao-federal': Landmark,
-  eoab: Scale,
+  eoab: Landmark,
   ced2015: Scale,
   ced1995: Scale,
   reg_oab: ScrollText,
   prov205: FileText,
-  prov188: ShieldCheck,
-  prov112: BriefcaseBusiness,
-  prov144: GraduationCap,
-  res02: BookMarked,
-  res01: Landmark,
+  prov188: FileText,
+  prov112: FileText,
+  prov144: FileText,
+  res02: Stamp,
+  res01: Stamp,
   cp: PocketKnife,
   cc: House,
   cpc: FileText,
@@ -541,11 +541,11 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           <div className="flex overflow-x-auto no-scrollbar gap-1.5 py-1 -mr-4 pr-6">
             {[
               { id: 'todos', label: 'Todas as Normas' },
-              { id: 'codigos', label: '1. Códigos (CED)' },
-              { id: 'estatuto', label: '2. Estatuto' },
-              { id: 'regulamentos', label: '3. Regulamentos' },
-              { id: 'provimentos', label: '4. Provimentos' },
-              { id: 'resolucoes', label: '5. Resoluções' },
+              { id: 'codigos', label: 'Códigos' },
+              { id: 'estatuto', label: 'Estatuto' },
+              { id: 'regulamentos', label: 'Regulamentos' },
+              { id: 'provimentos', label: 'Provimentos' },
+              { id: 'resolucoes', label: 'Resoluções' },
             ].map(sub => (
               <button
                 key={sub.id}
@@ -628,6 +628,9 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                   displayLabel = lei.nome.replace(/^Estatuto (da|do|de|dos|das|nacional da) /i, '').trim();
                 }
                 displaySublabel = lei.descricao;
+              } else if (lei.tipo === 'oab' || lei.id === 'eoab') {
+                displayLabel = lei.sigla || lei.nome;
+                displaySublabel = lei.descricao || lei.nome;
               }
 
               return (
@@ -772,11 +775,11 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                     <div className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5">
                       {[
                         { id: 'todos', label: 'Todas' },
-                        { id: 'codigos', label: '1. Códigos' },
-                        { id: 'estatuto', label: '2. Estatuto' },
-                        { id: 'regulamentos', label: '3. Regulamentos' },
-                        { id: 'provimentos', label: '4. Provimentos' },
-                        { id: 'resolucoes', label: '5. Resoluções' },
+                        { id: 'codigos', label: 'Códigos' },
+                        { id: 'estatuto', label: 'Estatuto' },
+                        { id: 'regulamentos', label: 'Regulamentos' },
+                        { id: 'provimentos', label: 'Provimentos' },
+                        { id: 'resolucoes', label: 'Resoluções' },
                       ].map(sub => (
                         <button
                           key={sub.id}
@@ -868,6 +871,9 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                       } else {
                         displayLabel = lei.nome.replace(/^Estatuto (da|do|de|dos|das|nacional da) /i, '').trim();
                       }
+                      displaySublabel = lei.descricao;
+                    } else if (lei.tipo === 'oab' || lei.id === 'eoab') {
+                      displayLabel = lei.sigla ? `${lei.sigla} · ${lei.nome}` : lei.nome;
                       displaySublabel = lei.descricao;
                     }
 
