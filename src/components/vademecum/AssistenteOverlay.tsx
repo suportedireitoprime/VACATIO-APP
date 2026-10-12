@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send, Sparkles, Plus, Globe, History as HistoryIcon,
   FileDown, Layers, HelpCircle, GitBranch, Paperclip, X, Check, Loader2, Zap, FileText, Image as ImageIcon,
-  BookOpen, Share2, Scale, Mic, Camera, Music, Brain,
+  BookOpen, Share2, Scale, Mic, Camera, Music, Brain, ChevronDown,
 } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '@/integrations/supabase/client';
-import { generateOmniChat } from '@/lib/omniRouteClient';
+import { generateOmniChat, generateOmniChatStream } from '@/lib/omniRouteClient';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
 import { pdf, Document, Page, Text as PdfText, StyleSheet } from '@react-pdf/renderer';
@@ -175,6 +175,8 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
   const podeUsarPremium = chatLimit.isPremium || chatLimit.isAdmin;
 
 
+  const [streamingId, setStreamingId] = useState<string | null>(null);
+  const [showScrollBottomBtn, setShowScrollBottomBtn] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -198,11 +200,18 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
       const base = baseInputRef.current;
       setInput((base ? base + ' ' : '') + (voice.partial || ''));
     }
-     
   }, [voice.partial, voice.listening]);
   const toggleMic = () => {
     if (!voice.listening) baseInputRef.current = input;
     voice.toggle();
+  };
+
+  // Monitora scroll do usuário para botão flutuante discreto
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    const isFarFromBottom = scrollHeight - (scrollTop + clientHeight) > 160;
+    setShowScrollBottomBtn(isFarFromBottom);
   };
 
   // Persist current session
@@ -227,30 +236,12 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
     });
   }, [messages, sessionId]);
 
-  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, loading]);
-
-  // Analyze cycling
+  // Ciclagem dinâmica e ágil dos passos de análise (320ms por etapa para feedback imediato)
   useEffect(() => {
     if (!loading) { setAnalyzeStep(0); return; }
-    const int = setInterval(() => setAnalyzeStep(s => Math.min(s + 1, ANALYZE_STEPS.length - 1)), 900);
+    const int = setInterval(() => setAnalyzeStep(s => Math.min(s + 1, ANALYZE_STEPS.length - 1)), 320);
     return () => clearInterval(int);
   }, [loading]);
-
-  // Fluid reveal for assistant messages
-  useEffect(() => {
-    const last = messages[messages.length - 1];
-    if (!last || last.role !== 'assistant') return;
-    if (revealed[last.id] === last.content.length) return;
-    let i = revealed[last.id] || 0;
-    const chunk = Math.max(3, Math.floor(last.content.length / 120));
-    const t = setInterval(() => {
-      i = Math.min(i + chunk, last.content.length);
-      setRevealed(r => ({ ...r, [last.id]: i }));
-      if (i >= last.content.length) clearInterval(t);
-    }, 20);
-    return () => clearInterval(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages.length]);
 
   const newSession = () => {
     setMessages([]);
@@ -299,7 +290,7 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
 
   const sendMessage = async () => {
     const text = input.trim();
-    if ((!text && !attachment) || loading) return;
+    if ((!text && !attachment) || loading || streamingId) return;
     if (!chatLimit.canUse) { setGateFeature('chat_juridico'); return; }
     chatLimit.register();
 
@@ -318,9 +309,23 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
-    const sentAttachment = attachment;
     setAttachment(null);
     setLoading(true);
+    setAnalyzeStep(0);
+
+    // Posiciona suavemente no início da nova interação (apenas uma vez, sem arrastar depois)
+    setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 60);
+
+    const asMsgId = crypto.randomUUID();
+    let assistantMessageCreated = false;
+
     try {
       const systemInstruction = `Você é um assistente jurídico especializado em Direito Brasileiro.
 REGRAS DE ESTILO E FORMATO:
@@ -335,7 +340,7 @@ REGRAS DE ESTILO E FORMATO:
     | Hierarquia | Grau máximo | Abaixo do STF |
 - Utilize formatação rica com títulos, subtítulos, negrito e listas quando ajudar na clareza.`;
 
-      const chatReply = await generateOmniChat({
+      const chatReply = await generateOmniChatStream({
         modelOverride: 'antigravity/gemini-3.8-flash-tiered',
         messages: [
           { role: 'system', content: systemInstruction },
@@ -344,29 +349,69 @@ REGRAS DE ESTILO E FORMATO:
             content: m.content
           }))
         ],
-        temperature: 0.7
+        temperature: 0.7,
+        onDelta: (_delta, accumulated) => {
+          if (!assistantMessageCreated) {
+            assistantMessageCreated = true;
+            setLoading(false); // Esconde o card de passos assim que os primeiros tokens chegam
+            setStreamingId(asMsgId);
+            setMessages(prev => [
+              ...prev,
+              {
+                id: asMsgId,
+                role: 'assistant',
+                content: accumulated,
+                createdAt: Date.now(),
+                webSearch,
+              }
+            ]);
+          } else {
+            setMessages(prev => prev.map(m => m.id === asMsgId ? { ...m, content: accumulated } : m));
+          }
+          // Intencionalmente NÃO forçamos scroll down: o usuário permanece no topo lendo o texto que cresce para baixo!
+        }
       });
       
-      const webSources: ChatSource[] = []; // OmniRoute doesn't natively return Google Search grounding sources in this format
+      const webSources: ChatSource[] = [];
       const startN = 1;
       const rawReply: string = chatReply || 'Não consegui gerar uma resposta agora. Tente reformular.';
       const { text: enrichedReply, sources: statuteSources } = extractStatuteSources(rawReply, startN);
-      const asMsg: Message = {
-        id: crypto.randomUUID(), role: 'assistant',
-        content: enrichedReply,
-        createdAt: Date.now(),
-        sources: [...webSources, ...statuteSources],
-        webSearch,
-      };
-      setMessages(prev => [...prev, asMsg]);
-      setRevealed(r => ({ ...r, [asMsg.id]: 0 }));
+      
+      setMessages(prev => {
+        const exists = prev.some(m => m.id === asMsgId);
+        if (exists) {
+          return prev.map(m => m.id === asMsgId ? {
+            ...m,
+            content: enrichedReply,
+            sources: [...webSources, ...statuteSources],
+          } : m);
+        } else {
+          return [
+            ...prev,
+            {
+              id: asMsgId,
+              role: 'assistant',
+              content: enrichedReply,
+              createdAt: Date.now(),
+              sources: [...webSources, ...statuteSources],
+              webSearch,
+            }
+          ];
+        }
+      });
+      setStreamingId(null);
+      setRevealed(r => ({ ...r, [asMsgId]: enrichedReply.length }));
     } catch (err: any) {
       console.error('Erro no Chat Jurídico:', err);
       const errMsg = err?.message || 'Erro ao processar. Tente novamente.';
       toast.error(errMsg);
-      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `⚠️ ${errMsg}`, createdAt: Date.now() }]);
+      setMessages(prev => [
+        ...prev.filter(m => m.id !== asMsgId),
+        { id: crypto.randomUUID(), role: 'assistant', content: `⚠️ ${errMsg}`, createdAt: Date.now() }
+      ]);
     } finally {
       setLoading(false);
+      setStreamingId(null);
     }
   };
 
@@ -553,15 +598,20 @@ REGRAS DE ESTILO E FORMATO:
 
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-4 space-y-3">
+          <div ref={scrollRef} onScroll={handleScroll} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-4 space-y-3 relative">
             <div className={isDesktop ? 'max-w-3xl mx-auto w-full space-y-3' : 'contents'}>
             {messages.length === 0 && !loading && (
               <BrainEmptyState suggestions={suggestions} onSelect={(q) => setInput(q)} />
             )}
 
             {messages.map(msg => {
-              const shown = msg.role === 'assistant' ? msg.content.slice(0, revealed[msg.id] ?? msg.content.length) : msg.content;
-              const complete = msg.role !== 'assistant' || shown === msg.content;
+              const isMsgStreaming = streamingId === msg.id;
+              const shown = isMsgStreaming
+                ? msg.content
+                : msg.role === 'assistant'
+                  ? msg.content.slice(0, revealed[msg.id] ?? msg.content.length)
+                  : msg.content;
+              const complete = !isMsgStreaming && (msg.role !== 'assistant' || shown === msg.content);
               const maxN = msg.sources?.length ?? 0;
               // Se a IA devolver linhas de tabela emendadas com "||" em vez de quebra de linha "\n", normalizamos para linhas individuais de Markdown
               const normalizedMarkdown = shown.replace(/\|\s*\|\s*(?=[^:\s\n-])/g, '|\n|');
@@ -583,8 +633,8 @@ REGRAS DE ESTILO E FORMATO:
                     {msg.role === 'assistant' ? (
                       <>
                         <motion.div
-                          initial={{ opacity: 0.6 }} animate={{ opacity: 1 }}
-                          className="prose prose-base dark:prose-invert max-w-none font-body text-[15px] leading-relaxed [&_p]:my-1.5 [&_ul]:my-1.5 [&_ol]:my-1.5 [&_li]:my-1"
+                          initial={{ opacity: 0.8 }} animate={{ opacity: 1 }}
+                          className="prose prose-base dark:prose-invert max-w-none font-body text-[15px] leading-relaxed [&_p]:my-1.5 [&_ul]:my-1.5 [&_ol]:my-1.5 [&_li]:my-1 transition-opacity duration-200"
                           onCopy={(e) => {
                             const sel = window.getSelection()?.toString() ?? '';
                             if (!sel) return;
@@ -634,7 +684,26 @@ REGRAS DE ESTILO E FORMATO:
                           >
                             {shownWithLinks}
                           </ReactMarkdown>
+                          {isMsgStreaming && (
+                            <span
+                              aria-hidden="true"
+                              className="inline-block w-2 h-4 ml-1.5 align-middle rounded-sm bg-gradient-to-t from-primary to-accent animate-pulse shadow-[0_0_10px_hsl(var(--primary)/0.6)]"
+                            />
+                          )}
                         </motion.div>
+                        {isMsgStreaming && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="mt-2.5 pt-2 border-t border-border/40 flex items-center gap-2 text-xs text-muted-foreground/90 font-body"
+                          >
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span>Escrevendo resposta em tempo real…</span>
+                          </motion.div>
+                        )}
                         {complete && msg.sources && msg.sources.length > 0 && (
                           <SourcesFooter sources={msg.sources} />
                         )}
@@ -675,35 +744,58 @@ REGRAS DE ESTILO E FORMATO:
               );
             })}
 
-
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3 min-w-[220px]">
-                  <p className="text-xs font-body text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <Loader2 className="w-3 h-3 animate-spin" /> Analisando…
-                  </p>
-                  <ul className="space-y-1.5">
-                    {ANALYZE_STEPS.map((step, i) => {
-                      const done = i < analyzeStep;
-                      const active = i === analyzeStep;
-                      return (
-                        <li key={step} className="flex items-center gap-2 text-xs font-body">
-                          <motion.span
-                            initial={false}
-                            animate={{ scale: active ? 1.1 : 1 }}
-                            className={`w-4 h-4 rounded-full flex items-center justify-center ${done ? 'bg-emerald-500' : active ? 'bg-accent' : 'bg-secondary'}`}
-                          >
-                            {done ? <Check className="w-2.5 h-2.5 text-white" /> : active ? <Loader2 className="w-2.5 h-2.5 animate-spin text-accent-foreground" /> : null}
-                          </motion.span>
-                          <span className={done ? 'text-foreground' : active ? 'text-foreground' : 'text-muted-foreground/60'}>{step}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </div>
-            )}
+            <AnimatePresence>
+              {loading && !streamingId && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+                  className="flex justify-start"
+                >
+                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3 min-w-[220px]">
+                    <p className="text-xs font-body text-muted-foreground mb-2 flex items-center gap-1.5">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Analisando…
+                    </p>
+                    <ul className="space-y-1.5">
+                      {ANALYZE_STEPS.map((step, i) => {
+                        const done = i < analyzeStep;
+                        const active = i === analyzeStep;
+                        return (
+                          <li key={step} className="flex items-center gap-2 text-xs font-body">
+                            <motion.span
+                              initial={false}
+                              animate={{ scale: active ? 1.1 : 1 }}
+                              className={`w-4 h-4 rounded-full flex items-center justify-center ${done ? 'bg-emerald-500' : active ? 'bg-accent' : 'bg-secondary'}`}
+                            >
+                              {done ? <Check className="w-2.5 h-2.5 text-white" /> : active ? <Loader2 className="w-2.5 h-2.5 animate-spin text-accent-foreground" /> : null}
+                            </motion.span>
+                            <span className={done ? 'text-foreground' : active ? 'text-foreground' : 'text-muted-foreground/60'}>{step}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             </div>
+
+            {/* Botão flutuante discreto: só aparece se o usuário rolou para cima e o texto continua abaixo */}
+            <AnimatePresence>
+              {showScrollBottomBtn && (
+                <motion.button
+                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                  onClick={() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })}
+                  aria-label="Rolar para o final"
+                  className="sticky bottom-2 ml-auto z-20 px-3.5 py-1.5 rounded-full bg-card/95 border border-border shadow-xl text-xs font-medium text-foreground flex items-center gap-1.5 backdrop-blur-md hover:bg-card active:scale-95 transition-all"
+                >
+                  <ChevronDown className="w-3.5 h-3.5 text-primary animate-bounce" />
+                  <span>Descer para o fim</span>
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Input area */}

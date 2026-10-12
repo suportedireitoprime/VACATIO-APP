@@ -218,6 +218,137 @@ export async function generateOmniChat({
 }
 
 /**
+ * Função para Chat com streaming em tempo real (Estilo ChatGPT)
+ * Transmite tokens diretamente para callback conforme são gerados
+ */
+export async function generateOmniChatStream({
+  messages,
+  temperature = 0.7,
+  modelOverride,
+  complexity,
+  onDelta,
+  signal,
+}: {
+  messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
+  temperature?: number;
+  modelOverride?: string;
+  complexity?: OmniModelComplexity;
+  onDelta: (textChunk: string, accumulated: string) => void;
+  signal?: AbortSignal;
+}): Promise<string> {
+  const config = getOmniRouteConfig();
+
+  const url = config.baseUrl.endsWith('/v1')
+    ? `${config.baseUrl}/chat/completions`
+    : `${config.baseUrl.replace(/\/$/, '')}/v1/chat/completions`;
+
+  const candidateModel = modelOverride || (complexity ? OMNI_MODELS[complexity] : config.defaultModel) || DEFAULT_OMNIROUTE_MODEL;
+  const finalModel = (candidateModel.startsWith('openrouter/') || candidateModel === 'omniroute/auto' || candidateModel === 'auto')
+    ? DEFAULT_OMNIROUTE_MODEL
+    : candidateModel;
+
+  const payload = {
+    model: finalModel,
+    messages,
+    stream: true,
+    temperature
+  };
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+  const res = await fetch(`${supabaseUrl}/functions/v1/assistente-juridica`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': anonKey,
+      'Authorization': `Bearer ${anonKey}`,
+    },
+    body: JSON.stringify({
+      mode: 'omniroute_proxy',
+      url,
+      payload,
+      stream: true
+    }),
+    signal
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Erro no streaming da IA (${res.status}): ${errorText}`);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) {
+    throw new Error('ReadableStream não suportado pelo navegador');
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let accumulated = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith(':')) continue;
+        if (line === 'data: [DONE]') continue;
+        if (line.startsWith('data: ')) {
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr) continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (delta) {
+              accumulated += delta;
+              onDelta(delta, accumulated);
+            }
+          } catch {
+            // Ignora linhas parciais ou inválidas
+          }
+        }
+      }
+    }
+
+    if (buffer.trim().startsWith('data: ')) {
+      const jsonStr = buffer.trim().slice(6).trim();
+      if (jsonStr && jsonStr !== '[DONE]') {
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const delta = parsed.choices?.[0]?.delta?.content;
+          if (delta) {
+            accumulated += delta;
+            onDelta(delta, accumulated);
+          }
+        } catch {}
+      }
+    }
+  } catch (err: any) {
+    if (signal?.aborted) return accumulated;
+    console.warn('[Stream] Erro durante leitura dos chunks:', err);
+    if (!accumulated) throw err;
+  }
+
+  // Se por alguma anomalia o stream não gerou nenhum texto, faz fallback para generateOmniChat
+  if (!accumulated) {
+    console.warn('[Stream] Stream vazio, acionando fallback síncrono');
+    const fallbackText = await generateOmniChat({ messages, temperature, modelOverride, complexity });
+    accumulated = fallbackText;
+    onDelta(fallbackText, fallbackText);
+  }
+
+  return accumulated;
+}
+
+
+/**
  * Função para gerar imagens usando OmniRoute
  */
 export async function generateOmniImage({

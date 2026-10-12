@@ -370,6 +370,20 @@ Deno.serve(async (req) => {
         }
         const proxyRes = await fetch(omniUrl, fetchOpts);
 
+        // Se for requisição de streaming (SSE), repassa o stream em tempo real
+        if (body.stream || body.payload?.stream) {
+          return new Response(proxyRes.body, {
+            status: proxyRes.status,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive',
+              'X-Accel-Buffering': 'no',
+            },
+          });
+        }
+
         const data = await proxyRes.text();
         
         if (!proxyRes.ok) {
