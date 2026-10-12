@@ -300,20 +300,22 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
       web_search: webSearch,
       message_length: text.length,
     });
-    const userMsg: Message = {
-      id: crypto.randomUUID(), role: 'user',
-      content: text || (attachment ? `📎 ${attachment.name}` : ''),
-      attachment: attachment || undefined,
+    const asMsgId = crypto.randomUUID();
+    const assistantMsgPlaceholder: Message = {
+      id: asMsgId,
+      role: 'assistant',
+      content: '',
       createdAt: Date.now(),
+      webSearch,
     };
-    const newMessages = [...messages, userMsg];
+    const newMessages = [...messages, userMsg, assistantMsgPlaceholder];
     setMessages(newMessages);
     setInput('');
     setAttachment(null);
-    setLoading(true);
-    setAnalyzeStep(0);
+    setLoading(false);
+    setStreamingId(asMsgId);
 
-    // Posiciona suavemente no início da nova interação (apenas uma vez, sem arrastar depois)
+    // Posiciona suavemente no início da nova mensagem enviada (apenas uma vez)
     setTimeout(() => {
       if (scrollRef.current) {
         scrollRef.current.scrollTo({
@@ -322,9 +324,6 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
         });
       }
     }, 60);
-
-    const asMsgId = crypto.randomUUID();
-    let assistantMessageCreated = false;
 
     try {
       const systemInstruction = `Você é um assistente jurídico especializado em Direito Brasileiro.
@@ -341,33 +340,17 @@ REGRAS DE ESTILO E FORMATO:
 - Utilize formatação rica com títulos, subtítulos, negrito e listas quando ajudar na clareza.`;
 
       const chatReply = await generateOmniChatStream({
-        modelOverride: 'antigravity/gemini-3.8-flash-tiered',
+        modelOverride: 'antigravity/gemini-3-flash',
         messages: [
           { role: 'system', content: systemInstruction },
-          ...newMessages.map(m => ({
+          ...newMessages.slice(0, -1).map(m => ({
             role: m.role === 'assistant' ? ('assistant' as const) : m.role === 'user' ? ('user' as const) : ('system' as const),
             content: m.content
           }))
         ],
         temperature: 0.7,
         onDelta: (_delta, accumulated) => {
-          if (!assistantMessageCreated) {
-            assistantMessageCreated = true;
-            setLoading(false); // Esconde o card de passos assim que os primeiros tokens chegam
-            setStreamingId(asMsgId);
-            setMessages(prev => [
-              ...prev,
-              {
-                id: asMsgId,
-                role: 'assistant',
-                content: accumulated,
-                createdAt: Date.now(),
-                webSearch,
-              }
-            ]);
-          } else {
-            setMessages(prev => prev.map(m => m.id === asMsgId ? { ...m, content: accumulated } : m));
-          }
+          setMessages(prev => prev.map(m => m.id === asMsgId ? { ...m, content: accumulated } : m));
           // Intencionalmente NÃO forçamos scroll down: o usuário permanece no topo lendo o texto que cresce para baixo!
         }
       });
@@ -632,66 +615,80 @@ REGRAS DE ESTILO E FORMATO:
                     )}
                     {msg.role === 'assistant' ? (
                       <>
-                        <motion.div
-                          initial={{ opacity: 0.8 }} animate={{ opacity: 1 }}
-                          className="prose prose-base dark:prose-invert max-w-none font-body text-[15px] leading-relaxed [&_p]:my-1.5 [&_ul]:my-1.5 [&_ol]:my-1.5 [&_li]:my-1 transition-opacity duration-200"
-                          onCopy={(e) => {
-                            const sel = window.getSelection()?.toString() ?? '';
-                            if (!sel) return;
-                            e.preventDefault();
-                            e.clipboardData.setData('text/plain', stripCitations(sel));
-                          }}
-                        >
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              a: ({ href, children, ...rest }) => {
-                                if (href?.startsWith('cite://')) {
-                                  const n = parseInt(href.replace('cite://', ''), 10);
-                                  const source = msg.sources?.find((s) => s.n === n);
-                                  return <CitationChip n={n} source={source} />;
-                                }
-                                return <a href={href} target="_blank" rel="noopener noreferrer" {...rest}>{children}</a>;
-                              },
-                              table: ({ children, ...props }) => (
-                                <div className="w-full my-4 overflow-x-auto rounded-xl border border-border/70 bg-card/60 shadow-inner scrollbar-thin">
-                                  <table className="w-full text-left border-collapse text-xs md:text-sm min-w-[420px]" {...props}>
-                                    {children}
-                                  </table>
-                                </div>
-                              ),
-                              thead: ({ children, ...props }) => (
-                                <thead className="bg-muted/80 border-b border-border text-foreground font-semibold uppercase text-[11px] tracking-wider" {...props}>
-                                  {children}
-                                </thead>
-                              ),
-                              tbody: ({ children, ...props }) => (
-                                <tbody className="divide-y divide-border/40" {...props}>
-                                  {children}
-                                </tbody>
-                              ),
-                              th: ({ children, ...props }) => (
-                                <th className="px-3 py-2.5 font-bold text-foreground text-left whitespace-nowrap" {...props}>
-                                  {children}
-                                </th>
-                              ),
-                              td: ({ children, ...props }) => (
-                                <td className="px-3 py-2.5 align-top text-foreground/90 whitespace-normal leading-relaxed" {...props}>
-                                  {children}
-                                </td>
-                              ),
+                        {isMsgStreaming && !shown ? (
+                          <div className="py-2 px-1 space-y-2 min-w-[220px]">
+                            <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+                              <Sparkles className="w-3.5 h-3.5 text-primary animate-spin" />
+                              <span className="animate-pulse">Consultando e fundamentando resposta…</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 pt-1">
+                              <div className="h-1.5 w-12 rounded-full bg-primary/50 animate-pulse" />
+                              <div className="h-1.5 w-24 rounded-full bg-primary/30 animate-pulse delay-75" />
+                              <div className="h-1.5 w-8 rounded-full bg-primary/40 animate-pulse delay-150" />
+                            </div>
+                          </div>
+                        ) : (
+                          <motion.div
+                            initial={{ opacity: 0.8 }} animate={{ opacity: 1 }}
+                            className="prose prose-base dark:prose-invert max-w-none font-body text-[15px] leading-relaxed [&_p]:my-1.5 [&_ul]:my-1.5 [&_ol]:my-1.5 [&_li]:my-1 transition-opacity duration-200"
+                            onCopy={(e) => {
+                              const sel = window.getSelection()?.toString() ?? '';
+                              if (!sel) return;
+                              e.preventDefault();
+                              e.clipboardData.setData('text/plain', stripCitations(sel));
                             }}
                           >
-                            {shownWithLinks}
-                          </ReactMarkdown>
-                          {isMsgStreaming && (
-                            <span
-                              aria-hidden="true"
-                              className="inline-block w-2 h-4 ml-1.5 align-middle rounded-sm bg-gradient-to-t from-primary to-accent animate-pulse shadow-[0_0_10px_hsl(var(--primary)/0.6)]"
-                            />
-                          )}
-                        </motion.div>
-                        {isMsgStreaming && (
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                a: ({ href, children, ...rest }) => {
+                                  if (href?.startsWith('cite://')) {
+                                    const n = parseInt(href.replace('cite://', ''), 10);
+                                    const source = msg.sources?.find((s) => s.n === n);
+                                    return <CitationChip n={n} source={source} />;
+                                  }
+                                  return <a href={href} target="_blank" rel="noopener noreferrer" {...rest}>{children}</a>;
+                                },
+                                table: ({ children, ...props }) => (
+                                  <div className="w-full my-4 overflow-x-auto rounded-xl border border-border/70 bg-card/60 shadow-inner scrollbar-thin">
+                                    <table className="w-full text-left border-collapse text-xs md:text-sm min-w-[420px]" {...props}>
+                                      {children}
+                                    </table>
+                                  </div>
+                                ),
+                                thead: ({ children, ...props }) => (
+                                  <thead className="bg-muted/80 border-b border-border text-foreground font-semibold uppercase text-[11px] tracking-wider" {...props}>
+                                    {children}
+                                  </thead>
+                                ),
+                                tbody: ({ children, ...props }) => (
+                                  <tbody className="divide-y divide-border/40" {...props}>
+                                    {children}
+                                  </tbody>
+                                ),
+                                th: ({ children, ...props }) => (
+                                  <th className="px-3 py-2.5 font-bold text-foreground text-left whitespace-nowrap" {...props}>
+                                    {children}
+                                  </th>
+                                ),
+                                td: ({ children, ...props }) => (
+                                  <td className="px-3 py-2.5 align-top text-foreground/90 whitespace-normal leading-relaxed" {...props}>
+                                    {children}
+                                  </td>
+                                ),
+                              }}
+                            >
+                              {shownWithLinks}
+                            </ReactMarkdown>
+                            {isMsgStreaming && (
+                              <span
+                                aria-hidden="true"
+                                className="inline-block w-2 h-4 ml-1.5 align-middle rounded-sm bg-gradient-to-t from-primary to-accent animate-pulse shadow-[0_0_10px_hsl(var(--primary)/0.6)]"
+                              />
+                            )}
+                          </motion.div>
+                        )}
+                        {isMsgStreaming && !!shown && (
                           <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -743,41 +740,6 @@ REGRAS DE ESTILO E FORMATO:
                 </div>
               );
             })}
-
-            <AnimatePresence>
-              {loading && !streamingId && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-                  className="flex justify-start"
-                >
-                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3 min-w-[220px]">
-                    <p className="text-xs font-body text-muted-foreground mb-2 flex items-center gap-1.5">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Analisando…
-                    </p>
-                    <ul className="space-y-1.5">
-                      {ANALYZE_STEPS.map((step, i) => {
-                        const done = i < analyzeStep;
-                        const active = i === analyzeStep;
-                        return (
-                          <li key={step} className="flex items-center gap-2 text-xs font-body">
-                            <motion.span
-                              initial={false}
-                              animate={{ scale: active ? 1.1 : 1 }}
-                              className={`w-4 h-4 rounded-full flex items-center justify-center ${done ? 'bg-emerald-500' : active ? 'bg-accent' : 'bg-secondary'}`}
-                            >
-                              {done ? <Check className="w-2.5 h-2.5 text-white" /> : active ? <Loader2 className="w-2.5 h-2.5 animate-spin text-accent-foreground" /> : null}
-                            </motion.span>
-                            <span className={done ? 'text-foreground' : active ? 'text-foreground' : 'text-muted-foreground/60'}>{step}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
             </div>
 
             {/* Botão flutuante discreto: só aparece se o usuário rolou para cima e o texto continua abaixo */}
