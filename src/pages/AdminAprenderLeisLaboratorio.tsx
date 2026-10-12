@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -1518,13 +1519,13 @@ const AdminAprenderLeisLaboratorio = () => {
   return (
     <>
       {/* ========================================================= */}
-      {/* SE ESTIVER EM AULA: MODO TELA TODA (FULL SCREEN MODAL)   */}
+      {/* SE ESTIVER EM AULA: MODO TELA TODA (FULL SCREEN PORTAL)   */}
       {/* ========================================================= */}
-      {emAula && (
-        <div className="fixed inset-0 z-50 bg-background text-foreground flex flex-col overflow-hidden">
+      {emAula && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[99999] h-[100dvh] w-screen max-w-full overflow-hidden bg-background text-foreground flex flex-col select-none">
           
-          {/* TOPO DA TELA TODA: Barra de Controles e Progresso */}
-          <div className="p-3.5 sm:p-4 border-b border-border/80 bg-background/95 backdrop-blur-md flex flex-col gap-2.5 shrink-0 shadow-sm">
+          {/* TOPO DA TELA TODA: Barra de Controles e Progresso (FIXO NO TOPO) */}
+          <header className="shrink-0 z-30 w-full px-3.5 py-2.5 sm:px-5 sm:py-3 border-b border-border/80 bg-background/95 backdrop-blur-md flex flex-col gap-2 shadow-sm">
             
             {/* Linha 1: Botão Sair, Título da Mecânica e Botão de Áudio */}
             <div className="flex items-center justify-between gap-3">
@@ -1532,7 +1533,7 @@ const AdminAprenderLeisLaboratorio = () => {
               {/* Botão Sair da Aula */}
               <button
                 onClick={handleSairDaAula}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-secondary/50 hover:bg-secondary text-foreground text-xs font-bold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-foreground text-xs font-bold transition-colors"
                 title="Sair da Aula (Esc)"
               >
                 <X className="w-4 h-4 text-muted-foreground" />
@@ -1540,11 +1541,11 @@ const AdminAprenderLeisLaboratorio = () => {
               </button>
 
               {/* Informações Centrais */}
-              <div className="text-center min-w-0 flex-1">
+              <div className="text-center min-w-0 flex-1 px-1">
                 <span className={`text-[10px] font-bold uppercase tracking-wider block truncate ${mecanica.corPrimaria}`}>
                   {mecanica.nome}
                 </span>
-                <span className="text-xs font-extrabold text-foreground">
+                <span className="text-xs font-extrabold text-foreground truncate block">
                   {artigoAtual === 'art1' ? 'Código Penal — Artigo 1º' : 'Código Penal — Artigo 2º'}
                 </span>
               </div>
@@ -1555,7 +1556,7 @@ const AdminAprenderLeisLaboratorio = () => {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 shadow-sm ${
                   falando
                     ? `${mecanica.botaoCor} text-white animate-pulse`
-                    : 'border-border bg-secondary/50 hover:bg-secondary text-foreground'
+                    : 'border-border bg-secondary/60 hover:bg-secondary text-foreground'
                 }`}
                 title="Ouvir explicação do slide com voz"
               >
@@ -1576,10 +1577,10 @@ const AdminAprenderLeisLaboratorio = () => {
             {/* Linha 2: Barra de Progresso Progressiva */}
             <div className="space-y-1">
               <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground">
-                <span>{slideAtual.badge}</span>
-                <span>Etapa {slideIndex + 1} de {slides.length}</span>
+                <span className="truncate max-w-[70%]">{slideAtual.badge}</span>
+                <span className="font-bold text-foreground">Etapa {slideIndex + 1} de {slides.length}</span>
               </div>
-              <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
+              <div className="w-full h-1.5 sm:h-2 rounded-full bg-secondary overflow-hidden">
                 <div 
                   className={`h-full transition-all duration-300 ${mecanica.botaoCor}`}
                   style={{ width: `${((slideIndex + 1) / slides.length) * 100}%` }}
@@ -1587,14 +1588,14 @@ const AdminAprenderLeisLaboratorio = () => {
               </div>
             </div>
 
-          </div>
+          </header>
 
-          {/* CENTRO DA TELA TODA: CONTEÚDO ROLÁVEL DO SLIDE */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center">
-            <div className="w-full max-w-2xl mx-auto space-y-4 my-auto">
+          {/* CENTRO DA TELA TODA: CONTEÚDO COM LIMITE DE TELA PADRÃO (SEM ESPAÇO VAZIO NO TOPO) */}
+          <main className="flex-1 w-full overflow-y-auto px-4 py-3 sm:py-5 flex flex-col items-center justify-start">
+            <div className="w-full max-w-lg mx-auto space-y-3.5 pt-1 pb-6">
               
               <div className="text-center space-y-1">
-                <h3 className="text-lg sm:text-2xl font-bold font-display text-foreground tracking-tight">
+                <h3 className="text-base sm:text-xl font-bold font-display text-foreground tracking-tight">
                   {slideAtual.titulo}
                 </h3>
                 {slideAtual.subtitulo && (
@@ -1607,37 +1608,38 @@ const AdminAprenderLeisLaboratorio = () => {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={slideAtual.id}
-                  initial={{ opacity: 0, y: 15 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.18 }}
+                  className="w-full"
                 >
                   {slideAtual.conteudoPrincipal}
                 </motion.div>
               </AnimatePresence>
 
             </div>
-          </div>
+          </main>
 
-          {/* RODAPÉ DA TELA TODA: CONTROLES DE NAVEGAÇÃO */}
-          <div className="p-4 border-t border-border/80 bg-background/95 backdrop-blur-md flex items-center justify-between gap-3 shrink-0 shadow-lg">
+          {/* RODAPÉ DA TELA TODA: CONTROLES DE NAVEGAÇÃO FIXOS NO FUNDO */}
+          <footer className="shrink-0 z-30 w-full px-4 py-3 sm:px-6 sm:py-3.5 border-t border-border/80 bg-background/95 backdrop-blur-md flex items-center justify-between gap-3 shadow-lg pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <button
               onClick={slideAnterior}
               disabled={slideIndex === 0}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border bg-card hover:bg-secondary text-foreground font-semibold text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card hover:bg-secondary text-foreground font-bold text-xs transition-colors disabled:opacity-30 disabled:cursor-not-allowed shadow-sm active:scale-95"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Anterior</span>
             </button>
 
-            <div className="text-xs text-muted-foreground font-bold">
+            <div className="text-xs text-muted-foreground font-extrabold">
               {slideIndex + 1} / {slides.length}
             </div>
 
             {slideIndex < slides.length - 1 ? (
               <button
                 onClick={proximoSlide}
-                className={`flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 ${mecanica.botaoCor}`}
+                className={`flex items-center gap-1.5 px-6 py-2 rounded-xl text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 ${mecanica.botaoCor}`}
               >
                 <span>Próximo</span>
                 <ChevronRight className="w-4 h-4" />
@@ -1649,15 +1651,16 @@ const AdminAprenderLeisLaboratorio = () => {
                   handleSairDaAula();
                   toast.success('Parabéns! Você completou a aula inteira com sucesso!');
                 }}
-                className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-white font-bold text-xs transition-all ${mecanica.botaoCor}`}
+                className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-white font-bold text-xs transition-all ${mecanica.botaoCor}`}
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Concluir Aula</span>
+                <span>Concluir</span>
               </button>
             )}
-          </div>
+          </footer>
 
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ========================================================= */}
