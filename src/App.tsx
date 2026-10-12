@@ -180,6 +180,9 @@ const AdminMonitorApis = lazy(() => import("./pages/AdminMonitorApis.tsx"));
 const AdminOmniRoute = lazy(() => import("./pages/AdminOmniRoute.tsx"));
 const AdminFontesLegislacao = lazy(() => import("./pages/AdminFontesLegislacao.tsx"));
 const AdminAprender = lazy(() => import("./pages/AdminAprender.tsx"));
+const AdminAprenderLeis = lazy(() => import("./pages/AdminAprenderLeis.tsx"));
+const AdminAprenderLeisLaboratorio = lazy(() => import("./pages/AdminAprenderLeisLaboratorio.tsx"));
+const AdminAprenderLeisCriar = lazy(() => import("./pages/AdminAprenderLeisCriar.tsx"));
 const AdminRoboResumos = lazy(() => import("./pages/AdminRoboResumos.tsx"));
 const AdminPopularConteudo = lazy(() => import("./pages/AdminPopularConteudo.tsx"));
 const AdminAprenderArea = lazy(() => import("./pages/AdminAprenderArea.tsx"));
@@ -680,6 +683,10 @@ function AnimatedRoutes() {
           <Route path="/opiniao" element={<ProtectedRoute><PageTransition><Opiniao /></PageTransition></ProtectedRoute>} />
           <Route path="/planos/ativos" element={<ProtectedRoute><PageTransition><PlanosAtivos /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-aprender" element={<ProtectedRoute><PageTransition><AdminAprender /></PageTransition></ProtectedRoute>} />
+          <Route path="/admin-aprender-livros" element={<Navigate to="/admin-aprender" replace />} />
+          <Route path="/admin-aprender-leis" element={<ProtectedRoute><PageTransition><AdminAprenderLeis /></PageTransition></ProtectedRoute>} />
+          <Route path="/admin-aprender-leis/laboratorio" element={<ProtectedRoute><PageTransition><AdminAprenderLeisLaboratorio /></PageTransition></ProtectedRoute>} />
+          <Route path="/admin-aprender-leis/criar" element={<ProtectedRoute><PageTransition><AdminAprenderLeisCriar /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-robo-resumos" element={<ProtectedRoute><PageTransition><AdminRoboResumos /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-popular-conteudo" element={<ProtectedRoute><PageTransition><AdminPopularConteudo /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-aprender/:area" element={<ProtectedRoute><PageTransition><AdminAprenderArea /></PageTransition></ProtectedRoute>} />

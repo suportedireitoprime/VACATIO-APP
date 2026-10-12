@@ -122,11 +122,11 @@ const AdminAprender = () => {
     [stats],
   );
 
-  const mobileHeader = <PageHeader title="Admin — Aprender" onBack={() => navigate('/admin-funcoes')} />;
+  const mobileHeader = <PageHeader title="Admin — Aprender Livros" onBack={() => navigate('/admin-funcoes')} />;
 
   if (!isAdmin) {
     return (
-      <DesktopPageLayout activeId="admin" title="Admin — Aprender" mobileHeader={mobileHeader}>
+      <DesktopPageLayout activeId="admin" title="Admin — Aprender Livros" mobileHeader={mobileHeader}>
         <div className="p-8 text-center text-muted-foreground">
           <ShieldAlert className="mx-auto mb-3 h-10 w-10" />
           Apenas administradores.
@@ -138,8 +138,8 @@ const AdminAprender = () => {
   return (
     <DesktopPageLayout
       activeId="admin"
-      title="Admin — Aprender"
-      subtitle="Escolha uma categoria para gerar as aulas"
+      title="Admin — Aprender Livros"
+      subtitle="Escolha uma categoria para gerar as aulas a partir de livros"
       mobileHeader={mobileHeader}
     >
       <div className="px-4 sm:px-6 py-6 lg:px-0 lg:py-0 max-w-4xl mx-auto w-full">

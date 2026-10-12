@@ -51,6 +51,10 @@ const PREFETCH: Record<string, () => Promise<unknown>> = {
   '/configuracoes': () => import('./Configuracoes'),
   '/admin-omniroute': () => import('./AdminOmniRoute'),
   '/admin-fontes-legislacao': () => import('./AdminFontesLegislacao'),
+  '/admin-aprender': () => import('./AdminAprender'),
+  '/admin-aprender-leis': () => import('./AdminAprenderLeis'),
+  '/admin-aprender-leis/laboratorio': () => import('./AdminAprenderLeisLaboratorio'),
+  '/admin-aprender-leis/criar': () => import('./AdminAprenderLeisCriar'),
 };
 const prefetched = new Set<string>();
 const prefetching = new Map<string, Promise<unknown>>();
@@ -176,12 +180,24 @@ const CATEGORIES: Category[] = [
   {
     id: 'aprender',
     title: 'Aprender',
-    desc: 'Gerar aulas por IA a partir dos resumos e publicar',
+    desc: 'Aulas interativas por IA de livros e leis',
     icon: GraduationCap,
     color: '#14b8a6',
-    route: '/admin-aprender',
     items: [
-      { id: 'admin-aprender', label: 'Gerar conteúdo das aulas', icon: Sparkles, desc: 'Gera/regera aulas a partir dos resumos e publica no app', route: '/admin-aprender' },
+      { 
+        id: 'admin-aprender-livros', 
+        label: 'Aprender Livros', 
+        icon: BookOpen, 
+        desc: 'Gerar aulas por IA a partir dos resumos e livros da biblioteca (Mistral)', 
+        route: '/admin-aprender' 
+      },
+      { 
+        id: 'admin-aprender-leis', 
+        label: 'Aprender Leis', 
+        icon: Scale, 
+        desc: 'Trilhas de leis para leigos: Laboratório de mecânicas e criação via OmniRoute', 
+        route: '/admin-aprender-leis' 
+      },
     ],
   },
   {
