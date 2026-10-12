@@ -201,10 +201,23 @@ const CategoriaLegislacao = () => {
         .select('ementa')
         .eq('slug', selectedLeiId)
         .maybeSingle();
-      if (!cancelled) setSelectedLeiEmenta((data?.ementa as string) || '');
+      if (!cancelled) {
+        if (data?.ementa) {
+          setSelectedLeiEmenta((data.ementa as string) || '');
+        } else if (selectedLeiNome) {
+          const { data: dataAlt } = await (supabase as any)
+            .from('vade_mecum_leis')
+            .select('ementa')
+            .ilike('nome', `%${selectedLeiNome}%`)
+            .maybeSingle();
+          if (!cancelled && dataAlt?.ementa) {
+            setSelectedLeiEmenta((dataAlt.ementa as string) || '');
+          }
+        }
+      }
     })();
     return () => { cancelled = true; };
-  }, [selectedLeiId]);
+  }, [selectedLeiId, selectedLeiNome]);
 
   // Analytics: lei selecionada
   useEffect(() => {
@@ -1729,7 +1742,7 @@ const CategoriaLegislacao = () => {
                     <div className="p-4 md:p-5 flex-1 min-w-0 flex flex-col justify-center">
                       <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300/90">{capHead}</p>
                       {capSub ? (
-                        <h5 className="font-serif text-base md:text-2xl font-bold text-foreground leading-snug mt-0.5">{toTitleCase(capSub)}</h5>
+                        <h5 className="text-base md:text-xl font-bold text-foreground leading-snug mt-0.5 tracking-tight">{toTitleCase(capSub)}</h5>
                       ) : null}
                       <p className="text-muted-foreground text-xs md:text-sm mt-1">
                         {capGroup.artigos.length} artigos{fA && lA ? ` (${fA} – ${lA})` : ''}
@@ -1780,11 +1793,11 @@ const CategoriaLegislacao = () => {
                   <div className="p-4 md:p-5 flex-1 min-w-0 flex flex-col justify-center">
                     <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300/90">{titHead}</p>
                     {titSub ? (
-                      <h5 className="font-serif text-lg md:text-3xl font-bold text-foreground leading-snug mt-1 line-clamp-2">
+                      <h5 className="text-base md:text-xl font-bold text-foreground leading-snug mt-1 line-clamp-2 tracking-tight">
                         {toTitleCase(titSub)}
                       </h5>
                     ) : (
-                      <h5 className="font-serif text-base md:text-lg font-semibold text-foreground leading-snug mt-1 opacity-0 select-none" aria-hidden>
+                      <h5 className="text-base md:text-lg font-semibold text-foreground leading-snug mt-1 opacity-0 select-none" aria-hidden>
                         &nbsp;
                       </h5>
                     )}
@@ -1828,12 +1841,12 @@ const CategoriaLegislacao = () => {
                                 {capSub ? (
                                   <>
                                     <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/80">{capHead}</p>
-                                    <h6 className="font-serif text-base md:text-2xl font-bold text-foreground leading-snug mt-0.5 line-clamp-2">
+                                    <h6 className="text-sm md:text-lg font-bold text-foreground leading-snug mt-0.5 line-clamp-2 tracking-tight">
                                       {toTitleCase(capSub)}
                                     </h6>
                                   </>
                                 ) : (
-                                  <h6 className="font-display text-base md:text-2xl font-bold text-foreground leading-snug">{capHead}</h6>
+                                  <h6 className="text-sm md:text-lg font-bold text-foreground leading-snug tracking-tight">{capHead}</h6>
                                 )}
                                 <p className="text-muted-foreground text-[11px] md:text-xs mt-1">{capGroup.artigos.length} artigos ({fA} – {lA})</p>
                               </div>
@@ -2764,16 +2777,18 @@ const CategoriaLegislacao = () => {
         })()}
 
         <Dialog open={showEmentaDialog} onOpenChange={setShowEmentaDialog}>
-          <DialogContent className="max-w-lg border-red-400/30 bg-gradient-to-b from-red-950/40 to-background/95 backdrop-blur-xl">
+          <DialogContent className="max-w-lg border-red-400/30 bg-gradient-to-b from-red-950/60 to-background/95 backdrop-blur-xl shadow-2xl">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-red-200">
-                <ScrollText className="w-4 h-4" />
-                Ementa
+              <DialogTitle className="flex items-center gap-2 text-red-200 font-bold tracking-wide">
+                <ScrollText className="w-4 h-4 text-red-400" />
+                Ementa Oficial
               </DialogTitle>
             </DialogHeader>
-            <p className="text-sm md:text-[15px] italic leading-relaxed text-red-100/95 whitespace-pre-line first-letter:float-left first-letter:text-5xl first-letter:pr-2 first-letter:font-serif first-letter:text-amber-400 first-letter:leading-none">
-              {selectedLeiEmenta}
-            </p>
+            <div className="py-2">
+              <p className="text-sm md:text-base italic leading-relaxed text-red-100/95 whitespace-pre-line border-l-2 border-red-500/40 pl-3.5">
+                {selectedLeiEmenta || selectedLei?.descricao || `${selectedLeiNome} — Legislação federal consolidada.`}
+              </p>
+            </div>
           </DialogContent>
         </Dialog>
 

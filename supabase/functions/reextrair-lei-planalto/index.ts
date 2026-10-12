@@ -176,14 +176,34 @@ function normalizeVadeMecumCategoria(value: string): "codigo" | "estatuto" | "le
 }
 
 function extractEmenta(html: string): string {
-  // A ementa no Planalto costuma vir num <p> logo após "LEI Nº ..., DE ... DE ..."
-  // com estilo "text-align:right" ou em uma célula à direita.
-  // Estratégia: lê o HTML linearizado, encontra o primeiro parágrafo curto após
-  // o cabeçalho "LEI Nº" e antes de "O PRESIDENTE" / "Faço saber".
+  // 1. Planalto maroon / red font (#800000) — marcador oficial de ementa no Planalto
+  const redMatches = html.match(/<font[^>]*color=["']?#?800000["']?[^>]*>([\s\S]*?)<\/font>/gi);
+  if (redMatches) {
+    for (const m of redMatches) {
+      const text = decodeHtmlEntities(m.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+      if (text && text.length >= 6 && !/presidência|subchefia/i.test(text)) {
+        return text;
+      }
+    }
+  }
+
+  // 2. Célula de tabela <td> com alinhamento à direita ou justificado
+  const tdMatches = html.match(/<td[^>]*(?:align=["']?(?:right|justify)["']?|width=["']?(?:4[0-9]%|5[0-9]%|60%)["']?)[^>]*>([\s\S]*?)<\/td>/gi);
+  if (tdMatches) {
+    for (const td of tdMatches) {
+      const text = decodeHtmlEntities(td.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+      if (text && text.length >= 8 && !/^(vigência|vide|retificação|presidência)/i.test(text)) {
+        return text;
+      }
+    }
+  }
+
+  // 3. Fallback: linearização do preâmbulo
   let body = html
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
     .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/td>/gi, "\n")
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<[^>]+>/g, "");
   body = decodeHtmlEntities(body)
@@ -199,9 +219,8 @@ function extractEmenta(html: string): string {
   for (let k = inicio + 1; k < Math.min(linhas.length, inicio + 15); k++) {
     const l = linhas[k];
     if (stopRe.test(l)) break;
-    if (l.length < 25) continue;
-    if (/^Mensagem\s+de\s+veto/i.test(l)) continue;
-    // Ementa costuma terminar com "outras providências." mas nem sempre.
+    if (l.length < 6) continue;
+    if (/^(vigência|vide|mensagem\s+de\s+veto)/i.test(l)) continue;
     return l.replace(/\s+/g, " ").trim();
   }
   return "";

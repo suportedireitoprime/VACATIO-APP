@@ -137,12 +137,22 @@ Deno.serve(async (req) => {
       console.log(`=== END ART 7 ===`);
     }
 
+    const ementa = extractEmentaFromHtml(html);
+    if (ementa) {
+      console.log(`Ementa extraída: ${ementa.slice(0, 100)}`);
+      await supabase
+        .from("vade_mecum_leis")
+        .update({ ementa })
+        .or(`slug.eq.${sigla.toLowerCase()},slug.eq.${(tabela_nome || '').toLowerCase()}`);
+    }
+
     const result = {
       success: true,
       lei: nome,
       sigla,
       tabela_nome,
       totalArtigos,
+      ementa,
     };
 
     console.log("Resultado:", JSON.stringify(result));
@@ -379,3 +389,55 @@ function isNomenJuris(text: string): boolean {
   if (!/^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÚÇ]/.test(cleaned)) return false;
   return true;
 }
+
+function extractEmentaFromHtml(html: string): string {
+  // 1. Planalto maroon / red font (#800000)
+  const redMatches = html.match(/<font[^>]*color=["']?#?800000["']?[^>]*>([\s\S]*?)<\/font>/gi);
+  if (redMatches) {
+    for (const m of redMatches) {
+      const text = decodeHtmlText(m.replace(/<[^>]+>/g, "")).trim();
+      if (text && text.length >= 6 && !/presidência|subchefia/i.test(text)) {
+        return text;
+      }
+    }
+  }
+
+  // 2. Célula td alinhada à direita ou justificada
+  const tdMatches = html.match(/<td[^>]*(?:align=["']?(?:right|justify)["']?|width=["']?(?:4[0-9]%|5[0-9]%|60%)["']?)[^>]*>([\s\S]*?)<\/td>/gi);
+  if (tdMatches) {
+    for (const td of tdMatches) {
+      const text = decodeHtmlText(td.replace(/<[^>]+>/g, "")).trim();
+      if (text && text.length >= 8 && !/^(vigência|vide|retificação|presidência)/i.test(text)) {
+        return text;
+      }
+    }
+  }
+
+  // 3. Fallback: linearização
+  let body = html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/td>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\r/g, "");
+  const linhas = body.split(/\n+/).map((l) => decodeHtmlText(l).trim()).filter(Boolean);
+  const inicio = linhas.findIndex((l) =>
+    /^(LEI(?:\s+COMPLEMENTAR)?|DECRETO(?:-LEI)?|MEDIDA\s+PROVISÓRIA|EMENDA\s+CONSTITUCIONAL)\s+N[º°]/i.test(l)
+  );
+  if (inicio >= 0) {
+    const stopRe = /^(O\s+PRESIDENTE|A\s+PRESIDENTE|Faço\s+saber|PRESIDENTE\s+DA\s+REPÚBLICA|CAP[ÍI]TULO|T[ÍI]TULO|LIVRO|PARTE|Art\.)/i;
+    for (let k = inicio + 1; k < Math.min(linhas.length, inicio + 15); k++) {
+      const l = linhas[k];
+      if (stopRe.test(l)) break;
+      if (l.length < 6) continue;
+      if (/^(vigência|vide|mensagem\s+de\s+veto)/i.test(l)) continue;
+      return l.replace(/\s+/g, " ").trim();
+    }
+  }
+
+  return "";
+}
+
