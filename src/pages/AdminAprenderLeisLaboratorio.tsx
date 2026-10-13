@@ -358,158 +358,44 @@ interface SlideImagemControleProps {
 }
 
 const SlideImagemVisualizadorEControle: React.FC<SlideImagemControleProps> = ({
-  slideId,
-  imagePrompt,
   imageUrl,
-  onSalvarUrl,
 }) => {
-  const [aberto, setAberto] = useState(false);
-  const [urlInput, setUrlInput] = useState(imageUrl || '');
-  const [copiado, setCopiado] = useState(false);
   const [modalZoom, setModalZoom] = useState(false);
 
-  useEffect(() => {
-    setUrlInput(imageUrl || '');
-  }, [imageUrl, slideId]);
-
-  const handleCopiarPrompt = () => {
-    if (!imagePrompt) return;
-    navigator.clipboard.writeText(imagePrompt);
-    setCopiado(true);
-    toast.success('Prompt copiado para a área de transferência!');
-    setTimeout(() => setCopiado(false), 2000);
-  };
-
-  const handleAplicar = () => {
-    if (!urlInput.trim()) {
-      toast.error('Informe a URL da imagem.');
-      return;
-    }
-    onSalvarUrl(urlInput.trim());
-    toast.success('Imagem vinculada ao slide!');
-    setAberto(false);
-  };
-
-  if (!imagePrompt && !imageUrl) return null;
+  if (!imageUrl) return null;
 
   return (
-    <div className="w-full space-y-2.5 my-2">
-      {/* 1. SE JÁ TIVER IMAGEM: RENDERIZAÇÃO CINEMATOGRÁFICA 16:9 */}
-      {imageUrl && (
-        <div className="relative group overflow-hidden rounded-2xl border border-teal-500/30 bg-background/60 shadow-lg">
-          <div className="aspect-video w-full overflow-hidden bg-black/40 flex items-center justify-center">
-            <img 
-              src={imageUrl} 
-              alt="Ilustração de Legal Design" 
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
-          </div>
-          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border text-[10px] font-bold text-teal-300">
-            <Sparkles className="w-3 h-3 text-teal-400" />
-            <span>Legal Design Visual (Gemini Spark)</span>
-          </div>
-          <button
-            onClick={() => setModalZoom(true)}
-            className="absolute bottom-2.5 right-2.5 p-2 rounded-xl bg-background/80 backdrop-blur-md border border-border text-foreground hover:bg-secondary transition-all opacity-0 group-hover:opacity-100 shadow-md"
-            title="Expandir Imagem"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
+    <div className="w-full my-3">
+      <div className="relative group overflow-hidden rounded-2xl border border-border/60 bg-neutral-950 shadow-md">
+        <div className="aspect-video w-full overflow-hidden flex items-center justify-center">
+          <img 
+            src={imageUrl} 
+            alt="Ilustração de Legal Design" 
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = 'none';
+            }}
+          />
         </div>
-      )}
-
-      {/* 2. PAINEL COLAPSÁVEL DE CONTROLE DO PROMPT & MCP SPARK */}
-      <div className="rounded-xl border border-border/70 bg-card/60 backdrop-blur-sm overflow-hidden text-left">
         <button
-          type="button"
-          onClick={() => setAberto(!aberto)}
-          className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-colors"
+          onClick={() => setModalZoom(true)}
+          className="absolute bottom-2.5 right-2.5 p-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/20 text-white hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer"
+          title="Expandir Imagem"
         >
-          <div className="flex items-center gap-2">
-            <ImageIcon className="w-3.5 h-3.5 text-teal-400" />
-            <span>
-              {imageUrl ? '🎨 Imagem Vinculada (Ver Prompt / Alterar Link)' : '🎨 Imagem do Slide (Prompt & Gemini Spark)'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {imageUrl ? (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                Pronta
-              </span>
-            ) : (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                Pendente no Spark
-              </span>
-            )}
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${aberto ? 'rotate-180' : ''}`} />
-          </div>
+          <Eye className="w-4 h-4" />
         </button>
-
-        {aberto && (
-          <div className="p-3.5 border-t border-border/60 space-y-3 bg-secondary/20">
-            {/* Prompt Formulado */}
-            {imagePrompt && (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                    Prompt Gerado para Imagen 3 / Gemini Spark:
-                  </span>
-                  <button
-                    onClick={handleCopiarPrompt}
-                    className="flex items-center gap-1 text-[10px] font-bold text-teal-400 hover:text-teal-300 transition-colors"
-                  >
-                    {copiado ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    <span>{copiado ? 'Copiado!' : 'Copiar Prompt'}</span>
-                  </button>
-                </div>
-                <div className="p-2.5 rounded-lg bg-background/80 border border-border text-[11px] font-mono text-muted-foreground leading-relaxed select-all max-h-24 overflow-y-auto">
-                  {imagePrompt}
-                </div>
-              </div>
-            )}
-
-            {/* Input Manual de URL / Storage */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
-                Link da Imagem (Supabase Storage ou Web):
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="url"
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="https://...supabase.co/storage/v1/object/public/aprender-leis-imagens/..."
-                  className="flex-1 min-h-[38px] px-3 rounded-lg border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                />
-                <button
-                  onClick={handleAplicar}
-                  className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white font-bold text-xs shadow-sm transition-all active:scale-95 shrink-0"
-                >
-                  Salvar
-                </button>
-              </div>
-              <p className="text-[10px] text-muted-foreground">
-                ⚡ O <strong>MCP Server</strong> do Gemini Spark pode salvar automaticamente essa URL através da ferramenta <code>upload_imagem_gerada</code>.
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Modal Zoom da Imagem */}
-      {modalZoom && imageUrl && (
+      {modalZoom && (
         <div 
           onClick={() => setModalZoom(false)}
-          className="fixed inset-0 z-[100000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
+          className="fixed inset-0 z-[100000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out"
         >
-          <div className="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-border/80 shadow-2xl">
+          <div className="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-white/20 shadow-2xl">
             <img src={imageUrl} alt="Zoom" className="w-full h-full object-contain" />
             <button
               onClick={() => setModalZoom(false)}
-              className="absolute top-3 right-3 p-2 rounded-xl bg-background/80 text-foreground hover:bg-secondary"
+              className="absolute top-3 right-3 p-2 rounded-xl bg-black/70 text-white hover:bg-black"
             >
               <X className="w-5 h-5" />
             </button>
@@ -2896,95 +2782,64 @@ const AdminAprenderLeisLaboratorio = () => {
       {emAula && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[99999] h-[100dvh] w-screen max-w-full overflow-hidden bg-background text-foreground flex flex-col select-none">
           
-          {/* TOPO DA TELA TODA: Barra de Controles e Progresso (FIXO NO TOPO COM ERGONOMIA HIG/M3) */}
-          <header className="shrink-0 z-30 w-full px-4 py-2.5 sm:px-6 sm:py-3 border-b border-border/80 bg-background/95 backdrop-blur-md flex flex-col gap-2 shadow-sm">
-            
-            {/* Linha 1: Botão Sair, Título da Mecânica e Botão de Áudio */}
-            <div className="flex items-center justify-between gap-3">
-              
-              {/* Botão Sair da Aula (Touch Target Apple HIG >= 44pt) */}
+          {/* TOPO DA TELA TODA: Minimalista, Elegante & Ergonômico (HIG / Linear Design) */}
+          <header className="shrink-0 z-30 w-full px-4 sm:px-6 pt-3 pb-2.5 bg-background/95 backdrop-blur-md flex flex-col gap-2.5 border-b border-border/40">
+            {/* Barra de Progresso em Segmentos Finos e Elegantes */}
+            <div className="w-full flex items-center gap-1 px-0.5">
+              {slides.map((_, idx) => (
+                <div 
+                  key={idx} 
+                  className="flex-1 h-1 rounded-full overflow-hidden bg-secondary/80 transition-all duration-300"
+                >
+                  <div 
+                    className={`h-full transition-all duration-300 ${
+                      idx < slideIndex 
+                        ? 'bg-teal-400' 
+                        : idx === slideIndex 
+                        ? 'bg-teal-400 shadow-sm shadow-teal-400/50' 
+                        : 'bg-transparent'
+                    }`}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Linha de Controles: Botão Fechar e Título com Indicador */}
+            <div className="flex items-center justify-between gap-3 pt-0.5">
               <button
                 onClick={handleSairDaAula}
-                className="min-h-[44px] px-3.5 py-2 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-foreground text-xs sm:text-sm font-bold transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
-                title="Sair da Aula (Esc)"
+                className="w-9 h-9 rounded-full bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+                title="Fechar aula"
               >
-                <X className="w-4 h-4 text-muted-foreground" />
-                <span>Sair</span>
+                <X className="w-4 h-4" />
               </button>
 
-              {/* Informações Centrais */}
-              <div className="text-center min-w-0 flex-1 px-1">
-                <span className={`text-[11px] sm:text-xs font-black uppercase tracking-wider block truncate ${mecanica.corPrimaria}`}>
-                  {mecanica.nome}
-                </span>
-                <span className="text-xs sm:text-sm md:text-base font-extrabold text-foreground truncate block">
+              <div className="text-center min-w-0 flex-1 px-2">
+                <span className="text-xs font-semibold text-foreground truncate block">
                   {infoArtigo.titulo}
                 </span>
+                <span className="text-[11px] text-muted-foreground block truncate">
+                  {slideAtual.badge || `Etapa ${slideIndex + 1} de ${slides.length}`}
+                </span>
               </div>
 
-              {/* Botão de Narração em Áudio (Touch Target Apple HIG >= 44pt) */}
-              <button
-                onClick={falarSlide}
-                className={`min-h-[44px] px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-bold transition-all shrink-0 shadow-sm flex items-center gap-2 active:scale-95 ${
-                  falando
-                    ? `${mecanica.botaoCor} text-white animate-pulse`
-                    : 'border-border bg-secondary/60 hover:bg-secondary text-foreground'
-                }`}
-                title="Ouvir explicação do slide com voz"
-              >
-                {falando ? (
-                  <>
-                    <VolumeX className="w-4 h-4" />
-                    <span className="hidden sm:inline">Pausar</span>
-                  </>
-                ) : (
-                  <>
-                    <Volume2 className={`w-4 h-4 ${mecanica.corPrimaria}`} />
-                    <span className="hidden sm:inline">Ouvir</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Linha 2: Guia Visual de Dispositivos (Pílulas com Marca d'água do Brasão da República) */}
-            <div className="w-full">
-              <GuiaDispositivosBar
-                dispositivos={infoArtigo.dispositivos}
-                ativoId={dispositivoAtivoId}
-                onSelectDispositivo={handlePularParaDispositivo}
-                corDestaque={mecanica.corPrimaria}
-              />
-            </div>
-
-            {/* Linha 3: Barra de Progresso Progressiva */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[11px] sm:text-xs font-semibold text-muted-foreground">
-                <span className="truncate max-w-[70%] font-bold text-foreground/90">{slideAtual.badge}</span>
-                <span className="font-black text-foreground">Etapa {slideIndex + 1} de {slides.length}</span>
-              </div>
-              <div className="w-full h-1.5 sm:h-2 rounded-full bg-secondary/80 overflow-hidden shadow-inner">
-                <motion.div 
-                  className={`h-full ${mecanica.barraProgressoCor || mecanica.botaoCor}`}
-                  initial={false}
-                  animate={{ width: `${((slideIndex + 1) / slides.length) * 100}%` }}
-                  transition={{ type: 'spring', stiffness: 220, damping: 28 }}
-                />
+              <div className="text-right min-w-[36px] font-mono text-xs font-semibold text-muted-foreground shrink-0">
+                {slideIndex + 1}/{slides.length}
               </div>
             </div>
-
           </header>
 
-          {/* CENTRO DA TELA TODA: CONTEÚDO PERFEITAMENTE EQUILIBRADO E RESPONSIVO */}
-          <main className="flex-1 w-full overflow-y-auto px-4 py-4 sm:py-6 flex flex-col items-center justify-start sm:justify-center">
+          {/* CENTRO DA TELA TODA: Conteúdo com Tipografia Elegante e Alto Padrão de Leitura */}
+          <main className="flex-1 w-full overflow-y-auto px-4 py-5 sm:py-7 flex flex-col items-center justify-start sm:justify-center">
             <div className="w-full max-w-xl mx-auto space-y-4 pt-1 pb-6 my-auto">
               
               {!slideAtual.isCapaDispositivo && (
-                <div className="text-center space-y-1 px-2">
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-black font-display text-foreground tracking-tight">
+                <div className="text-center space-y-1.5 px-2 mb-2">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold font-sans text-foreground tracking-tight leading-snug">
                     {slideAtual.titulo}
                   </h3>
                   {slideAtual.subtitulo && (
-                    <p className="text-sm sm:text-base text-muted-foreground font-medium">
+                    <p className="text-sm sm:text-base text-muted-foreground font-normal leading-relaxed">
                       {slideAtual.subtitulo}
                     </p>
                   )}
@@ -3001,7 +2856,7 @@ const AdminAprenderLeisLaboratorio = () => {
                   exit="exit"
                   className="w-full space-y-3"
                 >
-                  {/* Seção Visual de Legal Design (MCP Gemini Spark e Supabase Storage) */}
+                  {/* Seção Visual de Legal Design (Renderizada Apenas se Houver Imagem) */}
                   <SlideImagemVisualizadorEControle
                     slideId={slideAtual.id}
                     imagePrompt={slideAtual.imagePrompt}
@@ -3021,39 +2876,38 @@ const AdminAprenderLeisLaboratorio = () => {
             </div>
           </main>
 
-          {/* RODAPÉ DA TELA TODA: CONTROLES DE NAVEGAÇÃO ERGONÔMICOS E FIXOS (APPLE HIG & MATERIAL 3 >= 48DP) */}
-          <footer className="shrink-0 z-30 w-full px-4 py-3 sm:px-6 sm:py-3.5 border-t border-border/80 bg-background/95 backdrop-blur-md flex items-center justify-between gap-3 shadow-lg pb-[max(0.85rem,env(safe-area-inset-bottom))]">
+          {/* RODAPÉ DA TELA TODA: Minimalista, Ergonômico & Sofisticado */}
+          <footer className="shrink-0 z-30 w-full px-5 py-3.5 border-t border-border/40 bg-background/95 backdrop-blur-md flex items-center justify-between gap-4 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
             <button
               onClick={slideAnterior}
               disabled={slideIndex === 0}
-              className="min-h-[48px] sm:min-h-[52px] px-5 py-2.5 rounded-xl sm:rounded-2xl border border-border bg-card hover:bg-secondary text-foreground font-bold text-sm sm:text-base transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm active:scale-95 flex items-center gap-2"
+              className="min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary/60 disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
               <span>Anterior</span>
             </button>
 
-            <div className="text-sm sm:text-base text-muted-foreground font-black px-2">
-              {slideIndex + 1} / {slides.length}
+            <div className="text-xs font-mono font-medium text-muted-foreground">
+              {slideIndex + 1} de {slides.length}
             </div>
 
             {slideIndex < slides.length - 1 ? (
               <button
                 onClick={proximoSlide}
-                className={`min-h-[48px] sm:min-h-[52px] px-7 py-2.5 rounded-xl sm:rounded-2xl text-white font-black text-sm sm:text-base shadow-lg transition-all active:scale-95 flex items-center gap-2 ${mecanica.botaoCor}`}
+                className="min-h-[44px] px-6 py-2 rounded-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs sm:text-sm shadow-md shadow-teal-500/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <span>Próximo</span>
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
               <button
                 onClick={() => {
-                  pararVoz();
                   handleSairDaAula();
-                  toast.success('Parabéns! Você completou a aula inteira com sucesso!');
+                  toast.success('Parabéns! Você concluiu a aula com sucesso!');
                 }}
-                className={`min-h-[48px] sm:min-h-[52px] px-6 py-2.5 rounded-xl sm:rounded-2xl text-white font-black text-sm sm:text-base shadow-lg transition-all active:scale-95 flex items-center gap-2 ${mecanica.botaoCor}`}
+                className="min-h-[44px] px-6 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
               >
-                <CheckCircle2 className="w-5 h-5" />
+                <CheckCircle2 className="w-4 h-4" />
                 <span>Concluir</span>
               </button>
             )}
