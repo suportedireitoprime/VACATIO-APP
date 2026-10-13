@@ -19,7 +19,7 @@ import { fetchSumulas, type Sumula, SUMULA_TRIBUNAIS } from '@/services/sumulasS
 import SumulaVinculanteSheet from '@/components/vademecum/SumulaVinculanteSheet';
 import ArtigoCard from '@/components/vademecum/ArtigoCard';
 import { cascadeContainer } from '@/components/vademecum/staggerVariants';
-import ArtigoBottomSheet from '@/components/vademecum/ArtigoBottomSheet';
+import ArtigoBottomSheet, { EDITORIAL_NOTE_REGEX, EDITORIAL_NOTE_TEST_REGEX } from '@/components/vademecum/ArtigoBottomSheet';
 import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
@@ -1580,7 +1580,7 @@ const CategoriaLegislacao = () => {
 
   // View: artigos de uma lei selecionada
   if (selectedLeiId) {
-    const stripRedacaoFn = (s: string) => s.replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '').trim();
+    const stripRedacaoFn = (s: string) => s.replace(EDITORIAL_NOTE_REGEX, '').trim();
     const leiAccent = getLeiColor(selectedLeiId, tipo);
 
     // Desktop: chapters sidebar + articles
@@ -1893,7 +1893,7 @@ const CategoriaLegislacao = () => {
     ) : activeTab === 'lot' ? (
       <div className="space-y-5 pb-8">
         {(() => {
-          const stripRe = (s: string) => s.replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '').trim();
+          const stripRe = (s: string) => s.replace(EDITORIAL_NOTE_REGEX, '').trim();
           const formatNumero = (n: string) => {
             const raw = (n || '').trim();
             // "5-A" / "5 A" / "5º-A" → "5A"; "5º" → "5"; keep letters
@@ -2212,9 +2212,9 @@ const CategoriaLegislacao = () => {
               <div className="space-y-2">
                 {group.map((item, i) => {
                   const displayNumero = `Art. ${item.artigo.numero}`;
-                  const totalAlt = (item.artigo.caput.match(/\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi) || []).length;
+                  const totalAlt = (item.artigo.caput.match(new RegExp(EDITORIAL_NOTE_REGEX.source, 'gi')) || []).length;
                   const previewText = item.artigo.caput
-                    .replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi, '')
+                    .replace(EDITORIAL_NOTE_REGEX, '')
                     .split('\n').filter(l => l.trim())[0] || '';
                   return (
                     <motion.button

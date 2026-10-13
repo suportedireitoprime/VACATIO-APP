@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { ArtigoLei } from '@/data/mockData';
+import { EDITORIAL_NOTE_REGEX } from './ArtigoBottomSheet';
 
 interface HistoricoAtualizacaoCarouselProps {
   artigos: ArtigoLei[];
@@ -144,10 +145,10 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
           else if (t.startsWith('redacao') || t.startsWith('alterad')) typeColor = 'text-[#60a5fa] border-[#3b82f6]/20 bg-[#3b82f6]/10';
 
           const previewText = item.artigo.caput
-            .replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi, '')
+            .replace(EDITORIAL_NOTE_REGEX, '')
             .split('\n').filter(l => l.trim())[0] || '';
 
-          const totalAlt = (item.artigo.caput.match(/\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vetado|Vide|Regulamento|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)]*\)/gi) || []).length;
+          const totalAlt = (item.artigo.caput.match(new RegExp(EDITORIAL_NOTE_REGEX.source, 'gi')) || []).length;
 
           return (
             <div

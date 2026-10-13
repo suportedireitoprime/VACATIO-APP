@@ -3,6 +3,7 @@ import { ChevronRight, Heart, Highlighter, StickyNote } from 'lucide-react';
 import type { ArtigoLei } from '@/data/mockData';
 import { useLeituraStore } from '@/stores/useLeituraStore';
 import { applyBionicReading } from '@/lib/bionicReading';
+import { EDITORIAL_NOTE_REGEX, EDITORIAL_NOTE_TEST_REGEX, ARTICLE_PREFIX_STRIP_REGEX } from './ArtigoBottomSheet';
 
 // Cascata suave só nos primeiros itens visíveis (delay incremental de 28ms).
 // Do 13º em diante o item entra sem delay — o browser + content-visibility
@@ -112,17 +113,17 @@ const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, with
   let previewText = cleanCaput;
   if (lines.length > 0) {
     const first = lines[0];
-    const isNomen = first.replace(/\s*\([^)]*\)\s*/g, '').trim().length < 100 && /^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÚÇ]/.test(first) && !/^(Art\.|§|Parágrafo|[IVXLC]+\s*[-–.]|[a-z]\))/i.test(first);
+    const isNomen = first.replace(EDITORIAL_NOTE_REGEX, '').trim().length < 100 && /^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÚÇ]/.test(first) && !/^(Art(?:igo)?\.|§|Parágrafo|[IVXLCDM]+\s*[-–—.]|[a-z]\))/i.test(first);
     // Junta linhas quebradas em um parágrafo contínuo (o extractor às vezes
     // preserva <br> no meio da frase). Pula o "nomen" e para no primeiro
     // §/Parágrafo/Inciso — só queremos o caput.
     const body = isNomen ? lines.slice(1) : lines;
-    const stopIdx = body.findIndex(l => /^(§|Parágrafo|[IVXLC]+\s*[-–.]|[a-z]\))/i.test(l));
+    const stopIdx = body.findIndex(l => /^(§|Parágrafo|[IVXLCDM]+\s*[-–—.]|[a-z]\))/i.test(l));
     const caputLines = stopIdx >= 0 ? body.slice(0, stopIdx) : body;
     previewText = caputLines.join(' ').replace(/\s+/g, ' ').trim() || first;
   }
-  previewText = previewText.replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '');
-  previewText = previewText.replace(/^Art\.?\s*\d+[º°]?(-[A-Z])?\s*[\.\-]?\s*/i, '').trim();
+  previewText = previewText.replace(EDITORIAL_NOTE_REGEX, '').trim();
+  previewText = previewText.replace(ARTICLE_PREFIX_STRIP_REGEX, '').replace(/^[.:–—-]+/, '').trim();
 
   const isRevogado = previewText.trim().length === 0 && cleanCaput.trim().length > 0;
   if (isRevogado) previewText = artigo.caput.trim();
@@ -214,7 +215,7 @@ const ArtigoCard = ({ artigo, index, onClick, highlightText, isHighlighted, with
           </p>
         </div>
         <div className="shrink-0 flex items-center pt-1 gap-2">
-          {/\s*\((?:Redação|Incluído|Acrescido|Alterado|Nova\s+redação)[^)]*\)/gi.test(artigo.caput) && !isRevogado && (
+          {EDITORIAL_NOTE_TEST_REGEX.test(artigo.caput) && !isRevogado && (
             <span className="hidden md:inline-flex items-center rounded-sm bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-400 ring-1 ring-inset ring-blue-500/20">
               Nova Redação
             </span>

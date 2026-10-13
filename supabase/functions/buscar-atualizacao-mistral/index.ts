@@ -77,7 +77,7 @@ async function fetchWithBrowserless(url: string): Promise<string> {
 
 const HIER_RE = /^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)(?:\s+(?:[IVXLCDM]+|[ÚU]NICO|[ÚU]NICA|PRELIMINAR|GERAL|ESPECIAL|PRIMEIRA|SEGUNDA|TERCEIRA|QUARTA|QUINTA|SEXTA|S[ÉE]TIMA|OITAVA|NONA|D[ÉE]CIMA|\d+[ºª°]?)\b[\s\S]*|\s*)$/i;
 const ART_RE = /^Art\.\s*(\d+(?:\.\d+)*(?:-[A-Z0-9]+)?)/;
-const CAPUT_STOP_RE = /^(§|Parágrafo\b|[IVXLCDM]+\s*[-–.)]|[a-z]\))/i;
+const CAPUT_STOP_RE = /^(§|Parágrafo\b|[IVXLCDM]+\s*[-–—.)]|[a-z]\s*[)-–—.]|[a-z]\))/i;
 
 const PLANALTO_NOTE_START_RE = /^(?:[\(\[]\s*)?(?:Reda[çc][ãa]o\s+dada|Inclu[íi]d[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vide|Vig[êe]ncia|Regulamento|Nova\s+reda[çc][ãa]o|Renumerad[oa]|Transformad[oa]|Restabelecid[oa]|Produ[çc][ãa]o\s+de\s+efeito)\b/i;
 const PLANALTO_NOTE_BLOCK_RE = /[\(\[]\s*(?:Reda[çc][ãa]o\s+dada|Inclu[íi]d[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vide|Vig[êe]ncia|Regulamento|Nova\s+reda[çc][ãa]o|Renumerad[oa]|Transformad[oa]|Restabelecid[oa]|Produ[çc][ãa]o\s+de\s+efeito)[\s\S]{0,320}?[\)\]]/gi;
@@ -234,8 +234,35 @@ function extractBlocos(html: string): Bloco[] {
         j += 1;
       }
 
-      const caputLinha = caputParts.join(" ").replace(/\s+/g, " ").trim();
-      const texto = [caputLinha, ...restoParts]
+      const rawCaput = caputParts.join(" ").replace(/\s+/g, " ").trim();
+      const caputLinha = rawCaput.replace(
+        /^Art\.\s*(\d+(?:\.\d+)*(?:-[A-Za-z0-9]+)?)[º°]?\s*[.:–—]*\s*/i,
+        (_, num) => {
+          const isOrdinal = /^[1-9]$/.test(num);
+          return `Art. ${num}${isOrdinal ? 'º' : ''}. `;
+        }
+      );
+
+      const restoNormalizado = restoParts.map((l) => {
+        const trimmed = l.trim();
+        if (/^[IVXLCDM]+\s*[-–—.]\s*/i.test(trimmed)) {
+          return trimmed.replace(/^([IVXLCDM]+)\s*[-–—.]\s*/i, (_, rom) => `${rom.toUpperCase()} - `);
+        }
+        if (/^Par[áa]grafo\s+[úu]nico\s*[-–—.]?\s*/i.test(trimmed)) {
+          return trimmed.replace(/^Par[áa]grafo\s+[úu]nico\s*[-–—.]?\s*/i, "Parágrafo único. ");
+        }
+        if (/^§\s*\d+/i.test(trimmed)) {
+          return trimmed
+            .replace(/^§\s*([1-9])o(?=[\s.,;:])/i, "§ $1º")
+            .replace(/^§\s*(\d+[º°]?(?:-[A-Za-z0-9]+)?)\s*[-–—.]?\s*/i, (_, p) => `§ ${p.replace(/\s+/g, "")} `);
+        }
+        if (/^[a-z]\s*[)-–—.]\s*/i.test(trimmed)) {
+          return trimmed.replace(/^([a-z])\s*[)-–—.]\s*/i, (_, lettr) => `${lettr.toLowerCase()}) `);
+        }
+        return trimmed;
+      });
+
+      const texto = [caputLinha, ...restoNormalizado]
         .join("\n")
         .replace(/(\d)o(?=[\s.,;:])/g, "$1º")
         .replace(/([0-9])[º°]\s+[º°]/g, "$1º");

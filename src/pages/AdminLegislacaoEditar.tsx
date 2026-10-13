@@ -15,6 +15,7 @@ import {
   CheckCircle2, ArrowLeft, Filter, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { EDITORIAL_NOTE_REGEX, ARTICLE_PREFIX_STRIP_REGEX } from '@/components/vademecum/ArtigoBottomSheet';
 
 interface LeiRow {
   id: string;
@@ -997,7 +998,7 @@ function DetalheLeiOverlay({
                                 <p className={`text-[12px] leading-snug text-muted-foreground ${!isExpanded ? 'line-clamp-2' : ''}`}>
                                   <span className="font-bold text-foreground">Art. {badgeLabel}</span>
                                   <span className="mx-1 text-muted-foreground/60">—</span>
-                                  {(!isExpanded && (art.texto.split('\n')[0].replace(/^Art\.?\s*\d+[º°]?(-[A-Z])?\s*[.\-]?\s*/i, '').replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '').trim())) || (isExpanded ? '' : '(sem texto)')}
+                                  {(!isExpanded && (art.texto.split('\n')[0].replace(ARTICLE_PREFIX_STRIP_REGEX, '').replace(/^[.:–—-]+/, '').replace(EDITORIAL_NOTE_REGEX, '').trim())) || (isExpanded ? '' : '(sem texto)')}
                                 </p>
                               </div>
                             </div>
@@ -1281,8 +1282,9 @@ function DetalheLeiOverlay({
                         const badgeLabel = art.numero.replace(/^Art\.?\s*/i, '').trim() || art.numero;
                         const caputText = art.texto
                           .split('\n')[0]
-                          .replace(/^Art\.?\s*\d+[º°]?(-[A-Z])?\s*[.\-]?\s*/i, '')
-                          .replace(/\s*\((?:Redação|Incluído|Revogado|Acrescido|Alterado|Vide|Regulamento)[^)]*\)/gi, '')
+                          .replace(ARTICLE_PREFIX_STRIP_REGEX, '')
+                          .replace(/^[.:–—-]+/, '')
+                          .replace(EDITORIAL_NOTE_REGEX, '')
                           .trim();
                         
                         return (

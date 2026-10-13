@@ -104,8 +104,15 @@ interface ArtigoBottomSheetProps {
   isFromNovidades?: boolean;
 }
 
+// Expressão abrangente para notas de redação, vigência, regulamento e atos normativos
+export const EDITORIAL_NOTE_REGEX = /\s*[([]\s*(?:Reda[çc][ãa]o(?:\s+dada)?|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]|Revogad[oa]|Vide|Vig[êe]ncia|Vigente|Regulamento|Vetado|Veto\s+rejeitado|Promulga[çc][ãa]o|Nova\s+reda[çc][ãa]o|Renumerad[oa]|Transformad[oa]|Restabelecid[oa]|Ressalvad[oa]|Suprimid[oa]|Produ[çc][ãa]o\s+de\s+efeitos?|Execu[çc][ãa]o\s+suspensa)\b[^)\]]*[)\]]/gi;
+
+export const EDITORIAL_NOTE_TEST_REGEX = /[([]\s*(?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]|Revogad[oa]|Vide|Vig[êe]ncia|Vigente|Regulamento|Vetado|Veto\s+rejeitado|Promulga[çc][ãa]o|Nova\s+reda[çc][ãa]o|Renumerad[oa]|Transformad[oa]|Restabelecid[oa]|Ressalvad[oa]|Suprimid[oa]|Produ[çc][ãa]o\s+de\s+efeitos?|Execu[çc][ãa]o\s+suspensa)\b/i;
+
+export const ARTICLE_PREFIX_STRIP_REGEX = /^Art(?:igo)?\s*\.?\s*\d+(?:\.\d+)*[º°]?(?:-[A-Za-z0-9]+)?(?:\s*[.:–—-]+)*\s*/i;
+
 function stripRedacao(text: string): string {
-  return text.replace(/\s*\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Vetado)[^)]*\)/gi, '');
+  return text.replace(EDITORIAL_NOTE_REGEX, '');
 }
 
 function normalizeNarracaoToken(text: string): string {
@@ -121,17 +128,17 @@ function getWordTokens(text: string): string[] {
 }
 
 function isLineRevogado(line: string): boolean {
-  return /\(Revogado[^)]*\)/i.test(line);
+  return /[([]\s*Revogad[oa][^)\]]*[)\]]/i.test(line);
 }
 
 // Regex que identifica INÍCIO de uma unidade lógica de texto legal.
 // Se uma linha NÃO começa com um destes padrões, ela é continuação da anterior
 // (quebra de linha física herdada do HTML da Planalto — precisa ser mesclada).
-const LEGAL_LINE_START_RE = /^(?:Art\s*\.|§|Parágrafo\b|[IVXLCDM]+\s*[-–.)]|[a-z]\)|LIVRO\b|PARTE\b|TÍTULO\b|CAPÍTULO\b|SEÇÃO\b|SUBSEÇÃO\b)/i;
+const LEGAL_LINE_START_RE = /^(?:Art(?:igo)?\s*\.|§|Parágrafo\b|[IVXLCDM]+\s*[-–—.)]|[a-z]\s*[)-–—.]|LIVRO\b|PARTE\b|TÍTULO\b|CAPÍTULO\b|SEÇÃO\b|SUBSEÇÃO\b)/i;
 
-// Se a linha inteira for só uma nota entre parênteses (Redação/Incluído/…),
+// Se a linha inteira for só uma nota entre parênteses ou colchetes (Redação/Vigência/Incluído/…),
 // mantém como linha separada — o parser de metadados espera assim.
-const LEGAL_NOTE_ONLY_RE = /^\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Revogado|Vetado)\b/i;
+const LEGAL_NOTE_ONLY_RE = /^[([]\s*(?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]|Vide|Vig[êe]ncia|Vigente|Regulamento|Revogad[oa]|Vetado|Promulga[çc][ãa]o|Produ[çc][ãa]o\s+de\s+efeitos?)\b/i;
 
 function normalizeLegalLineBreaks(text: string): string {
   const raw = text.split('\n').map(l => l.trim());
@@ -168,7 +175,7 @@ function highlightTermos(
   onHoverLeave?: () => void
 ): React.ReactNode[] {
   // Pattern for ALL metadata references (shown in yellow, togglable via eye icon)
-  const redacaoPattern = /\((?:Redação|Incluído|Acrescido|Alterado|Vide|Regulamento|Revogado|Vetado)[^)]*\)/gi;
+  const redacaoPattern = new RegExp(EDITORIAL_NOTE_REGEX.source, 'gi');
 
   if (showRedacao) {
     const parts: React.ReactNode[] = [];
@@ -199,33 +206,74 @@ function highlightTermosOnly(
   onHoverEnter?: (artigoNum: string, e: React.MouseEvent) => void,
   onHoverLeave?: () => void
 ): React.ReactNode[] {
-  const patterns = [
-    /^(Art\.\s*\d+[º°]?(?:-[A-Z])?)(\s*[–-]\s*)?/i,
-    /^(§\s*\d+[º°]?(?:-[A-Z])?)(\s*[.–-]?\s*)?/i,
-    /^(Parágrafo\s+único)(\.?\s*[–-]?\s*)?/i,
-    /^([IVXLC]+\s*[-–.])\s*/i,
-    /^([a-z]\))\s*/i,
-  ];
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (!match) continue;
-    const fullMatch = match[0];
-    const leadingToken = match[1] || fullMatch;
-    const separator = fullMatch.slice(leadingToken.length);
-    const rest = text.slice(fullMatch.length);
-    const parts: React.ReactNode[] = [];
-    parts.push(<span key="token" className="text-primary-light font-bold">{leadingToken}</span>);
-    if (separator) parts.push(<span key="sep">{separator}</span>);
+  // 1. Inciso: I - , II - , etc. com separador padronizado " - "
+  const incisoMatch = text.match(/^([IVXLCDM]+)\s*[-–—.]\s*(.*)$/i);
+  if (incisoMatch) {
+    const roman = incisoMatch[1].toUpperCase();
+    const rest = incisoMatch[2];
+    const parts: React.ReactNode[] = [
+      <span key="token" className="text-primary-light font-bold">{roman}</span>,
+      <span key="sep" className="text-primary-light font-semibold"> - </span>,
+    ];
     if (rest) parts.push(...linkifyCrossReferences(rest, onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave));
     return parts;
   }
+
+  // 2. Parágrafo numerado: § 1º , § 2º , § 10 , etc.
+  const parMatch = text.match(/^(§\s*\d+[º°]?(?:-[A-Za-z0-9]+)?)\s*[.–—-]?(.*)$/i);
+  if (parMatch) {
+    const parLabel = parMatch[1].replace(/\s+/g, ' ');
+    const rest = parMatch[2];
+    const parts: React.ReactNode[] = [
+      <span key="token" className="text-primary-light font-bold">{parLabel} </span>,
+    ];
+    if (rest) parts.push(...linkifyCrossReferences(rest, onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave));
+    return parts;
+  }
+
+  // 3. Parágrafo único: Parágrafo único.
+  const parUnicoMatch = text.match(/^(Parágrafo\s+único)\.?\s*[-–—]?(.*)$/i);
+  if (parUnicoMatch) {
+    const rest = parUnicoMatch[2];
+    const parts: React.ReactNode[] = [
+      <span key="token" className="text-primary-light font-bold">Parágrafo único. </span>,
+    ];
+    if (rest) parts.push(...linkifyCrossReferences(rest, onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave));
+    return parts;
+  }
+
+  // 4. Alínea: a) , b) , etc.
+  const alineaMatch = text.match(/^([a-z])\s*[)-–—.]\s*(.*)$/i);
+  if (alineaMatch) {
+    const letter = alineaMatch[1].toLowerCase();
+    const rest = alineaMatch[2];
+    const parts: React.ReactNode[] = [
+      <span key="token" className="text-primary-light font-bold">{letter}) </span>,
+    ];
+    if (rest) parts.push(...linkifyCrossReferences(rest, onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave));
+    return parts;
+  }
+
+  // 5. Artigo no meio do texto ou em linha interna
+  const artMatch = text.match(/^(Art(?:igo)?\s*\.?\s*\d+(?:\.\d+)*[º°]?(?:-[A-Za-z0-9]+)?)(?:\s*[.:–—-]+)*\s*(.*)$/i);
+  if (artMatch) {
+    const artLabel = artMatch[1];
+    const rest = artMatch[2];
+    const parts: React.ReactNode[] = [
+      <span key="token" className="text-primary-light font-bold">{artLabel}</span>,
+      <span key="sep"> — </span>,
+    ];
+    if (rest) parts.push(...linkifyCrossReferences(rest, onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave));
+    return parts;
+  }
+
   return linkifyCrossReferences(text, onCrossReferenceClick, bionicMode, onHoverEnter, onHoverLeave);
 }
 
 function classifyLine(line: string): { type: 'nomen' | 'caput' | 'inciso' | 'alinea' | 'paragrafo' | 'text'; text: string } {
-  if (/^[IVXLC]+\s*[-–.]\s*/i.test(line)) return { type: 'inciso', text: line };
-  if (/^[a-z]\)\s*/i.test(line)) return { type: 'alinea', text: line };
-  if (/^(§\s*\d+[º°]?\s*[-–.]?\s*|Parágrafo\s+único)/i.test(line)) return { type: 'paragrafo', text: line };
+  if (/^[IVXLCDM]+\s*[-–—.]\s*/i.test(line)) return { type: 'inciso', text: line };
+  if (/^[a-z]\s*[)-–—.]\s*/i.test(line)) return { type: 'alinea', text: line };
+  if (/^(§\s*\d+[º°]?|Parágrafo\s+único)/i.test(line)) return { type: 'paragrafo', text: line };
   return { type: 'text', text: line };
 }
 
@@ -2007,7 +2055,9 @@ Regras:
       : (showRedacao ? line : stripRedacao(line));
 
     if (isFirst && !isRevogado) {
-      return displayText.replace(/^Art\s*\.\s*\d+[º°]?(?:-[A-Z])?\s*[–-]?\s*/i, '');
+      return displayText
+        .replace(ARTICLE_PREFIX_STRIP_REGEX, '')
+        .replace(/^[.:–—-]+/, '');
     }
     return displayText;
   };
@@ -2106,7 +2156,9 @@ Regras:
     let offsetShift = 0;
     if (isFirst && !isRevogado) {
       // Remove the article number prefix from the first line since the header already shows it
-      const cleanedText = displayText.replace(/^Art\s*\.\s*\d+[º°]?(?:-[A-Z])?\s*[–-]?\s*/i, '');
+      const cleanedText = displayText
+        .replace(ARTICLE_PREFIX_STRIP_REGEX, '')
+        .replace(/^[.:–—-]+/, '');
       offsetShift = displayText.length - cleanedText.length;
       baseNodes = highlightTermos(cleanedText, modificationInfo ? isModifiedLine && showRedacao : showRedacao, handleCrossReferenceClick, undefined, handleCrossReferenceHover, handleCrossReferenceLeave);
     } else {
@@ -2308,7 +2360,7 @@ Regras:
 
     const highlightBg = isModifiedLine
       ? 'bg-violet-500/20 border-l-3 border-violet-400 pl-3 rounded-r-lg'
-      : !modificationInfo && showRedacao && /\((?:Redação|Incluído|Acrescido|Alterado|Revogado|Vetado)[^)]*\)/i.test(line)
+      : !modificationInfo && showRedacao && EDITORIAL_NOTE_TEST_REGEX.test(line)
         ? 'bg-yellow-400/5 border-l-2 border-yellow-400/40 pl-2 rounded-r'
         : '';
 
