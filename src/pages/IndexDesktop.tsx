@@ -197,7 +197,7 @@ const IndexDesktop = () => {
                 { label: 'Anotações', icon: ScrollText, color: 'text-sky-400', bg: 'bg-sky-400/10', action: () => setModalOpen('anotacoes') },
                 { label: 'Grifos', icon: Feather, color: 'text-emerald-400', bg: 'bg-emerald-400/10', action: () => setModalOpen('grifos') },
                 { label: 'Chat', icon: MessageCircle, color: 'text-yellow-400', bg: 'bg-yellow-400/10', action: () => setAssistenteOpen(true) },
-                { label: 'Ferramentas', icon: Wrench, color: 'text-purple-400', bg: 'bg-purple-400/10', action: () => setModalOpen('ferramentas') },
+                { label: 'Ferramentas', icon: Gavel, color: 'text-purple-400', bg: 'bg-purple-400/10', action: () => setModalOpen('ferramentas') },
               ].map(item => (
                 <button
                   key={item.label}

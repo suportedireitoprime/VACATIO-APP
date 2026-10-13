@@ -1,4 +1,4 @@
-import { LucideIcon, Wrench, MessageSquare, Newspaper, Sparkles, User } from 'lucide-react';
+import { LucideIcon, Gavel, MessageSquare, Newspaper, Sparkles, User } from 'lucide-react';
 
 export interface DesktopFunctionItem {
   id: string;
@@ -55,6 +55,6 @@ const DesktopFunctionRow = ({ items }: Props) => {
 };
 
 // Re-export common icons for convenience
-export const DEFAULT_ICONS = { Wrench, MessageSquare, Newspaper, Sparkles, User };
+export const DEFAULT_ICONS = { Gavel, MessageSquare, Newspaper, Sparkles, User };
 
 export default DesktopFunctionRow;

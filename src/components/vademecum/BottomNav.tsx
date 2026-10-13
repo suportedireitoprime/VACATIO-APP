@@ -275,7 +275,7 @@ const BottomNav = ({ forceVisible = false }: BottomNavProps = {}) => {
           }`}
           aria-label="Ferramentas"
         >
-          <Wrench className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${path.startsWith('/ferramentas') ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
+          <Gavel className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${path.startsWith('/ferramentas') ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
           <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Ferramentas</span>
         </button>
       </div>
