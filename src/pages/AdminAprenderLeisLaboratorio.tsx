@@ -1725,8 +1725,15 @@ const AdminAprenderLeisLaboratorio = () => {
       {emAula && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[99999] h-[100dvh] w-screen max-w-full overflow-hidden bg-background text-foreground flex flex-col select-none">
           
-          {/* TOPO DA TELA TODA: Minimalista, Elegante & Ergonômico (HIG / Linear Design) */}
-          <header className="shrink-0 z-30 w-full px-4 sm:px-6 pt-3 pb-2.5 bg-background/95 backdrop-blur-md flex flex-col gap-2.5 border-b border-border/40">
+          {/* TOPO DA TELA TODA: Minimalista, Elegante & Ergonômico (HIG / Linear Design com Margem de Segurança) */}
+          <header 
+            className="shrink-0 z-30 w-full px-4 sm:px-6 pb-2.5 bg-background/95 backdrop-blur-md flex flex-col gap-2.5 border-b border-border/40"
+            style={{
+              paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 0.75rem)',
+              paddingLeft: 'calc(var(--sai-left, env(safe-area-inset-left, 0px)) + 1rem)',
+              paddingRight: 'calc(var(--sai-right, env(safe-area-inset-right, 0px)) + 1rem)',
+            }}
+          >
             {/* Barra de Progresso em Segmentos Finos e Elegantes */}
             <div className="w-full flex items-center gap-1 px-0.5">
               {slides.map((_, idx) => (
@@ -1821,8 +1828,15 @@ const AdminAprenderLeisLaboratorio = () => {
             </div>
           </main>
 
-          {/* RODAPÉ DA TELA TODA: Minimalista, Ergonômico & Sofisticado */}
-          <footer className="shrink-0 z-30 w-full px-5 py-3.5 border-t border-border/40 bg-background/95 backdrop-blur-md flex items-center justify-between gap-4 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
+          {/* RODAPÉ DA TELA TODA: Minimalista, Ergonômico & Sofisticado com Margem de Segurança */}
+          <footer 
+            className="shrink-0 z-30 w-full px-5 py-3.5 border-t border-border/40 bg-background/95 backdrop-blur-md flex items-center justify-between gap-4"
+            style={{
+              paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 0.85rem)',
+              paddingLeft: 'calc(var(--sai-left, env(safe-area-inset-left, 0px)) + 1rem)',
+              paddingRight: 'calc(var(--sai-right, env(safe-area-inset-right, 0px)) + 1rem)',
+            }}
+          >
             <button
               onClick={slideAnterior}
               disabled={slideIndex === 0}

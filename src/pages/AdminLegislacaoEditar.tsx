@@ -7,12 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Loader2, Search, ChevronRight, FileText, Bell, RefreshCw, Clock, Radar,
-  History, ArrowRight, BookOpen, Scale, Landmark, ScrollText, Globe, X, Wand2
+  History, ArrowRight, BookOpen, Scale, Landmark, ScrollText, Globe, X, Wand2,
+  CheckCircle2, ArrowLeft, Filter, Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -54,6 +54,43 @@ interface HistoricoRow {
   data_aproximada: number;
 }
 
+function getLocalDayKey(isoString: string | null | undefined): string | null {
+  if (!isoString) return null;
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function formatDayLabel(dateKey: string): string {
+  const [y, m, d] = dateKey.split('-');
+  const now = new Date();
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  
+  const yest = new Date();
+  yest.setDate(yest.getDate() - 1);
+  const yestKey = `${yest.getFullYear()}-${String(yest.getMonth() + 1).padStart(2, '0')}-${String(yest.getDate()).padStart(2, '0')}`;
+  
+  if (dateKey === todayKey) return `Hoje (${d}/${m})`;
+  if (dateKey === yestKey) return `Ontem (${d}/${m})`;
+  return `Dia ${d}/${m}`;
+}
+
+function formatDateTimeFull(isoString: string | null | undefined): string {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function AdminLegislacaoEditar() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -63,6 +100,7 @@ export default function AdminLegislacaoEditar() {
   
   const [categoriaAtiva, setCategoriaAtiva] = useState<string | null>(null);
   const [selecionada, setSelecionada] = useState<LeiRow | null>(null);
+  const [selecionadaTab, setSelecionadaTab] = useState<string>('legislacao');
 
   const carregar = async () => {
     setLoading(true);
@@ -76,7 +114,13 @@ export default function AdminLegislacaoEditar() {
     if (error) {
       toast.error('Erro ao carregar leis');
     } else {
-      setLeis((data as any) ?? []);
+      const lista = (data as any) ?? [];
+      setLeis(lista);
+      setSelecionada((prev) => {
+        if (!prev) return null;
+        const fresh = lista.find((item: LeiRow) => item.id === prev.id);
+        return fresh || prev;
+      });
     }
     setLoading(false);
   };
@@ -198,6 +242,19 @@ export default function AdminLegislacaoEditar() {
 
   const agrupamentoKeys = Object.keys(agrupamentoMap).sort();
 
+  const leisDaCategoriaAtiva = useMemo(() => {
+    if (!categoriaAtiva) return [];
+    return leis.filter(l => {
+      const key = viewMode === 'categorias' ? getCatName(l.categoria || 'sem_categoria') : getAreaName(l);
+      return key === categoriaAtiva;
+    });
+  }, [leis, categoriaAtiva, viewMode]);
+
+  const catOuAreaInfo = useMemo(() => {
+    if (!categoriaAtiva) return null;
+    return viewMode === 'categorias' ? getCatInfo(categoriaAtiva) : getAreaInfo(categoriaAtiva);
+  }, [categoriaAtiva, viewMode]);
+
   return (
     <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
       <PageHeader title="Legislação Editar" onBack={() => navigate(-1)} />
@@ -272,39 +329,329 @@ export default function AdminLegislacaoEditar() {
         )}
       </div>
 
-      <Sheet open={!!categoriaAtiva} onOpenChange={(val) => !val && setCategoriaAtiva(null)}>
-        <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl px-0 pb-0 pt-4 flex flex-col gap-0 border-border bg-background">
-          <SheetHeader className="px-5 pb-3 border-b border-border text-left">
-            <SheetTitle className="font-display font-bold text-xl">{categoriaAtiva}</SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto px-2 py-2 divide-y divide-border/60">
-            {categoriaAtiva && agrupamentoMap[categoriaAtiva]?.map(lei => (
-              <button
-                key={lei.id}
-                onClick={() => {
-                  setCategoriaAtiva(null);
-                  setTimeout(() => setSelecionada(lei), 200);
-                }}
-                className="w-full text-left px-4 py-3.5 hover:bg-secondary/40 flex items-center justify-between rounded-xl transition-colors"
-              >
-                <div className="min-w-0 pr-4">
-                  <p className="text-[15px] font-medium leading-tight truncate">{lei.nome}</p>
-                  <p className="text-[12px] text-muted-foreground mt-1 truncate">{lei.nome_curto || lei.slug}</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              </button>
-            ))}
-          </div>
-        </SheetContent>
-      </Sheet>
+      {categoriaAtiva && catOuAreaInfo && (
+        <CategoriaTelaCheia
+          categoria={categoriaAtiva}
+          leis={leisDaCategoriaAtiva}
+          icon={catOuAreaInfo.icon}
+          color={catOuAreaInfo.color}
+          desc={catOuAreaInfo.desc}
+          onClose={() => setCategoriaAtiva(null)}
+          onSelectLei={(lei, tab = 'legislacao') => {
+            setSelecionada(lei);
+            setSelecionadaTab(tab);
+          }}
+        />
+      )}
 
       {selecionada && (
         <DetalheLeiOverlay
           lei={selecionada}
           onClose={() => setSelecionada(null)}
           onReloadLista={carregar}
+          initialTab={selecionadaTab}
         />
       )}
+    </div>
+  );
+}
+
+interface CategoriaTelaCheiaProps {
+  categoria: string;
+  leis: LeiRow[];
+  icon: any;
+  color: string;
+  desc: string;
+  onClose: () => void;
+  onSelectLei: (lei: LeiRow, initialTab?: string) => void;
+}
+
+function CategoriaTelaCheia({
+  categoria,
+  leis,
+  icon: Icon,
+  color,
+  desc,
+  onClose,
+  onSelectLei,
+}: CategoriaTelaCheiaProps) {
+  const [buscaInterna, setBuscaInterna] = useState('');
+  const [abaData, setAbaData] = useState<string>('todos');
+
+  const stats = useMemo(() => {
+    const total = leis.length;
+    let extraidas = 0;
+    let pendentes = 0;
+    const mapaDatas: Record<string, { count: number; dateKey: string }> = {};
+
+    for (const lei of leis) {
+      if (lei.ultima_reextracao_em) {
+        extraidas++;
+        const dKey = getLocalDayKey(lei.ultima_reextracao_em);
+        if (dKey) {
+          if (!mapaDatas[dKey]) {
+            mapaDatas[dKey] = { count: 0, dateKey: dKey };
+          }
+          mapaDatas[dKey].count++;
+        }
+      } else {
+        pendentes++;
+      }
+    }
+
+    // Ordenar datas da mais recente para a mais antiga
+    const datasOrdenadas = Object.keys(mapaDatas).sort((a, b) => b.localeCompare(a));
+
+    return {
+      total,
+      extraidas,
+      pendentes,
+      datas: datasOrdenadas.map((dKey) => ({
+        dateKey: dKey,
+        label: formatDayLabel(dKey),
+        count: mapaDatas[dKey].count,
+      })),
+    };
+  }, [leis]);
+
+  const abas = useMemo(() => {
+    const list = [
+      { id: 'todos', label: 'Todos', count: stats.total },
+      { id: 'pendentes', label: 'Pendentes', count: stats.pendentes },
+    ];
+    for (const d of stats.datas) {
+      list.push({
+        id: d.dateKey,
+        label: d.label,
+        count: d.count,
+      });
+    }
+    return list;
+  }, [stats]);
+
+  const leisFiltradas = useMemo(() => {
+    return leis.filter((lei) => {
+      // 1. Filtro por menu de alternância
+      if (abaData === 'pendentes') {
+        if (lei.ultima_reextracao_em) return false;
+      } else if (abaData !== 'todos') {
+        const dKey = getLocalDayKey(lei.ultima_reextracao_em);
+        if (dKey !== abaData) return false;
+      }
+
+      // 2. Filtro da busca interna
+      if (buscaInterna.trim()) {
+        const q = buscaInterna.trim().toLowerCase();
+        const texto = `${lei.nome} ${lei.nome_curto || ''} ${lei.slug}`.toLowerCase();
+        if (!texto.includes(q)) return false;
+      }
+
+      return true;
+    });
+  }, [leis, abaData, buscaInterna]);
+
+  return (
+    <div className="fixed inset-0 z-40 bg-background flex flex-col overflow-hidden animate-in fade-in duration-200">
+      {/* Header Tela Cheia */}
+      <header
+        className="flex items-center gap-3 py-3 shrink-0 bg-background border-b border-border shadow-sm"
+        style={{
+          paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 0.75rem)',
+          paddingLeft: 'calc(1rem + var(--sai-left, env(safe-area-inset-left, 0px)))',
+          paddingRight: 'calc(1rem + var(--sai-right, env(safe-area-inset-right, 0px)))',
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Voltar"
+          className="w-10 h-10 rounded-full bg-secondary/80 hover:bg-secondary flex items-center justify-center shrink-0 active:scale-95 transition-transform"
+        >
+          <ArrowLeft className="w-5 h-5 text-foreground" />
+        </button>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <Icon className="w-5 h-5 shrink-0" style={{ color }} />
+            <h1 className="font-display text-lg md:text-xl font-bold uppercase tracking-wider text-foreground truncate">
+              {categoria}
+            </h1>
+            <Badge variant="secondary" className="text-[11px] h-5 px-2">
+              {stats.total}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground truncate mt-0.5">
+            {stats.extraidas} de {stats.total} extraídos ({stats.total > 0 ? Math.round((stats.extraidas / stats.total) * 100) : 0}%)
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Fechar"
+          className="w-10 h-10 rounded-full bg-secondary/60 hover:bg-secondary flex items-center justify-center shrink-0 active:scale-95 transition-transform"
+        >
+          <X className="w-5 h-5 text-muted-foreground" />
+        </button>
+      </header>
+
+      {/* Busca Interna */}
+      <div className="px-4 py-2.5 border-b border-border/40 bg-secondary/20">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder={`Buscar em ${categoria}...`}
+            value={buscaInterna}
+            onChange={(e) => setBuscaInterna(e.target.value)}
+            className="pl-9 pr-9 h-10 bg-background/90"
+          />
+          {buscaInterna && (
+            <button
+              onClick={() => setBuscaInterna('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Menu de Alternância (Pills por Data de Raspagem e Status) */}
+      <div className="border-b border-border/40 bg-secondary/15 shrink-0">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-4 py-2.5">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0 mr-1 font-medium">
+            <Filter className="w-3.5 h-3.5" />
+            <span>Alternar:</span>
+          </div>
+          {abas.map((aba) => {
+            const isAtiva = abaData === aba.id;
+            return (
+              <button
+                key={aba.id}
+                onClick={() => setAbaData(aba.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 active:scale-95 ${
+                  isAtiva
+                    ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/25'
+                    : 'bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground border border-border/60'
+                }`}
+              >
+                <span>{aba.label}</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    isAtiva
+                      ? 'bg-primary-foreground/20 text-primary-foreground'
+                      : 'bg-background/80 text-muted-foreground'
+                  }`}
+                >
+                  {aba.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Lista de Leis da Categoria / Área */}
+      <div
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5"
+        style={{
+          paddingBottom: 'calc(1.5rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
+        }}
+      >
+        {leisFiltradas.length === 0 ? (
+          <div className="py-12 text-center text-muted-foreground">
+            <BookOpen className="w-10 h-10 mx-auto text-muted-foreground/30 mb-2" />
+            <p className="text-sm font-medium">Nenhuma legislação encontrada</p>
+            <p className="text-xs text-muted-foreground/80 mt-1">
+              {buscaInterna
+                ? 'Tente outro termo de busca.'
+                : abaData !== 'todos'
+                ? 'Nenhuma legislação com raspagem para este filtro.'
+                : 'Nenhuma legislação cadastrada nesta categoria.'}
+            </p>
+            {(abaData !== 'todos' || buscaInterna) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setAbaData('todos');
+                  setBuscaInterna('');
+                }}
+                className="mt-3 text-xs"
+              >
+                Mostrar todas
+              </Button>
+            )}
+          </div>
+        ) : (
+          leisFiltradas.map((lei) => {
+            const foiExtraida = !!lei.ultima_reextracao_em;
+            const dataFormatada = foiExtraida ? formatDateTimeFull(lei.ultima_reextracao_em) : null;
+
+            return (
+              <div
+                key={lei.id}
+                onClick={() => onSelectLei(lei, 'legislacao')}
+                className="w-full text-left p-3.5 bg-secondary/20 hover:bg-secondary/40 active:bg-secondary/60 rounded-2xl border border-border/50 transition-all flex items-center justify-between gap-3 cursor-pointer group"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-[15px] font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">
+                      {lei.nome}
+                    </h3>
+                    {lei.nome_curto && (
+                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 py-0 font-mono text-muted-foreground border-border/70">
+                        {lei.nome_curto}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    {foiExtraida ? (
+                      <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[11px] font-medium gap-1 px-2 py-0.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Extraído em {dataFormatada}</span>
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-amber-400/90 border-amber-500/30 bg-amber-500/10 text-[11px] font-medium gap-1 px-2 py-0.5">
+                        <Clock className="w-3.5 h-3.5 shrink-0" />
+                        <span>Pendente de extração</span>
+                      </Badge>
+                    )}
+
+                    {lei.total_artigos !== null && lei.total_artigos > 0 && (
+                      <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <FileText className="w-3 h-3" />
+                        {lei.total_artigos} artigos
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    variant={foiExtraida ? 'ghost' : 'default'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectLei(lei, 'raspagem');
+                    }}
+                    className={`h-8 px-2.5 text-xs font-semibold rounded-lg ${
+                      foiExtraida
+                        ? 'text-muted-foreground hover:text-foreground'
+                        : 'bg-primary text-primary-foreground shadow-sm'
+                    }`}
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 mr-1" />
+                    {foiExtraida ? 'Reextrair' : 'Extrair'}
+                  </Button>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }
@@ -313,12 +660,19 @@ function DetalheLeiOverlay({
   lei,
   onClose,
   onReloadLista,
+  initialTab = 'legislacao',
 }: {
   lei: LeiRow;
   onClose: () => void;
   onReloadLista: () => Promise<void>;
+  initialTab?: string;
 }) {
-  const [tab, setTab] = useState('legislacao');
+  const [tab, setTab] = useState(initialTab);
+  const [leiData, setLeiData] = useState<LeiRow>(lei);
+
+  useEffect(() => {
+    setLeiData(lei);
+  }, [lei]);
   
   const [artigos, setArtigos] = useState<ArtigoRow[]>([]);
   const [impactos, setImpactos] = useState<ImpactoRow[]>([]);
@@ -378,9 +732,11 @@ function DetalheLeiOverlay({
     const tid = toast.loading('Raspando lei do Planalto...');
     try {
       const { error } = await supabase.functions.invoke('reextrair-lei-planalto', {
-        body: { slug: lei.slug, dry_run: false }
+        body: { slug: leiData.slug, dry_run: false }
       });
       if (error) throw new Error(error.message);
+      const agora = new Date().toISOString();
+      setLeiData(prev => ({ ...prev, ultima_reextracao_em: agora }));
       toast.success('Lei raspada com sucesso!', { id: tid });
       await Promise.all([carregarBasico(), onReloadLista()]);
     } catch (e: any) {
@@ -794,27 +1150,27 @@ function DetalheLeiOverlay({
                   <div className="flex flex-col items-center text-center space-y-4">
                     <RefreshCw className={`w-8 h-8 text-primary ${reextraindo ? 'animate-spin' : ''}`} />
                     <div className="text-sm">
-                      {lei.ultima_reextracao_em ? (
-                        <p>Última raspagem: <strong>{new Date(lei.ultima_reextracao_em).toLocaleString('pt-BR')}</strong></p>
+                      {leiData.ultima_reextracao_em ? (
+                        <p>Última raspagem: <strong>{new Date(leiData.ultima_reextracao_em).toLocaleString('pt-BR')}</strong></p>
                       ) : (
                         <p>Esta lei nunca foi re-extraída manualmente.</p>
                       )}
                     </div>
-                    <Button onClick={fazerRaspagem} disabled={reextraindo || !lei.planalto_url} className="w-full max-w-xs">
+                    <Button onClick={fazerRaspagem} disabled={reextraindo || !leiData.planalto_url} className="w-full max-w-xs">
                       {reextraindo ? 'Raspando...' : 'Iniciar Raspagem Agora'}
                     </Button>
-                    {!lei.planalto_url ? (
+                    {!leiData.planalto_url ? (
                       <p className="text-xs text-destructive mt-2">URL do Planalto não configurada no banco.</p>
                     ) : (
                       <div className="mt-4 flex flex-col items-center">
                         <span className="text-xs text-muted-foreground mb-1">Fonte da raspagem:</span>
                         <a 
-                          href={lei.planalto_url} 
+                          href={leiData.planalto_url} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors"
                         >
-                          {lei.planalto_url}
+                          {leiData.planalto_url}
                         </a>
                       </div>
                     )}
