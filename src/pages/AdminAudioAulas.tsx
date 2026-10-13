@@ -410,7 +410,8 @@ export default function AdminAudioAulas() {
       <PageHeader
         title="Geração de Áudio Aulas"
         subtitle="Prompts guias institucionais, exportador CSV em 3 colunas e vinculação com Google Drive"
-        backTo="/admin-funcoes"
+        onBack={() => navigate('/admin-funcoes')}
+        variant="dark"
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 space-y-6">
@@ -509,7 +510,7 @@ export default function AdminAudioAulas() {
 
           {/* Detalhes da Lei Ativa */}
           {activeLei && (
-            <div className="mt-4 pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 bg-black/20 p-3 rounded-xl border border-white/5">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 bg-black/20 p-3 rounded-xl border border-white/5">
               <div>
                 <p className="text-xs text-slate-400">Lei Ativa:</p>
                 <p className="font-semibold text-sm text-sky-300">{activeLei.nome}</p>
@@ -592,19 +593,19 @@ export default function AdminAudioAulas() {
               {/* Destaques das Regras Solicitadas */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
                 <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs">
-                  <span className="font-semibold text-emerald-400 block mb-1 flex items-center gap-1">
+                  <span className="font-semibold text-emerald-400 mb-1 flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Saudações Obrigatórias
                   </span>
                   Inicia acolhendo estudantes e advogados com entusiasmo profissional.
                 </div>
                 <div className="p-3 rounded-xl bg-rose-950/20 border border-rose-500/20 text-xs">
-                  <span className="font-semibold text-rose-400 block mb-1 flex items-center gap-1">
+                  <span className="font-semibold text-rose-400 mb-1 flex items-center gap-1">
                     <AlertCircle className="w-3.5 h-3.5" /> Proibido Nome de Locutor
                   </span>
                   NUNCA cita nem inventa nomes pessoais de apresentadores.
                 </div>
                 <div className="p-3 rounded-xl bg-sky-950/20 border border-sky-500/20 text-xs">
-                  <span className="font-semibold text-sky-400 block mb-1 flex items-center gap-1">
+                  <span className="font-semibold text-sky-400 mb-1 flex items-center gap-1">
                     <Headphones className="w-3.5 h-3.5" /> Marca Institucional
                   </span>
                   Cita obrigatoriamente: <em>"mais uma áudio-aula do VACATIO Vade Mecum"</em>.

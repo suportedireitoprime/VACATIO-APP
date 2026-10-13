@@ -1,10 +1,12 @@
 import { ArrowLeft } from 'lucide-react';
 import { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   onBack?: () => void;
+  backTo?: string;
   rightAction?: ReactNode;
   leading?: ReactNode;
   className?: string;
@@ -15,11 +17,14 @@ export function PageHeader({
   title,
   subtitle,
   onBack,
+  backTo,
   rightAction,
   leading,
   className = '',
   variant = 'default',
 }: PageHeaderProps) {
+  const navigate = useNavigate();
+  const handleBack = onBack || (backTo ? () => (backTo === '-1' ? navigate(-1) : navigate(backTo)) : undefined);
   const isDark = variant === 'dark';
   const baseBg = isDark ? 'bg-[#1c1c1c]' : 'bg-background';
   const borderColor = isDark ? 'border-white/5' : 'border-border';
@@ -38,10 +43,10 @@ export function PageHeader({
         minHeight: 'calc(5rem + var(--sai-top, env(safe-area-inset-top, 0px)))',
       }}
     >
-      {onBack ? (
+      {handleBack ? (
         <button
           type="button"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBack(); }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleBack(); }}
           aria-label="Voltar"
           className={`w-12 h-12 md:w-11 md:h-11 rounded-full ${buttonBg} flex items-center justify-center shrink-0 active:scale-95 transition-transform touch-manipulation select-none`}
         >
