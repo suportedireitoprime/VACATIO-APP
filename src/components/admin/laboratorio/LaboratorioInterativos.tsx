@@ -183,10 +183,10 @@ export function LigarTermosGame({ pares, onCompleto }: { pares: TermoPar[]; onCo
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-        {/* Coluna da Esquerda: Termos */}
-        <div className="space-y-2">
-          <div className="text-xs font-black uppercase tracking-wider text-teal-400/90 px-1">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
+        {/* Coluna da Esquerda: Termos (Lado a Lado) */}
+        <div className="space-y-1.5 sm:space-y-2">
+          <div className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-teal-400/90 px-1 truncate">
             Termo Jurídico:
           </div>
           {pares.map((p) => {
@@ -198,7 +198,7 @@ export function LigarTermosGame({ pares, onCompleto }: { pares: TermoPar[]; onCo
                 key={p.id}
                 onClick={() => handleCliqueTermo(p.id)}
                 disabled={acertou}
-                className={`w-full min-h-[58px] sm:min-h-[64px] p-4 rounded-2xl border text-left font-bold transition-all flex items-center justify-between shadow-sm active:scale-[0.98] ${
+                className={`w-full min-h-[54px] sm:min-h-[64px] p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border text-left font-bold transition-all flex items-center justify-between shadow-sm active:scale-[0.98] ${
                   acertou
                     ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300 opacity-90 cursor-default ring-1 ring-emerald-500/50'
                     : comErro
@@ -208,16 +208,16 @@ export function LigarTermosGame({ pares, onCompleto }: { pares: TermoPar[]; onCo
                     : 'border-border/90 bg-card hover:bg-secondary/70 text-foreground'
                 }`}
               >
-                <span className="leading-snug">{p.termo}</span>
-                {acertou && <Check className="w-5 h-5 text-emerald-400 shrink-0 ml-2" />}
+                <span className="leading-snug text-xs sm:text-sm">{p.termo}</span>
+                {acertou && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0 ml-1 sm:ml-2" />}
               </button>
             );
           })}
         </div>
 
-        {/* Coluna da Direita: Significados */}
-        <div className="space-y-2">
-          <div className="text-xs font-black uppercase tracking-wider text-cyan-400/90 px-1">
+        {/* Coluna da Direita: Significados (Lado a Lado) */}
+        <div className="space-y-1.5 sm:space-y-2">
+          <div className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-cyan-400/90 px-1 truncate">
             Significado na Prática:
           </div>
           {significadosEmbaralhados.map((p) => {
@@ -229,7 +229,7 @@ export function LigarTermosGame({ pares, onCompleto }: { pares: TermoPar[]; onCo
                 key={p.id}
                 onClick={() => handleCliqueSig(p.id)}
                 disabled={acertou}
-                className={`w-full min-h-[58px] sm:min-h-[64px] p-4 rounded-2xl border text-left font-medium transition-all flex items-center justify-between shadow-sm active:scale-[0.98] ${
+                className={`w-full min-h-[54px] sm:min-h-[64px] p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border text-left font-medium transition-all flex items-center justify-between shadow-sm active:scale-[0.98] ${
                   acertou
                     ? 'border-emerald-500 bg-emerald-950/50 text-emerald-300 opacity-90 cursor-default ring-1 ring-emerald-500/50'
                     : comErro
@@ -239,8 +239,8 @@ export function LigarTermosGame({ pares, onCompleto }: { pares: TermoPar[]; onCo
                     : 'border-border/90 bg-card hover:bg-secondary/70 text-foreground'
                 }`}
               >
-                <span className="leading-relaxed">{p.significado}</span>
-                {acertou && <Check className="w-5 h-5 text-emerald-400 shrink-0 ml-2" />}
+                <span className="leading-tight sm:leading-relaxed text-[11px] sm:text-sm">{p.significado}</span>
+                {acertou && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0 ml-1 sm:ml-2" />}
               </button>
             );
           })}

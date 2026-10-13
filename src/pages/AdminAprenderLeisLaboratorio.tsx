@@ -78,6 +78,7 @@ interface SlideData {
   dispositivoId: string;
   dispositivoLabel: string;
   isCapaDispositivo?: boolean;
+  temImagemRepresentativa?: boolean;
   badge: string;
   titulo: string;
   subtitulo?: string;
@@ -1798,18 +1799,20 @@ const AdminAprenderLeisLaboratorio = () => {
                   exit="exit"
                   className="w-full space-y-3"
                 >
-                  {/* Seção Visual de Legal Design (Renderizada Apenas se Houver Imagem) */}
-                  <SlideImagemVisualizadorEControle
-                    slideId={slideAtual.id}
-                    imagePrompt={slideAtual.imagePrompt}
-                    imageUrl={imagensCustomizadas[slideAtual.id] || slideAtual.imageUrl}
-                    onSalvarUrl={(url) => {
-                      setImagensCustomizadas((prev) => ({
-                        ...prev,
-                        [slideAtual.id]: url,
-                      }));
-                    }}
-                  />
+                  {/* Seção Visual de Legal Design (Renderizada apenas se o slide pedir imagem representativa) */}
+                  {slideAtual.temImagemRepresentativa !== false && (
+                    <SlideImagemVisualizadorEControle
+                      slideId={slideAtual.id}
+                      imagePrompt={slideAtual.imagePrompt}
+                      imageUrl={imagensCustomizadas[slideAtual.id] || slideAtual.imageUrl}
+                      onSalvarUrl={(url) => {
+                        setImagensCustomizadas((prev) => ({
+                          ...prev,
+                          [slideAtual.id]: url,
+                        }));
+                      }}
+                    />
+                  )}
 
                   {slideAtual.conteudoPrincipal}
                 </motion.div>
