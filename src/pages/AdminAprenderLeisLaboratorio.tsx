@@ -33,6 +33,7 @@ import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { isAdminEmail } from '@/lib/adminEmails';
+import flipSoundAsset from '@/assets/flipcard.mp3.asset.json';
 
 // ==========================================
 // TIPOS E DEFINIÇÕES
@@ -231,45 +232,126 @@ function LigarTermosGame({ pares, onCompleto }: { pares: TermoPar[]; onCompleto?
   );
 }
 
-// 2. FLASHCARD 3D (Design Elegante e Legível)
+// 2. FLASHCARD 3D (Animação de Flip Fluida e Realista com Profundidade 3D)
 function FlipCardItem({ frente, verso }: { frente: string; verso: string }) {
   const [virado, setVirado] = useState(false);
+  const flipAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Inicializa o som sutil de flipcard (opcional e não-bloqueante)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (!flipAudioRef.current && flipSoundAsset?.url) {
+        flipAudioRef.current = new Audio(flipSoundAsset.url);
+        flipAudioRef.current.volume = 0.35;
+      }
+    } catch {}
+  }, []);
+
+  // Reseta a rotação ao mudar de questão/slide
+  useEffect(() => {
+    setVirado(false);
+  }, [frente, verso]);
+
+  const handleToggle = () => {
+    setVirado((prev) => !prev);
+    try {
+      const audio = flipAudioRef.current;
+      if (audio) {
+        audio.currentTime = 0;
+        void audio.play().catch(() => {});
+      }
+    } catch {}
+  };
 
   return (
     <div 
-      onClick={() => setVirado(!virado)}
+      onClick={handleToggle}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleToggle();
+        }
+      }}
       role="button"
       tabIndex={0}
-      className="cursor-pointer perspective-[1000px] select-none py-2"
+      aria-label={virado ? "Flashcard mostrando resposta. Toque para rever a pergunta." : "Flashcard mostrando pergunta. Toque para ver a explicação."}
+      aria-pressed={virado}
+      className="cursor-pointer select-none py-2 w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 rounded-3xl"
+      style={{ perspective: '1200px' }}
     >
-      <div 
-        className={`relative min-h-[250px] sm:min-h-[280px] rounded-3xl border transition-all duration-500 p-6 sm:p-8 flex flex-col items-center justify-center text-center shadow-xl ${
-          virado 
-            ? 'border-emerald-500/60 bg-gradient-to-br from-emerald-950/70 via-teal-950/40 to-background text-emerald-50 rotate-y-180 ring-1 ring-emerald-500/40' 
-            : 'border-teal-500/40 bg-gradient-to-br from-card via-card to-secondary/40 text-foreground hover:border-teal-400 ring-1 ring-white/5'
-        }`}
+      <motion.div 
+        className="relative w-full rounded-3xl"
+        animate={{ rotateY: virado ? 180 : 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        style={{ transformStyle: 'preserve-3d' }}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.985 }}
       >
-        <div className="text-xs font-black uppercase tracking-wider text-teal-400 mb-3 flex items-center gap-1.5">
-          {virado ? (
-            <>
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-              <span>💡 Revelação Jurídica</span>
-            </>
-          ) : (
-            <>
-              <Lightbulb className="w-4 h-4 text-amber-400" />
-              <span>❓ Toque para Virar o Cartão</span>
-            </>
-          )}
+        {/* Sizer invisível no fluxo normal para dimensionamento dinâmico sem saltos de layout */}
+        <div 
+          className="invisible pointer-events-none select-none p-6 sm:p-8 flex flex-col items-center justify-between text-center min-h-[260px] sm:min-h-[290px]" 
+          aria-hidden="true"
+        >
+          <div className="text-xs font-black uppercase tracking-wider mb-3">Header Sizer</div>
+          <p className="text-base sm:text-lg md:text-xl font-bold leading-relaxed max-w-xl my-auto">
+            {frente.length >= verso.length ? frente : verso}
+          </p>
+          <span className="text-xs sm:text-sm mt-4 font-semibold">Footer Sizer</span>
         </div>
-        <p className="text-base sm:text-lg md:text-xl font-bold leading-relaxed max-w-xl">
-          {virado ? verso : frente}
-        </p>
-        <span className="text-xs sm:text-sm text-muted-foreground mt-4 font-semibold flex items-center gap-1.5 opacity-80">
-          <RotateCcw className="w-3.5 h-3.5" />
-          {virado ? 'Toque para rever a pergunta' : 'Toque para ver a explicação'}
-        </span>
-      </div>
+
+        {/* FACE 1: FRENTE (Pergunta) */}
+        <div 
+          className="absolute inset-0 w-full h-full rounded-3xl border border-teal-500/40 bg-gradient-to-br from-[#121820] via-[#10171d] to-[#0c1218] p-6 sm:p-8 flex flex-col items-center justify-between text-center shadow-2xl ring-1 ring-white/10 hover:border-teal-400/70 transition-colors"
+          style={{ 
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+          }}
+        >
+          <div className="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5 pt-1">
+            <Lightbulb className="w-4 h-4 text-amber-400" />
+            <span>❓ Toque para Virar o Cartão</span>
+          </div>
+
+          <div className="my-auto py-2">
+            <p className="text-base sm:text-lg md:text-xl font-bold leading-relaxed max-w-xl text-white">
+              {frente}
+            </p>
+          </div>
+
+          <span className="text-xs sm:text-sm text-slate-400 font-semibold flex items-center gap-1.5 opacity-90 pb-1">
+            <RotateCcw className="w-3.5 h-3.5 text-teal-400" />
+            Toque para ver a explicação
+          </span>
+        </div>
+
+        {/* FACE 2: VERSO (Resposta / Revelação Jurídica) */}
+        <div 
+          className="absolute inset-0 w-full h-full rounded-3xl border border-emerald-500/60 bg-gradient-to-br from-[#064e3b] via-[#042f2e] to-[#022c22] p-6 sm:p-8 flex flex-col items-center justify-between text-center shadow-2xl ring-1 ring-emerald-500/40"
+          style={{ 
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            WebkitTransform: 'rotateY(180deg)',
+          }}
+        >
+          <div className="text-xs font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5 pt-1">
+            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <span>💡 Revelação Jurídica</span>
+          </div>
+
+          <div className="my-auto py-2">
+            <p className="text-base sm:text-lg md:text-xl font-bold leading-relaxed max-w-xl text-emerald-50">
+              {verso}
+            </p>
+          </div>
+
+          <span className="text-xs sm:text-sm text-emerald-300/90 font-semibold flex items-center gap-1.5 opacity-90 pb-1">
+            <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
+            Toque para rever a pergunta
+          </span>
+        </div>
+      </motion.div>
     </div>
   );
 }
