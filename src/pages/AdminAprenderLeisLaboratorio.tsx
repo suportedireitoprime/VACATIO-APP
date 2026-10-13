@@ -59,6 +59,7 @@ interface MecanicaDef {
   gradienteFundo: string;
   bordaCor: string;
   botaoCor: string;
+  barraProgressoCor?: string;
   subtitulo: string;
   descricaoCurta: string;
   focoLeigo: string;
@@ -654,16 +655,40 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
         subtitulo: 'Tirando as dúvidas de quem não é do Direito',
         textoAudio: 'Aluno pergunta: Professor, mas e se o juiz achar que a atitude foi feia e imoral? O tutor responde: Não importa! Imoralidade não é crime se não estiver escrito na lei penal.',
         conteudoPrincipal: (
-          <div className="space-y-4">
-            <div className="p-4 sm:p-5 rounded-3xl rounded-tl-none bg-secondary/90 border border-border/80 text-foreground max-w-[90%] shadow-md">
+          <div className="space-y-3.5">
+            {/* Header estilo WhatsApp Web/App */}
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[#1f2c34] border border-[#2a3942] shadow-md">
+              <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white text-base shadow-sm shrink-0">
+                👨‍🏫
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="font-bold text-sm text-[#e9edef] block truncate">Tutor Jurídico Vacatio</span>
+                <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                  Online no chat
+                </span>
+              </div>
+            </div>
+
+            {/* Balão do Aluno (Recebido / Esquerda) */}
+            <div className="p-4 sm:p-5 rounded-3xl rounded-tl-sm bg-[#202c33] border border-[#2a3942] text-[#e9edef] max-w-[90%] shadow-lg space-y-1">
+              <span className="text-xs font-bold text-[#8696a0] block">Dúvida do Aluno:</span>
               <p className="text-sm sm:text-base md:text-lg leading-relaxed font-medium">
                 “Professor, e se todo mundo achar a atitude feia ou imoral? O juiz pode condenar mesmo sem ter lei federal escrita?”
               </p>
+              <span className="text-[11px] text-[#8696a0] block text-right">14:32</span>
             </div>
-            <div className="p-4 sm:p-5 rounded-3xl rounded-tr-none bg-gradient-to-r from-teal-950/60 to-teal-900/40 border border-teal-500/40 text-foreground max-w-[90%] ml-auto text-right shadow-md">
-              <p className="text-sm sm:text-base md:text-lg leading-relaxed font-semibold text-teal-100">
-                “Não! No Brasil vigora a <strong>Legalidade Estrita</strong>: só o que está expressamente escrito na lei pode ser crime. Juiz não inventa crime por sentimento moral!”
+
+            {/* Balão do Tutor (Enviado / Direita com Verde WhatsApp Autêntico #005c4b) */}
+            <div className="p-4 sm:p-5 rounded-3xl rounded-tr-sm bg-[#005c4b] border border-[#005c4b] text-white max-w-[90%] ml-auto text-left shadow-lg space-y-1">
+              <span className="text-xs font-bold text-emerald-300 block">Resposta do Tutor:</span>
+              <p className="text-sm sm:text-base md:text-lg leading-relaxed font-semibold text-white">
+                “Não! No Brasil vigora a <strong className="text-[#25d366] bg-[#004739] px-1.5 py-0.5 rounded">Legalidade Estrita</strong>: só o que está expressamente escrito na lei pode ser crime. Juiz não inventa crime por sentimento moral!”
               </p>
+              <div className="flex items-center justify-end gap-1 text-[11px] text-emerald-200">
+                <span>14:33</span>
+                <span className="text-[#53bdeb] font-bold">✓✓</span>
+              </div>
             </div>
           </div>
         ),
@@ -1125,16 +1150,40 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
         subtitulo: '“Mas a lei viaja ou não viaja para trás no tempo?”',
         textoAudio: 'Aluno pergunta: No artigo primeiro você disse que a lei nunca volta no tempo. Agora no artigo segundo você diz que ela volta? Ficou confuso!',
         conteudoPrincipal: (
-          <div className="space-y-4">
-            <div className="p-4 sm:p-5 rounded-3xl rounded-tl-none bg-secondary/90 border border-border/80 text-foreground max-w-[90%] shadow-md">
+          <div className="space-y-3.5">
+            {/* Header estilo WhatsApp Web/App */}
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[#1f2c34] border border-[#2a3942] shadow-md">
+              <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white text-base shadow-sm shrink-0">
+                👨‍🏫
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="font-bold text-sm text-[#e9edef] block truncate">Tutor Jurídico Vacatio</span>
+                <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                  Online no chat
+                </span>
+              </div>
+            </div>
+
+            {/* Balão do Aluno (Recebido / Esquerda) */}
+            <div className="p-4 sm:p-5 rounded-3xl rounded-tl-sm bg-[#202c33] border border-[#2a3942] text-[#e9edef] max-w-[90%] shadow-lg space-y-1">
+              <span className="text-xs font-bold text-[#8696a0] block">Dúvida do Aluno:</span>
               <p className="text-sm sm:text-base md:text-lg leading-relaxed font-medium">
                 “Professor! No Artigo 1º você disse que a lei NÃO volta no tempo. Agora no Artigo 2º você diz que ela volta? Tô confuso!”
               </p>
+              <span className="text-[11px] text-[#8696a0] block text-right">16:15</span>
             </div>
-            <div className="p-4 sm:p-5 rounded-3xl rounded-tr-none bg-gradient-to-r from-teal-950/60 to-teal-900/40 border border-teal-500/40 text-foreground max-w-[90%] ml-auto text-right shadow-md">
-              <p className="text-sm sm:text-base md:text-lg leading-relaxed font-semibold text-teal-100">
-                “A regra de ouro é simples e infalível: <strong>a lei penal NUNCA volta para PREJUDICAR, mas SEMPRE volta para AJUDAR!</strong>”
+
+            {/* Balão do Tutor (Enviado / Direita com Verde WhatsApp Autêntico #005c4b) */}
+            <div className="p-4 sm:p-5 rounded-3xl rounded-tr-sm bg-[#005c4b] border border-[#005c4b] text-white max-w-[90%] ml-auto text-left shadow-lg space-y-1">
+              <span className="text-xs font-bold text-emerald-300 block">Resposta do Tutor:</span>
+              <p className="text-sm sm:text-base md:text-lg leading-relaxed font-semibold text-white">
+                “A regra de ouro é simples e infalível: <strong className="text-[#25d366] bg-[#004739] px-1.5 py-0.5 rounded">a lei penal NUNCA volta para PREJUDICAR, mas SEMPRE volta para AJUDAR!</strong>”
               </p>
+              <div className="flex items-center justify-end gap-1 text-[11px] text-emerald-200">
+                <span>16:16</span>
+                <span className="text-[#53bdeb] font-bold">✓✓</span>
+              </div>
             </div>
           </div>
         ),
@@ -1391,10 +1440,11 @@ const MECANICAS: MecanicaDef[] = [
     nome: '🌟 O COMBO — Trilha Master Completa',
     badge: '25 Etapas · Todas as Mecânicas Juntas',
     icone: Flame,
-    corPrimaria: 'text-amber-400',
-    gradienteFundo: 'from-amber-950/40 via-purple-950/20 to-teal-950/30',
-    bordaCor: 'border-amber-500/50 hover:border-amber-400',
-    botaoCor: 'bg-gradient-to-r from-amber-500 via-purple-500 to-teal-500 hover:from-amber-600 hover:to-teal-600 shadow-amber-500/30',
+    corPrimaria: 'text-[#f59e0b]',
+    gradienteFundo: 'from-[#78350f]/30 via-card to-background',
+    bordaCor: 'border-[#f59e0b]/50 hover:border-[#f59e0b]',
+    botaoCor: 'bg-gradient-to-r from-[#f59e0b] to-[#d97706] hover:from-[#d97706] hover:to-[#b45309] text-slate-950 font-black shadow-lg shadow-amber-500/25',
+    barraProgressoCor: 'bg-gradient-to-r from-[#f59e0b] to-[#fbbf24]',
     subtitulo: 'Anatomia + Storytelling + Chat + Linha do Tempo + Flashcards + Ligar Termos + Quizzes',
     descricaoCurta: 'A experiência definitiva recomendada: reúne todos os 5 métodos pedagógicos em uma única jornada completa de 25 etapas interativas.',
     focoLeigo: 'Domínio 100% definitivo do artigo sem deixar nenhuma ponta solta ou dúvida.',
@@ -1416,7 +1466,8 @@ const MECANICAS: MecanicaDef[] = [
     corPrimaria: 'text-emerald-400',
     gradienteFundo: 'from-emerald-950/40 via-emerald-900/10 to-transparent',
     bordaCor: 'border-emerald-500/40 hover:border-emerald-400',
-    botaoCor: 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/25',
+    botaoCor: 'bg-emerald-600 hover:bg-emerald-500 text-white font-black shadow-emerald-500/25',
+    barraProgressoCor: 'bg-emerald-500',
     subtitulo: 'Desconstrução do juridiquês em português claro',
     descricaoCurta: 'Fatia o artigo em blocos e traduz termos difíceis como "cominação" e "anterioridade" em linguagem do dia a dia.',
     focoLeigo: 'Elimina o medo de ler a lei pura e explica o que cada frase significa na vida real.',
@@ -1435,10 +1486,11 @@ const MECANICAS: MecanicaDef[] = [
     nome: '2. Storytelling & Casos da Vida Real',
     badge: 'Narrativa em Capítulos',
     icone: BookOpen,
-    corPrimaria: 'text-amber-400',
-    gradienteFundo: 'from-amber-950/40 via-amber-900/10 to-transparent',
-    bordaCor: 'border-amber-500/40 hover:border-amber-400',
-    botaoCor: 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/25',
+    corPrimaria: 'text-[#f59e0b]',
+    gradienteFundo: 'from-[#78350f]/25 via-card to-transparent',
+    bordaCor: 'border-[#f59e0b]/40 hover:border-[#f59e0b]',
+    botaoCor: 'bg-gradient-to-r from-[#ea580c] to-[#c2410c] hover:from-[#c2410c] hover:to-[#9a3412] text-white font-black shadow-orange-500/25',
+    barraProgressoCor: 'bg-[#ea580c]',
     subtitulo: 'Histórias ilustradas com dilemas humanos cotidianos',
     descricaoCurta: 'Acompanhe Dona Clara (vendedora de chás) e Lucas (condenado no passado) para entender a aplicação prática da lei na vida das pessoas.',
     focoLeigo: 'Cria empatia imediata através de uma historinha sem termos jurídicos frios.',
@@ -1457,10 +1509,11 @@ const MECANICAS: MecanicaDef[] = [
     nome: '3. Diálogo Tutor & Aluno Curioso',
     badge: 'Chat Socrático com Metáforas',
     icone: MessageSquare,
-    corPrimaria: 'text-cyan-400',
-    gradienteFundo: 'from-cyan-950/40 via-blue-900/10 to-transparent',
-    bordaCor: 'border-cyan-500/40 hover:border-cyan-400',
-    botaoCor: 'bg-cyan-500 hover:bg-cyan-600 shadow-cyan-500/25',
+    corPrimaria: 'text-[#38bdf8]',
+    gradienteFundo: 'from-[#0369a1]/25 via-card to-transparent',
+    bordaCor: 'border-[#0284c7]/40 hover:border-[#0284c7]',
+    botaoCor: 'bg-[#0284c7] hover:bg-[#0369a1] text-white font-black shadow-sky-500/25',
+    barraProgressoCor: 'bg-[#0284c7]',
     subtitulo: 'Bate-papo estilo WhatsApp com analogias descontraídas',
     descricaoCurta: 'Um cidadão leigo faz perguntas sinceras e o tutor responde usando a pelada de futebol e cupons de compras.',
     focoLeigo: 'Linguagem natural, sem cerimônia, tirando exatamente as dúvidas que qualquer leigo teria.',
@@ -1479,10 +1532,11 @@ const MECANICAS: MecanicaDef[] = [
     nome: '4. Linha do Tempo & Simulador Temporal',
     badge: 'Visual Law Cronológico',
     icone: Clock,
-    corPrimaria: 'text-purple-400',
-    gradienteFundo: 'from-purple-950/40 via-violet-900/10 to-transparent',
-    bordaCor: 'border-purple-500/40 hover:border-purple-400',
-    botaoCor: 'bg-purple-500 hover:bg-purple-600 shadow-purple-500/25',
+    corPrimaria: 'text-[#c084fc]',
+    gradienteFundo: 'from-[#581c87]/30 via-card to-transparent',
+    bordaCor: 'border-[#7c3aed]/40 hover:border-[#7c3aed]',
+    botaoCor: 'bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-black shadow-purple-500/25',
+    barraProgressoCor: 'bg-[#7c3aed]',
     subtitulo: 'Régua cronológica com teste de causa e efeito',
     descricaoCurta: 'Visualiza graficamente o momento do fato vs publicação da lei. Mostra o "Muro do Tempo" e o "Portal da Retroatividade".',
     focoLeigo: 'Demonstração espacial e cronológica perfeita para quem aprende melhor visualmente.',
@@ -1501,10 +1555,11 @@ const MECANICAS: MecanicaDef[] = [
     nome: '5. Mapa Mental, Flashcards & Ligar Termos',
     badge: 'Você é o Juiz · Gamificação',
     icone: BrainCircuit,
-    corPrimaria: 'text-pink-400',
-    gradienteFundo: 'from-pink-950/40 via-rose-900/10 to-transparent',
-    bordaCor: 'border-pink-500/40 hover:border-pink-400',
-    botaoCor: 'bg-pink-500 hover:bg-pink-600 shadow-pink-500/25',
+    corPrimaria: 'text-[#f472b6]',
+    gradienteFundo: 'from-[#831843]/30 via-card to-transparent',
+    bordaCor: 'border-[#db2777]/40 hover:border-[#db2777]',
+    botaoCor: 'bg-[#db2777] hover:bg-[#be185d] text-white font-black shadow-pink-500/25',
+    barraProgressoCor: 'bg-[#db2777]',
     subtitulo: 'Árvore de decisão simples, jogo de ligar termos e flashcard 3D',
     descricaoCurta: 'Resolva um caso real tocando para virar o cartão 3D, conecte os termos jurídicos e teste sua maestria.',
     focoLeigo: 'Divertido, gamificado e fácil de fixar na memória em poucos segundos.',
@@ -1705,7 +1760,7 @@ const AdminAprenderLeisLaboratorio = () => {
               </div>
               <div className="w-full h-2 sm:h-2.5 rounded-full bg-secondary/80 overflow-hidden shadow-inner">
                 <div 
-                  className={`h-full transition-all duration-300 ${mecanica.botaoCor}`}
+                  className={`h-full transition-all duration-300 ${mecanica.barraProgressoCor || mecanica.botaoCor}`}
                   style={{ width: `${((slideIndex + 1) / slides.length) * 100}%` }}
                 />
               </div>
