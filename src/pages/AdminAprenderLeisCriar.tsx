@@ -88,30 +88,9 @@ const AdminAprenderLeisCriar = () => {
     },
   ]);
   const [resultadoPrevia, setResultadoPrevia] = useState<any | null>(null);
-  const [mcpStatus, setMcpStatus] = useState<'idle' | 'online' | 'offline'>('idle');
-  const [mcpTestando, setMcpTestando] = useState(false);
-
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const testarMcp = async () => {
-    setMcpTestando(true);
-    try {
-      const res = await fetch('http://localhost:3333/health');
-      const data = await res.json();
-      if (data.status === 'ok') {
-        setMcpStatus('online');
-        toast.success('Servidor MCP está online e respondendo na porta 3333!');
-      } else {
-        setMcpStatus('offline');
-        toast.error('Servidor MCP retornou resposta inesperada.');
-      }
-    } catch {
-      setMcpStatus('offline');
-      toast.error('Não foi possível conectar ao servidor MCP na porta 3333. Inicie com: cd mcp-server && npm run start');
-    } finally {
-      setMcpTestando(false);
-    }
-  };
+  const SUPABASE_MCP_URL = "https://mcp.supabase.com/mcp?project_ref=tlpxubeagmxapkysgobk";
 
   const addLog = (tipo: LogItem['tipo'], mensagem: string) => {
     setLogs(prev => [
@@ -505,84 +484,83 @@ Retorne somente JSON com: { "artigo": "Art. ${artNum}", "titulo_aula": "...", "s
           </div>
         )}
 
-        {/* Card: Integração MCP Server & Google Gemini Spark */}
-        <div className="rounded-2xl border border-teal-500/30 bg-gradient-to-br from-card via-card to-teal-950/20 p-5 space-y-4 shadow-md">
+        {/* Card: Integração Supabase MCP Oficial (Cloud) & Google Gemini Spark */}
+        <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-card via-card to-emerald-950/20 p-5 space-y-4 shadow-md">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 shrink-0">
-                <Radio className="w-5 h-5 animate-pulse" />
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                <Globe className="w-5 h-5 animate-pulse" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 uppercase tracking-wider">
-                    MCP Server
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
+                    Supabase MCP Oficial (Cloud 24/7)
                   </span>
                   <span className="text-xs text-muted-foreground font-semibold">
                     Model Context Protocol
                   </span>
                 </div>
                 <h4 className="text-sm sm:text-base font-bold text-foreground">
-                  Integração Google Gemini Spark (Imagens Automáticas & Storage)
+                  Google Gemini Spark & Supabase Cloud
                 </h4>
               </div>
             </div>
 
-            <button
-              onClick={testarMcp}
-              disabled={mcpTestando}
-              className="px-3.5 py-1.5 rounded-xl border border-teal-500/40 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${mcpTestando ? 'animate-spin' : ''}`} />
-              <span>{mcpStatus === 'online' ? '✅ MCP Online' : mcpStatus === 'offline' ? '❌ Desconectado' : 'Testar Servidor'}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                Nuvem Ativa
+              </span>
+            </div>
           </div>
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            O <strong>Google Gemini Spark</strong> conecta-se diretamente a este servidor MCP para ler os prompts gerados pelo OmniRoute, sintetizar ilustrações via <strong>Imagen 3</strong> e subir os arquivos no <strong>Supabase Storage</strong> (<code>aprender-leis-imagens</code>).
+            Usamos o <strong>MCP Oficial do Supabase Cloud</strong> hospedado diretamente pela infraestrutura do Supabase. Não requer servidor local, portas abertas nem ferramentas de túnel. O <strong>Google Gemini Spark</strong> autentica via OAuth 2.1 em 1 clique e opera as tabelas e o storage com máxima segurança.
           </p>
 
-          {/* Endpoint SSE e Instruções */}
+          {/* Endpoint MCP Cloud Oficial e Instruções */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-3 rounded-xl border border-border/70 bg-background/60 space-y-1.5">
-              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
-                Endpoint SSE para o Spark:
-              </span>
-              <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-secondary/50 font-mono text-[11px] text-foreground">
-                <span className="truncate">http://localhost:3333/sse</span>
+            <div className="p-3.5 rounded-xl border border-border/70 bg-background/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                  Endpoint MCP para colar no Gemini Spark:
+                </span>
+                <span className="text-[10px] text-emerald-400 font-medium">OAuth 2.1 Nativo</span>
+              </div>
+              <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-secondary/50 font-mono text-[11px] text-foreground border border-border/50">
+                <span className="truncate select-all">{SUPABASE_MCP_URL}</span>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText('http://localhost:3333/sse');
-                    toast.success('URL do MCP copiada!');
+                    navigator.clipboard.writeText(SUPABASE_MCP_URL);
+                    toast.success('URL oficial do Supabase MCP copiada!');
                   }}
-                  className="p-1 hover:text-teal-400 transition-colors shrink-0"
+                  className="px-2 py-1 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 transition-colors shrink-0 flex items-center gap-1 text-[11px] font-medium"
                   title="Copiar URL"
                 >
                   <Copy className="w-3.5 h-3.5" />
+                  <span>Copiar</span>
                 </button>
               </div>
-              <span className="text-[10px] text-muted-foreground block">
-                💡 Em produção ou agentes na nuvem, exponha via túnel: <code>npx localtunnel --port 3333</code>
+              <span className="text-[10px] text-muted-foreground block leading-tight">
+                💡 No Gemini Spark, selecione <strong>Adicionar Servidor MCP</strong>, cole a URL acima e autorize sua conta Supabase.
               </span>
             </div>
 
-            <div className="p-3 rounded-xl border border-border/70 bg-background/60 space-y-1.5">
+            <div className="p-3.5 rounded-xl border border-border/70 bg-background/60 space-y-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
-                Ferramentas (Tools) Expostas ao Spark:
+                Fluxo Automatizado de Imagens (Imagen 3):
               </span>
-              <div className="flex flex-wrap gap-1.5 pt-0.5">
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-secondary text-foreground font-mono">
-                  listar_prompts_pendentes
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-secondary text-foreground font-mono">
-                  obter_prompt_slide
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-secondary text-foreground font-mono">
-                  upload_imagem_gerada
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-secondary text-foreground font-mono">
-                  salvar_url_imagem
-                </span>
-              </div>
+              <ul className="text-[11px] text-muted-foreground space-y-1 list-disc list-inside">
+                <li>
+                  <strong className="text-foreground">1. Robô OmniRoute:</strong> Redige os slides e salva os <code>image_prompt</code> na tabela <code>aprender_leis_imagens</code>.
+                </li>
+                <li>
+                  <strong className="text-foreground">2. Gemini Spark:</strong> Lê os prompts via MCP, sintetiza as imagens realistas no Imagen 3.
+                </li>
+                <li>
+                  <strong className="text-foreground">3. Bucket Supabase:</strong> Spark salva os arquivos e vincula as URLs prontas na aula.
+                </li>
+              </ul>
             </div>
           </div>
         </div>
