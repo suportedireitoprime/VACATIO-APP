@@ -122,19 +122,23 @@ export const safeStorageUrl = (url: string | null | undefined): string | null =>
   // Corrige barras duplicadas acidentais após o protocolo (ex: https://dominio//storage//v1)
   sanitized = sanitized.replace(/([^:]\/)\/+/g, '$1');
 
-  // Remapeia projeto Supabase legado desativado para o projeto oficial ativo
-  if (sanitized.includes('izspjvegxdfgkgibpyst.supabase.co')) {
-    sanitized = sanitized.replace('izspjvegxdfgkgibpyst.supabase.co', 'dnjrgpldcwcpoywamorr.supabase.co');
+  // Remapeia qualquer projeto Supabase legado para o projeto oficial ativo VACATIO-APP (tlpxubeagmxapkysgobk)
+  if (sanitized.includes('izspjvegxdfgkgibpyst.supabase.co') || sanitized.includes('dnjrgpldcwcpoywamorr.supabase.co') || sanitized.includes('vooaldsmaddplxhcaouw.supabase.co') || sanitized.includes('iftdrbxvekrhzstayjwp.supabase.co')) {
+    sanitized = sanitized
+      .replace('izspjvegxdfgkgibpyst.supabase.co', 'tlpxubeagmxapkysgobk.supabase.co')
+      .replace('dnjrgpldcwcpoywamorr.supabase.co', 'tlpxubeagmxapkysgobk.supabase.co')
+      .replace('vooaldsmaddplxhcaouw.supabase.co', 'tlpxubeagmxapkysgobk.supabase.co')
+      .replace('iftdrbxvekrhzstayjwp.supabase.co', 'tlpxubeagmxapkysgobk.supabase.co');
   }
 
   // Converte caminhos relativos conhecidos do bucket (ex: 'covers/minha-capa.webp' ou 'biblioteca-obras/...')
   if (!sanitized.startsWith('http://') && !sanitized.startsWith('https://') && !sanitized.startsWith('/') && !sanitized.startsWith('data:') && !sanitized.startsWith('blob:')) {
-    return `https://dnjrgpldcwcpoywamorr.supabase.co/storage/v1/object/public/${sanitized}`;
+    return `https://tlpxubeagmxapkysgobk.supabase.co/storage/v1/object/public/${sanitized}`;
   }
 
   // Se for caminho absoluto sem domínio (ex: '/storage/v1/object/public/...')
   if (sanitized.startsWith('/storage/v1/')) {
-    return `https://dnjrgpldcwcpoywamorr.supabase.co${sanitized}`;
+    return `https://tlpxubeagmxapkysgobk.supabase.co${sanitized}`;
   }
 
   return sanitized;
@@ -146,7 +150,7 @@ export const safeStorageUrl = (url: string | null | undefined): string | null =>
 export const getStoragePublicUrl = (bucket: string, path: string): string => {
   const cleanBucket = (bucket || '').replace(/^\/+|\/+$/g, '');
   const cleanPath = (path || '').replace(/^\/+|\/+$/g, '').replace(/\\/g, '/');
-  return `https://dnjrgpldcwcpoywamorr.supabase.co/storage/v1/object/public/${cleanBucket}/${cleanPath}`;
+  return `https://tlpxubeagmxapkysgobk.supabase.co/storage/v1/object/public/${cleanBucket}/${cleanPath}`;
 };
 
 /**
