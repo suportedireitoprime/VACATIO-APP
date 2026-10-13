@@ -1,7 +1,8 @@
 import { cloneElement, isValidElement, useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronRight, ExternalLink, Volume2, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Layers, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2, Lock } from 'lucide-react';
+import { Search, X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronRight, ExternalLink, Volume2, VolumeX, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Layers, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2, Lock } from 'lucide-react';
+import { getNarracaoArtigo } from '@/services/narracaoArtigosSyncService';
 const LembretesArtigoSheet = lazy(() => import('./LembretesArtigoSheet'));
 const BaixarArtigoSheet = lazy(() => import('./BaixarArtigoSheet'));
 // Sheets/overlays pesados são carregados sob demanda: o chunk só desce
@@ -95,6 +96,7 @@ interface ArtigoBottomSheetProps {
   onToggleFavorito?: () => void;
   showNomenJuris?: boolean;
   tabelaNome?: string;
+  leiSlug?: string;
   forceShowRedacao?: boolean;
   modificationInfo?: ModificationInfo | null;
   breadcrumb?: { parte?: string; titulo?: string; tituloDesc?: string } | null;
@@ -242,8 +244,8 @@ function highlightTermosOnly(
     return parts;
   }
 
-  // 4. Alínea: a) , b) , etc.
-  const alineaMatch = text.match(/^([a-z])\s*[)-–—.]\s*(.*)$/i);
+  // 4. Alínea: a) , b) , etc. (exige ')' ou traço/ponto com espaço para não confundir com palavras como "Não")
+  const alineaMatch = text.match(/^([a-z])\s*(?:\)|\s*[-–—.]\s+)(.*)$/i);
   if (alineaMatch) {
     const letter = alineaMatch[1].toLowerCase();
     const rest = alineaMatch[2];
@@ -272,7 +274,7 @@ function highlightTermosOnly(
 
 function classifyLine(line: string): { type: 'nomen' | 'caput' | 'inciso' | 'alinea' | 'paragrafo' | 'text'; text: string } {
   if (/^[IVXLCDM]+\s*[-–—.]\s*/i.test(line)) return { type: 'inciso', text: line };
-  if (/^[a-z]\s*[)-–—.]\s*/i.test(line)) return { type: 'alinea', text: line };
+  if (/^[a-z]\s*(?:\)|\s*[-–—.]\s+)/i.test(line)) return { type: 'alinea', text: line };
   if (/^(§\s*\d+[º°]?|Parágrafo\s+único)/i.test(line)) return { type: 'paragrafo', text: line };
   return { type: 'text', text: line };
 }
@@ -368,6 +370,7 @@ const ArtigoBottomSheet = ({
   onToggleFavorito, 
   showNomenJuris = false, 
   tabelaNome, 
+  leiSlug,
   forceShowRedacao, 
   modificationInfo, 
   breadcrumb,
@@ -755,36 +758,38 @@ const ArtigoBottomSheet = ({
         narracaoAudioRef.current = null;
       }
     }
-    if (!tabelaNome || !artigo?.numero) return;
+    if ((!tabelaNome && !leiSlug) || !artigo?.numero) return;
 
+    let cancelado = false;
     (async () => {
       try {
-        const res = await fetch(
-          `${SB_URL}/rest/v1/narracoes_artigos?tabela_nome=eq.${tabelaNome}&artigo_numero=eq.${encodeURIComponent(artigo.numero)}&select=audio_url,word_timings&limit=1`,
-          {
-            headers: {
-              apikey: SB_KEY,
-              Authorization: `Bearer ${SB_KEY}`,
-            },
+        const result = await getNarracaoArtigo({
+          tabelaNome,
+          leiSlug,
+          artigoNumero: artigo.numero,
+          artigoId: artigo.id,
+          narracaoUrl: (artigo as any)?.narracao_url,
+        });
+
+        if (cancelado) return;
+        if (result?.audioUrl) {
+          setNarracaoUrl(result.audioUrl);
+          if (result.wordTimings) {
+            setNarracaoWordTimings(result.wordTimings);
+          } else {
+            setNarracaoWordTimings(null);
           }
-        );
-        if (res.ok) {
-          const data = await res.json();
-          const row = data?.[0];
-          const hasTimings = Array.isArray(row?.word_timings) && row.word_timings.length > 0;
-          // Só reaproveita cache que já tenha karaokê (word_timings). Caches antigos
-          // sem timings ou sem o novo prefixo ("Código Civil, Título I, artigo…")
-          // são ignorados para forçar regeneração no próximo Narrar.
-          if (row?.audio_url && hasTimings) {
-            setNarracaoUrl(row.audio_url);
-            setNarracaoWordTimings(row.word_timings);
-          }
+        } else {
+          setNarracaoUrl(null);
+          setNarracaoWordTimings(null);
         }
       } catch (e) {
         console.error('Erro ao verificar narração:', e);
       }
     })();
-  }, [tabelaNome, artigo?.id, artigo?.numero]);
+
+    return () => { cancelado = true; };
+  }, [tabelaNome, leiSlug, artigo?.id, artigo?.numero]);
 
   // Formata tempo em mm:ss
   const formatNarracaoTime = (seconds: number) => {
@@ -1013,8 +1018,8 @@ const ArtigoBottomSheet = ({
   }, [artigo, tabelaNome, breadcrumb?.tituloDesc, breadcrumb?.titulo, playNarracao, openPremiumGate]);
 
   const handleNarrar = async () => {
-    if (!artigo || !tabelaNome) {
-      toast.error('Não encontrei os dados deste artigo para narrar.');
+    if (!artigo) {
+      toast.error('Não encontrei os dados deste artigo para reproduzir.');
       return;
     }
 
@@ -1028,13 +1033,11 @@ const ArtigoBottomSheet = ({
     }
 
     if (narracaoUrl) {
-      const played = await playNarracao(narracaoUrl, {
-        onRecover: () => { gerarNarracao({ autoplay: true, forceRegenerate: false }).catch(() => {}); },
-      });
+      const played = await playNarracao(narracaoUrl);
       if (played) return;
     }
 
-    await gerarNarracao();
+    toast.info('Narração ainda não disponível para este artigo.');
   };
 
   // Índice ativo agora vem direto do state (atualizado só quando muda)
@@ -1051,19 +1054,13 @@ const ArtigoBottomSheet = ({
     narrarActionInFlightRef.current = true;
 
     try {
-      const iniciandoReproducao = !narracaoPlaying;
-      if (iniciandoReproducao && !isPremium) {
-        openPremiumGate('narracao');
-        return;
-      }
-
       await handleNarrar();
     } catch (e) {
       console.error('Erro na narração:', e);
     } finally {
       narrarActionInFlightRef.current = false;
     }
-  }, [artigo?.numero, canUseRef, handleNarrar, isPremium, narracaoLoading, narracaoPlaying, registerUsage, tabelaNome]);
+  }, [artigo?.numero, handleNarrar, narracaoLoading]);
 
   const planaltoUrl = useMemo(() => {
     if (!tabelaNome || !artigo?.numero) return null;
@@ -3535,11 +3532,18 @@ Regras:
                 onPointerDown={handleNarrarButtonPress}
                 onTouchStart={handleNarrarButtonPress}
                 onClick={handleNarrarButtonPress}
-                disabled={narracaoLoading}
                 className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 min-h-[6.25rem] min-w-[5.75rem] touch-manipulation select-none"
-                aria-label="Narrar"
+                aria-label={narracaoPlaying ? 'Pausar narração' : narracaoUrl ? 'Ouvir narração' : 'Narração indisponível'}
               >
-                <span className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center shadow-lg ring-4 ring-card transition-all duration-300 ${narracaoPlaying ? 'bg-primary shadow-primary/40 scale-105' : 'bg-primary shadow-primary/30 hover:bg-primary/90'}`}>
+                <span
+                  className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center shadow-lg ring-4 ring-card transition-all duration-300 ${
+                    narracaoPlaying
+                      ? 'bg-primary shadow-primary/40 scale-105'
+                      : narracaoUrl
+                      ? 'bg-primary shadow-primary/30 hover:bg-primary/90 cursor-pointer active:scale-95'
+                      : 'bg-zinc-800 text-zinc-500 shadow-none opacity-60 ring-zinc-800/80 cursor-not-allowed'
+                  }`}
+                >
                   {narracaoPlaying && (
                     <>
                       <span className="absolute inset-0 rounded-full bg-primary/30 animate-ping" style={{ animationDuration: '1.5s' }} />
@@ -3560,16 +3564,20 @@ Regras:
                       />
                     </svg>
                   )}
-                  {narracaoLoading ? (
-                    <Loader2 className="w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground animate-spin relative z-20" />
-                  ) : narracaoPlaying ? (
+                  {narracaoPlaying ? (
                     <Pause className="w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground relative z-20" />
-                  ) : (
+                  ) : narracaoUrl ? (
                     <Volume2 className="w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground relative z-20" />
+                  ) : (
+                    <VolumeX className="w-7 h-7 sm:w-8 sm:h-8 text-zinc-500 relative z-20" />
                   )}
                 </span>
-                <span className="font-body text-[11px] sm:text-[12px] font-semibold text-primary leading-tight">
-                  {narracaoPlaying ? 'Pausar' : narracaoUrl ? 'Ouvir' : 'Narrar'}
+                <span
+                  className={`font-body text-[11px] sm:text-[12px] font-semibold leading-tight ${
+                    narracaoPlaying || narracaoUrl ? 'text-primary' : 'text-zinc-500'
+                  }`}
+                >
+                  {narracaoPlaying ? 'Pausar' : narracaoUrl ? 'Ouvir' : 'Sem áudio'}
                 </span>
               </button>
             )}
@@ -4197,11 +4205,25 @@ Regras:
         <div className="fixed right-8 top-1/2 -translate-y-1/2 z-[10000] flex flex-col gap-3">
           <button
             onClick={(e) => { handleNarrarButtonPress(e as any); }}
-            className={`group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md transition-all ${narracaoPlaying ? 'bg-primary text-black scale-105' : 'bg-card/95 text-foreground hover:bg-secondary'}`}
-            title="Narrar"
+            className={`group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md transition-all ${
+              narracaoPlaying
+                ? 'bg-primary text-black scale-105'
+                : narracaoUrl
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'bg-zinc-800 text-zinc-500 opacity-60 cursor-not-allowed'
+            }`}
+            title={narracaoPlaying ? 'Pausar' : narracaoUrl ? 'Ouvir narração' : 'Sem áudio'}
           >
-            <Volume2 className="w-5 h-5 shrink-0" />
-            <span className="font-display text-[13px] font-bold tracking-wider max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-1">Narrar</span>
+            {narracaoPlaying ? (
+              <Pause className="w-5 h-5 shrink-0" />
+            ) : narracaoUrl ? (
+              <Volume2 className="w-5 h-5 shrink-0" />
+            ) : (
+              <VolumeX className="w-5 h-5 shrink-0 text-zinc-500" />
+            )}
+            <span className="font-display text-[13px] font-bold tracking-wider max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-1">
+              {narracaoPlaying ? 'Pausar' : narracaoUrl ? 'Ouvir' : 'Sem áudio'}
+            </span>
           </button>
           <button
             onClick={() => setShowPraticarSheet(true)}
@@ -4249,14 +4271,18 @@ Regras:
           style={{ left: selectionPill.x, top: selectionPill.y - 8 }}
         >
           <div className="flex items-center gap-1 rounded-full bg-[#1C1C1E] backdrop-blur-md border border-white/10 shadow-2xl shadow-black/50 px-1.5 py-1">
-            <button
-              onClick={(e) => { handleNarrarButtonPress(e as any); }}
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
-            >
-              <Volume2 className="w-4 h-4" />
-              <span>Narrar</span>
-            </button>
-            <span className="w-px h-5 bg-white/10" />
+            {narracaoUrl && (
+              <>
+                <button
+                  onClick={(e) => { handleNarrarButtonPress(e as any); }}
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                >
+                  <Volume2 className="w-4 h-4" />
+                  <span>{narracaoPlaying ? 'Pausar' : 'Ouvir'}</span>
+                </button>
+                <span className="w-px h-5 bg-white/10" />
+              </>
+            )}
             <button
               onClick={() => setActiveActionMenu('grifar')}
               className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-amber-400 hover:bg-amber-400/10 transition-colors"

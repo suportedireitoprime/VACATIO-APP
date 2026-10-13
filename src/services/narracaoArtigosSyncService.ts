@@ -426,3 +426,129 @@ export async function vincularAudioAoArtigo(params: {
     return { success: false, error: msg };
   }
 }
+
+/**
+ * Cache em memória para arquivos listados por pasta no Storage
+ */
+const storageAudiosCache = new Map<string, Map<string, string>>();
+
+/**
+ * Limpa o cache de áudios em memória (útil após novo upload)
+ */
+export function invalidateStorageAudiosCache(slug?: string): void {
+  if (slug) {
+    storageAudiosCache.delete(slug.toLowerCase());
+  } else {
+    storageAudiosCache.clear();
+  }
+}
+
+/**
+ * Busca a URL de áudio pré-gravada de um artigo específico
+ * Consulta em ordem: URL direta -> Storage (vademecum/{slug}) -> narracoes_artigos -> vade_mecum_artigos
+ */
+export async function getNarracaoArtigo(params: {
+  tabelaNome?: string;
+  leiSlug?: string;
+  artigoNumero?: string;
+  artigoId?: string;
+  narracaoUrl?: string | null;
+}): Promise<{ audioUrl: string; wordTimings?: Array<{ word: string; start: number; end: number }> } | null> {
+  const { tabelaNome, leiSlug, artigoNumero, artigoId, narracaoUrl } = params;
+
+  // 1. Se já fornecida URL válida
+  if (isAudioUrlValida(narracaoUrl)) {
+    return { audioUrl: narracaoUrl.trim() };
+  }
+
+  const key = normalizeArtigoKey(artigoNumero);
+  if (!key) return null;
+
+  // 2. Levantar possíveis slugs da lei
+  const slugs = new Set<string>();
+  if (leiSlug) slugs.add(leiSlug.trim().toLowerCase());
+  if (tabelaNome) {
+    const raw = tabelaNome.trim();
+    const prefix = raw.toLowerCase().replace(/_.*$/, '');
+    if (prefix) slugs.add(prefix);
+    slugs.add(raw.toLowerCase());
+  }
+
+  // 3. Checar no Supabase Storage (bucket 'narracoes')
+  for (const slug of slugs) {
+    if (!storageAudiosCache.has(slug)) {
+      try {
+        const { data: storageFiles } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`);
+        const map = new Map<string, string>();
+        if (storageFiles && storageFiles.length > 0) {
+          for (const file of storageFiles) {
+            if (!file.name || !/\.(mp3|wav|m4a|ogg)$/i.test(file.name)) continue;
+            const k = matchArtigoKeyFromFilename(file.name);
+            if (k) {
+              const { data: pubData } = supabase.storage
+                .from('narracoes')
+                .getPublicUrl(`vademecum/${slug}/${file.name}`);
+              if (pubData?.publicUrl) {
+                map.set(k, pubData.publicUrl);
+              }
+            }
+          }
+        }
+        storageAudiosCache.set(slug, map);
+      } catch (err) {
+        console.warn(`[getNarracaoArtigo] Erro ao listar Storage para ${slug}:`, err);
+      }
+    }
+
+    const map = storageAudiosCache.get(slug);
+    if (map && map.has(key)) {
+      return { audioUrl: map.get(key)! };
+    }
+  }
+
+  // 4. Checar no banco de dados (tabela 'narracoes_artigos')
+  try {
+    const candidateSlugs = Array.from(slugs);
+    if (candidateSlugs.length > 0) {
+      const orFilter = candidateSlugs.map(s => `tabela_nome.eq.${s}`).join(',');
+      const { data: rows } = await supabase
+        .from('narracoes_artigos')
+        .select('audio_url, word_timings, artigo_numero')
+        .or(orFilter)
+        .limit(30);
+
+      if (rows && rows.length > 0) {
+        for (const r of rows) {
+          if (r.audio_url && isAudioUrlValida(r.audio_url)) {
+            const rKey = normalizeArtigoKey(r.artigo_numero);
+            if (rKey === key) {
+              return {
+                audioUrl: r.audio_url,
+                wordTimings: Array.isArray(r.word_timings) ? (r.word_timings as Array<{ word: string; start: number; end: number }>) : undefined,
+              };
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[getNarracaoArtigo] Erro ao buscar em narracoes_artigos:', err);
+  }
+
+  // 5. Checar em vade_mecum_artigos se tiver artigoId
+  if (artigoId) {
+    try {
+      const { data: artRow } = await supabase
+        .from('vade_mecum_artigos')
+        .select('narracao_url')
+        .eq('id', artigoId)
+        .maybeSingle();
+
+      if (artRow?.narracao_url && isAudioUrlValida(artRow.narracao_url)) {
+        return { audioUrl: artRow.narracao_url };
+      }
+    } catch {}
+  }
+
+  return null;
+}

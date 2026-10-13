@@ -20,6 +20,7 @@ import SumulaVinculanteSheet from '@/components/vademecum/SumulaVinculanteSheet'
 import ArtigoCard from '@/components/vademecum/ArtigoCard';
 import { cascadeContainer } from '@/components/vademecum/staggerVariants';
 import ArtigoBottomSheet, { EDITORIAL_NOTE_REGEX, EDITORIAL_NOTE_TEST_REGEX } from '@/components/vademecum/ArtigoBottomSheet';
+import { matchArtigoKeyFromFilename } from '@/services/narracaoArtigosSyncService';
 import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
@@ -359,20 +360,40 @@ const CategoriaLegislacao = () => {
     if (overlayPanel !== 'playlist' || !selectedTabelaNome) return;
     let cancelled = false;
     setLoadingPlaylist(true);
-    fetch(
-      `${LEIS_SUPABASE_URL}/rest/v1/narracoes_artigos?tabela_nome=eq.${encodeURIComponent(selectedTabelaNome)}&select=artigo_numero,audio_url`,
-      { headers: leisAuthHeaders() }
-    )
-      .then(async (res) => {
-        if (!res.ok) return [];
-        return res.json();
-      })
-      .then((rows) => {
+
+    const slug = (selectedLeiId || selectedTabelaNome.split('_')[0]).toLowerCase();
+
+    Promise.all([
+      fetch(
+        `${LEIS_SUPABASE_URL}/rest/v1/narracoes_artigos?tabela_nome=eq.${encodeURIComponent(selectedTabelaNome)}&select=artigo_numero,audio_url`,
+        { headers: leisAuthHeaders() }
+      ).then(async (r) => (r.ok ? r.json() : [])).catch(() => []),
+      supabase.storage.from('narracoes').list(`vademecum/${slug}`).then((r) => r.data || []).catch(() => []),
+    ])
+      .then(([rows, storageFiles]) => {
         if (cancelled) return;
         const map: Record<string, string> = {};
         (Array.isArray(rows) ? rows : []).forEach((row: any) => {
           if (row?.artigo_numero && row?.audio_url) map[row.artigo_numero] = row.audio_url;
         });
+
+        if (Array.isArray(storageFiles)) {
+          for (const f of storageFiles) {
+            if (!f.name) continue;
+            const k = matchArtigoKeyFromFilename(f.name);
+            if (k) {
+              const { data: pubData } = supabase.storage
+                .from('narracoes')
+                .getPublicUrl(`vademecum/${slug}/${f.name}`);
+              if (pubData?.publicUrl) {
+                map[k] = pubData.publicUrl;
+                map[`Art. ${k}`] = pubData.publicUrl;
+                map[`Art. ${k}º`] = pubData.publicUrl;
+              }
+            }
+          }
+        }
+
         setPlaylistNarracoes(map);
       })
       .catch((e) => {
@@ -382,7 +403,7 @@ const CategoriaLegislacao = () => {
         if (!cancelled) setLoadingPlaylist(false);
       });
     return () => { cancelled = true; };
-  }, [overlayPanel, selectedTabelaNome]);
+  }, [overlayPanel, selectedTabelaNome, selectedLeiId]);
 
   // Reset playlist when law changes
   useEffect(() => {
@@ -3075,6 +3096,7 @@ const CategoriaLegislacao = () => {
           onToggleFavorito={() => openArtigo && toggleFavorito(openArtigo.id)}
           showNomenJuris={selectedLeiId === 'cp' || selectedLeiId === 'cpm'}
           tabelaNome={selectedTabelaNome || undefined}
+          leiSlug={selectedLeiId || undefined}
           onNext={filteredArtigos ? () => {
             const idx = filteredArtigos.findIndex((a) => a.id === openArtigo?.id);
             if (idx >= 0 && idx < filteredArtigos.length - 1) {
