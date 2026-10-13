@@ -39,11 +39,31 @@ import flipSoundAsset from '@/assets/flipcard.mp3.asset.json';
 // TIPOS E DEFINIÇÕES
 // ==========================================
 
-export type ArtigoId = 'art1' | 'art2';
+export type ArtigoId = 'art1' | 'art2' | 'art5_cf';
 export type MecanicaId = 'combo' | 'anatomia' | 'storytelling' | 'dialogo' | 'linha_tempo' | 'mapa_decisao';
+
+export interface DispositivoInfo {
+  id: string; // ex: 'caput', 'paragrafo_unico', 'inciso_1', etc.
+  label: string; // ex: 'Caput', 'Parágrafo único', 'Inciso I', 'Inciso II'
+  titulo: string;
+  textoLei: string;
+}
+
+export interface ArtigoDetalhe {
+  id: ArtigoId;
+  diploma: string;
+  artigoNumero: string;
+  titulo: string;
+  subtitulo: string;
+  texto: string;
+  dispositivos: DispositivoInfo[];
+}
 
 interface SlideData {
   id: string;
+  dispositivoId: string;
+  dispositivoLabel: string;
+  isCapaDispositivo?: boolean;
   badge: string;
   titulo: string;
   subtitulo?: string;
@@ -68,18 +88,255 @@ interface MecanicaDef {
   slides: Record<ArtigoId, SlideData[]>;
 }
 
-const ARTIGOS_INFO: Record<ArtigoId, { titulo: string; subtitulo: string; texto: string }> = {
+const ARTIGOS_INFO: Record<ArtigoId, ArtigoDetalhe> = {
   art1: {
+    id: 'art1',
+    diploma: 'Código Penal (DL 2.848/1940)',
+    artigoNumero: 'Artigo 1º',
     titulo: 'Artigo 1º — Anterioridade da Lei Penal',
     subtitulo: 'Legalidade estrita e segurança jurídica do cidadão',
     texto: '“Não há crime sem lei anterior que o defina. Não há pena sem prévia cominação legal.”',
+    dispositivos: [
+      {
+        id: 'caput',
+        label: 'Caput',
+        titulo: 'Princípio da Anterioridade Penal',
+        textoLei: 'Não há crime sem lei anterior que o defina. Não há pena sem prévia cominação legal.',
+      },
+    ],
   },
   art2: {
+    id: 'art2',
+    diploma: 'Código Penal (DL 2.848/1940)',
+    artigoNumero: 'Artigo 2º',
     titulo: 'Artigo 2º — Lei Penal no Tempo & Retroatividade',
     subtitulo: 'Abolitio criminis e a máquina do tempo benéfica',
     texto: '“Ninguém pode ser punido por fato que lei posterior deixa de considerar crime, cessando em virtude dela a execução e os efeitos penais da sentença condenatória. Parágrafo único: A lei posterior, que de qualquer modo favorecer o agente, aplica-se aos fatos anteriores, ainda que decididos por sentença condenatória transitada em julgado.”',
+    dispositivos: [
+      {
+        id: 'caput',
+        label: 'Caput',
+        titulo: 'Abolitio Criminis (Extinção do Crime)',
+        textoLei: 'Ninguém pode ser punido por fato que lei posterior deixa de considerar crime, cessando em virtude dela a execução e os efeitos penais da sentença condenatória.',
+      },
+      {
+        id: 'paragrafo_unico',
+        label: 'Parágrafo único',
+        titulo: 'Novatio Legis in Mellius (Retroatividade Benéfica)',
+        textoLei: 'A lei posterior, que de qualquer modo favorecer o agente, aplica-se aos fatos anteriores, ainda que decididos por sentença condenatória transitada em julgado.',
+      },
+    ],
+  },
+  art5_cf: {
+    id: 'art5_cf',
+    diploma: 'Constituição Federal (CF/1988)',
+    artigoNumero: 'Artigo 5º',
+    titulo: 'Artigo 5º — Direitos e Garantias Fundamentais',
+    subtitulo: 'O pilar dos direitos humanos, liberdades públicas e igualdade cidadã',
+    texto: '“Todos são iguais perante a lei, sem distinção de qualquer natureza, garantindo-se aos brasileiros e aos estrangeiros residentes no País a inviolabilidade do direito à vida, à liberdade, à igualdade, à segurança e à propriedade...”',
+    dispositivos: [
+      {
+        id: 'caput',
+        label: 'Caput',
+        titulo: 'Igualdade Perante a Lei e Direitos Supremos',
+        textoLei: 'Todos são iguais perante a lei, sem distinção de qualquer natureza, garantindo-se aos brasileiros e aos estrangeiros residentes no País a inviolabilidade do direito à vida, à liberdade, à igualdade, à segurança e à propriedade.',
+      },
+      {
+        id: 'inciso_1',
+        label: 'Inciso I',
+        titulo: 'Igualdade entre Homens e Mulheres',
+        textoLei: 'I - homens e mulheres são iguais em direitos e obrigações, nos termos desta Constituição;',
+      },
+      {
+        id: 'inciso_2',
+        label: 'Inciso II',
+        titulo: 'Princípio Geral da Legalidade',
+        textoLei: 'II - ninguém será obrigado a fazer ou deixar de fazer alguma coisa senão em virtude de lei;',
+      },
+      {
+        id: 'inciso_3',
+        label: 'Inciso III',
+        titulo: 'Vedação à Tortura e Tratamento Degradante',
+        textoLei: 'III - ninguém será submetido a tortura nem a tratamento desumano ou degradante;',
+      },
+      {
+        id: 'inciso_4',
+        label: 'Inciso IV',
+        titulo: 'Liberdade de Expressão (Vedado o Anonimato)',
+        textoLei: 'IV - é livre a manifestação do pensamento, sendo vedado o anonimato;',
+      },
+      {
+        id: 'inciso_5',
+        label: 'Inciso V',
+        titulo: 'Direito de Resposta e Indenização',
+        textoLei: 'V - é assegurado o direito de resposta, proporcional ao agravo, além da indenização por dano material, moral ou à imagem;',
+      },
+    ],
   },
 };
+
+// ==========================================
+// ÍCONE BRASÃO DA REPÚBLICA (MARCA D'ÁGUA VETORIAL)
+// ==========================================
+function BrasaoRepublicaIcon({ className = 'w-10 h-10' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
+      {/* Círculo externo radiante */}
+      <circle cx="50" cy="50" r="46" stroke="currentColor" strokeWidth="1.2" strokeDasharray="3 3" opacity="0.35" />
+      <circle cx="50" cy="50" r="38" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+      {/* Estrela da República de 5 pontas */}
+      <path
+        d="M50 14 L58 35 L80 37 L63 53 L68 75 L50 62 L32 75 L37 53 L20 37 L42 35 Z"
+        fill="currentColor"
+        opacity="0.3"
+      />
+      {/* Globo central azul com estrelas */}
+      <circle cx="50" cy="46" r="14" fill="currentColor" opacity="0.65" />
+      <circle cx="50" cy="40" r="1.5" fill="#ffffff" />
+      <circle cx="46" cy="45" r="1.5" fill="#ffffff" />
+      <circle cx="54" cy="45" r="1.5" fill="#ffffff" />
+      <circle cx="50" cy="50" r="1.5" fill="#ffffff" />
+      <circle cx="54" cy="49" r="1.2" fill="#ffffff" />
+      {/* Espada central da Justiça e República */}
+      <path d="M50 8 L50 88 M43 23 L57 23" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.75" />
+    </svg>
+  );
+}
+
+// ==========================================
+// BARRA DE GUIA DOS DISPOSITIVOS (ESTILO PÍLULAS NATIVAS)
+// ==========================================
+interface GuiaDispositivosBarProps {
+  dispositivos: DispositivoInfo[];
+  dispositivoAtivoId: string;
+  onSelecionarDispositivo: (id: string) => void;
+  corPrimaria?: string;
+}
+
+function GuiaDispositivosBar({
+  dispositivos,
+  dispositivoAtivoId,
+  onSelecionarDispositivo,
+}: GuiaDispositivosBarProps) {
+  return (
+    <div className="relative w-full overflow-hidden py-1">
+      {/* Marca d'água sutil do Brasão da República ao fundo como na referência */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 overflow-hidden">
+        <BrasaoRepublicaIcon className="w-24 h-24 text-amber-400/50" />
+      </div>
+
+      <nav
+        aria-label="Dispositivos do artigo"
+        className="relative z-10 flex items-center justify-center gap-2 overflow-x-auto no-scrollbar py-1 px-2"
+      >
+        {dispositivos.map((disp) => {
+          const ativo = disp.id === dispositivoAtivoId;
+          return (
+            <button
+              key={disp.id}
+              onClick={() => onSelecionarDispositivo(disp.id)}
+              className={`relative px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 shrink-0 flex items-center gap-1.5 active:scale-95 ${
+                ativo
+                  ? 'text-white shadow-lg backdrop-blur-md'
+                  : 'bg-[#22272e]/85 text-slate-300 hover:text-white hover:bg-white/10 ring-1 ring-white/5 backdrop-blur-sm'
+              }`}
+              title={`Ir para ${disp.label} — ${disp.titulo}`}
+            >
+              {ativo && (
+                <motion.div
+                  layoutId="activeDispositivoPill"
+                  className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-500/40 via-emerald-500/30 to-teal-500/40 ring-1 ring-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.25)]"
+                  transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                />
+              )}
+              <span className={`relative z-10 ${ativo ? 'font-black text-white drop-shadow-sm' : ''}`}>
+                {disp.label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+// ==========================================
+// CAPA DE TRANSIÇÃO DE DISPOSITIVO LEGAL
+// ==========================================
+function CapaDispositivoSlide({
+  diploma,
+  artigoNumero,
+  dispositivoLabel,
+  titulo,
+  textoLei,
+  explicacaoCurta,
+  icone: Icone = Scale,
+  corAcento = 'text-amber-400',
+  gradienteFundo = 'from-amber-950/40 via-card to-background',
+  bordaCor = 'border-amber-500/40',
+}: {
+  diploma: string;
+  artigoNumero: string;
+  dispositivoLabel: string;
+  titulo: string;
+  textoLei: string;
+  explicacaoCurta: string;
+  icone?: React.ElementType;
+  corAcento?: string;
+  gradienteFundo?: string;
+  bordaCor?: string;
+}) {
+  return (
+    <div className={`relative p-6 sm:p-8 rounded-3xl border ${bordaCor} bg-gradient-to-br ${gradienteFundo} text-center space-y-4 shadow-2xl overflow-hidden`}>
+      {/* Marca d'água de brasão no fundo do card */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
+        <BrasaoRepublicaIcon className="w-56 h-56 text-amber-300" />
+      </div>
+
+      <div className="relative z-10 space-y-4">
+        {/* Badge superior da Capa */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-black uppercase tracking-wider text-amber-300 shadow-sm">
+          <Icone className="w-4 h-4 text-amber-400" />
+          <span>{diploma} · {artigoNumero}</span>
+        </div>
+
+        {/* Título de Impacto do Dispositivo */}
+        <div className="space-y-1">
+          <span className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-muted-foreground block">
+            Capa do Dispositivo Legal
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+            {dispositivoLabel}
+          </h2>
+          <h3 className={`text-base sm:text-lg font-bold ${corAcento}`}>
+            {titulo}
+          </h3>
+        </div>
+
+        {/* Citação Solene do Texto da Lei */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-black/40 border border-white/10 text-left space-y-2 shadow-inner">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">
+            Texto Literal Oficial da Norma:
+          </span>
+          <p className="font-serif text-base sm:text-lg italic text-foreground/95 leading-relaxed border-l-4 border-amber-400 pl-3.5 py-0.5">
+            “{textoLei}”
+          </p>
+        </div>
+
+        {/* Explicação Inicial / Direcionamento para o Aluno Leigo */}
+        <div className="space-y-2 pt-1">
+          <p className="text-sm sm:text-base text-foreground/90 font-medium leading-relaxed max-w-lg mx-auto">
+            {explicacaoCurta}
+          </p>
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-400/90 pt-1">
+            <span>Toque em <strong>Próximo</strong> para destrinchar este trecho</span>
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ==========================================
 // COMPONENTES INTERATIVOS ESPECIAIS
@@ -563,18 +820,26 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
     return [
       {
         id: 'combo-art1-1',
-        badge: 'Etapa 1 de 25 · Boas-Vindas',
-        titulo: 'Bem-vindo à Trilha Master do Artigo 1º',
+        dispositivoId: 'caput',
+        dispositivoLabel: 'Caput',
+        isCapaDispositivo: true,
+        badge: 'Etapa 1 de 25 · Capa do Dispositivo',
+        titulo: 'Caput — Anterioridade da Lei Penal',
         subtitulo: 'O escudo supremo que protege a liberdade de todo cidadão',
-        textoAudio: 'Bem-vindo à trilha completa do artigo primeiro do Código Penal. Você vai dominar um dos maiores escudos de liberdade da sociedade através de explicações simples, histórias reais, simulações e exercícios práticos.',
+        textoAudio: 'Bem-vindo ao estudo do Caput do Artigo primeiro do Código Penal. Você vai dominar a anterioridade penal: não há crime sem lei anterior que o defina, nem pena sem prévia cominação legal.',
         conteudoPrincipal: (
-          <div className="p-6 sm:p-7 rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-950/40 via-card to-background space-y-4 text-center shadow-xl">
-            <Flame className="w-14 h-14 sm:w-16 sm:h-16 text-amber-400 mx-auto animate-bounce" />
-            <h4 className="text-lg sm:text-xl font-black text-foreground">O Escudo do Cidadão</h4>
-            <p className="text-base sm:text-lg text-foreground/90 leading-relaxed font-normal">
-              Nesta super trilha com 25 etapas completas, você não vai apenas ler a lei: vai destrinchar palavra por palavra em português claro, vivenciar casos reais, virar flashcards 3D e testar sua inteligência com exercícios interativos.
-            </p>
-          </div>
+          <CapaDispositivoSlide
+            diploma="Código Penal"
+            artigoNumero="Artigo 1º"
+            dispositivoLabel="Caput"
+            titulo="Princípio da Anterioridade Penal"
+            textoLei="Não há crime sem lei anterior que o defina. Não há pena sem prévia cominação legal."
+            explicacaoCurta="Você vai dominar um dos maiores escudos de liberdade da sociedade: o Estado não pode inventar uma proibição nova hoje para punir o que você fez ontem."
+            icone={ShieldCheck}
+            corAcento="text-teal-400"
+            gradienteFundo="from-teal-950/50 via-card to-background"
+            bordaCor="border-teal-500/40"
+          />
         ),
       },
       {
@@ -1035,24 +1300,36 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
           </div>
         ),
       },
-    ];
-  } else {
+    ].map(s => ({
+      ...s,
+      dispositivoId: s.dispositivoId || 'caput',
+      dispositivoLabel: s.dispositivoLabel || 'Caput',
+    }));
+  } else if (artigo === 'art2') {
     // ARTIGO 2º COMBO (25 ETAPAS COM ESCALA APPLE HIG & MATERIAL 3)
     return [
       {
         id: 'combo-art2-1',
-        badge: 'Etapa 1 de 25 · Boas-Vindas',
-        titulo: 'Trilha Master do Artigo 2º',
-        subtitulo: 'A máquina do tempo que favorece a liberdade do cidadão',
-        textoAudio: 'Bem-vindo à trilha completa do artigo segundo do Código Penal. Aqui você vai entender a aplicação da lei no tempo e a retroatividade benéfica.',
+        dispositivoId: 'caput',
+        dispositivoLabel: 'Caput',
+        isCapaDispositivo: true,
+        badge: 'Etapa 1 de 25 · Capa do Dispositivo',
+        titulo: 'Caput — Abolitio Criminis (Extinção do Crime)',
+        subtitulo: 'Quando a sociedade decide que uma conduta não deve mais ser punida',
+        textoAudio: 'Bem-vindo ao estudo do Caput do Artigo segundo do Código Penal. Você vai entender a abolitio criminis: ninguém pode ser punido por fato que lei posterior deixa de considerar crime.',
         conteudoPrincipal: (
-          <div className="p-6 sm:p-7 rounded-3xl border border-blue-500/40 bg-gradient-to-br from-blue-950/40 via-card to-background space-y-4 text-center shadow-xl">
-            <Clock className="w-14 h-14 sm:w-16 sm:h-16 text-blue-400 mx-auto animate-spin" style={{ animationDuration: '10s' }} />
-            <h4 className="text-lg sm:text-xl font-black text-foreground">A Lei Penal no Tempo</h4>
-            <p className="text-base sm:text-lg text-foreground/90 leading-relaxed font-normal">
-              Descubra por que a lei penal tem alergia de voltar no tempo para prejudicar, mas adora viajar no tempo para libertar e ajudar quem praticou um fato no passado.
-            </p>
-          </div>
+          <CapaDispositivoSlide
+            diploma="Código Penal"
+            artigoNumero="Artigo 2º"
+            dispositivoLabel="Caput"
+            titulo="Abolitio Criminis (Extinção do Crime)"
+            textoLei="Ninguém pode ser punido por fato que lei posterior deixa de considerar crime, cessando em virtude dela a execução e os efeitos penais da sentença condenatória."
+            explicacaoCurta="Descubra o que acontece quando uma lei nova extingue um crime: o Estado liberta quem está preso e limpa a ficha na hora!"
+            icone={Scale}
+            corAcento="text-blue-400"
+            gradienteFundo="from-blue-950/50 via-card to-background"
+            bordaCor="border-blue-500/40"
+          />
         ),
       },
       {
@@ -1144,14 +1421,25 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
       },
       {
         id: 'combo-art2-7',
-        badge: 'Etapa 7 de 25 · Flashcard 3D',
-        titulo: 'A Sentença Transitada em Julgado',
-        subtitulo: 'O que acontece quando o processo já estava 100% encerrado?',
-        textoAudio: 'Toque para virar o cartão e entender o que acontece quando o processo já estava encerrado e não cabia mais recurso.',
+        dispositivoId: 'paragrafo_unico',
+        dispositivoLabel: 'Parágrafo único',
+        isCapaDispositivo: true,
+        badge: 'Etapa 7 de 25 · Capa do Dispositivo',
+        titulo: 'Parágrafo Único — A Máquina do Tempo Benéfica',
+        subtitulo: 'Novatio Legis in Mellius & Sentença Transitada em Julgado',
+        textoAudio: 'Atenção: Novo dispositivo legal! Entramos no Parágrafo Único do Artigo segundo. A lei posterior que de qualquer modo favorecer o agente aplica-se aos fatos anteriores, ainda que decididos por sentença transitada em julgado.',
         conteudoPrincipal: (
-          <FlipCardItem 
-            frente="Se o juiz já tinha batido o martelo definitivo anos atrás (trânsito em julgado), a nova lei que diminui a pena ainda se aplica?"
-            verso="SIM! O parágrafo único é expresso e claro: aplica-se aos fatos anteriores AINDA QUE decididos por sentença condenatória transitada em julgado!"
+          <CapaDispositivoSlide
+            diploma="Código Penal"
+            artigoNumero="Artigo 2º"
+            dispositivoLabel="Parágrafo único"
+            titulo="Novatio Legis in Mellius (Retroatividade Benéfica)"
+            textoLei="A lei posterior, que de qualquer modo favorecer o agente, aplica-se aos fatos anteriores, ainda que decididos por sentença condenatória transitada em julgado."
+            explicacaoCurta="Mesmo que o crime não seja extinto, se a lei nova diminuir a pena ou trouxer qualquer vantagem, ela viaja no tempo e ajuda quem agiu no passado, inclusive com sentença já transitada em julgado!"
+            icone={Clock}
+            corAcento="text-emerald-400"
+            gradienteFundo="from-emerald-950/50 via-card to-background"
+            bordaCor="border-emerald-500/40"
           />
         ),
       },
@@ -1505,13 +1793,572 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
           </div>
         ),
       },
-    ];
+    ].map((s, idx) => ({
+      ...s,
+      dispositivoId: idx < 6 ? 'caput' : 'paragrafo_unico',
+      dispositivoLabel: idx < 6 ? 'Caput' : 'Parágrafo único',
+    }));
+  } else {
+    // ARTIGO 5º (CONSTITUIÇÃO FEDERAL DE 1988 — O ARTIGO GIGANTE MULTI-INCISOS)
+    return gerarSlidesArtigo5CF();
   }
 }
 
 // ==========================================
-// LISTA DE TODAS AS MECÂNICAS (COMBO + AS 5 INDIVIDUAIS)
+// TRILHA EXPANSIVA DO ARTIGO 5º DA CF/1988 (MULTI-INCISOS)
 // ==========================================
+function gerarSlidesArtigo5CF(): SlideData[] {
+  return [
+    // ----------------------------------------------------
+    // CAPUT: IGUALDADE E OS 5 PILARES FUNDAMENTAIS
+    // ----------------------------------------------------
+    {
+      id: 'combo-art5-1',
+      dispositivoId: 'caput',
+      dispositivoLabel: 'Caput',
+      isCapaDispositivo: true,
+      badge: 'Etapa 1 de 25 · Capa do Dispositivo',
+      titulo: 'Caput — Igualdade e Direitos Sagrados',
+      subtitulo: 'A cláusula pétrea suprema da República Federativa do Brasil',
+      textoAudio: 'Bem-vindo ao estudo do Artigo 5º da Constituição Federal. O Caput consagra que todos são iguais perante a lei, sem distinção de qualquer natureza.',
+      conteudoPrincipal: (
+        <CapaDispositivoSlide
+          diploma="Constituição Federal"
+          artigoNumero="Artigo 5º"
+          dispositivoLabel="Caput"
+          titulo="Igualdade Perante a Lei e Inviolabilidade de Direitos"
+          textoLei="Todos são iguais perante a lei, sem distinção de qualquer natureza, garantindo-se aos brasileiros e aos estrangeiros residentes no País a inviolabilidade do direito à vida, à liberdade, à igualdade, à segurança e à propriedade..."
+          explicacaoCurta="O pilar supremo da República: ninguém está acima da lei e os 5 direitos fundamentais formam a base inegociável da dignidade de todos no Brasil."
+          icone={Scale}
+          corAcento="text-amber-400"
+          gradienteFundo="from-amber-950/50 via-card to-background"
+          bordaCor="border-amber-500/40"
+        />
+      ),
+    },
+    {
+      id: 'combo-art5-2',
+      dispositivoId: 'caput',
+      dispositivoLabel: 'Caput',
+      badge: 'Etapa 2 de 25 · Os 5 Pilares Supremos',
+      titulo: 'Vida, Liberdade, Igualdade, Segurança e Propriedade',
+      subtitulo: 'O pentágono sagrado que o Estado não pode destruir',
+      textoAudio: 'Os cinco direitos invioláveis da Constituição: Vida, Liberdade, Igualdade, Segurança e Propriedade.',
+      conteudoPrincipal: (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-3.5 rounded-2xl border border-amber-500/30 bg-card space-y-1">
+            <span className="text-amber-400 font-black text-sm flex items-center gap-1.5">❤️ Vida</span>
+            <p className="text-xs text-foreground/90 font-medium">Direito de existir e de viver com dignidade mínima.</p>
+          </div>
+          <div className="p-3.5 rounded-2xl border border-blue-500/30 bg-card space-y-1">
+            <span className="text-blue-400 font-black text-sm flex items-center gap-1.5">🕊️ Liberdade</span>
+            <p className="text-xs text-foreground/90 font-medium">Livre locomoção, pensamento, crença e escolhas pessoais.</p>
+          </div>
+          <div className="p-3.5 rounded-2xl border border-emerald-500/30 bg-card space-y-1">
+            <span className="text-emerald-400 font-black text-sm flex items-center gap-1.5">⚖️ Igualdade</span>
+            <p className="text-xs text-foreground/90 font-medium">Tratamento uniforme sem privilégios ou discriminações arbitrárias.</p>
+          </div>
+          <div className="p-3.5 rounded-2xl border border-purple-500/30 bg-card space-y-1">
+            <span className="text-purple-400 font-black text-sm flex items-center gap-1.5">🛡️ Segurança</span>
+            <p className="text-xs text-foreground/90 font-medium">Proteção física, patrimonial e certeza das regras jurídicas.</p>
+          </div>
+          <div className="p-3.5 rounded-2xl border border-teal-500/30 bg-card space-y-1 sm:col-span-2 text-center">
+            <span className="text-teal-400 font-black text-sm inline-flex items-center gap-1.5">🏡 Propriedade</span>
+            <p className="text-xs text-foreground/90 font-medium">Garantia dos bens conquistados pelo seu trabalho, cumprindo função social.</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'combo-art5-3',
+      dispositivoId: 'caput',
+      dispositivoLabel: 'Caput',
+      badge: 'Etapa 3 de 25 · Alcance Universal',
+      titulo: 'Quem Está Protegido pelo Artigo 5º?',
+      subtitulo: 'Brasileiros natos, naturalizados e estrangeiros',
+      textoAudio: 'Apesar do texto literal citar estrangeiros residentes, o Supremo Tribunal Federal consolidou que qualquer ser humano em território nacional, inclusive turistas em trânsito, é protegido.',
+      conteudoPrincipal: (
+        <div className="p-6 sm:p-7 rounded-3xl border border-teal-500/40 bg-gradient-to-br from-teal-950/30 via-card to-background space-y-3 shadow-xl text-center">
+          <span className="text-4xl">🌍</span>
+          <h4 className="text-base sm:text-lg font-black text-teal-300">A Universalidade dos Direitos Humanos</h4>
+          <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-normal">
+            O STF já pacificou: o turista estrangeiro que está apenas passando férias no Brasil tem a mesma proteção inviolável à vida, liberdade e segurança que qualquer cidadão brasileiro.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'combo-art5-4',
+      dispositivoId: 'caput',
+      dispositivoLabel: 'Caput',
+      badge: 'Etapa 4 de 25 · Quiz de Fixação',
+      titulo: 'Teste Relâmpago do Caput',
+      subtitulo: 'Avalie seu entendimento do alcance da norma',
+      textoAudio: 'Responda: Um turista estrangeiro sem visto de residência sofre uma agressão no Brasil. Ele pode acionar a Justiça com base no Artigo 5º?',
+      conteudoPrincipal: (
+        <QuizInterativoItem
+          pergunta="Um turista estrangeiro em viagem de férias no Brasil sofre uma agressão. Ele pode acionar a Justiça invocando o Artigo 5º da CF?"
+          opcoes={[
+            {
+              texto: "SIM, pois os direitos fundamentais protegem qualquer pessoa física em solo brasileiro.",
+              correta: true,
+              feedback: "Exato! O STF consolidou que a proteção à vida, integridade e dignidade é universal para quem estiver no território nacional.",
+            },
+            {
+              texto: "NÃO, pois o texto literal cita apenas quem tem residência fixa no país.",
+              correta: false,
+              feedback: "Incorreto! A jurisprudência constitucional não permite discriminar quem está em trânsito temporário.",
+            },
+          ]}
+        />
+      ),
+    },
+
+    // ----------------------------------------------------
+    // INCISO I: IGUALDADE ENTRE HOMENS E MULHERES
+    // ----------------------------------------------------
+    {
+      id: 'combo-art5-5',
+      dispositivoId: 'inciso_1',
+      dispositivoLabel: 'Inciso I',
+      isCapaDispositivo: true,
+      badge: 'Etapa 5 de 25 · Capa do Dispositivo',
+      titulo: 'Inciso I — Igualdade de Homens e Mulheres',
+      subtitulo: 'I - homens e mulheres são iguais em direitos e obrigações',
+      textoAudio: 'Atenção: Novo dispositivo legal! Inciso primeiro do Artigo quinto: homens e mulheres são iguais em direitos e obrigações, nos termos desta Constituição.',
+      conteudoPrincipal: (
+        <CapaDispositivoSlide
+          diploma="Constituição Federal"
+          artigoNumero="Artigo 5º"
+          dispositivoLabel="Inciso I"
+          titulo="Igualdade em Direitos e Obrigações"
+          textoLei="I - homens e mulheres são iguais em direitos e obrigações, nos termos desta Constituição;"
+          explicacaoCurta="A ruptura com séculos de patriarcado legal: nenhuma lei ou contrato pode tratar mulheres como subordinadas ou impor salários inferiores pelo simples gênero."
+          icone={Sparkles}
+          corAcento="text-pink-400"
+          gradienteFundo="from-pink-950/40 via-card to-background"
+          bordaCor="border-pink-500/40"
+        />
+      ),
+    },
+    {
+      id: 'combo-art5-6',
+      dispositivoId: 'inciso_1',
+      dispositivoLabel: 'Inciso I',
+      badge: 'Etapa 6 de 25 · Aplicação Prática',
+      titulo: 'Igualdade Material vs Formal',
+      subtitulo: 'Tratar igualmente os iguais e desigualmente os desiguais',
+      textoAudio: 'A igualdade não impede leis protetivas específicas, como a Lei Maria da Penha ou licença maternidade mais ampla, para equilibrar desvantagens históricas e biológicas.',
+      conteudoPrincipal: (
+        <div className="p-6 sm:p-7 rounded-3xl border border-pink-500/30 bg-gradient-to-br from-card via-card to-secondary/30 space-y-3 shadow-xl">
+          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-pink-400 block">
+            Ações Afirmativas e Proteção:
+          </span>
+          <p className="text-sm sm:text-base md:text-lg text-foreground/90 leading-relaxed font-normal">
+            Leis especiais para proteger a mulher contra violência doméstica (como a <strong>Lei Maria da Penha</strong>) ou garantir licença-maternidade estendida NÃO violam a igualdade. Elas existem para equilibrar desvantagens reais da sociedade.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'combo-art5-7',
+      dispositivoId: 'inciso_1',
+      dispositivoLabel: 'Inciso I',
+      badge: 'Etapa 7 de 25 · Caso Real',
+      titulo: 'O Caso da Engenheira Juliana',
+      subtitulo: 'Mesma produtividade, salário 30% menor',
+      textoAudio: 'Juliana e Marcos foram contratados na mesma data para o mesmo cargo de gerência. Juliana recebia trinta por cento a menos. O tribunal aplicou o Inciso I e condenou a empresa à equiparação.',
+      conteudoPrincipal: (
+        <div className="p-6 sm:p-7 rounded-3xl border border-pink-500/40 bg-gradient-to-br from-pink-950/30 via-card to-background space-y-3 shadow-xl">
+          <span className="text-4xl">👩‍💼</span>
+          <h5 className="text-base sm:text-lg font-black text-pink-300">Equiparação Salarial Imediata</h5>
+          <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-normal">
+            A Justiça do Trabalho condenou a multinacional a pagar retroativamente todas as diferenças salariais com base no Inciso I e na Lei de Igualdade Salarial nº 14.611/2023.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'combo-art5-8',
+      dispositivoId: 'inciso_1',
+      dispositivoLabel: 'Inciso I',
+      badge: 'Etapa 8 de 25 · Flashcard 3D',
+      titulo: 'Toque para testar sua memória!',
+      subtitulo: 'Fixação interativa do Inciso I',
+      textoAudio: 'Toque para virar o cartão e revisar a garantia de igualdade salarial.',
+      conteudoPrincipal: (
+        <FlipCardItem
+          frente="Um empregador pode pagar salário inferior a uma funcionária alegando que mulheres podem engravidar e gerar custos futuros?"
+          verso="JAMAIS! É discriminação inconstitucional gravíssima pelo Inciso I da CF/88. A empresa responde com multas pesadas e equiparação salarial obrigatória."
+        />
+      ),
+    },
+
+    // ----------------------------------------------------
+    // INCISO II: PRINCÍPIO GERAL DA LEGALIDADE
+    // ----------------------------------------------------
+    {
+      id: 'combo-art5-9',
+      dispositivoId: 'inciso_2',
+      dispositivoLabel: 'Inciso II',
+      isCapaDispositivo: true,
+      badge: 'Etapa 9 de 25 · Capa do Dispositivo',
+      titulo: 'Inciso II — Princípio da Legalidade Geral',
+      subtitulo: 'II - ninguém será obrigado a fazer ou deixar de fazer alguma coisa senão em virtude de lei',
+      textoAudio: 'Atenção: Novo dispositivo legal! Inciso segundo do Artigo quinto: ninguém será obrigado a fazer ou deixar de fazer alguma coisa senão em virtude de lei.',
+      conteudoPrincipal: (
+        <CapaDispositivoSlide
+          diploma="Constituição Federal"
+          artigoNumero="Artigo 5º"
+          dispositivoLabel="Inciso II"
+          titulo="Princípio Geral da Legalidade"
+          textoLei="II - ninguém será obrigado a fazer ou deixar de fazer alguma coisa senão em virtude de lei;"
+          explicacaoCurta="A carta de alforria de todo cidadão: nenhum governante, policial ou fiscal pode te impor obrigações da própria cabeça se não houver uma lei formal aprovada pelo parlamento."
+          icone={ShieldCheck}
+          corAcento="text-blue-400"
+          gradienteFundo="from-blue-950/40 via-card to-background"
+          bordaCor="border-blue-500/40"
+        />
+      ),
+    },
+    {
+      id: 'combo-art5-10',
+      dispositivoId: 'inciso_2',
+      dispositivoLabel: 'Inciso II',
+      badge: 'Etapa 10 de 25 · Autonomia da Vontade',
+      titulo: 'O Cidadão vs O Administrador Público',
+      subtitulo: 'Duas regras opostas que todo mundo deve saber',
+      textoAudio: 'Para o cidadão leigo: tudo o que a lei não proíbe é permitido. Para o prefeito e autoridade pública: só é permitido fazer o que a lei expressamente autoriza.',
+      conteudoPrincipal: (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="p-5 rounded-2xl border border-emerald-500/40 bg-emerald-950/25 space-y-1 shadow-md">
+            <span className="text-sm font-black text-emerald-400">👤 Para Você (Cidadão):</span>
+            <p className="text-xs sm:text-sm text-foreground/90 font-medium">Você é livre para fazer tudo, exceto o que a lei proíbe.</p>
+          </div>
+          <div className="p-5 rounded-2xl border border-amber-500/40 bg-amber-950/25 space-y-1 shadow-md">
+            <span className="text-sm font-black text-amber-400">🏛️ Para o Estado (Governo):</span>
+            <p className="text-xs sm:text-sm text-foreground/90 font-medium">O governante só pode agir se a lei autorizar expressamente.</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'combo-art5-11',
+      dispositivoId: 'inciso_2',
+      dispositivoLabel: 'Inciso II',
+      badge: 'Etapa 11 de 25 · Caso Real',
+      titulo: 'A Taxa Criada por Decreto Municipal',
+      subtitulo: 'Um prefeito tentou inventar taxa para reformar praça',
+      textoAudio: 'Um prefeito criou por decreto executivo uma taxa para reformar a praça. O Judiciário cancelou as cobranças imediatamente pelo Inciso II, porque taxas só podem ser criadas por lei aprovada na câmara.',
+      conteudoPrincipal: (
+        <div className="p-6 sm:p-7 rounded-3xl border border-blue-500/40 bg-gradient-to-br from-card via-card to-secondary/30 space-y-3 shadow-xl">
+          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-blue-400 block">
+            Decisão Judicial Fundamentada:
+          </span>
+          <p className="text-sm sm:text-base md:text-lg text-foreground/90 leading-relaxed font-normal">
+            O decreto foi anulado e a prefeitura obrigada a devolver o dinheiro arrecadado: nenhum tributo ou taxa pode ser imposto sem prévia lei votada pelos representantes do povo.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'combo-art5-12',
+      dispositivoId: 'inciso_2',
+      dispositivoLabel: 'Inciso II',
+      badge: 'Etapa 12 de 25 · Quiz do Inciso II',
+      titulo: 'Teste do Princípio da Legalidade',
+      subtitulo: 'Avalie sua autonomia cidadã',
+      textoAudio: 'Responda: Uma autoridade pode exigir seu celular particular sem ordem judicial ou lei que determine?',
+      conteudoPrincipal: (
+        <QuizInterativoItem
+          pergunta="Uma autoridade pública pode exigir que você entregue seu celular particular sem mandado judicial ou lei que autorize expressamente?"
+          opcoes={[
+            {
+              texto: "NÃO, pelo Inciso II ninguém é obrigado a fazer nada senão em virtude de lei.",
+              correta: true,
+              feedback: "Correto! Sem previsão em lei formal ou ordem judicial fundamentada, a exigência é abuso de autoridade.",
+            },
+            {
+              texto: "SIM, qualquer autoridade pública tem poder de exigir qualquer coisa a qualquer momento.",
+              correta: false,
+              feedback: "Incorreto! O Estado não é monarquia absolutista; está submisso à estrita legalidade.",
+            },
+          ]}
+        />
+      ),
+    },
+
+    // ----------------------------------------------------
+    // INCISO III: VEDAÇÃO ABSOLUTA À TORTURA
+    // ----------------------------------------------------
+    {
+      id: 'combo-art5-13',
+      dispositivoId: 'inciso_3',
+      dispositivoLabel: 'Inciso III',
+      isCapaDispositivo: true,
+      badge: 'Etapa 13 de 25 · Capa do Dispositivo',
+      titulo: 'Inciso III — Vedação Absoluta à Tortura',
+      subtitulo: 'III - ninguém será submetido a tortura nem a tratamento desumano ou degradante',
+      textoAudio: 'Atenção: Novo dispositivo legal! Inciso terceiro do Artigo quinto: ninguém será submetido a tortura nem a tratamento desumano ou degradante.',
+      conteudoPrincipal: (
+        <CapaDispositivoSlide
+          diploma="Constituição Federal"
+          artigoNumero="Artigo 5º"
+          dispositivoLabel="Inciso III"
+          titulo="Proibição Inegociável da Tortura"
+          textoLei="III - ninguém será submetido a tortura nem a tratamento desumano ou degradante;"
+          explicacaoCurta="A barreira intransponível da civilização: mesmo sob guerra ou emergência, o Estado não tem o direito de infligir sofrimento físico ou humilhação psicológica a ninguém."
+          icone={ShieldCheck}
+          corAcento="text-rose-400"
+          gradienteFundo="from-rose-950/40 via-card to-background"
+          bordaCor="border-rose-500/40"
+        />
+      ),
+    },
+    {
+      id: 'combo-art5-14',
+      dispositivoId: 'inciso_3',
+      dispositivoLabel: 'Inciso III',
+      badge: 'Etapa 14 de 25 · A Prova Ilícita',
+      titulo: 'Confissão sob Coação Não Tem Valor',
+      subtitulo: 'A teoria dos frutos da árvore envenenada',
+      textoAudio: 'Toda e qualquer confissão obtida mediante tortura ou ameaça é nula e imprestável. A Justiça anula o processo criminal e processa os torturadores.',
+      conteudoPrincipal: (
+        <div className="p-6 sm:p-7 rounded-3xl border border-rose-500/30 bg-gradient-to-br from-rose-950/30 via-card to-background space-y-3 shadow-xl">
+          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-rose-400 block">
+            Inadmissibilidade das Provas Ilícitas:
+          </span>
+          <p className="text-sm sm:text-base md:text-lg text-foreground/90 leading-relaxed font-normal">
+            No Brasil, a confissão forçada por agressão não serve para condenar ninguém. O juiz anula a prova, descarta o processo e determina a prisão dos agentes que praticaram o abuso.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'combo-art5-15',
+      dispositivoId: 'inciso_3',
+      dispositivoLabel: 'Inciso III',
+      badge: 'Etapa 15 de 25 · Flashcard 3D',
+      titulo: 'Toque para testar sua memória!',
+      subtitulo: 'Fixação do Inciso III',
+      textoAudio: 'Toque para virar o cartão e verificar a validade de provas obtidas sob tortura.',
+      conteudoPrincipal: (
+        <FlipCardItem
+          frente="Em um caso urgente com perigo iminente, agentes policiais podem aplicar pressão física para arrancar o esconderijo de uma vítima?"
+          verso="NÃO! A vedação à tortura é um direito absoluto sem NENHUMA exceção na Constituição Federal. Provas obtidas sob agressão física são nulas e os agentes respondem criminalmente."
+        />
+      ),
+    },
+    {
+      id: 'combo-art5-16',
+      dispositivoId: 'inciso_3',
+      dispositivoLabel: 'Inciso III',
+      badge: 'Etapa 16 de 25 · Crime Inafiançável',
+      titulo: 'O Rigor Constitucional Contra a Tortura',
+      subtitulo: 'Inafiançável e insuscetível de anistia ou indulto',
+      textoAudio: 'A própria Constituição determina no Artigo 5º que a prática da tortura é crime inafiançável e insuscetível de graça ou anistia, respondendo mandantes, executores e quem se omitir.',
+      conteudoPrincipal: (
+        <div className="p-6 sm:p-8 rounded-3xl border border-rose-500/40 bg-gradient-to-br from-card via-card to-secondary/30 text-center space-y-3 shadow-xl">
+          <span className="text-4xl">⚖️</span>
+          <h4 className="text-lg sm:text-xl font-black text-rose-300">Tolerância Zero</h4>
+          <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-normal">
+            O presidente da República não pode perdoar torturador (proibido indulto), ninguém sai sob fiança e até quem presenciar a tortura e não fizer nada responde criminalmente!
+          </p>
+        </div>
+      ),
+    },
+
+    // ----------------------------------------------------
+    // INCISO IV: LIBERDADE DE PENSAMENTO E EXPRESSÃO
+    // ----------------------------------------------------
+    {
+      id: 'combo-art5-17',
+      dispositivoId: 'inciso_4',
+      dispositivoLabel: 'Inciso IV',
+      isCapaDispositivo: true,
+      badge: 'Etapa 17 de 25 · Capa do Dispositivo',
+      titulo: 'Inciso IV — Liberdade de Pensamento',
+      subtitulo: 'IV - é livre a manifestação do pensamento, sendo vedado o anonimato',
+      textoAudio: 'Atenção: Novo dispositivo legal! Inciso quarto do Artigo quinto: é livre a manifestação do pensamento, sendo vedado o anonimato.',
+      conteudoPrincipal: (
+        <CapaDispositivoSlide
+          diploma="Constituição Federal"
+          artigoNumero="Artigo 5º"
+          dispositivoLabel="Inciso IV"
+          titulo="Livre Manifestação (Vedado o Anonimato)"
+          textoLei="IV - é livre a manifestação do pensamento, sendo vedado o anonimato;"
+          explicacaoCurta="A garantia da voz livre: expresse suas ideias políticas, artísticas e filosóficas sem censura prévia, mas assuma a autoria para responder por eventuais abusos."
+          icone={MessageSquare}
+          corAcento="text-sky-400"
+          gradienteFundo="from-sky-950/40 via-card to-background"
+          bordaCor="border-sky-500/40"
+        />
+      ),
+    },
+    {
+      id: 'combo-art5-18',
+      dispositivoId: 'inciso_4',
+      dispositivoLabel: 'Inciso IV',
+      badge: 'Etapa 18 de 25 · O Porquê da Vedação',
+      titulo: 'Por que o Anonimato é Proibido?',
+      subtitulo: 'Para proteger as vítimas contra difamações covardes',
+      textoAudio: 'A vedação ao anonimato garante que, se alguém cometer calúnia ou mentir sobre você, a Justiça possa identificar o autor para exigir retratação e indenização.',
+      conteudoPrincipal: (
+        <div className="p-6 sm:p-7 rounded-3xl border border-sky-500/30 bg-gradient-to-br from-card via-card to-secondary/30 space-y-3 shadow-xl">
+          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-sky-400 block">
+            Equilíbrio entre Liberdade e Responsabilidade:
+          </span>
+          <p className="text-sm sm:text-base md:text-lg text-foreground/90 leading-relaxed font-normal">
+            Você é livre para criticar qualquer autoridade. Mas se fizer acusações anônimas falsas escondido em contas anônimas, a proteção cai: a Justiça quebra o sigilo e pune o agressor.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'combo-art5-19',
+      dispositivoId: 'inciso_4',
+      dispositivoLabel: 'Inciso IV',
+      badge: 'Etapa 19 de 25 · Caso Real',
+      titulo: 'Os Ataques por Perfis Fakes',
+      subtitulo: 'Como a Justiça quebra o anonimato na internet',
+      textoAudio: 'Uma conta fake em rede social começou a espalhar boatos sobre comerciantes locais. O juiz determinou o fornecimento dos registros de conexão e a autora foi condenada a indenizar cada uma das vítimas.',
+      conteudoPrincipal: (
+        <div className="p-6 sm:p-7 rounded-3xl border border-sky-500/40 bg-gradient-to-br from-sky-950/30 via-card to-background space-y-3 shadow-xl">
+          <span className="text-4xl">🎭</span>
+          <h5 className="text-base sm:text-lg font-black text-sky-300">A Queda da Máscara Virtual</h5>
+          <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-normal">
+            A internet não é terra sem lei. Pelo Inciso IV e pelo Marco Civil da Internet, as plataformas são obrigadas a guardar os dados e entregá-los por ordem judicial para responsabilização.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'combo-art5-20',
+      dispositivoId: 'inciso_4',
+      dispositivoLabel: 'Inciso IV',
+      badge: 'Etapa 20 de 25 · Quiz do Inciso IV',
+      titulo: 'Quiz da Livre Manifestação',
+      subtitulo: 'Avalie as regras do pensamento livre',
+      textoAudio: 'Responda: É permitido criar um jornal panfletário apócrifo para atacar adversários sem assinar quem produziu?',
+      conteudoPrincipal: (
+        <QuizInterativoItem
+          pergunta="Um grupo imprime 1.000 panfletos acusando um servidor de corrupção sem assinar ou se identificar. Isso é protegido pela Constituição?"
+          opcoes={[
+            {
+              texto: "NÃO, pois a Constituição veda expressamente o anonimato para proteger o direito de defesa.",
+              correta: true,
+              feedback: "Exato! A manifestação do pensamento é livre, mas a assinatura é obrigatória para evitar ataques sem autoria.",
+            },
+            {
+              texto: "SIM, pois manifestação de pensamento não precisa de nenhuma identificação.",
+              correta: false,
+              feedback: "Incorreto! O texto do Inciso IV diz categoricamente: 'sendo vedado o anonimato'.",
+            },
+          ]}
+        />
+      ),
+    },
+
+    // ----------------------------------------------------
+    // INCISO V: DIREITO DE RESPOSTA E INDENIZAÇÃO
+    // ----------------------------------------------------
+    {
+      id: 'combo-art5-21',
+      dispositivoId: 'inciso_5',
+      dispositivoLabel: 'Inciso V',
+      isCapaDispositivo: true,
+      badge: 'Etapa 21 de 25 · Capa do Dispositivo',
+      titulo: 'Inciso V — Direito de Resposta e Dano Moral',
+      subtitulo: 'V - é assegurado o direito de resposta, proporcional ao agravo, além da indenização',
+      textoAudio: 'Atenção: Novo dispositivo legal! Inciso quinto do Artigo quinto: é assegurado o direito de resposta, proporcional ao agravo, além da indenização por dano material, moral ou à imagem.',
+      conteudoPrincipal: (
+        <CapaDispositivoSlide
+          diploma="Constituição Federal"
+          artigoNumero="Artigo 5º"
+          dispositivoLabel="Inciso V"
+          titulo="Direito de Resposta Proporcional e Indenização"
+          textoLei="V - é assegurado o direito de resposta, proporcional ao agravo, além da indenização por dano material, moral ou à imagem;"
+          explicacaoCurta="A reparação integral da honra: quem ofender alguém é obrigado a ceder o mesmo espaço para resposta e a pagar indenização pelos prejuízos causados à imagem e honra da pessoa."
+          icone={Scale}
+          corAcento="text-amber-400"
+          gradienteFundo="from-amber-950/40 via-card to-background"
+          bordaCor="border-amber-500/40"
+        />
+      ),
+    },
+    {
+      id: 'combo-art5-22',
+      dispositivoId: 'inciso_5',
+      dispositivoLabel: 'Inciso V',
+      badge: 'Etapa 22 de 25 · Proporcionalidade',
+      titulo: 'O que é Ser Proporcional ao Agravo?',
+      subtitulo: 'Mesmo espaço, destaque, alcance e horário',
+      textoAudio: 'Se a notícia caluniosa foi veiculada na capa do portal ou no horário nobre da televisão, o direito de resposta deve ter o mesmo tempo, espaço e visibilidade da ofensa original.',
+      conteudoPrincipal: (
+        <div className="p-6 sm:p-7 rounded-3xl border border-amber-500/30 bg-gradient-to-br from-card via-card to-secondary/30 space-y-3 shadow-xl">
+          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-400 block">
+            A Lei do Direito de Resposta (Lei 13.188/2015):
+          </span>
+          <p className="text-sm sm:text-base md:text-lg text-foreground/90 leading-relaxed font-normal">
+            Não adianta publicar a calúnia na primeira página e esconder a retratação nas notas de rodapé da página 30. A resposta tem que ter <strong>a mesma evidência e tempo da matéria original</strong>!
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'combo-art5-23',
+      dispositivoId: 'inciso_5',
+      dispositivoLabel: 'Inciso V',
+      badge: 'Etapa 23 de 25 · Mini-Game Constitucional',
+      titulo: 'Ligue os 4 Conceitos Fundamentais',
+      subtitulo: 'Conecte cada garantia constitucional à sua definição prática',
+      textoAudio: 'Conecte os conceitos constitucionais aprendidos no Artigo quinto.',
+      conteudoPrincipal: (
+        <LigarTermosGame
+          pares={[
+            { id: '1', termo: 'Igualdade (Inciso I)', significado: 'Homens e mulheres com os mesmos direitos e obrigações' },
+            { id: '2', termo: 'Legalidade (Inciso II)', significado: 'Ninguém é obrigado a agir senão por virtude de lei escrita' },
+            { id: '3', termo: 'Vedação à Tortura (III)', significado: 'Proibição absoluta de violência física ou humilhação' },
+            { id: '4', termo: 'Resposta e Dano (Inciso V)', significado: 'Mesmo espaço para esclarecer e indenização por ofensa' },
+          ]}
+        />
+      ),
+    },
+    {
+      id: 'combo-art5-24',
+      dispositivoId: 'inciso_5',
+      dispositivoLabel: 'Inciso V',
+      badge: 'Etapa 24 de 25 · Flashcard de Sentença',
+      titulo: 'Toque para revelar a decisão judicial!',
+      subtitulo: 'Fixação de dano moral cumulativo',
+      textoAudio: 'Toque para virar o cartão e verificar a cumulação entre direito de resposta e indenização por danos morais.',
+      conteudoPrincipal: (
+        <FlipCardItem
+          frente="Se um veículo de comunicação publicar uma matéria difamatória e depois conceder o direito de resposta, ele fica livre de pagar indenização por dano moral?"
+          verso="NÃO! O Inciso V diz 'além da indenização'. O direito de resposta e a indenização em dinheiro são cumulativos: a resposta limpa a verdade e a indenização compensa a dor e o constrangimento sofrido."
+        />
+      ),
+    },
+    {
+      id: 'combo-art5-25',
+      dispositivoId: 'inciso_5',
+      dispositivoLabel: 'Inciso V',
+      badge: 'Etapa 25 de 25 · Troféu de Maestria',
+      titulo: 'Parabéns! Mestre do Artigo 5º da Constituição',
+      subtitulo: 'Você dominou os pilares supremos da cidadania brasileira',
+      textoAudio: 'Parabéns! Você completou com sucesso a trilha master do Artigo quinto da Constituição Federal. Você agora compreende seus direitos e garantias com total clareza e autoridade!',
+      conteudoPrincipal: (
+        <div className="p-7 sm:p-8 rounded-3xl border border-amber-500/50 bg-gradient-to-br from-amber-950/40 via-card to-background text-center space-y-4 shadow-xl">
+          <Award className="w-16 h-16 sm:w-20 sm:h-20 text-amber-400 mx-auto animate-pulse" />
+          <h4 className="text-xl sm:text-2xl font-black text-foreground">Guardião da Constituição</h4>
+          <p className="text-base sm:text-lg text-foreground/90 leading-relaxed font-normal">
+            Você completou todas as 25 etapas do Artigo 5º dissecando o Caput e os Incisos I a V com capas solenes, casos práticos, flashcards 3D e desafios interativos!
+          </p>
+        </div>
+      ),
+    },
+  ];
+}
 
 const MECANICAS: MecanicaDef[] = [
   // ----------------------------------------------------
@@ -1534,6 +2381,7 @@ const MECANICAS: MecanicaDef[] = [
     slides: {
       art1: gerarSlidesCombo('art1'),
       art2: gerarSlidesCombo('art2'),
+      art5_cf: gerarSlidesCombo('art5_cf'),
     },
   },
 
@@ -1557,6 +2405,7 @@ const MECANICAS: MecanicaDef[] = [
     slides: {
       art1: gerarSlidesCombo('art1').slice(0, 8),
       art2: gerarSlidesCombo('art2').slice(0, 8),
+      art5_cf: gerarSlidesCombo('art5_cf').slice(0, 8),
     },
   },
 
@@ -1574,12 +2423,13 @@ const MECANICAS: MecanicaDef[] = [
     botaoCor: 'bg-gradient-to-r from-[#ea580c] to-[#c2410c] hover:from-[#c2410c] hover:to-[#9a3412] text-white font-black shadow-orange-500/25',
     barraProgressoCor: 'bg-[#ea580c]',
     subtitulo: 'Histórias ilustradas com dilemas humanos cotidianos',
-    descricaoCurta: 'Acompanhe Dona Clara (vendedora de chás) e Lucas (condenado no passado) para entender a aplicação prática da lei na vida das pessoas.',
+    descricaoCurta: 'Acompanhe histórias da vida real para entender a aplicação prática da lei na vida das pessoas.',
     focoLeigo: 'Cria empatia imediata através de uma historinha sem termos jurídicos frios.',
     totalSlidesText: '8 Etapas com Decisões',
     slides: {
       art1: gerarSlidesCombo('art1').slice(6, 14),
       art2: gerarSlidesCombo('art2').slice(7, 15),
+      art5_cf: gerarSlidesCombo('art5_cf').slice(4, 12),
     },
   },
 
@@ -1597,12 +2447,13 @@ const MECANICAS: MecanicaDef[] = [
     botaoCor: 'bg-[#0284c7] hover:bg-[#0369a1] text-white font-black shadow-sky-500/25',
     barraProgressoCor: 'bg-[#0284c7]',
     subtitulo: 'Bate-papo estilo WhatsApp com analogias descontraídas',
-    descricaoCurta: 'Um cidadão leigo faz perguntas sinceras e o tutor responde usando a pelada de futebol e cupons de compras.',
+    descricaoCurta: 'Um cidadão leigo faz perguntas sinceras e o tutor responde usando analogias da vida real.',
     focoLeigo: 'Linguagem natural, sem cerimônia, tirando exatamente as dúvidas que qualquer leigo teria.',
     totalSlidesText: '8 Etapas Conversacionais',
     slides: {
       art1: gerarSlidesCombo('art1').slice(10, 18),
       art2: gerarSlidesCombo('art2').slice(11, 19),
+      art5_cf: gerarSlidesCombo('art5_cf').slice(8, 16),
     },
   },
 
@@ -1620,12 +2471,13 @@ const MECANICAS: MecanicaDef[] = [
     botaoCor: 'bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-black shadow-purple-500/25',
     barraProgressoCor: 'bg-[#7c3aed]',
     subtitulo: 'Régua cronológica com teste de causa e efeito',
-    descricaoCurta: 'Visualiza graficamente o momento do fato vs publicação da lei. Mostra o "Muro do Tempo" e o "Portal da Retroatividade".',
+    descricaoCurta: 'Visualiza graficamente a cronologia e a vigência das garantias constitucionais.',
     focoLeigo: 'Demonstração espacial e cronológica perfeita para quem aprende melhor visualmente.',
     totalSlidesText: '8 Etapas com Simulador',
     slides: {
       art1: gerarSlidesCombo('art1').slice(13, 21),
       art2: gerarSlidesCombo('art2').slice(14, 22),
+      art5_cf: gerarSlidesCombo('art5_cf').slice(12, 20),
     },
   },
 
@@ -1649,6 +2501,7 @@ const MECANICAS: MecanicaDef[] = [
     slides: {
       art1: gerarSlidesCombo('art1').slice(17, 25),
       art2: gerarSlidesCombo('art2').slice(17, 25),
+      art5_cf: gerarSlidesCombo('art5_cf').slice(16, 25),
     },
   },
 ];
@@ -1667,7 +2520,10 @@ const AdminAprenderLeisLaboratorio = () => {
   const [mecanicaSelecionadaId, setMecanicaSelecionadaId] = useState<MecanicaId>('combo');
   const [emAula, setEmAula] = useState(false); // Alterna para TELA TODA
   const [slideIndex, setSlideIndex] = useState(0);
+  const [direction, setDirection] = useState(0); // 1 = avança, -1 = volta
   const [falando, setFalando] = useState(false);
+
+  const infoArtigo = ARTIGOS_INFO[artigoAtual];
 
   const mecanica = useMemo(() => {
     return MECANICAS.find(m => m.id === mecanicaSelecionadaId) || MECANICAS[0];
@@ -1681,11 +2537,14 @@ const AdminAprenderLeisLaboratorio = () => {
     return slides[slideIndex] || slides[0];
   }, [slides, slideIndex]);
 
+  const dispositivoAtivoId = slideAtual?.dispositivoId || 'caput';
+
   // Ações de alternância de artigo
   const handleAlternarArtigo = (art: ArtigoId) => {
     pararVoz();
     setArtigoAtual(art);
     setSlideIndex(0);
+    setDirection(0);
   };
 
   // Iniciar aula para uma mecânica específica (EM TELA TODA!)
@@ -1693,6 +2552,7 @@ const AdminAprenderLeisLaboratorio = () => {
     pararVoz();
     setMecanicaSelecionadaId(mecId);
     setSlideIndex(0);
+    setDirection(0);
     setEmAula(true);
   };
 
@@ -1706,6 +2566,7 @@ const AdminAprenderLeisLaboratorio = () => {
   const proximoSlide = useCallback(() => {
     if (slideIndex < slides.length - 1) {
       pararVoz();
+      setDirection(1);
       setSlideIndex(prev => prev + 1);
     }
   }, [slideIndex, slides.length]);
@@ -1713,9 +2574,20 @@ const AdminAprenderLeisLaboratorio = () => {
   const slideAnterior = useCallback(() => {
     if (slideIndex > 0) {
       pararVoz();
+      setDirection(-1);
       setSlideIndex(prev => prev - 1);
     }
   }, [slideIndex]);
+
+  // Navegar diretamente para um dispositivo pelo Guia no topo
+  const handlePularParaDispositivo = useCallback((dispId: string) => {
+    const targetIdx = slides.findIndex(s => s.dispositivoId === dispId);
+    if (targetIdx !== -1 && targetIdx !== slideIndex) {
+      pararVoz();
+      setDirection(targetIdx > slideIndex ? 1 : -1);
+      setSlideIndex(targetIdx);
+    }
+  }, [slides, slideIndex]);
 
   // Teclado (← e →)
   useEffect(() => {
@@ -1766,6 +2638,35 @@ const AdminAprenderLeisLaboratorio = () => {
     return () => pararVoz();
   }, []);
 
+  // Variantes para transição direcional e fluida dos slides
+  const slideVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 40 : dir < 0 ? -40 : 0,
+      opacity: 0,
+      scale: 0.985,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        x: { type: 'spring', stiffness: 350, damping: 32 },
+        opacity: { duration: 0.22, ease: 'easeOut' },
+        scale: { duration: 0.22, ease: 'easeOut' },
+      },
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -40 : dir < 0 ? 40 : 0,
+      opacity: 0,
+      scale: 0.985,
+      transition: {
+        x: { type: 'spring', stiffness: 350, damping: 32 },
+        opacity: { duration: 0.18, ease: 'easeIn' },
+        scale: { duration: 0.18, ease: 'easeIn' },
+      },
+    }),
+  };
+
   const mobileHeader = (
     <PageHeader 
       title="Laboratório — Aprender Leis" 
@@ -1785,7 +2686,7 @@ const AdminAprenderLeisLaboratorio = () => {
         <div className="fixed inset-0 z-[99999] h-[100dvh] w-screen max-w-full overflow-hidden bg-background text-foreground flex flex-col select-none">
           
           {/* TOPO DA TELA TODA: Barra de Controles e Progresso (FIXO NO TOPO COM ERGONOMIA HIG/M3) */}
-          <header className="shrink-0 z-30 w-full px-4 py-3 sm:px-6 sm:py-3.5 border-b border-border/80 bg-background/95 backdrop-blur-md flex flex-col gap-2.5 shadow-sm">
+          <header className="shrink-0 z-30 w-full px-4 py-2.5 sm:px-6 sm:py-3 border-b border-border/80 bg-background/95 backdrop-blur-md flex flex-col gap-2 shadow-sm">
             
             {/* Linha 1: Botão Sair, Título da Mecânica e Botão de Áudio */}
             <div className="flex items-center justify-between gap-3">
@@ -1802,11 +2703,11 @@ const AdminAprenderLeisLaboratorio = () => {
 
               {/* Informações Centrais */}
               <div className="text-center min-w-0 flex-1 px-1">
-                <span className={`text-xs sm:text-sm font-black uppercase tracking-wider block truncate ${mecanica.corPrimaria}`}>
+                <span className={`text-[11px] sm:text-xs font-black uppercase tracking-wider block truncate ${mecanica.corPrimaria}`}>
                   {mecanica.nome}
                 </span>
                 <span className="text-xs sm:text-sm md:text-base font-extrabold text-foreground truncate block">
-                  {artigoAtual === 'art1' ? 'Código Penal — Artigo 1º' : 'Código Penal — Artigo 2º'}
+                  {infoArtigo.titulo}
                 </span>
               </div>
 
@@ -1834,16 +2735,28 @@ const AdminAprenderLeisLaboratorio = () => {
               </button>
             </div>
 
-            {/* Linha 2: Barra de Progresso Progressiva */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs sm:text-sm font-semibold text-muted-foreground">
+            {/* Linha 2: Guia Visual de Dispositivos (Pílulas com Marca d'água do Brasão da República) */}
+            <div className="w-full">
+              <GuiaDispositivosBar
+                dispositivos={infoArtigo.dispositivos}
+                ativoId={dispositivoAtivoId}
+                onSelectDispositivo={handlePularParaDispositivo}
+                corDestaque={mecanica.corPrimaria}
+              />
+            </div>
+
+            {/* Linha 3: Barra de Progresso Progressiva */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px] sm:text-xs font-semibold text-muted-foreground">
                 <span className="truncate max-w-[70%] font-bold text-foreground/90">{slideAtual.badge}</span>
                 <span className="font-black text-foreground">Etapa {slideIndex + 1} de {slides.length}</span>
               </div>
-              <div className="w-full h-2 sm:h-2.5 rounded-full bg-secondary/80 overflow-hidden shadow-inner">
-                <div 
-                  className={`h-full transition-all duration-300 ${mecanica.barraProgressoCor || mecanica.botaoCor}`}
-                  style={{ width: `${((slideIndex + 1) / slides.length) * 100}%` }}
+              <div className="w-full h-1.5 sm:h-2 rounded-full bg-secondary/80 overflow-hidden shadow-inner">
+                <motion.div 
+                  className={`h-full ${mecanica.barraProgressoCor || mecanica.botaoCor}`}
+                  initial={false}
+                  animate={{ width: `${((slideIndex + 1) / slides.length) * 100}%` }}
+                  transition={{ type: 'spring', stiffness: 220, damping: 28 }}
                 />
               </div>
             </div>
@@ -1854,24 +2767,27 @@ const AdminAprenderLeisLaboratorio = () => {
           <main className="flex-1 w-full overflow-y-auto px-4 py-4 sm:py-6 flex flex-col items-center justify-start sm:justify-center">
             <div className="w-full max-w-xl mx-auto space-y-4 pt-1 pb-6 my-auto">
               
-              <div className="text-center space-y-1.5 px-2">
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-black font-display text-foreground tracking-tight">
-                  {slideAtual.titulo}
-                </h3>
-                {slideAtual.subtitulo && (
-                  <p className="text-sm sm:text-base text-muted-foreground font-medium">
-                    {slideAtual.subtitulo}
-                  </p>
-                )}
-              </div>
+              {!slideAtual.isCapaDispositivo && (
+                <div className="text-center space-y-1 px-2">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-black font-display text-foreground tracking-tight">
+                    {slideAtual.titulo}
+                  </h3>
+                  {slideAtual.subtitulo && (
+                    <p className="text-sm sm:text-base text-muted-foreground font-medium">
+                      {slideAtual.subtitulo}
+                    </p>
+                  )}
+                </div>
+              )}
 
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
                   key={slideAtual.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.18 }}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
                   className="w-full"
                 >
                   {slideAtual.conteudoPrincipal}
@@ -1929,7 +2845,7 @@ const AdminAprenderLeisLaboratorio = () => {
       <DesktopPageLayout
         activeId="admin"
         title="Laboratório — Aprender Leis"
-        subtitle="Teste e avalie mecânicas de aulas do Código Penal para pessoas leigas"
+        subtitle="Teste e avalie mecânicas de aulas da legislação para pessoas leigas"
         mobileHeader={mobileHeader}
       >
         <div className="px-4 sm:px-6 py-4 lg:px-0 lg:py-0 max-w-4xl mx-auto w-full space-y-5">
@@ -1943,7 +2859,7 @@ const AdminAprenderLeisLaboratorio = () => {
                 </div>
                 <div>
                   <span className="text-[10px] uppercase tracking-wider font-extrabold text-teal-400">
-                    Código Penal (DL 2.848/1940)
+                    {infoArtigo.legislacao}
                   </span>
                   <h3 className="text-sm sm:text-base font-bold text-foreground">
                     Selecione o Artigo para o Laboratório:
@@ -1951,40 +2867,66 @@ const AdminAprenderLeisLaboratorio = () => {
                 </div>
               </div>
 
-              {/* Botões de Alternância */}
-              <div className="grid grid-cols-2 p-1.5 rounded-2xl bg-secondary/80 border border-border/70 self-stretch sm:self-auto gap-1">
+              {/* Botões de Alternância (3 Artigos incluindo Artigo 5º CF/88 Gigante) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 p-1.5 rounded-2xl bg-secondary/80 border border-border/70 self-stretch sm:self-auto gap-1">
                 <button
                   onClick={() => handleAlternarArtigo('art1')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 ${
                     artigoAtual === 'art1'
                       ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md shadow-teal-500/30 scale-[1.02]'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <span>Artigo 1º</span>
-                  <span className="hidden sm:inline text-[11px] opacity-80">(Anterioridade)</span>
+                  <span>Artigo 1º (CP)</span>
+                  <span className="text-[10px] opacity-80 font-normal">Caput</span>
                 </button>
                 <button
                   onClick={() => handleAlternarArtigo('art2')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 ${
                     artigoAtual === 'art2'
                       ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/30 scale-[1.02]'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <span>Artigo 2º</span>
-                  <span className="hidden sm:inline text-[11px] opacity-80">(Retroatividade)</span>
+                  <span>Artigo 2º (CP)</span>
+                  <span className="text-[10px] opacity-80 font-normal">Caput + Parágrafo único</span>
+                </button>
+                <button
+                  onClick={() => handleAlternarArtigo('art5_cf')}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 ${
+                    artigoAtual === 'art5_cf'
+                      ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-md shadow-amber-500/30 scale-[1.02]'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <span className="flex items-center gap-1">
+                    <span>Artigo 5º (CF)</span>
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-amber-400 text-amber-950 font-black">GIGANTE</span>
+                  </span>
+                  <span className="text-[10px] opacity-80 font-normal">Caput + Incisos I a V</span>
                 </button>
               </div>
             </div>
 
-            {/* Texto literal do artigo */}
-            <div className="p-3.5 rounded-xl border border-teal-500/25 bg-teal-950/20 space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">
-                {ARTIGOS_INFO[artigoAtual].titulo}
-              </span>
+            {/* Texto literal do artigo com chips dos dispositivos */}
+            <div className="p-3.5 rounded-xl border border-teal-500/25 bg-teal-950/20 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">
+                  {infoArtigo.titulo}
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {infoArtigo.dispositivos.map((d) => (
+                    <span 
+                      key={d.id}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/80 border border-border text-foreground/80 font-semibold"
+                    >
+                      {d.tipo === 'inciso' ? `Inciso ${d.numeroRomano}` : d.tipo === 'paragrafo' ? 'Parágrafo único' : 'Caput'}
+                    </span>
+                  ))}
+                </div>
+              </div>
               <p className="font-serif text-xs sm:text-sm italic text-foreground/90 leading-relaxed">
-                {ARTIGOS_INFO[artigoAtual].texto}
+                {infoArtigo.texto}
               </p>
             </div>
           </div>
