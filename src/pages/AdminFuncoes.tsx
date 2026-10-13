@@ -6,6 +6,7 @@ import {
   Rss, Palette, Users, GitBranch, Github, ImageIcon, KeyRound, Bug, Newspaper,
   Quote, Monitor, Send, RefreshCcw, Lock, Wrench, FileText, Crown, Search, Target, MapPin, PlayCircle,
   Sparkles, UserPlus, GraduationCap, Scale, Store, Mail, FileSignature, User, Server, NotebookText, Layers, Globe,
+  Headphones,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -15,6 +16,8 @@ import { AdminHojeCards } from '@/components/admin/AdminHojeCards';
 
 // Prefetch map
 const PREFETCH: Record<string, () => Promise<unknown>> = {
+  '/admin-audio-aulas': () => import('./AdminAudioAulas'),
+  '/audio-aulas': () => import('./AudioAulas'),
   '/admin-monitor': () => import('./AdminMonitor'),
   '/admin-monitor-usuarios': () => import('./AdminMonitorUsuarios'),
   '/admin-monitoramento': () => import('./AdminMonitoramento'),
@@ -163,6 +166,17 @@ const CATEGORIES: Category[] = [
     route: '/admin-lembretes',
     items: [
       { id: 'admin-lembretes-biblioteca', label: 'Biblioteca', icon: BookOpen, desc: 'Lembretes de leitura: métricas, canais e disparos', route: '/admin-lembretes/biblioteca' },
+    ],
+  },
+  {
+    id: 'geracao-audio-aulas',
+    title: 'Geração de Áudio Aulas',
+    desc: 'Prompts guias institucionais, exportador CSV em 3 colunas e vinculação com Google Drive',
+    icon: Headphones,
+    color: '#38bdf8',
+    route: '/admin-audio-aulas',
+    items: [
+      { id: 'admin-audio-aulas', label: 'Geração de Áudio Aulas', icon: Headphones, desc: 'Gerar prompts guias, exportar planilha CSV e vincular áudios do Google Drive', route: '/admin-audio-aulas' },
     ],
   },
   {
