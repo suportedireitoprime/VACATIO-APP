@@ -26,7 +26,11 @@ import {
   Award,
   Link2,
   Check,
-  AlertCircle
+  AlertCircle,
+  Image as ImageIcon,
+  Eye,
+  Copy,
+  ChevronDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
@@ -69,6 +73,8 @@ interface SlideData {
   subtitulo?: string;
   conteudoPrincipal: React.ReactNode;
   textoAudio: string;
+  imagePrompt?: string; // Prompt refinado para o Gemini Spark / Imagen 3
+  imageUrl?: string;    // URL pública no Supabase Storage ou manual
 }
 
 interface MecanicaDef {
@@ -337,6 +343,180 @@ function CapaDispositivoSlide({
     </div>
   );
 }
+
+// ==========================================
+// COMPONENTE: CONTROLE & EXIBIÇÃO DE IMAGEM (MCP GEMINI SPARK)
+// ==========================================
+
+interface SlideImagemControleProps {
+  slideId: string;
+  imagePrompt?: string;
+  imageUrl?: string;
+  onSalvarUrl: (url: string) => void;
+}
+
+const SlideImagemVisualizadorEControle: React.FC<SlideImagemControleProps> = ({
+  slideId,
+  imagePrompt,
+  imageUrl,
+  onSalvarUrl,
+}) => {
+  const [aberto, setAberto] = useState(false);
+  const [urlInput, setUrlInput] = useState(imageUrl || '');
+  const [copiado, setCopiado] = useState(false);
+  const [modalZoom, setModalZoom] = useState(false);
+
+  useEffect(() => {
+    setUrlInput(imageUrl || '');
+  }, [imageUrl, slideId]);
+
+  const handleCopiarPrompt = () => {
+    if (!imagePrompt) return;
+    navigator.clipboard.writeText(imagePrompt);
+    setCopiado(true);
+    toast.success('Prompt copiado para a área de transferência!');
+    setTimeout(() => setCopiado(false), 2000);
+  };
+
+  const handleAplicar = () => {
+    if (!urlInput.trim()) {
+      toast.error('Informe a URL da imagem.');
+      return;
+    }
+    onSalvarUrl(urlInput.trim());
+    toast.success('Imagem vinculada ao slide!');
+    setAberto(false);
+  };
+
+  if (!imagePrompt && !imageUrl) return null;
+
+  return (
+    <div className="w-full space-y-2.5 my-2">
+      {/* 1. SE JÁ TIVER IMAGEM: RENDERIZAÇÃO CINEMATOGRÁFICA 16:9 */}
+      {imageUrl && (
+        <div className="relative group overflow-hidden rounded-2xl border border-teal-500/30 bg-background/60 shadow-lg">
+          <div className="aspect-video w-full overflow-hidden bg-black/40 flex items-center justify-center">
+            <img 
+              src={imageUrl} 
+              alt="Ilustração de Legal Design" 
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+          </div>
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/80 backdrop-blur-md border border-border text-[10px] font-bold text-teal-300">
+            <Sparkles className="w-3 h-3 text-teal-400" />
+            <span>Legal Design Visual (Gemini Spark)</span>
+          </div>
+          <button
+            onClick={() => setModalZoom(true)}
+            className="absolute bottom-2.5 right-2.5 p-2 rounded-xl bg-background/80 backdrop-blur-md border border-border text-foreground hover:bg-secondary transition-all opacity-0 group-hover:opacity-100 shadow-md"
+            title="Expandir Imagem"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* 2. PAINEL COLAPSÁVEL DE CONTROLE DO PROMPT & MCP SPARK */}
+      <div className="rounded-xl border border-border/70 bg-card/60 backdrop-blur-sm overflow-hidden text-left">
+        <button
+          type="button"
+          onClick={() => setAberto(!aberto)}
+          className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <ImageIcon className="w-3.5 h-3.5 text-teal-400" />
+            <span>
+              {imageUrl ? '🎨 Imagem Vinculada (Ver Prompt / Alterar Link)' : '🎨 Imagem do Slide (Prompt & Gemini Spark)'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {imageUrl ? (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                Pronta
+              </span>
+            ) : (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                Pendente no Spark
+              </span>
+            )}
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${aberto ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
+
+        {aberto && (
+          <div className="p-3.5 border-t border-border/60 space-y-3 bg-secondary/20">
+            {/* Prompt Formulado */}
+            {imagePrompt && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                    Prompt Gerado para Imagen 3 / Gemini Spark:
+                  </span>
+                  <button
+                    onClick={handleCopiarPrompt}
+                    className="flex items-center gap-1 text-[10px] font-bold text-teal-400 hover:text-teal-300 transition-colors"
+                  >
+                    {copiado ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiado ? 'Copiado!' : 'Copiar Prompt'}</span>
+                  </button>
+                </div>
+                <div className="p-2.5 rounded-lg bg-background/80 border border-border text-[11px] font-mono text-muted-foreground leading-relaxed select-all max-h-24 overflow-y-auto">
+                  {imagePrompt}
+                </div>
+              </div>
+            )}
+
+            {/* Input Manual de URL / Storage */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                Link da Imagem (Supabase Storage ou Web):
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://...supabase.co/storage/v1/object/public/aprender-leis-imagens/..."
+                  className="flex-1 min-h-[38px] px-3 rounded-lg border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                />
+                <button
+                  onClick={handleAplicar}
+                  className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white font-bold text-xs shadow-sm transition-all active:scale-95 shrink-0"
+                >
+                  Salvar
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                ⚡ O <strong>MCP Server</strong> do Gemini Spark pode salvar automaticamente essa URL através da ferramenta <code>upload_imagem_gerada</code>.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modal Zoom da Imagem */}
+      {modalZoom && imageUrl && (
+        <div 
+          onClick={() => setModalZoom(false)}
+          className="fixed inset-0 z-[100000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div className="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-border/80 shadow-2xl">
+            <img src={imageUrl} alt="Zoom" className="w-full h-full object-contain" />
+            <button
+              onClick={() => setModalZoom(false)}
+              className="absolute top-3 right-3 p-2 rounded-xl bg-background/80 text-foreground hover:bg-secondary"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ==========================================
 // COMPONENTES INTERATIVOS ESPECIAIS
@@ -826,6 +1006,7 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
         badge: 'Etapa 1 de 25 · Capa do Dispositivo',
         titulo: 'Caput — Anterioridade da Lei Penal',
         subtitulo: 'O escudo supremo que protege a liberdade de todo cidadão',
+        imagePrompt: 'A stylized 3D conceptual illustration of a glowing golden hourglass resting on top of a dark marble timeline pedestal. To the left, a heavy closed iron gate locks the past events; to the right, an illuminated transparent path opens towards the future with a floating gavel, symbolizing that no law can punish past acts without prior existence. Minimalist dark background, cinematic teal lighting, 16:9 aspect ratio, zero text.',
         textoAudio: 'Bem-vindo ao estudo do Caput do Artigo primeiro do Código Penal. Você vai dominar a anterioridade penal: não há crime sem lei anterior que o defina, nem pena sem prévia cominação legal.',
         conteudoPrincipal: (
           <CapaDispositivoSlide
@@ -847,6 +1028,7 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
         badge: 'Etapa 2 de 25 · O Texto Oficial',
         titulo: 'O que está escrito no Código Penal?',
         subtitulo: 'Decreto-Lei nº 2.848/1940 — Artigo 1º Oficial',
+        imagePrompt: 'A glowing antique codex book of Brazilian Penal Law floating open with ethereal light rays illuminating the words, with dark stone scales of justice in the background, cinematic volumetric lighting, 16:9 widescreen, no text.',
         textoAudio: 'Artigo primeiro: Não há crime sem lei anterior que o defina. Não há pena sem prévia cominação legal.',
         conteudoPrincipal: (
           <div className="p-6 sm:p-7 rounded-3xl border border-teal-500/40 bg-gradient-to-br from-teal-950/30 via-card to-background text-center space-y-4 shadow-xl">
@@ -930,6 +1112,7 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
         badge: 'Etapa 7 de 25 · História Real 1',
         titulo: 'Caso Dona Clara: A Quitanda de Bairro',
         subtitulo: 'Uma atividade honesta e 100% legalizada',
+        imagePrompt: 'A warm, realistic illustration of a friendly elderly Brazilian woman (Dona Clara, 68) in a cozy traditional neighborhood herbal tea store, glass jars of medicinal chamomile herbs neatly displayed on rustic wooden shelves, warm cinematic lighting, highly detailed legal storytelling, 16:9 widescreen, zero text.',
         textoAudio: 'Conheça Dona Clara. Há mais de dez anos ela produz e vende um chá de ervas artesanal em sua quitanda com total transparência e notas fiscais.',
         conteudoPrincipal: (
           <div className="p-6 sm:p-7 rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-950/30 via-card to-background flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left shadow-xl">
@@ -1316,6 +1499,7 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
         badge: 'Etapa 1 de 25 · Capa do Dispositivo',
         titulo: 'Caput — Abolitio Criminis (Extinção do Crime)',
         subtitulo: 'Quando a sociedade decide que uma conduta não deve mais ser punida',
+        imagePrompt: 'A dramatic, cinematic 3D illustration of an ancient heavy iron cell gate opening towards a luminous golden sunrise, heavy chains shattering into glowing light particles in the air, symbolizing Abolitio Criminis (extinction of crime), dark blue and amber atmospheric lighting, 16:9 widescreen, zero text.',
         textoAudio: 'Bem-vindo ao estudo do Caput do Artigo segundo do Código Penal. Você vai entender a abolitio criminis: ninguém pode ser punido por fato que lei posterior deixa de considerar crime.',
         conteudoPrincipal: (
           <CapaDispositivoSlide
@@ -1427,6 +1611,7 @@ function gerarSlidesCombo(artigo: ArtigoId): SlideData[] {
         badge: 'Etapa 7 de 25 · Capa do Dispositivo',
         titulo: 'Parágrafo Único — A Máquina do Tempo Benéfica',
         subtitulo: 'Novatio Legis in Mellius & Sentença Transitada em Julgado',
+        imagePrompt: 'A stylized conceptual 3D render of a luminous legal hourglass reversing its golden sands backward in time, touching a sealed judicial parchment and dissolving its heavy seals into light, symbolizing retroactive favorability of benign law, 16:9 aspect ratio, clean modern legal design, zero text.',
         textoAudio: 'Atenção: Novo dispositivo legal! Entramos no Parágrafo Único do Artigo segundo. A lei posterior que de qualquer modo favorecer o agente aplica-se aos fatos anteriores, ainda que decididos por sentença transitada em julgado.',
         conteudoPrincipal: (
           <CapaDispositivoSlide
@@ -1820,6 +2005,7 @@ function gerarSlidesArtigo5CF(): SlideData[] {
       badge: 'Etapa 1 de 25 · Capa do Dispositivo',
       titulo: 'Caput — Igualdade e Direitos Sagrados',
       subtitulo: 'A cláusula pétrea suprema da República Federativa do Brasil',
+      imagePrompt: 'A breathtaking cinematic wide-angle illustration of the National Congress of Brazil and Supreme Federal Court at dusk, with an ethereal glowing golden shield hovering over diverse Brazilian citizens standing together in harmony, symbolizing equality and fundamental rights, clean architectural digital art, 16:9 widescreen, zero text.',
       textoAudio: 'Bem-vindo ao estudo do Artigo 5º da Constituição Federal. O Caput consagra que todos são iguais perante a lei, sem distinção de qualquer natureza.',
       conteudoPrincipal: (
         <CapaDispositivoSlide
@@ -2522,6 +2708,7 @@ const AdminAprenderLeisLaboratorio = () => {
   const [slideIndex, setSlideIndex] = useState(0);
   const [direction, setDirection] = useState(0); // 1 = avança, -1 = volta
   const [falando, setFalando] = useState(false);
+  const [imagensCustomizadas, setImagensCustomizadas] = useState<Record<string, string>>({});
 
   const infoArtigo = ARTIGOS_INFO[artigoAtual];
 
@@ -2788,8 +2975,21 @@ const AdminAprenderLeisLaboratorio = () => {
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  className="w-full"
+                  className="w-full space-y-3"
                 >
+                  {/* Seção Visual de Legal Design (MCP Gemini Spark e Supabase Storage) */}
+                  <SlideImagemVisualizadorEControle
+                    slideId={slideAtual.id}
+                    imagePrompt={slideAtual.imagePrompt}
+                    imageUrl={imagensCustomizadas[slideAtual.id] || slideAtual.imageUrl}
+                    onSalvarUrl={(url) => {
+                      setImagensCustomizadas((prev) => ({
+                        ...prev,
+                        [slideAtual.id]: url,
+                      }));
+                    }}
+                  />
+
                   {slideAtual.conteudoPrincipal}
                 </motion.div>
               </AnimatePresence>

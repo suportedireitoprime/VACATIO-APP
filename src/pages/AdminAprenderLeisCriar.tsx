@@ -17,7 +17,12 @@ import {
   Eye, 
   Copy, 
   Check,
-  ShieldAlert
+  ShieldAlert,
+  Image as ImageIcon,
+  Link2,
+  ExternalLink,
+  Globe,
+  Radio
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
@@ -25,6 +30,7 @@ import { PageHeader } from '@/components/vademecum/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { isAdminEmail } from '@/lib/adminEmails';
 import { generateOmniText } from '@/lib/omniRouteClient';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LogItem {
   id: string;
@@ -82,8 +88,30 @@ const AdminAprenderLeisCriar = () => {
     },
   ]);
   const [resultadoPrevia, setResultadoPrevia] = useState<any | null>(null);
+  const [mcpStatus, setMcpStatus] = useState<'idle' | 'online' | 'offline'>('idle');
+  const [mcpTestando, setMcpTestando] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const testarMcp = async () => {
+    setMcpTestando(true);
+    try {
+      const res = await fetch('http://localhost:3333/health');
+      const data = await res.json();
+      if (data.status === 'ok') {
+        setMcpStatus('online');
+        toast.success('Servidor MCP está online e respondendo na porta 3333!');
+      } else {
+        setMcpStatus('offline');
+        toast.error('Servidor MCP retornou resposta inesperada.');
+      }
+    } catch {
+      setMcpStatus('offline');
+      toast.error('Não foi possível conectar ao servidor MCP na porta 3333. Inicie com: cd mcp-server && npm run start');
+    } finally {
+      setMcpTestando(false);
+    }
+  };
 
   const addLog = (tipo: LogItem['tipo'], mensagem: string) => {
     setLogs(prev => [
@@ -117,7 +145,8 @@ DIRETRIZES OBRIGATÓRIAS:
 1. Linguagem simples, humana, sem jargões desnecessários (Plain Language).
 2. Se usar um termo técnico (ex: "cominação", "anterioridade", "retroatividade"), traduza imediatamente com metáforas do dia a dia.
 3. Crie de 4 a 5 slides interativos.
-4. Responda ESTRITAMENTE em formato JSON puro, sem blocos de markdown.
+4. Para cada slide, crie um "image_prompt": uma descrição artística e cinematográfica em inglês (16:9 widescreen, clean legal design, conceptual metaphor, dark slate background, cinematic neon accents, strictly zero gibberish text) para o Imagen 3 / Google Gemini Spark gerar uma ilustração.
+5. Responda ESTRITAMENTE em formato JSON puro, sem blocos de markdown.
 
 Formato JSON esperado:
 {
@@ -133,6 +162,7 @@ Formato JSON esperado:
       "subtitulo": "Subtítulo amigável",
       "texto_didatico": "Explicação em português cristalino.",
       "exemplo_cotidiano": "Exemplo do dia a dia de uma pessoa comum.",
+      "image_prompt": "A modern 3D conceptual illustration of a glowing gavel and timeline...",
       "tipo_interacao": "leitura"
     }
   ]
@@ -142,7 +172,7 @@ Formato JSON esperado:
         prompt,
         systemPrompt: "Você é um assistente de Legal Design e Educação Jurídica para leigos. Retorne SOMENTE JSON válido.",
         modelOverride: modeloOmni,
-        temperature,
+        temperature: temperatura,
         complexity: 'tiered',
       });
 
@@ -155,6 +185,29 @@ Formato JSON esperado:
 
       const parsed = JSON.parse(jsonTexto);
       setResultadoPrevia(parsed);
+
+      // Persistência automática dos prompts de imagem na tabela aprender_leis_imagens
+      try {
+        const slidesComPrompt = (parsed.slides || []).filter((s: any) => s.image_prompt);
+        if (slidesComPrompt.length > 0) {
+          for (const s of slidesComPrompt) {
+            await (supabase.from('aprender_leis_imagens' as any) as any).insert({
+              lei_id: leiSelecionada,
+              artigo_numero: `Art. ${artigoInicio}`,
+              dispositivo: 'Caput',
+              slide_ordem: s.ordem || 1,
+              slide_titulo: s.titulo || 'Slide',
+              image_prompt: s.image_prompt,
+              status: 'pending',
+              dimensao: '16:9',
+            });
+          }
+          addLog('sucesso', `🎨 ${slidesComPrompt.length} prompts de imagem salvos no Supabase para o MCP Gemini Spark!`);
+        }
+      } catch (errDb: any) {
+        console.warn('Aviso ao registrar prompts no Supabase:', errDb?.message);
+      }
+
       addLog('sucesso', `Teste concluído com sucesso para o Art. ${artigoInicio}! ${parsed.slides?.length || 0} slides gerados.`);
       toast.success('Aula gerada com sucesso via OmniRoute!');
     } catch (err: any) {
@@ -200,16 +253,43 @@ Formato JSON esperado:
           const prompt = `Crie uma aula de microlearning para leigos em JSON para o artigo:
 Legislação: ${lei?.nome}
 Artigo: Art. ${artNum}
-Mecânica: ${mecanicaSelecionada}
-Retorne somente JSON com: { "artigo": "Art. ${artNum}", "titulo_aula": "...", "slides": [...] }`;
+Mecanica: ${mecanicaSelecionada}
+Inclua para cada slide: "image_prompt" (descrição para gerar ilustração 16:9 widescreen no Gemini Spark/Imagen 3).
+Retorne somente JSON com: { "artigo": "Art. ${artNum}", "titulo_aula": "...", "slides": [{ "ordem": 1, "titulo": "...", "texto_didatico": "...", "image_prompt": "..." }] }`;
 
           const res = await generateOmniText({
             prompt,
             systemPrompt: "Você é um assistente de Legal Design. Retorne SOMENTE JSON.",
             modelOverride: modeloOmni,
-            temperature,
+            temperature: temperatura,
             complexity: 'tiered',
           });
+
+          // Gravação dos prompts gerados no lote
+          try {
+            let clean = res.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const startIdx = clean.indexOf('{');
+            const endIdx = clean.lastIndexOf('}');
+            if (startIdx !== -1 && endIdx !== -1) {
+              clean = clean.substring(startIdx, endIdx + 1);
+              const parsedLote = JSON.parse(clean);
+              const slidesPrompt = (parsedLote.slides || []).filter((s: any) => s.image_prompt);
+              for (const s of slidesPrompt) {
+                await (supabase.from('aprender_leis_imagens' as any) as any).insert({
+                  lei_id: leiSelecionada,
+                  artigo_numero: `Art. ${artNum}`,
+                  dispositivo: 'Caput',
+                  slide_ordem: s.ordem || 1,
+                  slide_titulo: s.titulo || 'Slide',
+                  image_prompt: s.image_prompt,
+                  status: 'pending',
+                  dimensao: '16:9',
+                });
+              }
+            }
+          } catch (eDb) {
+            // Silencioso em caso de erro individual de gravação
+          }
 
           addLog('sucesso', `Art. ${artNum} gerado com sucesso via OmniRoute.`);
           setProgresso(prev => ({ ...prev, concluidos: prev.concluidos + 1 }));
@@ -424,6 +504,88 @@ Retorne somente JSON com: { "artigo": "Art. ${artNum}", "titulo_aula": "...", "s
             </div>
           </div>
         )}
+
+        {/* Card: Integração MCP Server & Google Gemini Spark */}
+        <div className="rounded-2xl border border-teal-500/30 bg-gradient-to-br from-card via-card to-teal-950/20 p-5 space-y-4 shadow-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 shrink-0">
+                <Radio className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 uppercase tracking-wider">
+                    MCP Server
+                  </span>
+                  <span className="text-xs text-muted-foreground font-semibold">
+                    Model Context Protocol
+                  </span>
+                </div>
+                <h4 className="text-sm sm:text-base font-bold text-foreground">
+                  Integração Google Gemini Spark (Imagens Automáticas & Storage)
+                </h4>
+              </div>
+            </div>
+
+            <button
+              onClick={testarMcp}
+              disabled={mcpTestando}
+              className="px-3.5 py-1.5 rounded-xl border border-teal-500/40 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${mcpTestando ? 'animate-spin' : ''}`} />
+              <span>{mcpStatus === 'online' ? '✅ MCP Online' : mcpStatus === 'offline' ? '❌ Desconectado' : 'Testar Servidor'}</span>
+            </button>
+          </div>
+
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            O <strong>Google Gemini Spark</strong> conecta-se diretamente a este servidor MCP para ler os prompts gerados pelo OmniRoute, sintetizar ilustrações via <strong>Imagen 3</strong> e subir os arquivos no <strong>Supabase Storage</strong> (<code>aprender-leis-imagens</code>).
+          </p>
+
+          {/* Endpoint SSE e Instruções */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="p-3 rounded-xl border border-border/70 bg-background/60 space-y-1.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                Endpoint SSE para o Spark:
+              </span>
+              <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-secondary/50 font-mono text-[11px] text-foreground">
+                <span className="truncate">http://localhost:3333/sse</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText('http://localhost:3333/sse');
+                    toast.success('URL do MCP copiada!');
+                  }}
+                  className="p-1 hover:text-teal-400 transition-colors shrink-0"
+                  title="Copiar URL"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <span className="text-[10px] text-muted-foreground block">
+                💡 Em produção ou agentes na nuvem, exponha via túnel: <code>npx localtunnel --port 3333</code>
+              </span>
+            </div>
+
+            <div className="p-3 rounded-xl border border-border/70 bg-background/60 space-y-1.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
+                Ferramentas (Tools) Expostas ao Spark:
+              </span>
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-secondary text-foreground font-mono">
+                  listar_prompts_pendentes
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-secondary text-foreground font-mono">
+                  obter_prompt_slide
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-secondary text-foreground font-mono">
+                  upload_imagem_gerada
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-secondary text-foreground font-mono">
+                  salvar_url_imagem
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Terminal de Logs em Tempo Real */}
         <div className="rounded-2xl border border-border/90 bg-neutral-950 p-4 space-y-3 shadow-lg">
