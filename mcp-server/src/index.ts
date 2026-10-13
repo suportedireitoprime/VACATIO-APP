@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 
@@ -383,14 +384,41 @@ async function main() {
       });
     });
 
-    // Endpoint SSE para Google Gemini Spark
+    // 1. Endpoint Moderno Streamable HTTP (/mcp) - Padrão do Google Gemini Spark
+    app.post('/mcp', async (req, res) => {
+      try {
+        const streamTransport = new StreamableHTTPServerTransport({
+          sessionIdGenerator: undefined,
+        });
+        res.setHeader('Cache-Control', 'no-store');
+        await server.connect(streamTransport);
+        res.on('close', () => {
+          void streamTransport.close();
+        });
+        await streamTransport.handleRequest(req, res, req.body);
+      } catch (err: any) {
+        console.error('Erro na requisição /mcp:', err);
+        if (!res.headersSent) {
+          res.status(500).json({ error: err?.message || 'Internal Server Error' });
+        }
+      }
+    });
+
+    // Suporte também a GET /mcp (caso o cliente use SSE diretamente na rota /mcp)
+    app.get('/mcp', async (req, res) => {
+      console.log('📡 Nova conexão SSE estabelecida em /mcp a partir de:', req.ip);
+      sseTransport = new SSEServerTransport('/messages', res);
+      await server.connect(sseTransport);
+    });
+
+    // 2. Endpoint SSE Tradicional (/sse)
     app.get('/sse', async (req, res) => {
       console.log('📡 Nova conexão SSE estabelecida a partir de:', req.ip);
       sseTransport = new SSEServerTransport('/messages', res);
       await server.connect(sseTransport);
     });
 
-    // Endpoint POST para mensagens do cliente MCP
+    // Endpoint POST para mensagens do cliente SSE
     app.post('/messages', async (req, res) => {
       if (sseTransport) {
         await sseTransport.handlePostMessage(req, res, req.body);
