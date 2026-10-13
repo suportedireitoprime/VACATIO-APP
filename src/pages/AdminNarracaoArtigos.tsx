@@ -24,6 +24,18 @@ import {
   Check,
   Edit2,
   Layers,
+  Gavel,
+  ShieldAlert,
+  Users,
+  Briefcase,
+  ShieldCheck,
+  Receipt,
+  Car,
+  Award,
+  Baby,
+  HeartHandshake,
+  Accessibility,
+  ScrollText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/vademecum/PageHeader';
@@ -39,6 +51,61 @@ import {
 } from '@/services/narracaoArtigosSyncService';
 
 type CategoriaFiltro = 'Todas' | 'Códigos' | 'Estatutos' | 'Constituição' | 'Leis Ordinárias';
+
+/**
+ * Retorna o ícone temático e cores apropriadas para cada lei
+ */
+function getLeiVisualConfig(slug: string, nome: string, categoria: string) {
+  const s = (slug || '').toLowerCase();
+  const n = (nome || '').toLowerCase();
+
+  if (s === 'cf' || s === 'cf88' || n.includes('constituição') || n.includes('constituicao')) {
+    return { icon: Landmark, iconColor: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/25' };
+  }
+  if (s === 'cpp' || n.includes('processo penal')) {
+    return { icon: Gavel, iconColor: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/25' };
+  }
+  if (s === 'cp' || s === 'cpm' || (n.includes('penal') && !n.includes('processo'))) {
+    return { icon: ShieldAlert, iconColor: 'text-rose-400', bg: 'bg-rose-500/10 border-rose-500/25' };
+  }
+  if (s === 'cpc' || n.includes('processo civil')) {
+    return { icon: Scale, iconColor: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/25' };
+  }
+  if (s === 'cc' || (n.includes('civil') && !n.includes('processo'))) {
+    return { icon: Users, iconColor: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/25' };
+  }
+  if (s === 'clt' || n.includes('trabalho')) {
+    return { icon: Briefcase, iconColor: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/25' };
+  }
+  if (s === 'cdc' || n.includes('consumidor')) {
+    return { icon: ShieldCheck, iconColor: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/25' };
+  }
+  if (s === 'ctn' || n.includes('tributário') || n.includes('tributario')) {
+    return { icon: Receipt, iconColor: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/25' };
+  }
+  if (s === 'ctb' || n.includes('trânsito') || n.includes('transito')) {
+    return { icon: Car, iconColor: 'text-teal-400', bg: 'bg-teal-500/10 border-teal-500/25' };
+  }
+  if (s === 'oab' || n.includes('oab')) {
+    return { icon: Award, iconColor: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/25' };
+  }
+  if (n.includes('criança') || n.includes('adolescente') || s === 'eca') {
+    return { icon: Baby, iconColor: 'text-pink-400', bg: 'bg-pink-500/10 border-pink-500/25' };
+  }
+  if (n.includes('idoso')) {
+    return { icon: HeartHandshake, iconColor: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/25' };
+  }
+  if (n.includes('deficiência') || n.includes('deficiencia') || s === 'pcd') {
+    return { icon: Accessibility, iconColor: 'text-sky-400', bg: 'bg-sky-500/10 border-sky-500/25' };
+  }
+  if (categoria === 'Códigos') {
+    return { icon: BookOpen, iconColor: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/25' };
+  }
+  if (categoria === 'Estatutos') {
+    return { icon: ScrollText, iconColor: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/25' };
+  }
+  return { icon: FileText, iconColor: 'text-slate-400', bg: 'bg-slate-800 border-slate-700' };
+}
 
 export default function AdminNarracaoArtigos() {
   const navigate = useNavigate();
@@ -237,7 +304,10 @@ export default function AdminNarracaoArtigos() {
 
   // Reprodução de áudio
   const handleTogglePlay = (artigoId: string, url: string | null) => {
-    if (!url) return;
+    if (!url || !url.trim()) {
+      toast.error('Este artigo ainda não possui gravação de áudio sincronizada.');
+      return;
+    }
 
     if (audioTocandoId === artigoId) {
       if (audioRef.current) {
@@ -248,12 +318,33 @@ export default function AdminNarracaoArtigos() {
     } else {
       if (audioRef.current) {
         audioRef.current.pause();
+        audioRef.current = null;
       }
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      audio.onended = () => setAudioTocandoId(null);
-      audio.play().catch(() => toast.error('Não foi possível reproduzir este áudio.'));
-      setAudioTocandoId(artigoId);
+
+      try {
+        const audio = new Audio(url);
+        audioRef.current = audio;
+
+        audio.onerror = () => {
+          setAudioTocandoId(null);
+          toast.error('O arquivo de áudio não pôde ser carregado. Você pode enviar uma nova versão pelo botão de upload deste artigo.');
+        };
+
+        audio.onended = () => {
+          setAudioTocandoId(null);
+        };
+
+        audio.play().then(() => {
+          setAudioTocandoId(artigoId);
+        }).catch((err) => {
+          setAudioTocandoId(null);
+          console.warn('Erro ao reproduzir áudio:', err);
+          toast.error('Não foi possível reproduzir o áudio. Verifique se o navegador autorizou a saída de som.');
+        });
+      } catch {
+        setAudioTocandoId(null);
+        toast.error('Erro ao inicializar o player de áudio.');
+      }
     }
   };
 
@@ -486,6 +577,8 @@ export default function AdminNarracaoArtigos() {
                 {leisFiltradas.map(lei => {
                   const temDrive = !!lei.driveFolderUrl || lei.slug === 'cpp';
                   const isCPP = lei.slug === 'cpp';
+                  const visual = getLeiVisualConfig(lei.slug, lei.nome, lei.categoriaFormatada);
+                  const IconLei = visual.icon;
 
                   return (
                     <div
@@ -499,7 +592,7 @@ export default function AdminNarracaoArtigos() {
                     >
                       <div>
                         {/* Topo do Card: Categoria & Sigla */}
-                        <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center justify-between gap-2 mb-3">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
                             {lei.categoriaFormatada}
                           </span>
@@ -521,10 +614,20 @@ export default function AdminNarracaoArtigos() {
                           </div>
                         </div>
 
-                        {/* Nome da Lei */}
-                        <h3 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-2 leading-snug">
-                          {lei.nome}
-                        </h3>
+                        {/* Ícone Temático + Nome da Lei */}
+                        <div className="flex items-start gap-3">
+                          <div className={`p-2.5 rounded-xl border flex-shrink-0 ${visual.bg} ${visual.iconColor} group-hover:scale-105 transition-transform`}>
+                            <IconLei className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-2 leading-snug">
+                              {lei.nome}
+                            </h3>
+                            <span className="text-[11px] text-slate-400 mt-0.5 block">
+                              {lei.totalArtigos} artigos reais cadastrados
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Progresso de Narração */}
@@ -579,14 +682,25 @@ export default function AdminNarracaoArtigos() {
                 Voltar para as Leis
               </button>
 
-              <div className="text-right">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block">
-                  {leiSelecionada.categoriaFormatada}
-                </span>
-                <span className="text-xs font-bold text-white">
-                  {leiSelecionada.nome} ({leiSelecionada.slug.toUpperCase()})
-                </span>
-              </div>
+              {(() => {
+                const visual = getLeiVisualConfig(leiSelecionada.slug, leiSelecionada.nome, leiSelecionada.categoriaFormatada);
+                const IconLei = visual.icon;
+                return (
+                  <div className="flex items-center gap-2.5 text-right">
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block">
+                        {leiSelecionada.categoriaFormatada}
+                      </span>
+                      <span className="text-xs font-bold text-white">
+                        {leiSelecionada.nome} ({leiSelecionada.slug.toUpperCase()})
+                      </span>
+                    </div>
+                    <div className={`p-2 rounded-xl border flex-shrink-0 ${visual.bg} ${visual.iconColor}`}>
+                      <IconLei className="w-4 h-4" />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
