@@ -3048,179 +3048,90 @@ const AdminAprenderLeisLaboratorio = () => {
         subtitle="Teste e avalie mecânicas de aulas da legislação para pessoas leigas"
         mobileHeader={mobileHeader}
       >
-        <div className="px-4 sm:px-6 py-4 lg:px-0 lg:py-0 max-w-4xl mx-auto w-full space-y-5">
+        <div className="px-4 sm:px-6 py-5 lg:px-0 lg:py-0 max-w-xl mx-auto w-full space-y-4">
           
-          {/* Alternador de Artigos */}
-          <div className="p-4 sm:p-5 rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card to-secondary/30 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Artigo Modelo Fixo: Artigo 1º (CP) */}
+          <div className="p-4 sm:p-5 rounded-2xl border border-border/80 bg-card shadow-sm space-y-3">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/30">
                   <Scale className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-teal-400">
-                    {infoArtigo.legislacao}
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-teal-400 block">
+                    {infoArtigo.diploma}
                   </span>
                   <h3 className="text-sm sm:text-base font-bold text-foreground">
-                    Selecione o Artigo para o Laboratório:
+                    {infoArtigo.titulo}
                   </h3>
                 </div>
               </div>
-
-              {/* Botões de Alternância (3 Artigos incluindo Artigo 5º CF/88 Gigante) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 p-1.5 rounded-2xl bg-secondary/80 border border-border/70 self-stretch sm:self-auto gap-1">
-                <button
-                  onClick={() => handleAlternarArtigo('art1')}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 ${
-                    artigoAtual === 'art1'
-                      ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md shadow-teal-500/30 scale-[1.02]'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <span>Artigo 1º (CP)</span>
-                  <span className="text-[10px] opacity-80 font-normal">Caput</span>
-                </button>
-                <button
-                  onClick={() => handleAlternarArtigo('art2')}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 ${
-                    artigoAtual === 'art2'
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/30 scale-[1.02]'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <span>Artigo 2º (CP)</span>
-                  <span className="text-[10px] opacity-80 font-normal">Caput + Parágrafo único</span>
-                </button>
-                <button
-                  onClick={() => handleAlternarArtigo('art5_cf')}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 ${
-                    artigoAtual === 'art5_cf'
-                      ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-md shadow-amber-500/30 scale-[1.02]'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <span className="flex items-center gap-1">
-                    <span>Artigo 5º (CF)</span>
-                    <span className="text-[9px] px-1 py-0.2 rounded bg-amber-400 text-amber-950 font-black">GIGANTE</span>
-                  </span>
-                  <span className="text-[10px] opacity-80 font-normal">Caput + Incisos I a V</span>
-                </button>
-              </div>
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-secondary text-foreground/80 border border-border">
+                Caput
+              </span>
             </div>
 
-            {/* Texto literal do artigo com chips dos dispositivos */}
-            <div className="p-3.5 rounded-xl border border-teal-500/25 bg-teal-950/20 space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">
-                  {infoArtigo.titulo}
-                </span>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {infoArtigo.dispositivos.map((d) => (
-                    <span 
-                      key={d.id}
-                      className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/80 border border-border text-foreground/80 font-semibold"
-                    >
-                      {d.tipo === 'inciso' ? `Inciso ${d.numeroRomano}` : d.tipo === 'paragrafo' ? 'Parágrafo único' : 'Caput'}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <p className="font-serif text-xs sm:text-sm italic text-foreground/90 leading-relaxed">
+            <div className="p-3.5 rounded-xl border border-teal-500/20 bg-teal-950/20">
+              <p className="font-serif text-xs sm:text-sm italic text-foreground/90 leading-relaxed text-center sm:text-left">
                 {infoArtigo.texto}
               </p>
             </div>
           </div>
 
-          {/* LISTA DE MECÂNICAS DIDÁTICAS (VERTICAL) */}
-          <div className="space-y-3.5">
-            <div className="flex items-center justify-between px-1">
-              <div>
-                <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  Escolha o Formato da Aula para Iniciar:
-                </h4>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Toque em <strong>Iniciar Aula</strong> em qualquer uma das opções para abrir em <strong>Tela Toda</strong> com exercícios, quizzes e flashcards.
-                </p>
-              </div>
-            </div>
-
-            {/* ITENS DA LISTA EM COLUNA VERTICAL */}
-            <div className="space-y-3">
-              {MECANICAS.map((mec) => {
-                const Icon = mec.icone;
-                const isCombo = mec.id === 'combo';
-                return (
-                  <div
-                    key={mec.id}
-                    className={`group relative overflow-hidden rounded-2xl border ${mec.bordaCor} bg-gradient-to-br ${mec.gradienteFundo} bg-card p-4 sm:p-5 transition-all duration-200 shadow-sm hover:shadow-md ${
-                      isCombo ? 'ring-1 ring-amber-500/40' : ''
-                    }`}
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      
-                      {/* Lado Esquerdo */}
-                      <div className="flex items-start gap-3.5 flex-1 min-w-0">
-                        <div className={`w-12 h-12 rounded-2xl bg-background/80 border ${mec.bordaCor} flex items-center justify-center shrink-0 shadow-sm`}>
-                          <Icon className={`w-6 h-6 ${mec.corPrimaria}`} />
-                        </div>
-                        <div className="space-y-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-background/80 border ${mec.bordaCor} ${mec.corPrimaria} uppercase tracking-wider`}>
-                              {mec.badge}
-                            </span>
-                            <span className="text-[11px] font-semibold text-muted-foreground">
-                              {mec.totalSlidesText}
-                            </span>
-                          </div>
-                          <h4 className="text-base font-bold text-foreground">
-                            {mec.nome}
-                          </h4>
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            {mec.descricaoCurta}
-                          </p>
-                          <p className="text-[11px] text-foreground/80 font-medium pt-0.5">
-                            <strong>Destaque pedagógico:</strong> {mec.focoLeigo}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Lado Direito: Botão Iniciar Aula */}
-                      <div className="self-end sm:self-center shrink-0 w-full sm:w-auto">
-                        <button
-                          onClick={() => handleIniciarAula(mec.id)}
-                          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-white font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95 ${mec.botaoCor}`}
-                        >
-                          <Play className="w-4 h-4 fill-white" />
-                          <span>Iniciar Aula (Tela Toda)</span>
-                        </button>
-                      </div>
-
-                    </div>
+          {/* Formato Padrão Único: Combo Completo */}
+          {(() => {
+            const comboMec = MECANICAS.find(m => m.id === 'combo') || MECANICAS[0];
+            const Icon = comboMec.icone;
+            return (
+              <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-card via-card to-amber-950/20 p-5 sm:p-6 space-y-4 shadow-md">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-inner">
+                    <Icon className="w-6 h-6 text-amber-400" />
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">
+                        {comboMec.badge}
+                      </span>
+                      <span className="text-[11px] font-semibold text-muted-foreground">
+                        {comboMec.totalSlidesText}
+                      </span>
+                    </div>
+                    <h4 className="text-base sm:text-lg font-bold text-foreground">
+                      {comboMec.nome}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      {comboMec.descricaoCurta}
+                    </p>
+                  </div>
+                </div>
 
-          {/* Rodapé: Atalho para Criar Aulas via OmniRoute */}
-          <div className="p-4 sm:p-5 rounded-2xl border border-border/80 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-            <div>
-              <h4 className="text-xs sm:text-sm font-bold text-foreground">
-                Pronto para gerar em lote para todas as leis?
-              </h4>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                O gerador <strong>OmniRoute</strong> cria automaticamente essas trilhas completas com exercícios para qualquer lei do app.
-              </p>
-            </div>
+                <div className="pt-2">
+                  <button
+                    onClick={() => handleIniciarAula('combo')}
+                    className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer"
+                  >
+                    <Play className="w-4 h-4 fill-white" />
+                    <span>Iniciar Aula (Tela Toda)</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Rodapé Compacto: Atalho para Criar Aulas via OmniRoute */}
+          <div className="p-3.5 rounded-xl border border-border/60 bg-secondary/20 flex items-center justify-between gap-3 text-xs">
+            <span className="text-muted-foreground">
+              Gerar aulas para outros artigos e leis:
+            </span>
             <button
               onClick={() => {
                 pararVoz();
                 navigate('/admin-aprender-leis/criar');
               }}
-              className="px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs shrink-0 transition-colors shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
+              className="text-blue-400 hover:underline font-semibold flex items-center gap-1 shrink-0"
             >
-              <span>Abrir Criador OmniRoute</span>
+              <span>Criar com Robô</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
