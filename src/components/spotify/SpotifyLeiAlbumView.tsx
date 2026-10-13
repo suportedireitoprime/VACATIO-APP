@@ -23,6 +23,7 @@ import { getLeiCover, getLeiColor } from '@/lib/leiTheme';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/vademecum/PageHeader';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SpotifyLeiAlbumViewProps {
@@ -92,33 +93,35 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     };
   }, [leiId, leiSlug]);
 
-  // Monta lista de faixas do álbum no formato SpotifyTrack
+  // Monta lista de faixas do álbum no formato SpotifyTrack (Apenas com áudio pronto)
   const albumTracks: SpotifyTrack[] = useMemo(() => {
-    return artigos.map((art, index) => {
-      let finalAudioUrl = '';
-      if (audioMode === 'aulas') {
-        const rawLink = aulaLinks[art.numeroFormatado] || aulaLinks[art.numero] || '';
-        finalAudioUrl = formatDriveStreamUrl(rawLink) || rawLink;
-      } else {
-        finalAudioUrl = art.narracao_url || '';
-      }
+    return artigos
+      .map((art, index) => {
+        let finalAudioUrl = '';
+        if (audioMode === 'aulas') {
+          const rawLink = aulaLinks[art.numeroFormatado] || aulaLinks[art.numero] || '';
+          finalAudioUrl = formatDriveStreamUrl(rawLink) || rawLink;
+        } else {
+          finalAudioUrl = art.narracao_url || '';
+        }
 
-      return {
-        id: `${leiSlug}::${art.numero}`,
-        tipo: audioMode === 'aulas' ? 'aula' : 'lei',
-        leiId,
-        leiSlug,
-        leiNome,
-        artigoNumero: art.numero,
-        numeroFormatado: art.numeroFormatado,
-        titulo: `${art.numeroFormatado} • ${leiNome}`,
-        subtitulo: `${leiNome} • ${audioMode === 'aulas' ? 'Áudio-Aula' : 'Narração Oficial'}`,
-        texto: art.texto,
-        audioUrl: finalAudioUrl,
-        coverUrl,
-        ordem: art.ordem || index,
-      };
-    });
+        return {
+          id: `${leiSlug}::${art.numero}`,
+          tipo: (audioMode === 'aulas' ? 'aula' : 'lei') as 'aula' | 'lei',
+          leiId,
+          leiSlug,
+          leiNome,
+          artigoNumero: art.numero,
+          numeroFormatado: art.numeroFormatado,
+          titulo: `${art.numeroFormatado} • ${leiNome}`,
+          subtitulo: `${leiNome} • ${audioMode === 'aulas' ? 'Áudio-Aula' : 'Narração Oficial'}`,
+          texto: art.texto,
+          audioUrl: finalAudioUrl,
+          coverUrl,
+          ordem: art.ordem || index,
+        };
+      })
+      .filter((t) => Boolean(t.audioUrl && t.audioUrl.trim()));
   }, [artigos, aulaLinks, audioMode, leiId, leiSlug, leiNome, coverUrl]);
 
   // Filtro de busca na tracklist
@@ -171,21 +174,13 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-950 text-white pb-40">
-      {/* Botão Superior Voltar */}
-      <div className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-white/5">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 hover:text-white transition-colors p-1.5 -ml-1 rounded-xl hover:bg-white/5"
-        >
-          <ChevronLeft className="w-5 h-5" />
-          <span>Voltar para Leis</span>
-        </button>
-
-        <span className="text-xs font-bold text-zinc-400 truncate max-w-[200px]">
-          {leiNome}
-        </span>
-      </div>
+      {/* Cabeçalho no Padrão Oficial do VACATIO */}
+      <PageHeader
+        title={leiNome}
+        subtitle="Álbum Oficial • Narrações dos Artigos"
+        onBack={onBack}
+        variant="dark"
+      />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4 space-y-6">
         {/* Hero do Álbum no estilo Spotify */}

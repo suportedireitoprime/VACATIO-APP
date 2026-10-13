@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Volume2, GraduationCap, Headphones } from 'lucide-react';
+import { Volume2, GraduationCap, Headphones } from 'lucide-react';
+import { PageHeader } from '@/components/vademecum/PageHeader';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 import { SpotifyBottomNav } from './SpotifyBottomNav';
 import { SpotifyMiniPlayer } from './SpotifyMiniPlayer';
@@ -104,21 +105,18 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
         />
       ) : (
         <>
-          {/* Header Superior com Botão de Voltar e Alternador de Modo */}
-          <header className="sticky top-0 z-30 bg-slate-950/90 backdrop-blur-xl border-b border-white/10 px-4 py-3 sm:px-6">
-            <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
-              {/* Botão Voltar para o Início */}
-              <button
-                type="button"
-                onClick={() => navigate('/')}
-                className="flex items-center gap-1 text-xs font-semibold text-zinc-300 hover:text-white transition-colors p-1.5 -ml-2 rounded-xl hover:bg-white/5"
-              >
-                <ChevronLeft className="w-5 h-5" />
-                <span className="hidden sm:inline">Início</span>
-              </button>
-
-              {/* Seletor de Modo Central: Áudio Leis x Áudio Aulas */}
-              <div className="flex items-center p-1 rounded-2xl bg-zinc-900 border border-white/10">
+          {/* Cabeçalho no Padrão Oficial do VACATIO */}
+          <PageHeader
+            title={audioMode === 'leis' ? 'Áudio Leis' : 'Áudio Aulas'}
+            subtitle={
+              audioMode === 'leis'
+                ? 'Narrações oficiais dos artigos da legislação'
+                : 'Aulas didáticas e conceituais para fixação'
+            }
+            onBack={() => navigate('/')}
+            variant="dark"
+            rightAction={
+              <div className="flex items-center p-1 rounded-2xl bg-zinc-900 border border-white/10 shrink-0">
                 <button
                   type="button"
                   onClick={() => setAudioMode('leis')}
@@ -129,7 +127,7 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
                   }`}
                 >
                   <Volume2 className="w-3.5 h-3.5" />
-                  Áudio Leis
+                  <span className="hidden sm:inline">Áudio </span>Leis
                 </button>
 
                 <button
@@ -142,16 +140,11 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
                   }`}
                 >
                   <GraduationCap className="w-3.5 h-3.5" />
-                  Áudio Aulas
+                  <span className="hidden sm:inline">Áudio </span>Aulas
                 </button>
               </div>
-
-              {/* Título de Referência ou Espaço */}
-              <div className="w-8 flex justify-end">
-                <Headphones className="w-4 h-4 text-emerald-400" />
-              </div>
-            </div>
-          </header>
+            }
+          />
 
           {/* Conteúdo Principal de Acordo com a Aba do Rodapé */}
           <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5">

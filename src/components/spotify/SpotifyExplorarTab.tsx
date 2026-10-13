@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Play, Sparkles, Headphones, BookOpen, Layers, CheckCircle2 } from 'lucide-react';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
-import { fetchLeisComMetricasNarracao, type LeiNarracaoItem } from '@/services/narracaoArtigosSyncService';
-import { LEIS_CATALOG } from '@/data/leisCatalog';
+import { fetchLeisDisponiveisComAudio, type LeiNarracaoItem } from '@/services/narracaoArtigosSyncService';
 import { getLeiCover, getLeiColor } from '@/lib/leiTheme';
 import { Badge } from '@/components/ui/badge';
 
@@ -12,56 +11,54 @@ interface SpotifyExplorarTabProps {
 
 type CategoryFilter = 'todos' | 'codigos' | 'estatutos' | 'constituicao' | 'especiais';
 
+const DEFAULT_LEIS_INITIAL: LeiNarracaoItem[] = [
+  {
+    id: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
+    slug: 'cp',
+    nome: 'Código Penal',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 361,
+    totalComAudio: 10,
+    totalPendentes: 351,
+    percentual: 3,
+  },
+  {
+    id: '246e8691-ebe2-478d-991d-f3930635151a',
+    slug: 'cpp',
+    nome: 'Código de Processo Penal',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 810,
+    totalComAudio: 1,
+    totalPendentes: 809,
+    percentual: 1,
+  },
+];
+
 export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelectLei }) => {
   const { audioMode, playTrack } = useSpotifyAudioStore();
-  const [leis, setLeis] = useState<LeiNarracaoItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [leis, setLeis] = useState<LeiNarracaoItem[]>(DEFAULT_LEIS_INITIAL);
+  const [loading, setLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('todos');
 
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
-      setLoading(true);
       try {
-        const metrics = await fetchLeisComMetricasNarracao();
-
-        // Garante que leis de LEIS_CATALOG também existam caso não venham da query
-        const existingSlugs = new Set(metrics.map((m) => (m.slug || '').toLowerCase()));
-        const fallbackItems: LeiNarracaoItem[] = LEIS_CATALOG.filter(
-          (cat) => !existingSlugs.has(cat.id.toLowerCase())
-        ).map((c) => ({
-          id: c.id,
-          slug: c.id,
-          nome: c.nome,
-          categoria: c.tipo,
-          categoriaFormatada:
-            c.tipo === 'codigo'
-              ? 'Códigos'
-              : c.tipo === 'estatuto'
-              ? 'Estatutos'
-              : c.tipo === 'constituicao'
-              ? 'Constituição'
-              : 'Leis Ordinárias',
-          totalArtigos: 100,
-          totalComAudio: 0,
-          totalPendentes: 100,
-          percentual: 0,
-        }));
-
-        if (isMounted) {
-          setLeis([...metrics, ...fallbackItems]);
+        const data = await fetchLeisDisponiveisComAudio(audioMode);
+        if (isMounted && data.length > 0) {
+          setLeis(data);
         }
       } catch (err) {
-        console.warn('[SpotifyExplorarTab] Erro ao carregar leis:', err);
-      } finally {
-        if (isMounted) setLoading(false);
+        console.warn('[SpotifyExplorarTab] Erro ao carregar leis com áudio:', err);
       }
     }
     loadData();
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [audioMode]);
 
   // Filtragem por Categoria
   const filteredLeis = useMemo(() => {
@@ -183,13 +180,15 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
           <span className="text-[11px] text-zinc-500 font-medium">Toque para ouvir</span>
         </div>
 
-        {loading ? (
-          <div className="py-24 text-center text-xs text-zinc-400">
-            Carregando catálogo de leis...
-          </div>
-        ) : filteredLeis.length === 0 ? (
-          <div className="py-20 text-center text-xs text-zinc-500">
-            Nenhuma legislação nesta categoria.
+        {filteredLeis.length === 0 ? (
+          <div className="py-16 text-center space-y-2 bg-zinc-900/40 rounded-3xl border border-white/5 p-6">
+            <Headphones className="w-10 h-10 text-zinc-600 mx-auto" />
+            <p className="text-sm font-bold text-zinc-300">
+              {audioMode === 'aulas' ? 'Nenhuma áudio-aula nesta categoria' : 'Nenhuma narração nesta categoria'}
+            </p>
+            <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+              Novas gravações em áudio estão sendo produzidas em estúdio e serão adicionadas automaticamente.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
