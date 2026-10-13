@@ -172,8 +172,16 @@ export default function AdminNarracaoArtigos() {
       return;
     }
 
-    setDriveUrl(leiSelecionada.driveFolderUrl || (leiSelecionada.slug === 'cpp' ? 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4' : ''));
-    setEditandoDriveUrl(!leiSelecionada.driveFolderUrl && leiSelecionada.slug !== 'cpp');
+    const pastaPadrao =
+      leiSelecionada.driveFolderUrl ||
+      (leiSelecionada.slug === 'cp'
+        ? 'https://drive.google.com/drive/folders/1lwO3rzWUCFvmbGllwLvQQtX4eSXXXYQW'
+        : leiSelecionada.slug === 'cpp'
+        ? 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4'
+        : '');
+
+    setDriveUrl(pastaPadrao);
+    setEditandoDriveUrl(!pastaPadrao);
     setTempoRestanteSegundos(600);
 
     let cancelado = false;
@@ -248,7 +256,7 @@ export default function AdminNarracaoArtigos() {
     ]);
 
     try {
-      const itens = await fetchArtigosDaLeiComNarracao(leiSelecionada.id);
+      const itens = await fetchArtigosDaLeiComNarracao(leiSelecionada.id, leiSelecionada.slug);
       setArtigos(itens);
 
       const comAudio = itens.filter(a => a.temAudio).length;
@@ -715,21 +723,22 @@ export default function AdminNarracaoArtigos() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-16 space-y-6">
             {/* MENU DE ALTERNÂNCIA MINIMALISTA (SEGMENTED CONTROL / TABS) */}
-            <div className="bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl shadow-lg backdrop-blur-md">
+            <div className="bg-slate-900/90 border border-slate-800 p-1 rounded-2xl shadow-lg backdrop-blur-md">
               <div className="grid grid-cols-3 gap-1">
                 {/* Aba 1: Pasta & Estatísticas */}
                 <button
                   type="button"
                   onClick={() => setSecaoDetalhe('pasta')}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                  className={`py-2 px-2 sm:px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all ${
                     secaoDetalhe === 'pasta'
                       ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
                   }`}
                 >
-                  <FolderSync className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">Pasta & Estatísticas</span>
-                  <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 rounded-md bg-slate-800 text-slate-300 ml-1">
+                  <FolderSync className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="sm:hidden font-medium">Pasta</span>
+                  <span className="hidden sm:inline font-medium">Pasta & Métricas</span>
+                  <span className="text-[10px] px-1 py-0.2 rounded-md bg-slate-800 text-slate-300 ml-0.5 sm:ml-1 font-mono">
                     {artigos.length > 0
                       ? `${Math.round((artigos.filter(a => a.temAudio).length / artigos.length) * 100)}%`
                       : '0%'}
@@ -740,17 +749,18 @@ export default function AdminNarracaoArtigos() {
                 <button
                   type="button"
                   onClick={() => setSecaoDetalhe('cron')}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                  className={`py-2 px-2 sm:px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all ${
                     secaoDetalhe === 'cron'
                       ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
                   }`}
                 >
-                  <Clock className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">Cron Jobs (10 min)</span>
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] px-1.5 py-0.2 rounded-md bg-emerald-950/60 text-emerald-400 border border-emerald-900/60 ml-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    {cronAtivo ? formatTimer(tempoRestanteSegundos) : 'Pausa'}
+                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="sm:hidden font-medium">Cron</span>
+                  <span className="hidden sm:inline font-medium">Cron Jobs (10m)</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] px-1 py-0.2 rounded-md bg-emerald-950/60 text-emerald-400 border border-emerald-900/60 ml-0.5 sm:ml-1 font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+                    {cronAtivo ? formatTimer(tempoRestanteSegundos) : 'Off'}
                   </span>
                 </button>
 
@@ -758,15 +768,16 @@ export default function AdminNarracaoArtigos() {
                 <button
                   type="button"
                   onClick={() => setSecaoDetalhe('artigos')}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                  className={`py-2 px-2 sm:px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all ${
                     secaoDetalhe === 'artigos'
                       ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
                   }`}
                 >
-                  <FileText className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">Lista de Artigos</span>
-                  <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 rounded-md bg-slate-800 text-slate-300 ml-1">
+                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="sm:hidden font-medium">Artigos</span>
+                  <span className="hidden sm:inline font-medium">Artigos</span>
+                  <span className="text-[10px] px-1 py-0.2 rounded-md bg-slate-800 text-slate-300 ml-0.5 sm:ml-1 font-mono">
                     {artigos.filter(a => a.temAudio).length}/{artigos.length}
                   </span>
                 </button>

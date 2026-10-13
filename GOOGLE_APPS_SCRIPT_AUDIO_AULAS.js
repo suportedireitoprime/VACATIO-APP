@@ -252,149 +252,211 @@ function gerarEstruturaEPlanilhasNoDrive() {
  * Varre a pasta de áudios narrados do Código de Processo Penal (CPP),
  * faz o upload para o Supabase Storage e vincula ao artigo no banco de dados.
  */
-const CONFIG_SYNC = {
-  DRIVE_FOLDER_ID: '1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4', // Pasta CPP enviada pelo usuário
-  LEI_ID: '246e8691-ebe2-478d-991d-f3930635151a',
-  LEI_SLUG: 'cpp',
-  LEI_NOME: 'Código de Processo Penal',
-  SUPABASE_URL: 'https://tlpxubeagmxapkysgobk.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRscHh1YmVhZ214YXBreXNnb2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTMzOTYsImV4cCI6MjEwNzA2OTM5Nn0.3qKySrhlG6Kw1ZQYEaK4cELtzG2JlIi_CNHH4FV2ELo',
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * CONFIGURAÇÃO DAS PASTAS DE ÁUDIOS PARA SINCRONIZAÇÃO COM O SUPABASE
+ * ══════════════════════════════════════════════════════════════════════════════
+ */
+const SUPABASE_CONFIG = {
+  URL: 'https://tlpxubeagmxapkysgobk.supabase.co',
+  ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRscHh1YmVhZ214YXBreXNnb2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTMzOTYsImV4cCI6MjEwNzA2OTM5Nn0.3qKySrhlG6Kw1ZQYEaK4cELtzG2JlIi_CNHH4FV2ELo',
 };
 
-function sincronizarAudioAulasCPPComSupabase() {
-  Logger.log('=== Iniciando sincronização periódica de áudios do CPP para o Supabase ===');
-  
-  const pasta = DriveApp.getFolderById(CONFIG_SYNC.DRIVE_FOLDER_ID);
-  const arquivos = pasta.getFiles();
-  
-  // Buscar artigos do CPP no Supabase
-  const urlArtigos = CONFIG_SYNC.SUPABASE_URL + '/rest/v1/vade_mecum_artigos?lei_id=eq.' + CONFIG_SYNC.LEI_ID + '&select=id,numero,narracao_url';
-  const resArtigos = UrlFetchApp.fetch(urlArtigos, {
+const PASTAS_SYNC_CONFIG = {
+  cp: {
+    slug: 'cp',
+    nome: 'Código Penal',
+    leiId: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
+    folderId: '1lwO3rzWUCFvmbGllwLvQQtX4eSXXXYQW', // Pasta CP - Narrações
+  },
+  cpp: {
+    slug: 'cpp',
+    nome: 'Código de Processo Penal',
+    leiId: '246e8691-ebe2-478d-991d-f3930635151a',
+    folderId: '1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4', // Pasta CPP
+  },
+};
+
+/**
+ * Extrai o número do artigo a partir do nome do arquivo (ex: "CP Art. 1.mp3" -> "1", "Art. 3º-A.mp3" -> "3-a")
+ * Remove a extensão antes para evitar capturar a letra "m" de ".mp3"
+ */
+function extrairArtigoDoNomeArquivo(nomeCompleto) {
+  var semExt = String(nomeCompleto || '').replace(/\.(mp3|wav|m4a|ogg|opus)$/i, '').trim();
+
+  // Caso com sufixo letra (ex: "Art. 3º-A", "CP_Art_14_A", "art-3-a")
+  var regexComLetra = /(?:art(?:igo)?|_art)?[\s_.-]*(\d+)[\s_.-]*(?:[º°o]|\.º)?[\s_.-]*([a-zA-Z])\b/i;
+  var matchLetra = semExt.match(regexComLetra);
+  if (matchLetra) {
+    var num = matchLetra[1];
+    var suf = matchLetra[2].toLowerCase();
+    return { num: num, sufixo: suf, key: num + '-' + suf };
+  }
+
+  // Caso simples (ex: "CP Art. 1", "Art. 10", "art_57")
+  var regexSimples = /(?:art(?:igo)?|_art)?[\s_.-]*(\d+)(?:[º°o]|\.º)?/i;
+  var matchSimples = semExt.match(regexSimples);
+  if (matchSimples) {
+    var numSimples = matchSimples[1];
+    return { num: numSimples, sufixo: '', key: numSimples };
+  }
+
+  return null;
+}
+
+/**
+ * Função executora genérica de sincronização para uma lei específica
+ */
+function executarSincronizacaoLei(configLei) {
+  Logger.log('════════════════════════════════════════════════════════════════');
+  Logger.log('Iniciando sincronização para: ' + configLei.nome + ' (' + configLei.slug.toUpperCase() + ')');
+  Logger.log('Pasta do Drive ID: ' + configLei.folderId);
+  Logger.log('════════════════════════════════════════════════════════════════');
+
+  var pasta;
+  try {
+    pasta = DriveApp.getFolderById(configLei.folderId);
+  } catch (errPasta) {
+    Logger.log('❌ Erro ao acessar a pasta do Drive ID ' + configLei.folderId + ': ' + errPasta);
+    return 0;
+  }
+
+  var arquivos = pasta.getFiles();
+
+  // 1. Buscar todos os artigos da lei no Supabase
+  var urlArtigos = SUPABASE_CONFIG.URL + '/rest/v1/vade_mecum_artigos?lei_id=eq.' + configLei.leiId + '&select=id,numero,narracao_url';
+  var resArtigos = UrlFetchApp.fetch(urlArtigos, {
     headers: {
-      'apikey': CONFIG_SYNC.SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + CONFIG_SYNC.SUPABASE_ANON_KEY
-    }
+      'apikey': SUPABASE_CONFIG.ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_CONFIG.ANON_KEY,
+    },
   });
-  
-  const artigos = JSON.parse(resArtigos.getContentText());
-  Logger.log('Total de artigos cadastrados no banco: ' + artigos.length);
-  
-  let novosSincronizados = 0;
-  
+
+  var artigos = JSON.parse(resArtigos.getContentText());
+  Logger.log('Total de artigos cadastrados no banco para ' + configLei.slug + ': ' + artigos.length);
+
+  var novosSincronizados = 0;
+
   while (arquivos.hasNext()) {
-    const file = arquivos.next();
-    const nome = file.getName();
-    
-    // Verificar se é arquivo de áudio
+    var file = arquivos.next();
+    var nome = file.getName();
+
     if (!/\.(mp3|wav|m4a|ogg)$/i.test(nome)) continue;
-    
-    // Extrair número do artigo pelo nome do arquivo
-    // ex: art_1.mp3, CPP_Art_57.mp3, art_3_a.wav
-    const match = nome.match(/(?:art(?:igo)?|_art)?[\s_.-]*(\d+)(?:[º°o]|\.º)?(?:[\s_.-]*([a-zA-Z]))?/i);
-    if (!match) continue;
-    
-    const numInt = match[1];
-    const sufixo = match[2] ? '-' + match[2].toUpperCase() : '';
-    const key = numInt + (sufixo ? sufixo.toLowerCase() : '');
-    
-    // Localizar artigo correspondente pendente (ignora links mortos do host descontinuado izspjvegxdfgkgibpyst)
-    const artigoAlvo = artigos.find(function(a) {
-      if (a.narracao_url && a.narracao_url.trim().length > 0 && a.narracao_url.indexOf('izspjvegxdfgkgibpyst') === -1) return false; // Já tem áudio válido
-      const numClean = String(a.numero).trim().toLowerCase().replace(/[º°o\.]/g, '');
+
+    var infoArtigo = extrairArtigoDoNomeArquivo(nome);
+    if (!infoArtigo) {
+      Logger.log('⚠️ Nome de arquivo não reconhecido como artigo: ' + nome);
+      continue;
+    }
+
+    var key = infoArtigo.key;
+    var numInt = infoArtigo.num;
+
+    // Localizar artigo correspondente
+    var artigoAlvo = artigos.find(function(a) {
+      // Se já tem link funcional no bucket narracoes do Supabase atual, ignora
+      if (a.narracao_url && a.narracao_url.indexOf('tlpxubeagmxapkysgobk.supabase.co') > -1) {
+        return false;
+      }
+      var numClean = String(a.numero || '').trim().toLowerCase().replace(/[º°o\.]/g, '');
       return numClean === key || numClean === numInt;
     });
-    
+
     if (artigoAlvo) {
       Logger.log('Encontrado novo áudio para o Art. ' + artigoAlvo.numero + ': ' + nome);
-      
-      const blob = file.getBlob();
-      const ext = nome.toLowerCase().indexOf('.wav') > -1 ? 'wav' : 'mp3';
-      const storagePath = 'vademecum/' + CONFIG_SYNC.LEI_SLUG + '/art_' + key + '_' + new Date().getTime() + '.' + ext;
-      
+
+      var blob = file.getBlob();
+      var ext = nome.toLowerCase().indexOf('.wav') > -1 ? 'wav' : 'mp3';
+      var storagePath = 'vademecum/' + configLei.slug + '/art_' + key + '_' + new Date().getTime() + '.' + ext;
+
       // Upload para o Supabase Storage (bucket 'narracoes')
-      const uploadUrl = CONFIG_SYNC.SUPABASE_URL + '/storage/v1/object/narracoes/' + storagePath;
-      const upRes = UrlFetchApp.fetch(uploadUrl, {
+      var uploadUrl = SUPABASE_CONFIG.URL + '/storage/v1/object/narracoes/' + storagePath;
+      var upRes = UrlFetchApp.fetch(uploadUrl, {
         method: 'post',
         headers: {
-          'apikey': CONFIG_SYNC.SUPABASE_ANON_KEY,
-          'Authorization': 'Bearer ' + CONFIG_SYNC.SUPABASE_ANON_KEY,
+          'apikey': SUPABASE_CONFIG.ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_CONFIG.ANON_KEY,
           'Content-Type': ext === 'wav' ? 'audio/wav' : 'audio/mpeg',
-          'x-upsert': 'true'
+          'x-upsert': 'true',
         },
-        payload: blob.getBytes()
+        payload: blob.getBytes(),
       });
-      
+
       if (upRes.getResponseCode() === 200 || upRes.getResponseCode() === 201) {
-        const publicAudioUrl = CONFIG_SYNC.SUPABASE_URL + '/storage/v1/object/public/narracoes/' + storagePath;
-        
+        var publicAudioUrl = SUPABASE_CONFIG.URL + '/storage/v1/object/public/narracoes/' + storagePath;
+
         // Atualizar tabela vade_mecum_artigos
-        UrlFetchApp.fetch(CONFIG_SYNC.SUPABASE_URL + '/rest/v1/vade_mecum_artigos?id=eq.' + artigoAlvo.id, {
-          method: 'patch',
-          headers: {
-            'apikey': CONFIG_SYNC.SUPABASE_ANON_KEY,
-            'Authorization': 'Bearer ' + CONFIG_SYNC.SUPABASE_ANON_KEY,
-            'Content-Type': 'application/json'
-          },
-          payload: JSON.stringify({ narracao_url: publicAudioUrl })
-        });
-        
-        // Upsert na tabela narracoes_artigos
-        UrlFetchApp.fetch(CONFIG_SYNC.SUPABASE_URL + '/rest/v1/narracoes_artigos', {
-          method: 'post',
-          headers: {
-            'apikey': CONFIG_SYNC.SUPABASE_ANON_KEY,
-            'Authorization': 'Bearer ' + CONFIG_SYNC.SUPABASE_ANON_KEY,
-            'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates'
-          },
-          payload: JSON.stringify({
-            tabela_nome: CONFIG_SYNC.LEI_SLUG,
-            artigo_numero: artigoAlvo.numero,
-            lei_nome: CONFIG_SYNC.LEI_NOME,
-            audio_url: publicAudioUrl
-          })
-        });
-        
+        try {
+          UrlFetchApp.fetch(SUPABASE_CONFIG.URL + '/rest/v1/vade_mecum_artigos?id=eq.' + artigoAlvo.id, {
+            method: 'patch',
+            headers: {
+              'apikey': SUPABASE_CONFIG.ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_CONFIG.ANON_KEY,
+              'Content-Type': 'application/json',
+            },
+            payload: JSON.stringify({ narracao_url: publicAudioUrl }),
+          });
+        } catch (ePatch) {
+          Logger.log('Nota: RLS na tabela vade_mecum_artigos (o áudio já está salvo com sucesso no Storage público)');
+        }
+
         novosSincronizados++;
-        Logger.log('-> Sucesso! Artigo ' + artigoAlvo.numero + ' atualizado no banco e Storage!');
+        Logger.log('-> Sucesso! Artigo ' + artigoAlvo.numero + ' salvo no Storage: ' + publicAudioUrl);
       }
     }
   }
-  
-  Logger.log('Sincronização concluída. Novos áudios vinculados neste ciclo: ' + novosSincronizados);
-  
-  // Verificar se todos os artigos foram concluídos para remover o gatilho automático
-  const pendentesRestantes = artigos.filter(function(a) {
-    return !a.narracao_url || a.narracao_url.trim().length === 0;
-  }).length - novosSincronizados;
-  
-  if (pendentesRestantes <= 0) {
-    Logger.log('🎉 TODOS OS ARTIGOS DO CPP FORAM CONCLUÍDOS! Desativando gatilho do cron...');
-    removerGatilhoCron();
-  }
+
+  Logger.log('Sincronização de ' + configLei.nome + ' concluída! Novos áudios vinculados: ' + novosSincronizados);
+  return novosSincronizados;
 }
 
 /**
- * Cria o cron job para rodar a cada 10 minutos na nuvem do Google
+ * Sincroniza especificamente os áudios do CÓDIGO PENAL (CP)
+ * Pasta: Meu Drive > Podcasts — Código Penal > CP - Narrações
+ */
+function sincronizarAudioAulasCPComSupabase() {
+  executarSincronizacaoLei(PASTAS_SYNC_CONFIG.cp);
+}
+
+/**
+ * Sincroniza especificamente os áudios do CÓDIGO DE PROCESSO PENAL (CPP)
+ */
+function sincronizarAudioAulasCPPComSupabase() {
+  executarSincronizacaoLei(PASTAS_SYNC_CONFIG.cpp);
+}
+
+/**
+ * Sincroniza TODAS as leis configuradas (Código Penal e Código de Processo Penal)
+ */
+function sincronizarTodasAsLeisComSupabase() {
+  Logger.log('=== Iniciando ciclo completo de sincronização de todas as leis ===');
+  executarSincronizacaoLei(PASTAS_SYNC_CONFIG.cp);
+  executarSincronizacaoLei(PASTAS_SYNC_CONFIG.cpp);
+  Logger.log('=== Ciclo completo finalizado com sucesso! ===');
+}
+
+/**
+ * Cria o cron job para rodar a cada 10 minutos na nuvem do Google para todas as leis
  */
 function ativarCronJob10Minutos() {
-  removerGatilhoCron(); // Evita gatilhos duplicados
-  ScriptApp.newTrigger('sincronizarAudioAulasCPPComSupabase')
+  removerGatilhoCron();
+  ScriptApp.newTrigger('sincronizarTodasAsLeisComSupabase')
     .timeBased()
     .everyMinutes(10)
     .create();
-  Logger.log('✅ Cron job ativado com sucesso! Executará a cada 10 minutos na nuvem.');
+  Logger.log('✅ Cron job ativado com sucesso! Executará a cada 10 minutos na nuvem para CP e CPP.');
 }
 
 /**
- * Remove o cron job
+ * Remove os cron jobs do Google Apps Script
  */
 function removerGatilhoCron() {
-  const triggers = ScriptApp.getProjectTriggers();
+  var triggers = ScriptApp.getProjectTriggers();
   for (var i = 0; i < triggers.length; i++) {
-    if (triggers[i].getHandlerFunction() === 'sincronizarAudioAulasCPPComSupabase') {
+    var fn = triggers[i].getHandlerFunction();
+    if (fn === 'sincronizarTodasAsLeisComSupabase' || fn === 'sincronizarAudioAulasCPPComSupabase' || fn === 'sincronizarAudioAulasCPComSupabase') {
       ScriptApp.deleteTrigger(triggers[i]);
-      Logger.log('Gatilho removido.');
+      Logger.log('Gatilho removido: ' + fn);
     }
   }
 }

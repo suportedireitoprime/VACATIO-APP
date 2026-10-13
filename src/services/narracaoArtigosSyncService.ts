@@ -117,18 +117,20 @@ export function matchArtigoKeyFromFilename(filename: string): string | null {
  * Carrega a lista de links de pastas salvas no localStorage
  */
 export function getSavedDriveUrls(): Record<string, string> {
+  const defaults: Record<string, string> = {
+    cp: 'https://drive.google.com/drive/folders/1lwO3rzWUCFvmbGllwLvQQtX4eSXXXYQW',
+    'cf9e9292-4fe0-4b23-ae89-611edbb92503': 'https://drive.google.com/drive/folders/1lwO3rzWUCFvmbGllwLvQQtX4eSXXXYQW',
+    cpp: 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4',
+    '246e8691-ebe2-478d-991d-f3930635151a': 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4',
+  };
+
   try {
     const raw = localStorage.getItem(STORAGE_KEY_DRIVE_URLS);
-    if (!raw) {
-      // Padrão inicial: pasta do CPP informada pelo usuário
-      return {
-        cpp: 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4',
-        '246e8691-ebe2-478d-991d-f3930635151a': 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4',
-      };
-    }
-    return JSON.parse(raw);
+    if (!raw) return defaults;
+    const parsed = JSON.parse(raw);
+    return { ...defaults, ...parsed };
   } catch {
-    return {};
+    return defaults;
   }
 }
 
