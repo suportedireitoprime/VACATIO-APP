@@ -51,6 +51,8 @@ import {
   getAllAudioAulasConfigs,
   saveAudioAulaLeiConfig,
   formatDriveStreamUrl,
+  isArtigoReal,
+  formatArtigoLabel,
   type ArtigoAudioItem,
   type AudioAulaLeiConfig,
 } from '@/services/audioAulasService';
@@ -186,9 +188,9 @@ export default function AdminAudioAulas() {
           }
         }
 
-        // Filtrar apenas artigos válidos com texto
+        // Filtrar apenas artigos válidos com texto que sejam de fato artigos (ignora PARTE GERAL, TÍTULO, etc.)
         const cleanArtigos = (loadedArtigos || []).filter(
-          (a) => a.texto && a.texto.trim().length > 0
+          (a) => a.texto && a.texto.trim().length > 0 && isArtigoReal(a.numero)
         );
 
         if (isMounted) {
@@ -229,7 +231,7 @@ export default function AdminAudioAulas() {
     if (!searchArtigoTerm.trim()) return artigos;
     const term = searchArtigoTerm.toLowerCase().replace(/art(igo)?\.?\s*/i, '');
     return artigos.filter((a) => {
-      const num = a.numero.toLowerCase().replace(/art(igo)?\.?\s*/i, '');
+      const num = formatArtigoLabel(a.numero).toLowerCase().replace(/art(igo)?\.?\s*/i, '');
       return num.includes(term) || a.texto.toLowerCase().includes(term);
     });
   }, [artigos, searchArtigoTerm]);
@@ -237,7 +239,7 @@ export default function AdminAudioAulas() {
   // Estatísticas de links cadastrados
   const totalVinculados = useMemo(() => {
     return artigos.filter((a) => {
-      const numLimpo = a.numero?.startsWith('Art.') ? a.numero : `Art. ${a.numero}`;
+      const numLimpo = formatArtigoLabel(a.numero);
       return Boolean(audioLinks[numLimpo] || audioLinks[a.numero] || audioLinks[a.id]);
     }).length;
   }, [artigos, audioLinks]);
@@ -805,7 +807,7 @@ export default function AdminAudioAulas() {
                     <div className="py-8 text-center text-slate-400 text-xs">Nenhum artigo encontrado.</div>
                   ) : (
                     filteredArtigos.map((art) => {
-                      const numLimpo = art.numero.startsWith('Art.') ? art.numero : `Art. ${art.numero}`;
+                      const numLimpo = formatArtigoLabel(art.numero);
                       const currentLink = audioLinks[numLimpo] || audioLinks[art.numero] || '';
                       const hasAudio = Boolean(currentLink);
 

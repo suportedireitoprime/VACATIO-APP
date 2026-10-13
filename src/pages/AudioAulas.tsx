@@ -32,6 +32,8 @@ import { LEIS_CATALOG } from '@/data/leisCatalog';
 import {
   getAllAudioAulasConfigs,
   formatDriveStreamUrl,
+  isArtigoReal,
+  formatArtigoLabel,
   type ArtigoAudioItem,
   type AudioAulaLeiConfig,
 } from '@/services/audioAulasService';
@@ -157,7 +159,9 @@ export default function AudioAulas() {
           }
         }
 
-        const validArtigos = (loaded || []).filter((a) => a.texto && a.texto.trim().length > 0);
+        const validArtigos = (loaded || []).filter(
+          (a) => a.texto && a.texto.trim().length > 0 && isArtigoReal(a.numero)
+        );
         if (isMounted) setArtigos(validArtigos);
       } catch (err) {
         console.warn('[AudioAulas] Erro:', err);
@@ -178,7 +182,7 @@ export default function AudioAulas() {
     if (!searchFilter.trim()) return artigos;
     const term = searchFilter.toLowerCase().replace(/art(igo)?\.?\s*/i, '');
     return artigos.filter((a) => {
-      const num = a.numero.toLowerCase().replace(/art(igo)?\.?\s*/i, '');
+      const num = formatArtigoLabel(a.numero).toLowerCase().replace(/art(igo)?\.?\s*/i, '');
       return num.includes(term) || a.texto.toLowerCase().includes(term);
     });
   }, [artigos, searchFilter]);
@@ -191,7 +195,7 @@ export default function AudioAulas() {
 
   // Ação de Play/Pause de um artigo
   const handleTogglePlay = (artigo: ArtigoAudioItem) => {
-    const numLimpo = artigo.numero.startsWith('Art.') ? artigo.numero : `Art. ${artigo.numero}`;
+    const numLimpo = formatArtigoLabel(artigo.numero);
     const rawUrl = currentConfig?.audioLinks?.[numLimpo] || currentConfig?.audioLinks?.[artigo.numero] || '';
 
     if (!rawUrl) {
@@ -287,15 +291,11 @@ export default function AudioAulas() {
         <div className="relative overflow-hidden rounded-3xl border border-sky-500/20 bg-gradient-to-br from-sky-950/40 via-slate-900/60 to-black p-5 sm:p-7 shadow-2xl">
           <div className="absolute -top-12 -right-12 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-2 max-w-xl">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300 text-xs font-semibold">
-                <Sparkles className="w-3.5 h-3.5" />
-                Exclusivo VACATIO Vade Mecum
-              </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            <div className="space-y-1.5 max-w-xl">
+              <h2 className="text-lg sm:text-xl font-bold font-sans text-white tracking-normal leading-snug">
                 Áudio-Aulas com Didática Jurídica
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
                 Cada artigo explicado ponto a ponto com conceitos, finalidade prática e exemplos da vida real. Otimize seu tempo enquanto treina, dirige ou descansa.
               </p>
             </div>
@@ -397,7 +397,7 @@ export default function AudioAulas() {
             </div>
           ) : (
             filteredArtigos.map((art) => {
-              const numLimpo = art.numero.startsWith('Art.') ? art.numero : `Art. ${art.numero}`;
+              const numLimpo = formatArtigoLabel(art.numero);
               const audioLink = currentConfig?.audioLinks?.[numLimpo] || currentConfig?.audioLinks?.[art.numero];
               const hasAudio = Boolean(audioLink);
               const isCurrentlyPlaying = activeAudioItem?.artigoNumero === numLimpo && isPlaying;

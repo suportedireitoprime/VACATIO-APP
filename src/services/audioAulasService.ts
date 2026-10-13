@@ -73,6 +73,60 @@ export function resetPromptTemplate(): string {
 }
 
 /**
+ * Verifica se um registro é de fato um Artigo da legislação,
+ * descartando registros estruturais como 'PARTE GERAL', 'TÍTULO I', 'CAPÍTULO I', etc.
+ */
+export function isArtigoReal(numero?: string | null): boolean {
+  if (!numero) return false;
+  const trimmed = numero.trim();
+  if (!trimmed) return false;
+
+  // Se começar com palavras reservadas de estrutura, NÃO é artigo
+  const upper = trimmed.toUpperCase();
+  if (/^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O|DISPOSI[ÇC]|PREÂMBULO|PREAMBULO)/i.test(upper)) {
+    return false;
+  }
+
+  // Artigo com numeração ou artigo único
+  if (/\b(?:art(?:igo)?\.?\s*)?(\d+)/i.test(trimmed)) {
+    return true;
+  }
+
+  if (/art(?:igo)?\.?\s*[úu]nico/i.test(trimmed)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Normaliza e formata o rótulo do artigo (ex: '1' -> 'Art. 1º', '121' -> 'Art. 121').
+ */
+export function formatArtigoLabel(numero?: string | null): string {
+  if (!numero) return '';
+  const trimmed = numero.trim();
+
+  // Artigo único
+  if (/art(?:igo)?\.?\s*[úu]nico/i.test(trimmed)) {
+    return 'Art. Único';
+  }
+
+  // Procura padrão numérico com possível sufixo (ex.: 121, 1º, 14-A, etc.)
+  const match = trimmed.match(/(?:art(?:igo)?\.?\s*)?(\d+)(?:[º°o]|\.º)?(?:-([a-zA-Z]))?/i);
+  if (match) {
+    const numInt = Number(match[1]);
+    const sufixo = match[2] ? `-${match[2].toUpperCase()}` : '';
+    if (numInt >= 1 && numInt <= 9) {
+      return `Art. ${numInt}º${sufixo}`;
+    }
+    return `Art. ${numInt}${sufixo}`;
+  }
+
+  if (trimmed.startsWith('Art.')) return trimmed;
+  return `Art. ${trimmed}`;
+}
+
+/**
  * Gera o texto do prompt completo para um artigo específico.
  */
 export function generatePromptForArticle(params: {
@@ -82,7 +136,7 @@ export function generatePromptForArticle(params: {
   template?: string;
 }): string {
   const tpl = params.template || getStoredPromptTemplate();
-  const numLimpo = params.numeroArtigo.startsWith('Art.') ? params.numeroArtigo : `Art. ${params.numeroArtigo}`;
+  const numLimpo = formatArtigoLabel(params.numeroArtigo);
   const textoLimpo = (params.textoArtigo || '').trim();
 
   return tpl
@@ -106,7 +160,7 @@ function escapeCsvCell(value: string | number | null | undefined): string {
 
 /**
  * Monta o conteúdo da planilha CSV conforme especificado pelo usuário:
- * Coluna A: Número do Artigo
+ * Coluna A: Número do Artigo (apenas artigos reais formatados, ex: Art. 1º)
  * Coluna B: Texto do Artigo
  * Coluna C: Prompt em texto
  */
@@ -121,8 +175,11 @@ export function buildAudioAulasCsv(params: {
   const rows: string[] = [];
   rows.push(header.map(escapeCsvCell).join(','));
 
-  for (const art of artigos) {
-    const numLimpo = art.numero?.startsWith('Art.') ? art.numero : `Art. ${art.numero}`;
+  // Filtra apenas artigos legítimos da lei (desconsiderando títulos e partes estruturais)
+  const artigosReais = artigos.filter((a) => isArtigoReal(a.numero));
+
+  for (const art of artigosReais) {
+    const numLimpo = formatArtigoLabel(art.numero);
     const prompt = generatePromptForArticle({
       numeroArtigo: numLimpo,
       textoArtigo: art.texto,
