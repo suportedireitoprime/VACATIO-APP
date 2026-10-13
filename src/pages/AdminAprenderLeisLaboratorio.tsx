@@ -38,6 +38,8 @@ import { PageHeader } from '@/components/vademecum/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { isAdminEmail } from '@/lib/adminEmails';
 import flipSoundAsset from '@/assets/flipcard.mp3.asset.json';
+import { SLIDES_ART1_RICOS } from '@/data/slidesLaboratorioArtigo1';
+import { LaboratorioImagensManager } from '@/components/admin/LaboratorioImagensManager';
 
 // ==========================================
 // TIPOS E DEFINIÇÕES
@@ -2702,13 +2704,32 @@ const AdminAprenderLeisLaboratorio = () => {
   const isAdmin = isAdminEmail(user?.email);
 
   // Estados principais
+  const [abaAtiva, setAbaAtiva] = useState<'aula' | 'imagens'>('aula');
   const [artigoAtual, setArtigoAtual] = useState<ArtigoId>('art1');
   const [mecanicaSelecionadaId, setMecanicaSelecionadaId] = useState<MecanicaId>('combo');
   const [emAula, setEmAula] = useState(false); // Alterna para TELA TODA
   const [slideIndex, setSlideIndex] = useState(0);
   const [direction, setDirection] = useState(0); // 1 = avança, -1 = volta
   const [falando, setFalando] = useState(false);
-  const [imagensCustomizadas, setImagensCustomizadas] = useState<Record<string, string>>({});
+
+  // Persistência local das imagens importadas
+  const [imagensCustomizadas, setImagensCustomizadas] = useState<Record<string, string>>(() => {
+    try {
+      const salvo = localStorage.getItem('vacatio_art1_imagens_custom');
+      return salvo ? JSON.parse(salvo) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleAtualizarImagens = (novas: Record<string, string>) => {
+    setImagensCustomizadas(novas);
+    try {
+      localStorage.setItem('vacatio_art1_imagens_custom', JSON.stringify(novas));
+    } catch (e) {
+      console.warn('Erro ao salvar imagens no localStorage:', e);
+    }
+  };
 
   const infoArtigo = ARTIGOS_INFO[artigoAtual];
 
@@ -2717,6 +2738,9 @@ const AdminAprenderLeisLaboratorio = () => {
   }, [mecanicaSelecionadaId]);
 
   const slides = useMemo(() => {
+    if (artigoAtual === 'art1') {
+      return SLIDES_ART1_RICOS;
+    }
     return mecanica.slides[artigoAtual] || [];
   }, [mecanica, artigoAtual]);
 
@@ -3048,60 +3072,97 @@ const AdminAprenderLeisLaboratorio = () => {
         subtitle="Teste e avalie mecânicas de aulas da legislação para pessoas leigas"
         mobileHeader={mobileHeader}
       >
-        <div className="px-4 sm:px-6 py-5 lg:px-0 lg:py-0 max-w-xl mx-auto w-full space-y-4">
+        <div className="px-4 sm:px-6 py-5 lg:px-0 lg:py-0 max-w-2xl mx-auto w-full space-y-5">
           
-          {/* Artigo Modelo Fixo: Artigo 1º (CP) */}
-          <div className="p-4 sm:p-5 rounded-2xl border border-border/80 bg-card shadow-sm space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/30">
-                  <Scale className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-teal-400 block">
-                    {infoArtigo.diploma}
-                  </span>
-                  <h3 className="text-sm sm:text-base font-bold text-foreground">
-                    {infoArtigo.titulo}
-                  </h3>
-                </div>
-              </div>
-              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-secondary text-foreground/80 border border-border">
-                Caput
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-xl border border-teal-500/20 bg-teal-950/20">
-              <p className="font-serif text-xs sm:text-sm italic text-foreground/90 leading-relaxed text-center sm:text-left">
-                {infoArtigo.texto}
-              </p>
-            </div>
+          {/* MENU DE ALTERNÂNCIA: [ 📖 Aula ] e [ 🎨 Imagens ] */}
+          <div className="flex p-1.5 rounded-2xl bg-secondary/80 border border-border/70 max-w-sm mx-auto shadow-sm">
+            <button
+              onClick={() => setAbaAtiva('aula')}
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                abaAtiva === 'aula'
+                  ? 'bg-card text-foreground shadow-md'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-teal-400" />
+              <span>Aula & Player</span>
+            </button>
+            <button
+              onClick={() => setAbaAtiva('imagens')}
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                abaAtiva === 'imagens'
+                  ? 'bg-card text-foreground shadow-md'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
+              <span>Imagens (CSV & ZIP)</span>
+              {Object.keys(imagensCustomizadas).length > 0 && (
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              )}
+            </button>
           </div>
 
-          {/* Formato Padrão Único: Combo Completo */}
-          {(() => {
-            const comboMec = MECANICAS.find(m => m.id === 'combo') || MECANICAS[0];
-            const Icon = comboMec.icone;
-            return (
+          {/* CONTEÚDO DA ABA IMAGENS */}
+          {abaAtiva === 'imagens' ? (
+            <LaboratorioImagensManager
+              imagens={imagensCustomizadas}
+              onAtualizarImagens={handleAtualizarImagens}
+            />
+          ) : (
+            /* CONTEÚDO DA ABA AULA */
+            <div className="space-y-4">
+              {/* Artigo Modelo Fixo: Artigo 1º (CP) */}
+              <div className="p-4 sm:p-5 rounded-2xl border border-border/80 bg-card shadow-sm space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/30">
+                      <Scale className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase tracking-wider font-extrabold text-teal-400 block">
+                        {infoArtigo.diploma}
+                      </span>
+                      <h3 className="text-sm sm:text-base font-bold text-foreground">
+                        {infoArtigo.titulo}
+                      </h3>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-secondary text-foreground/80 border border-border">
+                    Caput
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-teal-500/20 bg-teal-950/20">
+                  <p className="font-serif text-xs sm:text-sm italic text-foreground/90 leading-relaxed text-center sm:text-left">
+                    {infoArtigo.texto}
+                  </p>
+                </div>
+              </div>
+
+              {/* Formato Padrão: Trilha Master Aprofundada com Introdução */}
               <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-card via-card to-amber-950/20 p-5 sm:p-6 space-y-4 shadow-md">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-inner">
-                    <Icon className="w-6 h-6 text-amber-400" />
+                    <Flame className="w-6 h-6 text-amber-400" />
                   </div>
-                  <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex-1 min-w-0 space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">
-                        {comboMec.badge}
+                        Trilha Master Aprofundada
                       </span>
                       <span className="text-[11px] font-semibold text-muted-foreground">
-                        {comboMec.totalSlidesText}
+                        12 Etapas • Introdução Completa
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/20">
+                        {Object.keys(imagensCustomizadas).length} de 12 imagens prontas
                       </span>
                     </div>
                     <h4 className="text-base sm:text-lg font-bold text-foreground">
-                      {comboMec.nome}
+                      Anatomia, História & Casos Práticos Reais
                     </h4>
                     <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      {comboMec.descricaoCurta}
+                      Aula enriquecida com contextualização sobre o poder penal do Estado, raízes iluministas (Cesare Beccaria), tradução palavra por palavra, os primeiros crimes de hackers no Brasil (Lei Carolina Dieckmann), taxatividade e julgamento simulado.
                     </p>
                   </div>
                 </div>
@@ -3112,29 +3173,29 @@ const AdminAprenderLeisLaboratorio = () => {
                     className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer"
                   >
                     <Play className="w-4 h-4 fill-white" />
-                    <span>Iniciar Aula (Tela Toda)</span>
+                    <span>Iniciar Aula no Player (Tela Toda)</span>
                   </button>
                 </div>
               </div>
-            );
-          })()}
 
-          {/* Rodapé Compacto: Atalho para Criar Aulas via OmniRoute */}
-          <div className="p-3.5 rounded-xl border border-border/60 bg-secondary/20 flex items-center justify-between gap-3 text-xs">
-            <span className="text-muted-foreground">
-              Gerar aulas para outros artigos e leis:
-            </span>
-            <button
-              onClick={() => {
-                pararVoz();
-                navigate('/admin-aprender-leis/criar');
-              }}
-              className="text-blue-400 hover:underline font-semibold flex items-center gap-1 shrink-0"
-            >
-              <span>Criar com Robô</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
+              {/* Rodapé Compacto: Atalho para Criar Aulas via OmniRoute */}
+              <div className="p-3.5 rounded-xl border border-border/60 bg-secondary/20 flex items-center justify-between gap-3 text-xs">
+                <span className="text-muted-foreground">
+                  Gerar aulas para outros artigos e leis:
+                </span>
+                <button
+                  onClick={() => {
+                    pararVoz();
+                    navigate('/admin-aprender-leis/criar');
+                  }}
+                  className="text-blue-400 hover:underline font-semibold flex items-center gap-1 shrink-0"
+                >
+                  <span>Criar com Robô</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
 
         </div>
       </DesktopPageLayout>
