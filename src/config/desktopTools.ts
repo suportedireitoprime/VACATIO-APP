@@ -57,6 +57,7 @@ export const DESKTOP_TOOL_GROUPS: DesktopToolGroup[] = [
     label: 'Monitoramento',
     hint: 'Acompanhe alterações legislativas e notícias',
     tools: [
+      { id: 'radar-360', label: 'Radar 360', desc: 'Monitore votações, deputados e proposições', icon: ScanEye, route: '/radar', color: '#A78BFA' },
       { id: 'noticias', label: 'Notícias', desc: 'Notícias jurídicas e atualizações', icon: Newspaper, route: '/noticias', color: '#EC4899' },
       { id: 'boletins', label: 'Boletins Jurídicos', desc: 'Vídeo diário com as normas quentes', icon: Clapperboard, route: '/boletins', color: '#EF4444' },
       { id: 'newsletter', label: 'Newsletter', desc: 'Receba o resumo por e-mail', icon: Mail, route: '/newsletter', color: '#F97316' },

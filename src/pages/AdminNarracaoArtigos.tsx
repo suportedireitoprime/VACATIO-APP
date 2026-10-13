@@ -512,9 +512,9 @@ export default function AdminNarracaoArtigos() {
       {!leiSelecionada ? (
         <div>
           <PageHeader
-            title="Narração de Artigo"
-            subtitle="Selecione uma lei para gerenciar a pasta do Drive, progresso e histórico"
-            onBack={() => navigate('/admin-funcoes')}
+            title="Áudio Leis"
+            subtitle="Narrações em áudio e controle de artigos das principais leis"
+            onBack={() => navigate(-1)}
           />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 space-y-6">
