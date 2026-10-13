@@ -19,6 +19,7 @@ import {
   LigarTermosGame, 
   SimuladorArtigo1Tempo 
 } from '@/components/admin/laboratorio/LaboratorioInterativos';
+import { montarPromptFinalDesign } from '@/utils/promptDesignJuridico';
 
 export interface SlideLaboratorioRico {
   id: string;
@@ -53,9 +54,18 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Caput — Anterioridade da Lei Penal',
     subtitulo: 'O escudo supremo que protege a liberdade de todo cidadão',
     nomeArquivo: 'slide_01.jpg',
-    imagePrompt: 'Modern clean 3D legal conceptual illustration, imposing glowing golden hourglass resting on dark marble timeline pedestal, glowing scales of justice emitting warm amber and teal luminescence, dark slate graphite background (#090d16), cinematic lighting, high contrast, elegant minimalism, clean vectors, zero text, 16:9 widescreen.',
-    imagePromptPt: 'Ampulheta dourada brilhante sobre pedestal de mármore com balança da justiça emitindo luz âmbar e azul-petróleo, fundo grafite escuro minimalista, sem texto, proporção 16:9.',
-    descricaoCena: 'Capa solene do Artigo 1º e a anterioridade penal.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: CAPA (Card 01/25)
+TÍTULO DOMINANTE (PERGUNTA DA CAPA): O Estado pode punir o passado?
+TEXTO DE APOIO: Descubra como o Artigo 1º do Código Penal protege você contra acusações injustas e abusos de poder.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco fortemente posicionado à direita da imagem: homem cidadão brasileiro de postura nobre e serena, olhar firme e reflexivo, em estilo semi-realista com contorno branco grosso visível, reforçando o efeito de recorte vazado em colagem editorial;
+- Ao lado do personagem à direita, uma clássica balança da justiça em latão dourado envelhecido repousando sobre um pedestal de mármore e capitel de coluna grega, também com contorno branco recortado;
+- Elemento de apoio: pequeno recorte de pergaminho antigo com selo clássico da República e texto de apoio com acabamento editorial de alta legibilidade;
+- Fundo obrigatório em gradiente vermelho diagonal 135° (linear-gradient(135deg, hsl(350 68% 32%) 0%, hsl(350 74% 42%) 50%, hsl(348 80% 50%) 100%)) com linhas pretas finas discretas de textura jurídica;
+- Amplo respiro e espaço livre à esquerda para o título monumental e hierarquia limpa. Sem interface de rede social.`),
+    imagePromptPt: 'Capa do Artigo 1º em colagem editorial premium com fundo gradiente vermelho 135°, cidadão e balança clássica de metal à direita com contorno branco recortado, pergaminho e pergunta intrigante: O Estado pode punir o passado?',
+    descricaoCena: 'Capa solene do Artigo 1º e a anterioridade penal no padrão de colagem editorial jurídica com fundo vermelho.',
     textoAudio: 'Bem-vindo ao estudo do Caput do Artigo primeiro do Código Penal. Você vai dominar a anterioridade penal: não há crime sem lei anterior que o defina, nem pena sem prévia cominação legal.',
     conteudoPrincipal: (
       <CapaDispositivoSlide
@@ -86,8 +96,17 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'De Onde Veio Essa Regra? O Fim da Tirania Real',
     subtitulo: 'Como Cesare Beccaria revolucionou a justiça humana em 1764',
     nomeArquivo: 'slide_02.jpg',
-    imagePrompt: 'High-detail cinematic illustration, ancient medieval monarch throne room fading into deep shadows, contrasted with illuminated quill parchment manuscripts and open Enlightenment law books glowing with golden wisdom light, dark slate graphite background (#090d16), deep amber and teal neon highlights, clean vectors, zero text, 16:9 widescreen.',
-    imagePromptPt: 'Trono medieval absolutista nas sombras contrastado com livros iluministas de leis abertos emanando luz dourada, simbolizando Cesare Beccaria e a vitória da lei escrita, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: EXPLICAÇÃO/CONCEITO HISTÓRICO (Card 02/25)
+TÍTULO DECLARATIVO: A lei escrita venceu a tirania dos reis
+TEXTO DE APOIO: Em 1764, Cesare Beccaria pôs fim aos castigos arbitrários dos monarcas ao exigir que todo crime e pena estivessem previamente escritos.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: ilustração semi-realista do jurista iluminista Cesare Beccaria em colagem editorial com contorno branco grosso, escrevendo com pena clássica sobre pergaminho envelhecido;
+- Livros históricos de encadernação em couro do tratado "Dos Delitos e das Penas" (1764) sobre escrivaninha de madeira nobre, com etiqueta de manuscrito recortado;
+- Ao fundo, a silhueta sombria de uma coroa e trono absolutista esvanecendo-se sob linhas geométricas finas;
+- Fundo vermelho obrigatório 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de textura de arquivo forense antigo;
+- Espaço livre à esquerda reservado para respiro visual e tipografia editorial imponente com serifas clássicas.`),
+    imagePromptPt: 'Cesare Beccaria escrevendo com pena em pergaminho iluminista e livros de 1764 em colagem editorial com contorno branco grosso, fundo vermelho gradiente 135° com linhas jurídicas finas.',
     descricaoCena: 'A transição histórica da tirania absolutista para a garantia da lei escrita iluminista.',
     textoAudio: 'Na Idade Média e nas monarquias absolutistas, os reis inventavam crimes da própria cabeça para punir quem quisessem. Em 1764, Cesare Beccaria revolucionou o mundo ao exigir que todo crime e pena estivessem previamente escritos.',
     conteudoPrincipal: (
@@ -139,8 +158,17 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'O que está escrito no Código Penal?',
     subtitulo: 'Decreto-Lei nº 2.848/1940 — Artigo 1º e Cláusula Pétrea da CF/88',
     nomeArquivo: 'slide_03.jpg',
-    imagePrompt: 'A stylized 3D conceptual illustration of a glowing antique golden codex of Brazilian Penal Law resting on a dark marble pedestal, surrounded by four solid crystalline pillars representing fundamental constitutional clauses, dark slate background (#090d16), cinematic lighting, high contrast, clean vectors, zero text, 16:9 widescreen composition.',
-    imagePromptPt: 'Livro do Código Penal dourado brilhante em um pedestal de mármore protegido por quatro pilares de cristal que representam cláusulas pétreas da Constituição, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: CONCEITO & LEGISLAÇÃO OFICIAL (Card 03/25)
+TÍTULO DECLARATIVO: O Código Penal é cláusula pétrea intocável
+TEXTO DE APOIO: “Não há crime sem lei anterior que o defina. Não há pena sem prévia cominação legal.” (Art. 1º do CP e Art. 5º, XXXIX da CF/88).
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco dominante posicionado à direita: livro solene encadernado em couro nobre do Código Penal Brasileiro com brasão republicano em relevo dourado, em recorte editorial com contorno branco grosso e elegante;
+- Quatro colunas clássicas gregas em mármore recortadas com contorno branco, representando a solidez inabalável das cláusulas pétreas constitucionais;
+- Recorte de pergaminho rasgado na base contendo fragmentos do texto de lei com tipografia serifada nobre;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de diagramas forenses discretos;
+- Área livre à esquerda para respiro e leitura do texto em destaque.`),
+    imagePromptPt: 'Livro do Código Penal com brasão dourado e quatro colunas gregas em colagem editorial com contorno branco recortado, fundo vermelho gradiente 135° com linhas jurídicas finas.',
     descricaoCena: 'O texto sagrado do Artigo 1º como cláusula pétrea intocável da República.',
     textoAudio: 'Artigo primeiro: Não há crime sem lei anterior que o defina. Não há pena sem prévia cominação legal. Este princípio é cláusula pétrea intocável na nossa Constituição.',
     conteudoPrincipal: (
@@ -171,8 +199,17 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Primeira Metade: A Regra do Jogo',
     subtitulo: '“...sem lei anterior que o defina”',
     nomeArquivo: 'slide_04.jpg',
-    imagePrompt: 'Futuristic legal design timeline metaphor, an illuminated horizontal neon timeline ruler on dark slate surface with a glowing marker showing Point of Action, left side locked in impenetrable bronze blocks, right side clear illuminated path, golden legal shield blocking retroactive reach, 16:9 widescreen, clean vectors, zero text.',
-    imagePromptPt: 'Linha do tempo iluminada em neon mostrando o ponto exato da ação, com o passado bloqueado por bronze maciço e o futuro aberto com um escudo protetor, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: EXPLICAÇÃO/CONCEITO DIDÁTICO (Card 04/25)
+TÍTULO DECLARATIVO: A lei tem que nascer antes da sua conduta
+TEXTO DE APOIO: Você só pode ser punido por um ato se já existia uma lei formal em vigor no momento exato da sua ação.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: elegante régua do tempo vintage de bronze e pergaminho recortado com contorno branco grosso, marcando com precisão o "Ponto da Ação";
+- À esquerda da linha do tempo, um escudo dourado da lei bloqueando o acesso de qualquer proibição ao passado com recorte vazado;
+- Elemento complementar: carimbo de arquivo forense vintage "ATO VÁLIDO E INOCENTE" em tinta preta e textura de impressão com halftone sutil;
+- Fundo em gradiente vermelho padrão 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de marca d’água jurídica;
+- Amplo respiro à esquerda para texto editorial claro e direto.`),
+    imagePromptPt: 'Régua cronológica do tempo em bronze e pergaminho com escudo de lei bloqueando o passado, colagem editorial recortada com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'A regra do jogo: a lei penal só vale para atos futuros.',
     textoAudio: 'Primeira parte: A lei tem que existir antes da ação. Ninguém pode inventar um crime depois que você agiu.',
     conteudoPrincipal: (
@@ -200,8 +237,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Teste Relâmpago 1',
     subtitulo: 'Fixando a primeira metade do Artigo 1º',
     nomeArquivo: 'slide_05.jpg',
-    imagePrompt: 'Minimalist 3D conceptual illustration of a municipal government desk with an unauthorized local mayoral decree stamped in red, countered by an authoritative glowing federal seal of the National Congress shining brightly, dark slate background, volumetric teal rim light, zero text, 16:9 widescreen.',
-    imagePromptPt: 'Mesa com decreto municipal carimbado em vermelho barrado pelo selo luminoso federal do Congresso Nacional, mostrando que prefeitos não criam crimes, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: TESTE & PONTOS DE ATENÇÃO (Card 05/25)
+TÍTULO DECLARATIVO: Prefeitos não podem criar crimes por decreto
+TEXTO DE APOIO: Apenas o Congresso Nacional pode legislar sobre Direito Penal. Decretos municipais retroativos são nulos e ilegais.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: mesa solene de gabinete com documento de decreto municipal carimbado em vermelho com contorno branco grosso, sendo barrado e cancelado por um majestoso selo da República do Congresso Nacional em ouro envelhecido;
+- Fragmento de papel rasgado de código de leis sobreposto com elegância e contorno branco recortado;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas e sutis de diagrama jurídico;
+- Espaço aberto e limpo à esquerda para acomodar a pergunta e opções do teste com conforto de leitura.`),
+    imagePromptPt: 'Decreto municipal com carimbo vermelho barrado pelo brasão federal do Congresso Nacional em colagem recortada com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'Quiz sobre a impossibilidade de prefeitos criarem crimes por decreto.',
     textoAudio: 'O prefeito da sua cidade publica um decreto hoje criando uma nova infração e manda a polícia punir atos cometidos no mês passado. Isso é permitido?',
     conteudoPrincipal: (
@@ -228,8 +273,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Segunda Metade: O Castigo Tabelado',
     subtitulo: '“...sem prévia cominação legal”',
     nomeArquivo: 'slide_06.jpg',
-    imagePrompt: 'Conceptual 3D architectural render, balanced stone justice pedestal displaying measured brass calibrated weights and transparent crystal prison bars with precise millimeter markings, signifying strictly predetermined statutory penalties, deep teal and amber lighting, dark slate background, elegant minimalism, clean vectors, zero text, 16:9 widescreen composition.',
-    imagePromptPt: 'Pedestal de justiça com pesos de latão calibrados e barras de cristal com marcações precisas, simbolizando a pena prévia fixada por lei e a proibição de penas inventadas, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: EXPLICAÇÃO/CONCEITO TÉCNICO (Card 06/25)
+TÍTULO DECLARATIVO: Cominação é o castigo prévio e tabelado
+TEXTO DE APOIO: O juiz é estritamente proibido de inventar uma pena da sua própria cabeça. O castigo tem limites mínimos e máximos fixados antes do julgamento.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: balança clássica de justiça em latão dourado com pesos calibrados de metal no prato, ao lado de um pergaminho antigo desenrolado exibindo tabelas de penas com selo de cera forense, tudo em colagem editorial com contorno branco grosso recortado;
+- Grade sutil de barras de prisão estilizadas em cristal transparente na composição secundária, simbolizando a estrita cominação legal;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de textura de gravura clássica;
+- Área livre à esquerda para respiro e leitura do texto explicativo.`),
+    imagePromptPt: 'Balança de latão com pesos calibrados e pergaminho de tabela de penas com selo de cera em colagem editorial recortada com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'A precisão das penas tabeladas por lei antes do julgamento.',
     textoAudio: 'Segunda metade: Não há pena sem prévia cominação legal. Cominação significa previsão de castigo. O juiz não pode inventar pena da cabeça dele.',
     conteudoPrincipal: (
@@ -257,8 +310,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Toque para testar sua memória!',
     subtitulo: 'Fixação interativa da palavra-chave do artigo',
     nomeArquivo: 'slide_07.jpg',
-    imagePrompt: 'Futuristic holographic 3D card floating in mid-air and rotating in space, glowing with dual-color aura (cyan front, amber back), showcasing legal precision symbols with floating geometric light particles, dark studio background, cinematic lighting, zero text, 16:9 widescreen.',
-    imagePromptPt: 'Cartão holográfico 3D flutuando no ar girando no espaço com aura ciano e âmbar, simbolizando memorização ativa da cominação legal, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: MEMORIZAÇÃO & INTERAÇÃO (Card 07/25)
+TÍTULO DECLARATIVO: Guarde a palavra-chave: Cominação Legal
+TEXTO DE APOIO: Cominação significa cominar uma sanção: estabelecer o castigo por escrito antes da prática do ato.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: cartão recortado em pergaminho clássico premium com contorno branco grosso, exibindo o selo dourado solene de "Cominação Legal", com pena de escrever vintage e carimbo forense;
+- Pedaço de papel rasgado editorial com detalhes de gravura antiga de colunas gregas na lateral de apoio;
+- Fundo vermelho obrigatório em gradiente diagonal 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de textura técnica jurídica;
+- Amplo respiro e espaço limpo à esquerda para visualização e leitura imediata.`),
+    imagePromptPt: 'Cartão de pergaminho antigo com selo dourado de cominação legal e pena de escrever em colagem editorial recortada com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'Flashcard 3D interativo sobre a fixação da pena em lei.',
     textoAudio: 'Toque para virar o cartão e revisar o significado de prévia cominação legal.',
     conteudoPrincipal: (
@@ -282,8 +343,17 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Caso Dona Clara: A Quitanda de Bairro',
     subtitulo: 'Uma atividade honesta e 100% legalizada',
     nomeArquivo: 'slide_08.jpg',
-    imagePrompt: 'A warm, realistic illustration of a friendly elderly Brazilian woman (Dona Clara, 68) in a cozy traditional neighborhood herbal tea store, glass jars of medicinal chamomile herbs neatly displayed on rustic wooden shelves, warm cinematic lighting, highly detailed legal storytelling, 16:9 widescreen, zero text.',
-    imagePromptPt: 'Dona Clara (68 anos) em sua quitanda tradicional de bairro acolhedora, com potes de vidro de chás de camomila em prateleiras de madeira rústica, iluminação quente e cinematográfica, sem texto, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: EXEMPLO PRÁTICO (Card 08/25)
+TÍTULO DECLARATIVO: O comércio honesto de Dona Clara
+TEXTO DE APOIO: Dona Clara (68 anos) produz chás de camomila e capim-cidreira há mais de dez anos, com alvará e notas fiscais 100% regulares.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco fortemente à direita: Dona Clara, simpática senhora brasileira idosa de 68 anos com expressão acolhedora e avental de tecido rústico em colagem semi-realista com contorno branco grosso visível;
+- Atrás dela, prateleiras de madeira acolhedoras com potes de vidro de ervas medicinais secas de camomila e fita de nota fiscal recortada em papel antigo;
+- Elemento de apoio: carimbo clássico editorial "ATIVIDADE LÍCITA E REGULAR" em recorte com contorno branco;
+- Fundo vermelho padrão 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de textura jurídica sutil;
+- Lado esquerdo livre com respiro amplo para o texto editorial de storytelling.`),
+    imagePromptPt: 'Dona Clara (68 anos) em sua quitanda de chás medicinais com potes de vidro e notas fiscais em colagem editorial com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'Dona Clara trabalhando honestamente em sua quitanda de chás artesanais.',
     textoAudio: 'Conheça Dona Clara. Há mais de dez anos ela produz e vende um chá de ervas artesanal em sua quitanda com total transparência e notas fiscais.',
     conteudoPrincipal: (
@@ -312,8 +382,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'A Nova Lei em Brasília',
     subtitulo: 'A proibição inesperada surge no Diário Oficial',
     nomeArquivo: 'slide_09.jpg',
-    imagePrompt: 'Cinematic 3D render of the Brazilian Federal Senate chamber and modern legislative halls in Brasilia, modern gavel striking a mahogany sound block under dramatic spotlights, illuminated digital official gazette tablet glowing, 16:9 widescreen, dark cinematic atmosphere, zero text.',
-    imagePromptPt: 'Plenário legislativo em Brasília com martelo de juiz batendo sob holofotes e tablet iluminado exibindo publicação no Diário Oficial, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: EXPLICAÇÃO DO CONFLITO (Card 09/25)
+TÍTULO DECLARATIVO: Surge uma nova lei no Diário Oficial
+TEXTO DE APOIO: Em 1º de junho, o Congresso aprova uma nova lei criminalizando a venda daquele extrato de erva concentrada.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: plenário do Congresso Nacional e tribuna legislativa em colagem editorial com contorno branco grosso, martelo clássico de madeira batendo sobre o sound block;
+- Página recortada de jornal/Diário Oficial em pergaminho rasgado com carimbo "LEI FEDERAL Nº 14.890 - VIGÊNCIA 1º DE JUNHO", com contorno branco recortado;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de diagramas institucionais;
+- Espaço aberto à esquerda para acomodar o texto com hierarquia clara e leitura confortável.`),
+    imagePromptPt: 'Martelo judicial batendo na bancada do Congresso Nacional e página do Diário Oficial em colagem recortada com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'A aprovação de uma nova lei penal no Congresso Nacional em Brasília.',
     textoAudio: 'No dia primeiro de junho, o Congresso aprova uma nova lei dizendo que o extrato concentrado dessa erva agora é proibido sob pena de até três anos de cadeia.',
     conteudoPrincipal: (
@@ -341,8 +419,17 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'O Fiscal Bate à Porta',
     subtitulo: 'A acusação indevida pelas vendas do mês passado',
     nomeArquivo: 'slide_10.jpg',
-    imagePrompt: 'Tense cinematic scene in a small storefront, a stern government inspector in formal uniform holding a clipboard and pen confronting the shop counter, dramatic shadows, warm indoor lighting clashing with cool inspector spotlight, highly detailed narrative tension, 16:9 widescreen, zero text.',
-    imagePromptPt: 'Fiscal severo uniformizado com prancheta confrontando o balcão da loja em cena de tensão dramática, iluminação de contraste, sem texto, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: CONFRONTO NARRATIVO (Card 10/25)
+TÍTULO DECLARATIVO: O fiscal exige prisão por fatos passados
+TEXTO DE APOIO: O fiscal confronta Dona Clara e ameaça prendê-la pelas vendas legítimas ocorridas em maio, antes da nova lei existir.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita em composição de forte tensão humana: fiscal da vigilância formal de uniforme escuro e prancheta com caneta apontada em riste em colagem com contorno branco grosso;
+- Dona Clara ao lado do balcão de madeira rústica com expressão de espanto e dignidade serena, também com contorno branco recortado;
+- Folha de notificação de infração com carimbo vermelho "AUTO DE FLAGRANTE ILEGAL" em recorte editorial de papel rasgado;
+- Fundo vermelho padrão 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de textura forense dramática;
+- Espaço amplo à esquerda garantindo que o texto e a acusação sejam lidos com impacto imediato.`),
+    imagePromptPt: 'Fiscal severo com prancheta confrontando o balcão da quitanda de Dona Clara em tensão narrativa, colagem editorial recortada com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'O fiscal acusando Dona Clara indevidamente pelas vendas do mês anterior.',
     textoAudio: 'No dia 2 de junho, a fiscalização aparece com policiais na quitanda de Dona Clara e exige notas fiscais do mês de maio.',
     conteudoPrincipal: (
@@ -370,8 +457,17 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'A Intervenção do Artigo 1º',
     subtitulo: 'A lei não pode olhar para trás',
     nomeArquivo: 'slide_11.jpg',
-    imagePrompt: 'Heroic cinematic visual metaphor, a giant translucent golden shield of law materializing inside the cozy storefront, gently repelling the inspector summons, warm relief light illuminating the relieved elderly shopkeeper, dark background, cinematic volumetric teal and amber glow, 16:9 widescreen, zero text.',
-    imagePromptPt: 'Escudo dourado translúcido da lei materializando-se e protegendo a idosa quitandeira contra a notificação injusta, transmitindo alívio e justiça, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: RESOLUÇÃO E TRIUNFO DO DIREITO (Card 11/25)
+TÍTULO DECLARATIVO: O Artigo 1º salva Dona Clara: fato atípico
+TEXTO DE APOIO: Como as vendas de maio ocorreram antes da publicação da lei, a conduta é 100% inocente e protegida pela anterioridade penal.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: Dona Clara com expressão de alívio e sorriso sereno, amparada por um grande escudo dourado da legalidade penal recortado com contorno branco grosso e elegante;
+- O escudo repulsa de forma decisiva a notificação do fiscal;
+- Recorte de pergaminho antigo na base exibindo o carimbo judicial em relevo: "ABSOLVIÇÃO SUMÁRIA - ART. 1º DO CP";
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de textura clássica;
+- Espaço respirando à esquerda para o veredito editorial de vitória do cidadão.`),
+    imagePromptPt: 'Escudo dourado da legalidade penal protegendo Dona Clara contra o fiscal com alívio no rosto, colagem editorial com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'O Artigo 1º atuando como escudo protetor para absolver Dona Clara.',
     textoAudio: 'O artigo primeiro entra em ação e salva Dona Clara. Como as vendas de maio ocorreram antes da lei existir, não há crime.',
     conteudoPrincipal: (
@@ -400,8 +496,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Conversa no WhatsApp com o Tutor',
     subtitulo: 'Tirando as dúvidas de quem não é do Direito',
     nomeArquivo: 'slide_12.jpg',
-    imagePrompt: 'Modern digital communication concept, two elegant glowing smartphone screens floating in a dark studio, emitting soft green and cyan luminescence, subtle chat dialogue waveforms in the air, symbolizing rapid legal guidance and friendly modern mentoring, dark graphite background, 16:9 widescreen, zero text.',
-    imagePromptPt: 'Dois smartphones elegantes flutuando no ar emitindo luz verde e ciano suave com ondas de diálogo no ar, simbolizando mentoria jurídica moderna por chat, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: DIÁLOGO & ESCLARECIMENTO DIDÁTICO (Card 12/25)
+TÍTULO DECLARATIVO: Moralidade não é crime sem lei escrita
+TEXTO DE APOIO: Mesmo que uma atitude pareça feia ou reprovável, o juiz jamais pode condenar ninguém sem texto de lei penal prévio e formal.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: composição editorial com balança clássica de metal e balão de fala recortado em pergaminho clássico com contorno branco grosso;
+- Livro jurídico do Código Penal aberto ao lado de uma coluna clássica grega em estilo de gravura antiga recortada;
+- Fundo vermelho obrigatório em gradiente diagonal 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas discretas;
+- Lado esquerdo livre com respiro limpo para acomodar a dinâmica da dúvida e da resposta do tutor.`),
+    imagePromptPt: 'Balança clássica de metal e livro de leis sobre capitel grego com balão de diálogo recortado em pergaminho com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'Bate-papo rápido e descontraído com o tutor esclarecendo dúvidas.',
     textoAudio: 'Aluno pergunta: Professor, mas e se o juiz achar que a atitude foi feia e imoral? O tutor responde: Não importa! Imoralidade não é crime se não estiver escrito na lei penal.',
     conteudoPrincipal: (
@@ -454,8 +558,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'A Analogia do Jogo de Futebol',
     subtitulo: 'Regra inventada no meio da partida não vale',
     nomeArquivo: 'slide_13.jpg',
-    imagePrompt: 'Dynamic cinematic conceptual visual, a night football stadium under bright floodlights, a referee pointing a red card at an empty penalty box where glowing historical footprints fade away, symbolizing the absurdity of creating new retroactive rules mid-match, dark sports atmosphere, 16:9 widescreen, zero text.',
-    imagePromptPt: 'Estádio de futebol à noite sob holofotes com árbitro apontando cartão vermelho para pegadas do passado, simbolizando o absurdo de inventar regras retroativas no meio do jogo, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: ANALOGIA DIDÁTICA (Card 13/25)
+TÍTULO DECLARATIVO: Não se muda a regra no meio do jogo
+TEXTO DE APOIO: Expulsar um jogador por um toque de calcanhar após inventar a regra aos 40 minutos do 2º tempo seria absurdo. No Direito Penal é igual.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: árbitro de futebol sério e formal com apito e cartão vermelho em riste, em estilo semi-realista com contorno branco grosso recortado;
+- No chão à direita, pegadas que desvanecem com marcação de tempo retroativo, acompanhadas de recorte de apito de bronze e cronômetro antigo de bolso;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de diagrama de campo e vetores limpos;
+- Lado esquerdo livre com respiro para a analogia e texto didático.`),
+    imagePromptPt: 'Árbitro de futebol com cartão vermelho e cronômetro antigo em colagem editorial com contorno branco grosso recortado, fundo vermelho gradiente 135° com linhas sutis.',
     descricaoCena: 'A metáfora do futebol: regras inventadas no meio da partida não valem.',
     textoAudio: 'Imagina você jogando futebol no domingo e no final do segundo tempo o árbitro expulsa você por um toque de calcanhar dado no começo do jogo. Seria absurdo, e na lei é igual.',
     conteudoPrincipal: (
@@ -483,8 +595,17 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'O Princípio da Reserva Legal',
     subtitulo: 'Apenas representantes eleitos pelo povo',
     nomeArquivo: 'slide_14.jpg',
-    imagePrompt: 'Clean modern 3D illustration, iconic Brazilian National Congress twin towers and dome architecture glowing in pure white and cyan, with lower bureaucratic documents (municipal decrees, state stamps) blocked by an impenetrable golden energy barrier, dark slate background, 16:9 widescreen, clean vectors, zero text.',
-    imagePromptPt: 'Congresso Nacional de Brasília iluminado em ciano com documentos municipais barrados por barreira de energia dourada, ilustrando a reserva legal privativa, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: ESTRUTURA INSTITUCIONAL (Card 14/25)
+TÍTULO DECLARATIVO: Só o Congresso Nacional cria crimes
+TEXTO DE APOIO: Apenas deputados federais e senadores aprovam leis penais federais. Prefeitos e governadores não têm poder de inventar crimes.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: fachada monumental das duas torres e cúpulas do Congresso Nacional de Brasília em gravura arquitetônica clássica, com contorno branco grosso recortado;
+- Selo solene dourado da República em relevo ao lado de pergaminho de Lei Ordinária Federal com carimbo de aprovação;
+- Abaixo, papéis de decretos municipais riscados em vermelho com aviso "SEM VALIDADE PENAL";
+- Fundo vermelho padrão em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de mapa e traços institucionais;
+- Espaço aberto à esquerda para a divisão clara entre quem pode e quem não pode.`),
+    imagePromptPt: 'Congresso Nacional de Brasília em estilo gravura clássica com selo dourado da República e decretos barrados com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'Exclusividade do Congresso Nacional para editar leis penais.',
     textoAudio: 'Apenas deputados federais e senadores aprovados no Congresso Nacional podem criar crimes no Brasil.',
     conteudoPrincipal: (
@@ -522,8 +643,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'A Régua Cronológica do Tempo',
     subtitulo: 'Como o relógio do Direito Penal funciona',
     nomeArquivo: 'slide_15.jpg',
-    imagePrompt: 'Sleek high-tech chronological timeline floating in space, illuminated calendar milestones with historical past in deep purple shadow and present legislative action in bright cyan laser line, an irreversible arrow pointing forward, dark cosmic graphite background, 16:9 widescreen, zero text.',
-    imagePromptPt: 'Linha do tempo cronológica flutuando no espaço com marcos em roxo no passado e linha ciano no presente com seta apontando para a frente, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: LINHA DO TEMPO CRONOLÓGICA (Card 15/25)
+TÍTULO DECLARATIVO: O tempo da conduta é irreversível
+TEXTO DE APOIO: A conduta ocorre no passado. A nova lei nasce no presente e caminha para o futuro, sem direito de olhar para trás.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco posicionado à direita: régua cronológica estilizada em bronze polido e pergaminho recortado com contorno branco grosso, com marcadores de marcos de calendário e seta indicativa apontando para a frente;
+- Ponto da conduta à esquerda protegido por um selo de segurança forense;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de eixos temporais discretos;
+- Respiro amplo à esquerda para a régua didática e leitura confortável.`),
+    imagePromptPt: 'Régua cronológica em bronze e pergaminho com seta irreversível do tempo em colagem editorial com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'A régua do tempo no Direito Penal: o passado intocável pela lei nova.',
     textoAudio: 'Veja a linha do tempo: No passado aconteceu a ação. No presente surgiu a nova lei. A lei tenta viajar para trás, mas é bloqueada.',
     conteudoPrincipal: (
@@ -558,8 +687,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'A Barreira de Proteção Penal',
     subtitulo: 'Irretroatividade da lei que prejudica',
     nomeArquivo: 'slide_16.jpg',
-    imagePrompt: 'Imposing fortress-like monolithic dark stone wall splitting time, on the left side peaceful citizens walk freely in daylight, on the right side a turbulent thunderstorm of new penal sanctions crashes against the impenetrable wall without crossing, 16:9 widescreen, dramatic cinematic contrast, zero text.',
-    imagePromptPt: 'Muro monolítico impenetrável de pedra dividindo o tempo: de um lado cidadãos em paz e do outro a tempestade da nova lei que não consegue atravessar, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: METÁFORA VISUAL FORTE (Card 16/25)
+TÍTULO DECLARATIVO: O muro intransponível da irretroatividade
+TEXTO DE APOIO: A lei penal severa é alérgica ao passado. Diante do Artigo 1º, ela bate em um muro impenetrável e não passa.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: muro monolítico de pedra clássica com colunas gregas dividindo dois tempos com contorno branco grosso recortado;
+- Do lado protegido, cidadãos em paz com luz calorosa; do lado exterior, tempestade de novas punições barradas pelo paredão de proteção constitucional;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de marcas d'água forenses;
+- Espaço amplo à esquerda para a proclamação do princípio fundamental.`),
+    imagePromptPt: 'Muro clássico monolítico de pedra com colunas gregas dividindo o tempo e barrando leis novas severas com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'O muro temporal que impede a retroatividade de leis que prejudicam.',
     textoAudio: 'O artigo primeiro funciona como um muro impenetrável. A lei que cria crime bate nessa barreira e não tem permissão para olhar para trás.',
     conteudoPrincipal: (
@@ -586,8 +723,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Simulador Cronológico',
     subtitulo: 'Alterne os momentos no tempo e veja a consequência jurídica imediata',
     nomeArquivo: 'slide_17.jpg',
-    imagePrompt: 'Futuristic interactive holographic time control interface, luminous sliders and glowing temporal dials in vibrant teal and neon amber, floating transparent chronometer clock gears in a clean dark laboratory, 16:9 widescreen, sophisticated UI concept, zero text.',
-    imagePromptPt: 'Interface holográfica interativa de controle do tempo com controles deslizantes e engrenagens de cronômetro transparentes brilhantes, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: INTERATIVIDADE & CONTROLE TEMPORAL (Card 17/25)
+TÍTULO DECLARATIVO: Experimente a linha do tempo em tempo real
+TEXTO DE APOIO: Alterne entre conduta antes e conduta depois da lei para constatar a absolvição ou apuração legal.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: relógio astronômico de bronze com engrenagens clássicas e marcadores cronológicos vintage recortados com contorno branco grosso e elegante;
+- Pedaço de pergaminho antigo de instrução com selo de laboratório de leis na composição de apoio;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de diagramas de precisão;
+- Amplo respiro visual à esquerda para acomodar os controles e botões do simulador.`),
+    imagePromptPt: 'Relógio astronômico clássico com engrenagens de bronze e marcadores cronológicos em colagem editorial com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'O simulador interativo de linha do tempo do Artigo 1º.',
     textoAudio: 'Teste no simulador o que acontece quando a conduta ocorre antes ou depois da vigência da lei.',
     conteudoPrincipal: <SimuladorArtigo1Tempo />,
@@ -606,8 +751,17 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'A Pena Também Não Pode Piorar',
     subtitulo: 'Anterioridade estrita da punição legal',
     nomeArquivo: 'slide_18.jpg',
-    imagePrompt: 'Conceptual 3D legal scale, a heavy iron spiked weight representing a harsher 10-year penalty being restrained by a golden constitutional chain, allowing only the original lighter 1-year calibrated weight to apply, dark studio lighting, high contrast, 16:9 widescreen, zero text.',
-    imagePromptPt: 'Balança conceitual com um peso pesado de espinhos contido por uma corrente dourada constitucional, mantendo apenas o peso original mais leve, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: PONTOS DE ATENÇÃO / REGRA AVANÇADA (Card 18/25)
+TÍTULO DECLARATIVO: A pena mais dura não atinge fatos antigos
+TEXTO DE APOIO: Se o ato já era crime com pena de 1 ano e uma lei nova aumenta para 10 anos, quem agiu antes responde apenas pela pena antiga.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: balança da justiça de latão envelhecido com um peso clássico calibrado gravado "1 ANO" firme no prato;
+- Ao lado, um peso ameaçador com espinhos gravado "10 ANOS" acorrentado e bloqueado por uma fita constitucional com contorno branco grosso;
+- Fragmento de pergaminho de código penal com carimbo "VEDADA A LEX GRAVIOR";
+- Fundo vermelho padrão 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de balística legal;
+- Espaço aberto à esquerda para a explicação da proteção contra aumento de pena.`),
+    imagePromptPt: 'Balança de latão com peso de 1 ano calibrado e peso mais pesado de 10 anos contido por correntes com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'A vedação de aumento de pena para fatos anteriores (Lex Gravior).',
     textoAudio: 'Se uma conduta já era crime com pena de um ano e a nova lei aumentou para dez anos, quem agiu antes responde pela pena antiga de um ano.',
     conteudoPrincipal: (
@@ -635,8 +789,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Ligar os Termos do Artigo 1º',
     subtitulo: 'Conecte os conceitos em segundos para fixar na memória',
     nomeArquivo: 'slide_19.jpg',
-    imagePrompt: 'Gamified puzzle design, luminous floating geometric circuit nodes connecting with bright laser links across dark space, glowing puzzle pieces snapping together in harmonious teal, gold, and magenta light, modern gaming aesthetics, 16:9 widescreen, zero text.',
-    imagePromptPt: 'Nódulos geométricos brilhantes conectando-se por feixes de laser em espaço escuro com peças de quebra-cabeça encaixando-se em luz ciano e dourada, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: GAMIFICAÇÃO & DESAFIO VISUAL (Card 19/25)
+TÍTULO DECLARATIVO: Conecte os termos e fixe o significado
+TEXTO DE APOIO: Associe cada conceito jurídico à sua tradução prática e consolide seu aprendizado.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: peças recortadas de quebra-cabeça clássico em pergaminho antigo com contorno branco grosso, encaixando-se com selos forenses de Anterioridade, Cominação e Reserva Legal;
+- Detalhes de gravura vintage de balança e colunas gregas nas peças de conexão;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de nós lógicos geométricos;
+- Área livre à esquerda para os botões e pares do mini-game interativo.`),
+    imagePromptPt: 'Peças de quebra-cabeça em pergaminho antigo com selos jurídicos de termos se conectando com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'Mini-game de conexão interativa entre termos jurídicos e significados.',
     textoAudio: 'Mini game: Conecte os termos jurídicos da esquerda com os seus significados do dia a dia na direita.',
     conteudoPrincipal: (
@@ -664,8 +826,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Você é o Juiz: O Caso dos Patinetes',
     subtitulo: 'Um dilema real das grandes cidades brasileiras',
     nomeArquivo: 'slide_20.jpg',
-    imagePrompt: 'Cinematic urban scene, a young man riding a modern electric scooter on a wide city sidewalk at dusk, framed through the majestic perspective of a judge mahogany bench with a polished gavel and open law books in the foreground, 16:9 widescreen, moody twilight atmosphere, zero text.',
-    imagePromptPt: 'Cena urbana com jovem andando de patinete elétrico na calçada da cidade ao entardecer, visto a partir da perspectiva da bancada do juiz com martelo no primeiro plano, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: CASO PRÁTICO MODERNO (Card 20/25)
+TÍTULO DECLARATIVO: Você é o Juiz: o caso do patinete na calçada
+TEXTO DE APOIO: Marcos andou de patinete na calçada em janeiro. Em março, criaram a proibição criminal. O promotor pede condenação. O que você decide?
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: jovem Marcos conduzindo patinete elétrico urbano moderno na calçada ampla, em composição vista da solene perspectiva de uma bancada judicial com martelo de madeira e código penal aberto;
+- Elementos em colagem editorial semi-realista com contorno branco grosso visível reforçando o recorte limpo;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de textura jurídica;
+- Amplo respiro à esquerda para o dilema e fatos do caso.`),
+    imagePromptPt: 'Jovem Marcos no patinete elétrico na calçada em perspectiva de bancada judicial com martelo de juiz com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'O dilema de julgamento: o caso prático do patinete elétrico.',
     textoAudio: 'Você é o juiz. Em janeiro, Marcos andou de patinete elétrico na calçada. Em março, saiu uma lei criando crime de patinete na calçada. O promotor pede a prisão de Marcos pelo fato de janeiro.',
     conteudoPrincipal: (
@@ -693,8 +863,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Toque para revelar o seu veredito!',
     subtitulo: 'Decisão judicial fundamentada no Artigo 1º',
     nomeArquivo: 'slide_21.jpg',
-    imagePrompt: 'A magnificent glowing 3D judicial verdict seal spinning slowly in deep space, emblazoned with a radiant laurel wreath of acquittal and scales of justice, emerald green aura radiating authority and justice, 16:9 widescreen, cinematic lighting, zero text.',
-    imagePromptPt: 'Selo judicial 3D brilhante com coroa de louros de absolvição e balança da justiça girando no espaço com aura esmeralda de autoridade, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: SENTENÇA JUDICIAL & RESOLUÇÃO (Card 21/25)
+TÍTULO DECLARATIVO: Veredito: denúncia rejeitada e arquivada
+TEXTO DE APOIO: Em janeiro a conduta era fato atípico. A lei nova não retroage. O cidadão está livre de qualquer culpa.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: solene pergaminho de sentença judicial com carimbo de cera vermelha da Justiça e coroa de louros dourada em colagem recortada com contorno branco grosso;
+- Balança clássica de latão equilibrada ao lado do documento oficial;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de textura clássica forense;
+- Espaço amplo à esquerda para a revelação da decisão fundamentada.`),
+    imagePromptPt: 'Sentença judicial solene em pergaminho com selo de cera vermelha e coroa de louros com contorno branco grosso, fundo vermelho gradiente 135° com linhas sutis.',
     descricaoCena: 'O flashcard de sentença 3D com a decisão fundamentada do juiz.',
     textoAudio: 'Toque para girar o cartão e conferir a sentença com base no artigo primeiro.',
     conteudoPrincipal: (
@@ -718,8 +896,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'O Algoritmo Mental em 3 Passos',
     subtitulo: 'Como raciocinar com segurança diante de qualquer caso',
     nomeArquivo: 'slide_22.jpg',
-    imagePrompt: 'Clean architectural mind map algorithm, illuminated branching glass pathways forming a precise logic decision tree, glowing decision nodes pulsing with cyan and emerald light against dark slate graphite, elegant flowchart aesthetic, 16:9 widescreen, zero text.',
-    imagePromptPt: 'Árvore de decisão lógica com caminhos de vidro iluminados e nódulos pulsando em ciano e esmeralda em fundo grafite escuro, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: SÍNTESE METODOLÓGICA (Card 22/25)
+TÍTULO DECLARATIVO: O algoritmo mental do Artigo 1º em 3 passos
+TEXTO DE APOIO: 1. Houve conduta? 2. Existia lei antes da ação? Se não existia, a conduta é fato atípico e inocente.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: elegante fluxograma ilustrado desenhado à mão sobre pergaminho clássico com nós lógicos e carimbos de validação com contorno branco grosso recortado;
+- Pena clássica de escrever sobre tinteiro de cristal e selo forense de aprovação;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de eixos e caixas técnicas;
+- Espaço amplo à esquerda reservado para a visualização dos três passos claros.`),
+    imagePromptPt: 'Fluxograma lógico em pergaminho clássico com pena de escrever e carimbos forenses em colagem recortada com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'O algoritmo mental em 3 passos para raciocinar qualquer caso penal.',
     textoAudio: 'Siga a árvore de decisão: Alguém agiu? A lei existia antes da ação? Se sim, analisa o crime. Se não, inocente e fato atípico.',
     conteudoPrincipal: (
@@ -756,8 +942,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Desafio de Fixação Final',
     subtitulo: 'Provando seu domínio completo sobre a matéria',
     nomeArquivo: 'slide_23.jpg',
-    imagePrompt: 'Dramatic quiz arena concept, a radiant crystal podium with a floating question mark jewel crowned by scales of justice, pulsing with amber and deep blue tournament lighting, clean gaming geometry, 16:9 widescreen, zero text.',
-    imagePromptPt: 'Arena de desafio com pódio de cristal radiante e joia luminosa coroada pela balança da justiça em iluminação esportiva âmbar e azul profundo, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: DESAFIO FINAL DE PROVA (Card 23/25)
+TÍTULO DECLARATIVO: Teste de domínio: qual situação viola o Artigo 1º?
+TEXTO DE APOIO: Identifique a conduta inconstitucional e comprove que você domina a anterioridade da lei e da pena.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: pódio de mármore clássico com capitel de coluna grega sustentando uma balança dourada reluzente e pergaminho de teste selado, com contorno branco grosso recortado;
+- Iluminação dramática editorial sobre os símbolos jurídicos, com recortes de papel rasgado de apoio;
+- Fundo vermelho padrão 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de marcas d’água;
+- Espaço aberto à esquerda para a pergunta e opções do teste.`),
+    imagePromptPt: 'Pódio de mármore com capitel grego e balança dourada em colagem editorial com contorno branco grosso recortado, fundo vermelho gradiente 135° com linhas finas.',
     descricaoCena: 'Desafio final de maestria sobre o Artigo 1º.',
     textoAudio: 'Qual das seguintes situações violaria diretamente o Artigo 1º do Código Penal?',
     conteudoPrincipal: (
@@ -785,8 +979,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Os 4 Termos que Você Agora Domina',
     subtitulo: 'Dicionário definitivo do Artigo 1º',
     nomeArquivo: 'slide_24.jpg',
-    imagePrompt: 'A set of four glowing geometric crystal keystones resting on dark velvet slate, each crystal pulsing with distinct jewel tones (emerald, sapphire, amber, amethyst), representing the four mastered legal concepts, 16:9 widescreen, elegant minimalism, zero text.',
-    imagePromptPt: 'Quatro pedras fundamentais de cristal brilhando em veludo grafite escuro, cada uma pulsando em um tom de joia diferente, representando os 4 termos dominados, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: RESUMO / GLOSSÁRIO DEFINITIVO (Card 24/25)
+TÍTULO DECLARATIVO: Os 4 conceitos fundamentais dominados
+TEXTO DE APOIO: Anterioridade (lei prévia), Cominação (pena tabelada), Reserva Legal (só Congresso) e Fato Atípico (não é crime).
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: quatro etiquetas de arquivo forense clássico em pergaminho recortado com contorno branco grosso e elegante, contendo os 4 pilares do Artigo 1º com carimbos e selos históricos;
+- Balança de metal no topo como símbolo unificador da legalidade estrita;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de arquivo institucional;
+- Área aberta à esquerda garantindo leitura imediata e confortável de cada definição.`),
+    imagePromptPt: 'Quatro etiquetas de arquivo forense clássico em pergaminho com balança de metal e carimbos em colagem com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'Glossário com os 4 pilares fundamentais do Artigo 1º.',
     textoAudio: 'Revise os quatro termos que você aprendeu: anterioridade, prévia cominação legal, reserva legal e fato atípico.',
     conteudoPrincipal: (
@@ -824,8 +1026,16 @@ export const SLIDES_ART1_RICOS: SlideLaboratorioRico[] = [
     titulo: 'Parabéns! Trilha Concluída com Sucesso',
     subtitulo: 'Você dominou o Artigo 1º do Código Penal',
     nomeArquivo: 'slide_25.jpg',
-    imagePrompt: 'A magnificent golden master trophy cup shaped like classical scales of justice, radiating brilliant golden light beams, floating above a dark marble victory pedestal surrounded by celebratory sparkling amber and teal light particles, 16:9 widescreen, cinematic victory lighting, zero text.',
-    imagePromptPt: 'Troféu dourado esculpido como a balança da justiça flutuando sobre pedestal de mármore com feixes de luz dourada e partículas festivas em celebração, proporção 16:9.',
+    imagePrompt: montarPromptFinalDesign(`TIPO DE CARD: FECHAMENTO & TROFÉU DE MAESTRIA (Card 25/25)
+TÍTULO DECLARATIVO: Conquista de maestria: Artigo 1º dominado
+TEXTO DE APOIO: Você concluiu as 25 etapas com anatomia da lei, história, casos reais, simulador e exercícios práticos.
+
+CENA PRINCIPAL E COMPOSIÇÃO:
+- Foco à direita: monumento solene de troféu dourado esculpido em formato de balança da justiça clássica sobre pedestal de mármore e capitel de coluna grega, com contorno branco grosso recortado e acabamento de colagem editorial premium;
+- Folhas de louro douradas da vitória e carimbo oficial "CERTIFICADO DE MAESTRIA PENAL" em recorte com contorno branco;
+- Fundo vermelho obrigatório em gradiente 135° (hsl(350 68% 32%) a hsl(348 80% 50%)) com linhas pretas finas de celebração clássica e textura forense;
+- Espaço nobre à esquerda para os parabéns e encerramento da jornada com alto impacto.`),
+    imagePromptPt: 'Troféu monumental dourado de balança da justiça e colunas gregas com folhas de louro e carimbo de maestria em colagem recortada com contorno branco grosso, fundo vermelho gradiente 135°.',
     descricaoCena: 'Troféu de maestria comemorativo da conclusão das 25 etapas do Artigo 1º.',
     textoAudio: 'Parabéns! Você concluiu com sucesso a trilha master do artigo primeiro do Código Penal. Você agora compreende esse pilar da justiça com total clareza.',
     conteudoPrincipal: (

@@ -13,10 +13,14 @@ import {
   Sparkles,
   ExternalLink,
   RefreshCw,
-  FolderArchive
+  FolderArchive,
+  ChevronDown,
+  ChevronUp,
+  Palette
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { SLIDES_ART1_RICOS, SlideLaboratorioRico } from '@/data/slidesLaboratorioArtigo1';
+import { PROMPT_BASE_PADRAO_DESIGN } from '@/utils/promptDesignJuridico';
 
 interface LaboratorioImagensManagerProps {
   imagens: Record<string, string>;
@@ -30,6 +34,8 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
   const [processandoZip, setProcessandoZip] = useState(false);
   const [progressoZip, setProgressoZip] = useState<string>('');
   const [copiadoId, setCopiadoId] = useState<string | null>(null);
+  const [copiouFilaCompleta, setCopiouFilaCompleta] = useState(false);
+  const [mostrarPromptBase, setMostrarPromptBase] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const singleFileInputRef = useRef<HTMLInputElement>(null);
   const [slideParaTrocaAvulsa, setSlideParaTrocaAvulsa] = useState<string | null>(null);
@@ -47,14 +53,14 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
         'Slide_ID',
         'Fase',
         'Titulo',
-        'Prompt_Imagem_Ingles',
-        'Prompt_Imagem_Portugues',
+        'Prompt_Completo_Google_Flow',
+        'Prompt_Cena_Portugues',
         'Descricao_Cena'
       ];
 
       const linhas = SLIDES_ART1_RICOS.map(slide => {
         // Escapar aspas para CSV
-        const escapeCsv = (str: string) => `"${str.replace(/"/g, '""')}"`;
+        const escapeCsv = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
         return [
           slide.ordem,
           slide.nomeArquivo,
@@ -73,20 +79,34 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'prompts_imagens_artigo_1_cp.csv');
+      link.setAttribute('download', 'prompts_imagens_artigo_1_cp_flow.csv');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.success('Arquivo CSV baixado com sucesso! Abra no Excel ou Sheets.');
+      toast.success('Arquivo CSV baixado com sucesso com os 25 prompts do Google Flow!');
     } catch (err) {
       console.error('Erro ao gerar CSV:', err);
       toast.error('Erro ao gerar CSV de prompts.');
     }
   };
 
-  // 2. Função para Processar Arquivo .ZIP
+  // 2. Copiar Fila Completa de 25 Prompts para o Google Flow
+  const handleCopiarFilaCompleta = () => {
+    try {
+      const listaPrompts = SLIDES_ART1_RICOS.map(s => s.imagePrompt);
+      const textoFinal = JSON.stringify(listaPrompts, null, 2);
+      navigator.clipboard.writeText(textoFinal);
+      setCopiouFilaCompleta(true);
+      toast.success('Lista com os 25 prompts copiada no formato JSON para a fila do Google Flow!');
+      setTimeout(() => setCopiouFilaCompleta(false), 3000);
+    } catch (err) {
+      toast.error('Erro ao copiar prompts da fila.');
+    }
+  };
+
+  // 3. Função para Processar Arquivo .ZIP
   const handleProcessarZip = async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.zip')) {
       toast.error('Por favor, envie um arquivo com extensão .zip');
@@ -177,7 +197,7 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
     }
   };
 
-  // 3. Upload Avulso de uma única imagem
+  // 4. Upload Avulso de uma única imagem
   const handleUploadAvulso = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !slideParaTrocaAvulsa) return;
@@ -194,15 +214,15 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
     reader.readAsDataURL(file);
   };
 
-  // 4. Copiar Prompt de Imagem
+  // 5. Copiar Prompt de Imagem
   const handleCopiarPrompt = (id: string, prompt: string) => {
     navigator.clipboard.writeText(prompt);
     setCopiadoId(id);
-    toast.success('Prompt copiado para a área de transferência!');
+    toast.success('Prompt completo para Google Flow copiado com sucesso!');
     setTimeout(() => setCopiadoId(null), 2500);
   };
 
-  // 5. Remover Imagem de um Slide
+  // 6. Remover Imagem de um Slide
   const handleRemoverImagem = (slideId: string) => {
     const novas = { ...imagens };
     delete novas[slideId];
@@ -210,7 +230,7 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
     toast.info('Imagem removida do slide.');
   };
 
-  // 6. Limpar Todas as Imagens
+  // 7. Limpar Todas as Imagens
   const handleLimparTodas = () => {
     if (confirm('Deseja remover todas as imagens customizadas deste artigo?')) {
       onAtualizarImagens({});
@@ -247,18 +267,19 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/60">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
-                Central de Imagens
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1">
+                <Palette className="w-3 h-3 text-rose-400" />
+                Estilo Editorial Jurídico (Fundo Vermelho 135°)
               </span>
               <span className="text-xs text-muted-foreground font-semibold">
-                Midjourney • Imagen 3 • ChatGPT • Leonardo
+                Google Flow • Gemini Spark • Imagen 3
               </span>
             </div>
             <h3 className="text-lg sm:text-xl font-bold text-foreground mt-1">
-              Geração Externa & Importação via ZIP
+              Fila de Prompts do Google Flow & Importação ZIP
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-              Baixe a planilha de prompts, gere as imagens na IA de sua escolha e importe o arquivo compactado em 1 clique.
+              Todos os 25 prompts adotam o estilo oficial de <strong>colagem editorial jurídica premium</strong>, fundo gradiente vermelho 135°, contorno branco grosso e foco à direita.
             </p>
           </div>
 
@@ -270,17 +291,43 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
             </div>
             <div className="w-full h-2 rounded-full bg-background overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-teal-500 to-emerald-400 transition-all duration-300"
+                className="h-full bg-gradient-to-r from-rose-500 via-amber-500 to-emerald-400 transition-all duration-300"
                 style={{ width: `${porcentagem}%` }}
               />
             </div>
           </div>
         </div>
 
-        {/* Os 2 Passos Lado a Lado */}
+        {/* Botão de Visualização do Prompt-Base Fixo de Design */}
+        <div className="rounded-xl border border-rose-500/30 bg-rose-950/20 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setMostrarPromptBase(!mostrarPromptBase)}
+            className="w-full p-3.5 flex items-center justify-between text-left text-xs font-bold text-rose-200 hover:bg-rose-900/20 transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <Palette className="w-4 h-4 text-rose-400" />
+              <span>Ver Especificação Oficial de Design (Prompt-Base Fixo com Fundo Vermelho e Colagem)</span>
+            </span>
+            {mostrarPromptBase ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          {mostrarPromptBase && (
+            <div className="p-4 pt-1 border-t border-rose-500/20 space-y-2 text-xs">
+              <p className="text-muted-foreground">
+                Este bloco fixo é incorporado automaticamente em todos os 25 cards para garantir 100% de consistência estética:
+              </p>
+              <pre className="p-3 rounded-lg bg-black/60 border border-border/50 text-[11px] text-muted-foreground font-mono leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap select-all">
+                {PROMPT_BASE_PADRAO_DESIGN}
+              </pre>
+            </div>
+          )}
+        </div>
+
+        {/* Os 2 Passos Lado a Lado + Ações Rápidas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           
-          {/* Passo 1: Baixar CSV */}
+          {/* Passo 1: Baixar CSV e Copiar Fila */}
           <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/15 flex flex-col justify-between space-y-3">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
@@ -288,21 +335,40 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
                   1
                 </span>
                 <h4 className="text-sm font-bold text-foreground">
-                  Baixar Planilha CSV de Prompts
+                  Exportar Prompts para o Google Flow
                 </h4>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Contém todos os 12 prompts formatados em inglês (e português) com a numeração correspondente (<code>slide_01.jpg</code> a <code>slide_12.jpg</code>).
+                Contém todos os 25 prompts já estruturados com o bloco de design obrigatório e o conteúdo de cada slide (<code>slide_01.jpg</code> a <code>slide_25.jpg</code>).
               </p>
             </div>
 
-            <button
-              onClick={handleBaixarCsv}
-              className="w-full py-2.5 px-4 rounded-xl bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
-            >
-              <Download className="w-4 h-4" />
-              <span>Baixar CSV de Prompts (.csv)</span>
-            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              <button
+                onClick={handleBaixarCsv}
+                className="py-2.5 px-3 rounded-xl bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                <Download className="w-4 h-4 shrink-0" />
+                <span>Baixar CSV (.csv)</span>
+              </button>
+
+              <button
+                onClick={handleCopiarFilaCompleta}
+                className="py-2.5 px-3 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground border border-border/80 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+              >
+                {copiouFilaCompleta ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="text-emerald-400">25 Copiados!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 text-teal-400 shrink-0" />
+                    <span>Copiar Fila (JSON)</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Passo 2: Enviar ZIP */}
@@ -313,11 +379,11 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
                   2
                 </span>
                 <h4 className="text-sm font-bold text-foreground">
-                  Enviar Arquivo .ZIP com as Imagens
+                  Enviar Arquivo .ZIP com as Imagens Geradas
                 </h4>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Após gerar as imagens, compacte-as em um arquivo <code>.zip</code>. O sistema vinculará cada imagem automaticamente ao slide correto.
+                Após a fila do Google Flow baixar o arquivo compactado em <code>.zip</code>, faça o upload aqui. O sistema vinculará cada imagem em 1 segundo.
               </p>
             </div>
 
@@ -346,7 +412,7 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
           <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
             <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4" />
-              {totalCarregadas} imagens salvas e prontas para o player!
+              {totalCarregadas} de {SLIDES_ART1_RICOS.length} imagens salvas e ativas no player!
             </span>
             <button
               onClick={handleLimparTodas}
@@ -367,7 +433,7 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
             Galeria de Slides da Aula ({SLIDES_ART1_RICOS.length} Etapas)
           </h4>
           <span className="text-xs text-muted-foreground">
-            Toque em um prompt para copiar individualmente
+            Toque em "Copiar Prompt" para gerar individualmente no Flow
           </span>
         </div>
 
@@ -393,7 +459,7 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
                         {slide.nomeArquivo}
                       </span>
                       <span className="text-[10px] font-semibold text-muted-foreground">
-                        Etapa {slide.ordem}
+                        Etapa {slide.ordem} de {SLIDES_ART1_RICOS.length}
                       </span>
                     </div>
                     <h5 className="text-sm font-bold text-foreground truncate mt-1">
@@ -464,11 +530,12 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
                   )}
                 </div>
 
-                {/* Caixa com Prompt de Imagem */}
+                {/* Caixa com Prompt de Imagem Formatado para o Google Flow */}
                 <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 text-xs space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Prompt de Imagem (Inglês):
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-rose-300 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
+                      Prompt Google Flow:
                     </span>
                     <button
                       onClick={() => handleCopiarPrompt(slide.id, slide.imagePrompt)}
@@ -487,7 +554,7 @@ export const LaboratorioImagensManager: React.FC<LaboratorioImagensManagerProps>
                       )}
                     </button>
                   </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2 select-all font-mono">
+                  <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-3 select-all font-mono">
                     {slide.imagePrompt}
                   </p>
                 </div>
