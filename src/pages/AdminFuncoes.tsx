@@ -18,6 +18,7 @@ import { AdminHojeCards } from '@/components/admin/AdminHojeCards';
 const PREFETCH: Record<string, () => Promise<unknown>> = {
   '/admin-audio-aulas': () => import('./AdminAudioAulas'),
   '/audio-aulas': () => import('./AudioAulas'),
+  '/admin-narracao-artigos': () => import('./AdminNarracaoArtigos'),
   '/admin-monitor': () => import('./AdminMonitor'),
   '/admin-monitor-usuarios': () => import('./AdminMonitorUsuarios'),
   '/admin-monitoramento': () => import('./AdminMonitoramento'),
@@ -177,6 +178,17 @@ const CATEGORIES: Category[] = [
     route: '/admin-audio-aulas',
     items: [
       { id: 'admin-audio-aulas', label: 'Geração de Áudio Aulas', icon: Headphones, desc: 'Gerar prompts guias, exportar planilha CSV e vincular áudios do Google Drive', route: '/admin-audio-aulas' },
+    ],
+  },
+  {
+    id: 'narracao-artigos',
+    title: 'Narração de Artigo',
+    desc: 'Sincronização contínua de áudios do Google Drive para o Supabase Storage com Cron Job a cada 10 min',
+    icon: Mic,
+    color: '#06b6d4',
+    route: '/admin-narracao-artigos',
+    items: [
+      { id: 'admin-narracao-artigos', label: 'Narração de Artigo', icon: Mic, desc: 'Sincronizar áudios gravados no Drive, monitorar por Cron Job a cada 10 min e ver artigos pendentes', route: '/admin-narracao-artigos' },
     ],
   },
   {

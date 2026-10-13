@@ -1,0 +1,316 @@
+import { supabase } from '@/integrations/supabase/client';
+
+export interface LeiNarracaoItem {
+  id: string;
+  slug: string;
+  nome: string;
+  categoria?: string;
+  totalArtigos: number;
+  totalComAudio: number;
+  totalPendentes: number;
+  percentual: number;
+  driveFolderUrl?: string;
+}
+
+export interface ArtigoNarracaoItem {
+  id: string;
+  numero: string;
+  numeroFormatado: string;
+  texto: string;
+  ordem: number;
+  narracao_url: string | null;
+  temAudio: boolean;
+}
+
+export interface SyncLogEntry {
+  timestamp: string;
+  tipo: 'info' | 'sucesso' | 'aviso' | 'erro';
+  mensagem: string;
+}
+
+const STORAGE_KEY_DRIVE_URLS = 'vacatio_narracao_drive_folders';
+const STORAGE_KEY_CRON_STATE = 'vacatio_narracao_cron_state';
+
+/**
+ * Valida se é um artigo real (exclui cabeçalhos como "LIVRO I", "PARTE GERAL")
+ */
+export function isArtigoReal(numero?: string | null): boolean {
+  if (!numero) return false;
+  const trimmed = numero.trim();
+  if (!trimmed) return false;
+  const upper = trimmed.toUpperCase();
+  if (/^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O|DISPOSI[ÇC]|PREÂMBULO|PREAMBULO)/i.test(upper)) {
+    return false;
+  }
+  if (/\b(?:art(?:igo)?\.?\s*)?(\d+)/i.test(trimmed)) return true;
+  if (/art(?:igo)?\.?\s*[úu]nico/i.test(trimmed)) return true;
+  return false;
+}
+
+/**
+ * Formata o label do artigo para exibição
+ */
+export function formatArtigoLabel(numero?: string | null): string {
+  if (!numero) return '';
+  const trimmed = numero.trim();
+  if (/art(?:igo)?\.?\s*[úu]nico/i.test(trimmed)) return 'Art. Único';
+  const match = trimmed.match(/(?:art(?:igo)?\.?\s*)?(\d+)(?:[º°o]|\.º)?(?:-([a-zA-Z]))?/i);
+  if (match) {
+    const numInt = Number(match[1]);
+    const sufixo = match[2] ? `-${match[2].toUpperCase()}` : '';
+    if (numInt >= 1 && numInt <= 9) return `Art. ${numInt}º${sufixo}`;
+    return `Art. ${numInt}${sufixo}`;
+  }
+  if (trimmed.startsWith('Art.')) return trimmed;
+  return `Art. ${trimmed}`;
+}
+
+/**
+ * Normaliza o número do artigo para comparação (ex: "Art. 3º-A" -> "3-a", "12" -> "12")
+ */
+export function normalizeArtigoKey(numero?: string | null): string {
+  if (!numero) return '';
+  const trimmed = numero.trim().toLowerCase();
+  if (trimmed.includes('único') || trimmed.includes('unico')) return 'unico';
+  const match = trimmed.match(/(?:art(?:igo)?\.?\s*)?(\d+)(?:[º°o]|\.º)?(?:-([a-z]))?/i);
+  if (match) {
+    const num = match[1];
+    const suf = match[2] ? `-${match[2]}` : '';
+    return `${num}${suf}`;
+  }
+  return trimmed.replace(/\D/g, '');
+}
+
+/**
+ * Tenta extrair a chave do artigo a partir de um nome de arquivo
+ * Exemplos aceitos:
+ * - "art_1.mp3" -> "1"
+ * - "artigo_2_v2.wav" -> "2"
+ * - "Art. 3º-A.mp3" -> "3-a"
+ * - "CPP_Art_57.mp3" -> "57"
+ * - "art_3__A_v2_1783361822923.wav" -> "3-a"
+ * - "12.mp3" -> "12"
+ */
+export function matchArtigoKeyFromFilename(filename: string): string | null {
+  const clean = filename.replace(/\.(mp3|wav|m4a|ogg|opus)$/i, '').trim();
+
+  // Caso com sufixo letra (ex: art_3__A ou art-3-a ou Artigo 3-A)
+  const regexComLetra = /(?:art(?:igo)?|_art)?[\s_.-]*(\d+)[\s_.-]*(?:[º°o]|\.º)?[\s_.-]*([a-zA-Z])\b/i;
+  const matchLetra = clean.match(regexComLetra);
+  if (matchLetra) {
+    return `${matchLetra[1]}-${matchLetra[2].toLowerCase()}`;
+  }
+
+  // Caso simples: art_57 ou Artigo 12 ou CPP_Art_5
+  const regexSimples = /(?:art(?:igo)?|_art)?[\s_.-]*(\d+)(?:[º°o]|\.º)?/i;
+  const matchSimples = clean.match(regexSimples);
+  if (matchSimples) {
+    return matchSimples[1];
+  }
+
+  return null;
+}
+
+/**
+ * Carrega a lista de links de pastas salvas no localStorage
+ */
+export function getSavedDriveUrls(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_DRIVE_URLS);
+    if (!raw) {
+      // Padrão inicial: pasta do CPP informada pelo usuário
+      return {
+        cpp: 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4',
+        '246e8691-ebe2-478d-991d-f3930635151a': 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4',
+      };
+    }
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Salva o link do Drive para uma lei específica
+ */
+export function saveDriveUrl(leiIdOrSlug: string, url: string): void {
+  try {
+    const current = getSavedDriveUrls();
+    current[leiIdOrSlug] = url.trim();
+    localStorage.setItem(STORAGE_KEY_DRIVE_URLS, JSON.stringify(current));
+  } catch (err) {
+    console.error('Erro ao salvar Drive URL no localStorage:', err);
+  }
+}
+
+/**
+ * Busca todas as leis principais com métricas de narração
+ */
+export async function fetchLeisComMetricasNarracao(): Promise<LeiNarracaoItem[]> {
+  const { data: leis, error } = await supabase
+    .from('vade_mecum_leis')
+    .select('id, slug, nome, categoria')
+    .order('nome', { ascending: true });
+
+  if (error || !leis) {
+    console.error('Erro ao buscar leis:', error);
+    return [];
+  }
+
+  const driveUrls = getSavedDriveUrls();
+
+  // Buscar contagem de artigos para cada lei
+  const results: LeiNarracaoItem[] = [];
+
+  for (const lei of leis) {
+    const { data: artigos } = await supabase
+      .from('vade_mecum_artigos')
+      .select('id, numero, narracao_url')
+      .eq('lei_id', lei.id);
+
+    const artigosReais = (artigos || []).filter(a => isArtigoReal(a.numero));
+    const totalArtigos = artigosReais.length;
+    if (totalArtigos === 0) continue; // Pular leis vazias
+
+    const comAudio = artigosReais.filter(a => !!a.narracao_url && a.narracao_url.trim().length > 0).length;
+    const pendentes = Math.max(0, totalArtigos - comAudio);
+    const percentual = totalArtigos > 0 ? Math.round((comAudio / totalArtigos) * 100) : 0;
+
+    results.push({
+      id: lei.id,
+      slug: lei.slug || '',
+      nome: lei.nome,
+      categoria: lei.categoria || 'Geral',
+      totalArtigos,
+      totalComAudio: comAudio,
+      totalPendentes: pendentes,
+      percentual,
+      driveFolderUrl: driveUrls[lei.id] || driveUrls[lei.slug || ''] || '',
+    });
+  }
+
+  // Ordenar para colocar o Código de Processo Penal e leis mais populares primeiro
+  return results.sort((a, b) => {
+    if (a.slug === 'cpp') return -1;
+    if (b.slug === 'cpp') return 1;
+    if (a.slug === 'cp') return -1;
+    if (b.slug === 'cp') return 1;
+    return a.nome.localeCompare(b.nome);
+  });
+}
+
+interface RawArtigoRow {
+  id: string;
+  numero: string;
+  texto: string | null;
+  ordem: number | null;
+  narracao_url: string | null;
+}
+
+/**
+ * Busca todos os artigos reais de uma lei com detalhes de narração
+ */
+export async function fetchArtigosDaLeiComNarracao(leiId: string): Promise<ArtigoNarracaoItem[]> {
+  const all: RawArtigoRow[] = [];
+  let from = 0;
+  const chunkSize = 1000;
+
+  while (true) {
+    const to = from + chunkSize - 1;
+    const { data, error } = await supabase
+      .from('vade_mecum_artigos')
+      .select('id, numero, texto, ordem, narracao_url')
+      .eq('lei_id', leiId)
+      .order('ordem', { ascending: true })
+      .range(from, to);
+
+    if (error || !data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < chunkSize) break;
+    from += chunkSize;
+  }
+
+  return all
+    .filter(a => isArtigoReal(a.numero))
+    .map(a => ({
+      id: a.id,
+      numero: a.numero,
+      numeroFormatado: formatArtigoLabel(a.numero),
+      texto: a.texto || '',
+      ordem: a.ordem ?? 0,
+      narracao_url: a.narracao_url || null,
+      temAudio: !!(a.narracao_url && a.narracao_url.trim().length > 0),
+    }));
+}
+
+/**
+ * Faz o upload de um arquivo de áudio para o Supabase Storage e vincula ao artigo
+ */
+export async function vincularAudioAoArtigo(params: {
+  leiId: string;
+  leiSlug: string;
+  leiNome: string;
+  artigoId: string;
+  artigoNumero: string;
+  fileBlob: Blob;
+  mimeType?: string;
+  fileName?: string;
+}): Promise<{ success: boolean; audioUrl?: string; error?: string }> {
+  try {
+    const { leiId, leiSlug, leiNome, artigoId, artigoNumero, fileBlob, fileName } = params;
+
+    const ext = fileName && fileName.endsWith('.wav') ? 'wav' : 'mp3';
+    const numLimpo = normalizeArtigoKey(artigoNumero);
+    const storagePath = `vademecum/${leiSlug || 'lei'}/art_${numLimpo}_${Date.now()}.${ext}`;
+
+    // 1. Upload para o bucket 'narracoes'
+    const { error: uploadError } = await supabase.storage
+      .from('narracoes')
+      .upload(storagePath, fileBlob, {
+        contentType: ext === 'wav' ? 'audio/wav' : 'audio/mpeg',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('[vincularAudio] Erro no upload:', uploadError);
+      return { success: false, error: uploadError.message };
+    }
+
+    // 2. Obter URL pública permanente
+    const { data: pubData } = supabase.storage
+      .from('narracoes')
+      .getPublicUrl(storagePath);
+
+    const audioUrl = pubData.publicUrl;
+
+    // 3. Atualizar tabela vade_mecum_artigos
+    const { error: updateArtigoError } = await supabase
+      .from('vade_mecum_artigos')
+      .update({ narracao_url: audioUrl })
+      .eq('id', artigoId);
+
+    if (updateArtigoError) {
+      console.warn('[vincularAudio] Aviso ao atualizar vade_mecum_artigos:', updateArtigoError);
+    }
+
+    // 4. Upsert na tabela narracoes_artigos
+    try {
+      await supabase.from('narracoes_artigos').upsert(
+        {
+          tabela_nome: leiSlug || leiId,
+          artigo_numero: artigoNumero,
+          lei_nome: leiNome,
+          audio_url: audioUrl,
+        },
+        { onConflict: 'tabela_nome,artigo_numero' }
+      );
+    } catch (e) {
+      console.warn('[vincularAudio] Aviso ao upsertar narracoes_artigos:', e);
+    }
+
+    return { success: true, audioUrl };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+    return { success: false, error: msg };
+  }
+}
