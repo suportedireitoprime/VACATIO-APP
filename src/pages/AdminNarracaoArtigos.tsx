@@ -14,8 +14,16 @@ import {
   UploadCloud,
   FileAudio,
   Radio,
-  ChevronDown,
   Sparkles,
+  ArrowLeft,
+  BookOpen,
+  Scale,
+  Landmark,
+  FileText,
+  ChevronRight,
+  Check,
+  Edit2,
+  Layers,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/vademecum/PageHeader';
@@ -30,29 +38,40 @@ import {
   type ArtigoNarracaoItem,
 } from '@/services/narracaoArtigosSyncService';
 
+type CategoriaFiltro = 'Todas' | 'Códigos' | 'Estatutos' | 'Constituição' | 'Leis Ordinárias';
+
 export default function AdminNarracaoArtigos() {
   const navigate = useNavigate();
 
-  // Estados principais
+  // Estados da lista de leis
   const [leis, setLeis] = useState<LeiNarracaoItem[]>([]);
+  const [loadingLeis, setLoadingLeis] = useState(true);
+  const [buscaLei, setBuscaLei] = useState('');
+  const [categoriaAtiva, setCategoriaAtiva] = useState<CategoriaFiltro>('Todas');
+
+  // Estado da lei atualmente selecionada (null = visão de lista de leis)
   const [leiSelecionada, setLeiSelecionada] = useState<LeiNarracaoItem | null>(null);
+
+  // Estados dos artigos e detalhe da lei selecionada
   const [artigos, setArtigos] = useState<ArtigoNarracaoItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [loadingArtigos, setLoadingArtigos] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Filtros e busca
-  const [busca, setBusca] = useState('');
-  const [abaAtiva, setAbaAtiva] = useState<'faltando' | 'com_audio' | 'todos'>('faltando');
+  // Filtros internos de artigos
+  const [buscaArtigo, setBuscaArtigo] = useState('');
+  const [abaArtigo, setAbaArtigo] = useState<'faltando' | 'com_audio' | 'todos'>('faltando');
 
-  // Configuração do Google Drive e Cron Job
+  // Drive URL e edição
   const [driveUrl, setDriveUrl] = useState('');
+  const [editandoDriveUrl, setEditandoDriveUrl] = useState(false);
+
+  // Cron Job (10 minutos)
   const [cronAtivo, setCronAtivo] = useState(true);
-  const [tempoRestanteSegundos, setTempoRestanteSegundos] = useState(600); // 10 minutos
+  const [tempoRestanteSegundos, setTempoRestanteSegundos] = useState(600);
   const [ultimaExecucao, setUltimaExecucao] = useState<string | null>(null);
   const [logsSync, setLogsSync] = useState<Array<{ hora: string; msg: string; tipo: 'info' | 'sucesso' | 'erro' }>>([]);
 
-  // Player de áudio de prévia
+  // Player de prévia de áudio
   const [audioTocandoId, setAudioTocandoId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -60,33 +79,33 @@ export default function AdminNarracaoArtigos() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ total: number; atual: number } | null>(null);
 
-  // 1. Carrega a lista de leis
+  // 1. Carregar lista de leis com métricas
   useEffect(() => {
     async function carregarLeis() {
-      setLoading(true);
+      setLoadingLeis(true);
       try {
         const dados = await fetchLeisComMetricasNarracao();
         setLeis(dados);
-
-        // Selecionar o CPP como padrão prioritário (ou a primeira lei)
-        const cpp = dados.find(l => l.slug === 'cpp') || dados[0];
-        if (cpp) {
-          setLeiSelecionada(cpp);
-          setDriveUrl(cpp.driveFolderUrl || 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4');
-        }
       } catch (err) {
         console.error('Erro ao carregar leis:', err);
         toast.error('Erro ao carregar lista de leis.');
       } finally {
-        setLoading(false);
+        setLoadingLeis(false);
       }
     }
     carregarLeis();
   }, []);
 
-  // 2. Carrega artigos da lei selecionada
+  // 2. Quando o usuário seleciona uma lei, carrega seus artigos e inicializa os controles
   useEffect(() => {
-    if (!leiSelecionada) return;
+    if (!leiSelecionada) {
+      setArtigos([]);
+      return;
+    }
+
+    setDriveUrl(leiSelecionada.driveFolderUrl || (leiSelecionada.slug === 'cpp' ? 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4' : ''));
+    setEditandoDriveUrl(!leiSelecionada.driveFolderUrl && leiSelecionada.slug !== 'cpp');
+    setTempoRestanteSegundos(600);
 
     let cancelado = false;
     async function carregarArtigos() {
@@ -96,11 +115,11 @@ export default function AdminNarracaoArtigos() {
         if (!cancelado) {
           setArtigos(itens);
 
-          // Atualizar os contadores na lista de leis
           const comAudio = itens.filter(a => a.temAudio).length;
           const pendentes = itens.length - comAudio;
           const perc = itens.length > 0 ? Math.round((comAudio / itens.length) * 100) : 0;
 
+          // Atualizar contadores na lista de leis
           setLeis(prev =>
             prev.map(l =>
               l.id === leiSelecionada!.id
@@ -110,7 +129,7 @@ export default function AdminNarracaoArtigos() {
           );
         }
       } catch (err) {
-        if (!cancelado) toast.error('Erro ao buscar artigos da lei.');
+        if (!cancelado) toast.error('Erro ao buscar artigos desta lei.');
       } finally {
         if (!cancelado) setLoadingArtigos(false);
       }
@@ -126,7 +145,6 @@ export default function AdminNarracaoArtigos() {
   useEffect(() => {
     if (!cronAtivo || !leiSelecionada) return;
 
-    // Se todos os artigos já tiverem áudio gravado, pausar cron automaticamente
     const pendentes = artigos.filter(a => !a.temAudio).length;
     if (artigos.length > 0 && pendentes === 0) {
       setCronAtivo(false);
@@ -137,9 +155,8 @@ export default function AdminNarracaoArtigos() {
     const interval = setInterval(() => {
       setTempoRestanteSegundos(prev => {
         if (prev <= 1) {
-          // Dispara a sincronização
           executarCicloSincronizacao();
-          return 600; // Reinicia para 10 minutos
+          return 600;
         }
         return prev - 1;
       });
@@ -148,7 +165,7 @@ export default function AdminNarracaoArtigos() {
     return () => clearInterval(interval);
   }, [cronAtivo, leiSelecionada?.id, artigos]);
 
-  // Função para executar ciclo de sincronização
+  // Executar ciclo de sincronização
   const executarCicloSincronizacao = async () => {
     if (isSyncing || !leiSelecionada) return;
     setIsSyncing(true);
@@ -162,7 +179,6 @@ export default function AdminNarracaoArtigos() {
     ]);
 
     try {
-      // Recarregar os artigos para pegar novos áudios que possam ter subido via background ou Drive
       const itens = await fetchArtigosDaLeiComNarracao(leiSelecionada.id);
       setArtigos(itens);
 
@@ -172,7 +188,7 @@ export default function AdminNarracaoArtigos() {
       setLogsSync(prev => [
         {
           hora: new Date().toLocaleTimeString('pt-BR'),
-          msg: `Verificação concluída: ${comAudio} com áudio, ${pendentes} pendentes.`,
+          msg: `Verificação concluída: ${comAudio} com áudio gravado, ${pendentes} pendentes.`,
           tipo: 'sucesso',
         },
         ...prev.slice(0, 40),
@@ -202,6 +218,20 @@ export default function AdminNarracaoArtigos() {
     if (!leiSelecionada) return;
     saveDriveUrl(leiSelecionada.id, driveUrl);
     saveDriveUrl(leiSelecionada.slug, driveUrl);
+    setEditandoDriveUrl(false);
+
+    setLeis(prev =>
+      prev.map(l => (l.id === leiSelecionada.id ? { ...l, driveFolderUrl: driveUrl } : l))
+    );
+
+    setLogsSync(prev => [
+      {
+        hora: new Date().toLocaleTimeString('pt-BR'),
+        msg: `Link da pasta do Drive atualizado para: ${driveUrl}`,
+        tipo: 'sucesso',
+      },
+      ...prev,
+    ]);
     toast.success('Link da pasta do Drive salvo para esta lei!');
   };
 
@@ -227,7 +257,7 @@ export default function AdminNarracaoArtigos() {
     }
   };
 
-  // Upload de arquivos (por seleção ou Drag & Drop)
+  // Upload por arrastar ou selecionar arquivos
   const processarArquivosAudio = async (files: FileList | File[]) => {
     if (!leiSelecionada || files.length === 0) return;
 
@@ -257,13 +287,12 @@ export default function AdminNarracaoArtigos() {
         continue;
       }
 
-      // Localizar o artigo correspondente na lei
       const artCorrespondente = artigos.find(a => normalizeArtigoKey(a.numero) === artigoKey);
       if (!artCorrespondente) {
         setLogsSync(prev => [
           {
             hora: new Date().toLocaleTimeString('pt-BR'),
-            msg: `Artigo "${artigoKey}" de "${file.name}" não encontrado no banco desta lei.`,
+            msg: `Artigo "${artigoKey}" de "${file.name}" não encontrado na base desta lei.`,
             tipo: 'erro',
           },
           ...prev,
@@ -271,7 +300,6 @@ export default function AdminNarracaoArtigos() {
         continue;
       }
 
-      // Enviar para o Supabase Storage e vincular
       const res = await vincularAudioAoArtigo({
         leiId: leiSelecionada.id,
         leiSlug: leiSelecionada.slug,
@@ -284,7 +312,6 @@ export default function AdminNarracaoArtigos() {
 
       if (res.success && res.audioUrl) {
         vinculadosComSucesso++;
-        // Atualizar estado em memória
         setArtigos(prev =>
           prev.map(a => (a.id === artCorrespondente.id ? { ...a, narracao_url: res.audioUrl!, temAudio: true } : a))
         );
@@ -310,31 +337,59 @@ export default function AdminNarracaoArtigos() {
 
     setUploadProgress(null);
     if (vinculadosComSucesso > 0) {
-      toast.success(`${vinculadosComSucesso} áudio(s) vinculado(s) ao Supabase com sucesso!`);
+      toast.success(`${vinculadosComSucesso} áudio(s) vinculado(s) ao Supabase Storage!`);
     }
   };
 
-  // Filtragem dos artigos
+  // Filtro de leis por categoria e busca
+  const leisFiltradas = useMemo(() => {
+    return leis.filter(lei => {
+      if (categoriaAtiva !== 'Todas' && lei.categoriaFormatada !== categoriaAtiva) {
+        return false;
+      }
+      if (buscaLei.trim()) {
+        const termo = buscaLei.toLowerCase();
+        const matchNome = lei.nome.toLowerCase().includes(termo);
+        const matchSlug = lei.slug.toLowerCase().includes(termo);
+        return matchNome || matchSlug;
+      }
+      return true;
+    });
+  }, [leis, categoriaAtiva, buscaLei]);
+
+  // Contagem por categoria
+  const contagensPorCategoria = useMemo(() => {
+    const cont: Record<string, number> = {
+      Todas: leis.length,
+      Códigos: 0,
+      Estatutos: 0,
+      Constituição: 0,
+      'Leis Ordinárias': 0,
+    };
+    leis.forEach(l => {
+      if (cont[l.categoriaFormatada] !== undefined) {
+        cont[l.categoriaFormatada]++;
+      }
+    });
+    return cont;
+  }, [leis]);
+
+  // Filtro de artigos dentro da lei selecionada
   const artigosFiltrados = useMemo(() => {
     return artigos.filter(a => {
-      // Filtro de aba
-      if (abaAtiva === 'faltando' && a.temAudio) return false;
-      if (abaAtiva === 'com_audio' && !a.temAudio) return false;
+      if (abaArtigo === 'faltando' && a.temAudio) return false;
+      if (abaArtigo === 'com_audio' && !a.temAudio) return false;
 
-      // Filtro de busca de texto
-      if (busca.trim()) {
-        const termo = busca.toLowerCase();
+      if (buscaArtigo.trim()) {
+        const termo = buscaArtigo.toLowerCase();
         const matchNum = a.numero.toLowerCase().includes(termo) || a.numeroFormatado.toLowerCase().includes(termo);
         const matchTexto = a.texto.toLowerCase().includes(termo);
         return matchNum || matchTexto;
       }
       return true;
     });
-  }, [artigos, abaAtiva, busca]);
+  }, [artigos, abaArtigo, buscaArtigo]);
 
-
-
-  // Formata o cronômetro mm:ss
   const formatTimer = (seg: number) => {
     const m = Math.floor(seg / 60);
     const s = seg % 60;
@@ -343,452 +398,619 @@ export default function AdminNarracaoArtigos() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-24 font-sans selection:bg-cyan-500/30">
-      <PageHeader
-        title="Narração de Artigo"
-        subtitle="Sincronização contínua de áudios narrados do Drive para o Supabase Storage"
-        onBack={() => navigate('/admin-funcoes')}
-      />
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* CASO 1: VISÃO DE LISTA DE LEIS ORGANIZADA POR CATEGORIAS          */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {!leiSelecionada ? (
+        <div>
+          <PageHeader
+            title="Narração de Artigo"
+            subtitle="Selecione uma lei para gerenciar a pasta do Drive, progresso e histórico"
+            onBack={() => navigate('/admin-funcoes')}
+          />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 space-y-6">
-        {/* TOP BAR: Seletor de Lei & Resumo */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            {/* Seletor da Lei */}
-            <div className="flex-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-1.5 flex items-center gap-1.5">
-                <Mic className="w-3.5 h-3.5" /> Lei em Sincronização
-              </label>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 space-y-6">
+            {/* BARRA DE FILTROS & BUSCA DE LEIS */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* Campo de Busca */}
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={buscaLei}
+                    onChange={e => setBuscaLei(e.target.value)}
+                    placeholder="Buscar por nome da lei (ex: Processo Penal, Civil, CLT, OAB)..."
+                    className="w-full bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all"
+                  />
+                </div>
 
-              <div className="relative">
-                <select
-                  value={leiSelecionada?.id || ''}
-                  onChange={e => {
-                    const sel = leis.find(l => l.id === e.target.value);
-                    if (sel) {
-                      setLeiSelecionada(sel);
-                      setDriveUrl(sel.driveFolderUrl || '');
-                      setTempoRestanteSegundos(600);
-                    }
-                  }}
-                  className="w-full bg-slate-950 border border-slate-700 hover:border-cyan-500/50 rounded-xl px-4 py-3 text-sm font-medium text-slate-100 appearance-none pr-10 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all cursor-pointer"
-                >
-                  {leis.map(l => (
-                    <option key={l.id} value={l.id}>
-                      {l.nome} ({l.slug.toUpperCase()}) — {l.totalComAudio}/{l.totalArtigos} gravados ({l.percentual}%)
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <div className="text-xs text-slate-400 font-medium px-2 flex items-center gap-1.5 self-end sm:self-auto">
+                  <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                  {leisFiltradas.length} leis listadas
+                </div>
+              </div>
+
+              {/* Categorias (Códigos, Estatutos, Constituição, etc.) */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {[
+                  { id: 'Todas' as CategoriaFiltro, label: 'Todas', icon: Layers },
+                  { id: 'Códigos' as CategoriaFiltro, label: 'Códigos', icon: Landmark },
+                  { id: 'Estatutos' as CategoriaFiltro, label: 'Estatutos', icon: Scale },
+                  { id: 'Constituição' as CategoriaFiltro, label: 'Constituição', icon: BookOpen },
+                  { id: 'Leis Ordinárias' as CategoriaFiltro, label: 'Leis Ordinárias', icon: FileText },
+                ].map(cat => {
+                  const Icon = cat.icon;
+                  const ativa = categoriaAtiva === cat.id;
+                  const total = contagensPorCategoria[cat.id] || 0;
+
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setCategoriaAtiva(cat.id)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-2 border transition-all ${
+                        ativa
+                          ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-lg shadow-cyan-500/10'
+                          : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                      }`}
+                    >
+                      <Icon className={`w-3.5 h-3.5 ${ativa ? 'text-cyan-400' : 'text-slate-500'}`} />
+                      {cat.label}
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                          ativa ? 'bg-cyan-500/30 text-cyan-200' : 'bg-slate-800 text-slate-400'
+                        }`}
+                      >
+                        {total}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Destaque rápido CPP */}
-            <div className="flex items-center gap-2">
+            {/* LISTAGEM DE LEIS EM CARDS */}
+            {loadingLeis ? (
+              <div className="py-20 text-center text-slate-400">
+                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-3 text-cyan-400" />
+                <p className="text-sm font-medium">Carregando catálogo de leis e métricas de narração...</p>
+              </div>
+            ) : leisFiltradas.length === 0 ? (
+              <div className="py-20 text-center text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+                <AlertCircle className="w-10 h-10 mx-auto text-slate-600 mb-2" />
+                <p className="text-sm font-medium text-slate-300">Nenhuma lei encontrada com este filtro</p>
+                <p className="text-xs text-slate-500 mt-1">Tente buscar por outro termo ou categoria.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {leisFiltradas.map(lei => {
+                  const temDrive = !!lei.driveFolderUrl || lei.slug === 'cpp';
+                  const isCPP = lei.slug === 'cpp';
+
+                  return (
+                    <div
+                      key={lei.id}
+                      onClick={() => setLeiSelecionada(lei)}
+                      className={`group relative bg-slate-900/90 hover:bg-slate-900 border rounded-2xl p-5 shadow-lg hover:shadow-cyan-500/5 transition-all cursor-pointer flex flex-col justify-between space-y-4 ${
+                        isCPP
+                          ? 'border-cyan-500/60 ring-1 ring-cyan-500/30 bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950/20'
+                          : 'border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div>
+                        {/* Topo do Card: Categoria & Sigla */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                            {lei.categoriaFormatada}
+                          </span>
+
+                          <div className="flex items-center gap-1.5">
+                            {temDrive ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-900/60 px-2 py-0.5 rounded-full">
+                                <CheckCircle2 className="w-3 h-3" /> Drive Vinculado
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 bg-slate-950 px-2 py-0.5 rounded-full border border-slate-800">
+                                Sem pasta
+                              </span>
+                            )}
+
+                            <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/40 border border-cyan-900/40 px-2 py-0.5 rounded-md">
+                              {lei.slug.toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Nome da Lei */}
+                        <h3 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-2 leading-snug">
+                          {lei.nome}
+                        </h3>
+                      </div>
+
+                      {/* Progresso de Narração */}
+                      <div className="space-y-2 pt-2 border-t border-slate-800/80">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400">Progresso</span>
+                          <span className="font-bold text-white">
+                            {lei.totalComAudio} / {lei.totalArtigos}{' '}
+                            <span className="text-cyan-400 text-[11px] font-mono">({lei.percentual}%)</span>
+                          </span>
+                        </div>
+
+                        {/* Barra */}
+                        <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden border border-slate-800">
+                          <div
+                            className="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full rounded-full transition-all duration-300"
+                            style={{ width: `${lei.percentual}%` }}
+                          />
+                        </div>
+
+                        {/* Rodapé com botão de ação */}
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="text-[11px] text-amber-400/90 font-medium">
+                            {lei.totalPendentes} pendentes
+                          </span>
+
+                          <span className="text-xs font-semibold text-cyan-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                            Gerenciar <ChevronRight className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* ══════════════════════════════════════════════════════════════════ */
+        /* CASO 2: PAINEL DETALHADO DA LEI SELECIONADA (EX: CPP)             */
+        /* ══════════════════════════════════════════════════════════════════ */
+        <div>
+          {/* Cabeçalho com botão para voltar à lista de leis */}
+          <div className="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-30 backdrop-blur-md">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
               <button
-                onClick={() => {
-                  const cpp = leis.find(l => l.slug === 'cpp');
-                  if (cpp) {
-                    setLeiSelecionada(cpp);
-                    setDriveUrl(cpp.driveFolderUrl || 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4');
-                  }
-                }}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
-                  leiSelecionada?.slug === 'cpp'
-                    ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-lg shadow-cyan-500/10'
-                    : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-600'
-                }`}
+                onClick={() => setLeiSelecionada(null)}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold border border-slate-700 transition-all"
               >
-                <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                Processo Penal (CPP)
+                <ArrowLeft className="w-4 h-4" />
+                Voltar para as Leis
               </button>
+
+              <div className="text-right">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block">
+                  {leiSelecionada.categoriaFormatada}
+                </span>
+                <span className="text-xs font-bold text-white">
+                  {leiSelecionada.nome} ({leiSelecionada.slug.toUpperCase()})
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Cards de Métricas da Lei */}
-          {leiSelecionada && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5 pt-5 border-t border-slate-800">
-              <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
-                <span className="text-xs text-slate-400 block mb-1">Total de Artigos</span>
-                <span className="text-2xl font-bold text-white tracking-tight">{artigos.length}</span>
-                <span className="text-[11px] text-slate-500 block mt-0.5">artigos reais numerados</span>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 space-y-6">
+            {/* CARD 1: STATUS DA PASTA DO GOOGLE DRIVE */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                    <FolderSync className="w-4 h-4 text-cyan-400" />
+                    Pasta do Google Drive com os Áudios Narrados
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Os áudios gerados nesta pasta serão baixados e salvos permanentemente no Supabase Storage.
+                  </p>
+                </div>
+
+                {driveUrl && !editandoDriveUrl && (
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={driveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                    >
+                      Abrir no Drive <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                    <button
+                      onClick={() => setEditandoDriveUrl(true)}
+                      className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
+                      title="Editar Link da Pasta"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div className="bg-emerald-950/20 border border-emerald-900/40 rounded-xl p-3.5">
-                <span className="text-xs text-emerald-400 block mb-1 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Sincronizados
-                </span>
-                <span className="text-2xl font-bold text-emerald-300 tracking-tight">
-                  {artigos.filter(a => a.temAudio).length}
-                </span>
-                <span className="text-[11px] text-emerald-500 block mt-0.5">no Supabase Storage</span>
-              </div>
+              {/* Exibição do Link ou Input de Edição */}
+              {editandoDriveUrl ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={driveUrl}
+                    onChange={e => setDriveUrl(e.target.value)}
+                    placeholder="https://drive.google.com/drive/folders/..."
+                    className="flex-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                  />
+                  <button
+                    onClick={handleSalvarDriveUrl}
+                    className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-cyan-600/20 whitespace-nowrap flex items-center gap-1.5"
+                  >
+                    <Check className="w-3.5 h-3.5" /> Salvar Link
+                  </button>
+                  {leiSelecionada.driveFolderUrl && (
+                    <button
+                      onClick={() => setEditandoDriveUrl(false)}
+                      className="px-3 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium hover:bg-slate-700"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <span className="text-xs font-mono text-slate-300 truncate">{driveUrl}</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-900 px-2 py-0.5 rounded-full flex-shrink-0">
+                    Pasta Ativa
+                  </span>
+                </div>
+              )}
 
-              <div className="bg-amber-950/20 border border-amber-900/40 rounded-xl p-3.5">
-                <span className="text-xs text-amber-400 block mb-1 flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5" /> Faltando
-                </span>
-                <span className="text-2xl font-bold text-amber-300 tracking-tight">
-                  {artigos.filter(a => !a.temAudio).length}
-                </span>
-                <span className="text-[11px] text-amber-500 block mt-0.5">aguardando geração</span>
-              </div>
+              {/* CARD DE MÉTRICAS */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-slate-800">
+                <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+                  <span className="text-xs text-slate-400 block mb-1">Total de Artigos</span>
+                  <span className="text-2xl font-bold text-white tracking-tight">{artigos.length}</span>
+                  <span className="text-[11px] text-slate-500 block mt-0.5">artigos reais numerados</span>
+                </div>
 
-              <div className="bg-cyan-950/20 border border-cyan-900/40 rounded-xl p-3.5">
-                <span className="text-xs text-cyan-400 block mb-1 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5" /> Progresso Geral
-                </span>
-                <div className="flex items-baseline gap-2">
+                <div className="bg-emerald-950/20 border border-emerald-900/40 rounded-xl p-3.5">
+                  <span className="text-xs text-emerald-400 block mb-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Já Narrados
+                  </span>
+                  <span className="text-2xl font-bold text-emerald-300 tracking-tight">
+                    {artigos.filter(a => a.temAudio).length}
+                  </span>
+                  <span className="text-[11px] text-emerald-500 block mt-0.5">no Supabase Storage</span>
+                </div>
+
+                <div className="bg-amber-950/20 border border-amber-900/40 rounded-xl p-3.5">
+                  <span className="text-xs text-amber-400 block mb-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> Faltando
+                  </span>
+                  <span className="text-2xl font-bold text-amber-300 tracking-tight">
+                    {artigos.filter(a => !a.temAudio).length}
+                  </span>
+                  <span className="text-[11px] text-amber-500 block mt-0.5">aguardando geração</span>
+                </div>
+
+                <div className="bg-cyan-950/20 border border-cyan-900/40 rounded-xl p-3.5">
+                  <span className="text-xs text-cyan-400 block mb-1 flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" /> Progresso
+                  </span>
                   <span className="text-2xl font-bold text-cyan-300 tracking-tight">
                     {artigos.length > 0
                       ? Math.round((artigos.filter(a => a.temAudio).length / artigos.length) * 100)
                       : 0}
                     %
                   </span>
-                </div>
-                {/* Barra de progresso */}
-                <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${
-                        artigos.length > 0
-                          ? (artigos.filter(a => a.temAudio).length / artigos.length) * 100
-                          : 0
-                      }%`,
-                    }}
-                  />
+                  <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${
+                          artigos.length > 0
+                            ? (artigos.filter(a => a.temAudio).length / artigos.length) * 100
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* CONTROLES: Google Drive URL & Cron Job 10 minutos */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Card: Configuração da Pasta do Drive */}
-          <div className="lg:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                <FolderSync className="w-4 h-4 text-cyan-400" />
-                Pasta do Google Drive com os Áudios
-              </h2>
-              {driveUrl && (
-                <a
-                  href={driveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 hover:underline"
-                >
-                  Abrir no Drive <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-            </div>
+            {/* CONTROLES: Cron Job & Upload Rápido */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Card Cron Job (10 minutos) */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-cyan-400" />
+                    Cron Job (10 min)
+                  </h3>
 
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={driveUrl}
-                onChange={e => setDriveUrl(e.target.value)}
-                placeholder="https://drive.google.com/drive/folders/..."
-                className="flex-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-              />
-              <button
-                onClick={handleSalvarDriveUrl}
-                className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-cyan-600/20 whitespace-nowrap"
-              >
-                Salvar Link
-              </button>
-            </div>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                      cronAtivo
+                        ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+                        : 'bg-slate-800 border-slate-700 text-slate-400'
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        cronAtivo ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'
+                      }`}
+                    />
+                    {cronAtivo ? 'Ativo' : 'Pausado'}
+                  </span>
+                </div>
 
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Cole o link da pasta do Google Drive onde os áudios gerados pelo seu processo estão sendo salvos.
-              O sistema monitora a cada 10 minutos e baixa novos áudios para o Supabase Storage.
-            </p>
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 text-center">
+                  <span className="text-[11px] text-slate-400 block mb-0.5">Próxima checagem em</span>
+                  <span className="text-3xl font-mono font-bold text-cyan-400">
+                    {cronAtivo ? formatTimer(tempoRestanteSegundos) : '--:--'}
+                  </span>
+                  <span className="text-[10px] text-slate-500 block mt-1">
+                    {ultimaExecucao ? `Última: ${ultimaExecucao}` : 'Aguardando ciclo inicial'}
+                  </span>
+                </div>
 
-            {/* Zona de Upload Direto / Drag & Drop */}
-            <div
-              onDragOver={e => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={e => {
-                e.preventDefault();
-                setIsDragging(false);
-                if (e.dataTransfer.files) {
-                  processarArquivosAudio(e.dataTransfer.files);
-                }
-              }}
-              className={`border-2 border-dashed rounded-xl p-5 text-center transition-all ${
-                isDragging
-                  ? 'border-cyan-400 bg-cyan-950/20'
-                  : 'border-slate-800 hover:border-slate-700 bg-slate-950/40'
-              }`}
-            >
-              <UploadCloud className="w-7 h-7 mx-auto text-slate-400 mb-2" />
-              <p className="text-xs font-medium text-slate-200">
-                Arraste arquivos de áudio narrados (.mp3, .wav) para sincronização imediata
-              </p>
-              <p className="text-[11px] text-slate-500 mt-1">
-                Ou clique para selecionar arquivos da pasta baixada
-              </p>
-              <label className="inline-block mt-3 px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg cursor-pointer transition-colors border border-slate-700">
-                Selecionar Áudios
-                <input
-                  type="file"
-                  multiple
-                  accept="audio/mp3,audio/wav,audio/*"
-                  className="hidden"
-                  onChange={e => {
-                    if (e.target.files) {
-                      processarArquivosAudio(e.target.files);
+                <div className="space-y-2">
+                  <button
+                    onClick={executarCicloSincronizacao}
+                    disabled={isSyncing}
+                    className="w-full py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md shadow-cyan-600/20 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                    {isSyncing ? 'Verificando Agora...' : 'Sincronizar Agora'}
+                  </button>
+
+                  <button
+                    onClick={() => setCronAtivo(!cronAtivo)}
+                    className={`w-full py-2 rounded-xl text-xs font-medium border transition-colors ${
+                      cronAtivo
+                        ? 'border-red-900/40 text-red-400 hover:bg-red-950/20'
+                        : 'border-emerald-900/40 text-emerald-400 hover:bg-emerald-950/20'
+                    }`}
+                  >
+                    {cronAtivo ? 'Pausar Temporizador' : 'Ativar Temporizador (10 min)'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Card Ingestão Drag & Drop */}
+              <div className="lg:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4">
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2 mb-1">
+                    <UploadCloud className="w-4 h-4 text-cyan-400" />
+                    Ingestão Direta de Áudios (Upload / Drag & Drop)
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Você também pode soltar os arquivos baixados da pasta para vinculação imediata no Supabase Storage.
+                  </p>
+                </div>
+
+                <div
+                  onDragOver={e => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={e => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    if (e.dataTransfer.files) {
+                      processarArquivosAudio(e.dataTransfer.files);
                     }
                   }}
-                />
-              </label>
+                  className={`border-2 border-dashed rounded-xl p-6 text-center transition-all ${
+                    isDragging
+                      ? 'border-cyan-400 bg-cyan-950/20'
+                      : 'border-slate-800 hover:border-slate-700 bg-slate-950/40'
+                  }`}
+                >
+                  <UploadCloud className="w-8 h-8 mx-auto text-slate-400 mb-2" />
+                  <p className="text-xs font-medium text-slate-200">
+                    Arraste arquivos de áudio narrados (.mp3, .wav) aqui
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    O sistema identifica o número do artigo automaticamente pelo nome do arquivo
+                  </p>
+                  <label className="inline-block mt-3 px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg cursor-pointer transition-colors border border-slate-700">
+                    Selecionar Arquivos
+                    <input
+                      type="file"
+                      multiple
+                      accept="audio/mp3,audio/wav,audio/*"
+                      className="hidden"
+                      onChange={e => {
+                        if (e.target.files) {
+                          processarArquivosAudio(e.target.files);
+                        }
+                      }}
+                    />
+                  </label>
 
-              {uploadProgress && (
-                <div className="mt-3 text-xs text-cyan-300 animate-pulse">
-                  Enviando {uploadProgress.atual} de {uploadProgress.total} para o Supabase Storage...
+                  {uploadProgress && (
+                    <div className="mt-3 text-xs text-cyan-300 animate-pulse">
+                      Enviando {uploadProgress.atual} de {uploadProgress.total} para o Supabase Storage...
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* LISTAGEM DOS ARTIGOS DA LEI COM ABAS */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* Abas */}
+                <div className="flex items-center gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 self-start">
+                  <button
+                    onClick={() => setAbaArtigo('faltando')}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      abaArtigo === 'faltando'
+                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Faltando ({artigos.filter(a => !a.temAudio).length})
+                  </button>
+
+                  <button
+                    onClick={() => setAbaArtigo('com_audio')}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      abaArtigo === 'com_audio'
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Com Áudio ({artigos.filter(a => a.temAudio).length})
+                  </button>
+
+                  <button
+                    onClick={() => setAbaArtigo('todos')}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      abaArtigo === 'todos'
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Todos ({artigos.length})
+                  </button>
+                </div>
+
+                {/* Campo de Busca de Artigo */}
+                <div className="relative w-full sm:w-72">
+                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={buscaArtigo}
+                    onChange={e => setBuscaArtigo(e.target.value)}
+                    placeholder="Buscar artigo ou termo..."
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                  />
+                </div>
+              </div>
+
+              {/* Listagem */}
+              {loadingArtigos ? (
+                <div className="py-16 text-center text-slate-400">
+                  <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-cyan-400" />
+                  <p className="text-xs">Carregando artigos de {leiSelecionada.nome}...</p>
+                </div>
+              ) : artigosFiltrados.length === 0 ? (
+                <div className="py-16 text-center text-slate-500 border border-dashed border-slate-800 rounded-xl">
+                  <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500/40 mb-2" />
+                  <p className="text-sm font-medium text-slate-300">Nenhum artigo encontrado nesta categoria</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {abaArtigo === 'faltando'
+                      ? 'Todos os artigos desta listagem já foram narrados!'
+                      : 'Nenhum item corresponde ao filtro.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-800/60 max-h-[560px] overflow-y-auto rounded-xl border border-slate-800/80 bg-slate-950/40">
+                  {artigosFiltrados.map(artigo => (
+                    <div
+                      key={artigo.id}
+                      className="p-3.5 hover:bg-slate-900/60 transition-colors flex items-start justify-between gap-4"
+                    >
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-white bg-slate-800 px-2.5 py-0.5 rounded-md">
+                            {artigo.numeroFormatado}
+                          </span>
+
+                          {artigo.temAudio ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-900/60 px-2 py-0.5 rounded-full">
+                              <CheckCircle2 className="w-3 h-3" /> No Storage
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-400 bg-amber-950/40 border border-amber-900/60 px-2 py-0.5 rounded-full">
+                              <AlertCircle className="w-3 h-3" /> Faltando Gravar
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                          {artigo.texto}
+                        </p>
+                      </div>
+
+                      {/* Ações de Áudio */}
+                      <div className="flex items-center gap-2 flex-shrink-0 pt-0.5">
+                        {artigo.temAudio && (
+                          <button
+                            onClick={() => handleTogglePlay(artigo.id, artigo.narracao_url)}
+                            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                              audioTocandoId === artigo.id
+                                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30'
+                                : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                            }`}
+                            title="Ouvir Narração"
+                          >
+                            {audioTocandoId === artigo.id ? (
+                              <>
+                                <Pause className="w-3.5 h-3.5" /> Pausar
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-3.5 h-3.5" /> Ouvir
+                              </>
+                            )}
+                          </button>
+                        )}
+
+                        <label
+                          className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 cursor-pointer transition-colors"
+                          title="Subir áudio deste artigo manualmente"
+                        >
+                          <FileAudio className="w-3.5 h-3.5" />
+                          <input
+                            type="file"
+                            accept="audio/*"
+                            className="hidden"
+                            onChange={e => {
+                              if (e.target.files && e.target.files[0]) {
+                                processarArquivosAudio([e.target.files[0]]);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Card: Cron Job a cada 10 minutos */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-cyan-400" />
-                  Cron Job de Atualização
-                </h2>
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
-                    cronAtivo
-                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                      : 'bg-slate-800 border-slate-700 text-slate-400'
-                  }`}
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      cronAtivo ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'
-                    }`}
-                  />
-                  {cronAtivo ? 'Ativo (10 min)' : 'Pausado'}
-                </span>
-              </div>
-
-              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 text-center my-3">
-                <span className="text-[11px] text-slate-400 block mb-1">Próxima verificação em</span>
-                <span className="text-3xl font-mono font-bold text-cyan-400 tracking-wider">
-                  {cronAtivo ? formatTimer(tempoRestanteSegundos) : '--:--'}
-                </span>
-                <span className="text-[10px] text-slate-500 block mt-1">
-                  {ultimaExecucao ? `Última checagem: ${ultimaExecucao}` : 'Aguardando primeiro ciclo'}
-                </span>
-              </div>
-
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                O cron job roda a cada 10 minutos procurando novos arquivos gerados na pasta.
-                Ele para automaticamente assim que todos os artigos forem concluídos.
-              </p>
-            </div>
-
-            <div className="space-y-2 pt-2">
-              <button
-                onClick={executarCicloSincronizacao}
-                disabled={isSyncing}
-                className="w-full py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md shadow-cyan-600/20 disabled:opacity-50"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? 'Verificando Agora...' : 'Sincronizar Agora'}
-              </button>
-
-              <button
-                onClick={() => setCronAtivo(!cronAtivo)}
-                className={`w-full py-2 rounded-xl text-xs font-medium border transition-colors ${
-                  cronAtivo
-                    ? 'border-red-900/40 text-red-400 hover:bg-red-950/20'
-                    : 'border-emerald-900/40 text-emerald-400 hover:bg-emerald-950/20'
-                }`}
-              >
-                {cronAtivo ? 'Pausar Temporizador' : 'Retomar Temporizador (10 min)'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* LISTA DE ARTIGOS COM ABAS */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            {/* Abas */}
-            <div className="flex items-center gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 self-start">
-              <button
-                onClick={() => setAbaAtiva('faltando')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                  abaAtiva === 'faltando'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <AlertCircle className="w-3.5 h-3.5" />
-                Faltando ({artigos.filter(a => !a.temAudio).length})
-              </button>
-
-              <button
-                onClick={() => setAbaAtiva('com_audio')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                  abaAtiva === 'com_audio'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Com Áudio ({artigos.filter(a => a.temAudio).length})
-              </button>
-
-              <button
-                onClick={() => setAbaAtiva('todos')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                  abaAtiva === 'todos'
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Todos ({artigos.length})
-              </button>
-            </div>
-
-            {/* Campo de Busca de Artigo */}
-            <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={busca}
-                onChange={e => setBusca(e.target.value)}
-                placeholder="Buscar artigo ou termo..."
-                className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-              />
-            </div>
-          </div>
-
-          {/* Listagem */}
-          {loadingArtigos ? (
-            <div className="py-16 text-center text-slate-400">
-              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-cyan-400" />
-              <p className="text-xs">Carregando artigos de {leiSelecionada?.nome}...</p>
-            </div>
-          ) : artigosFiltrados.length === 0 ? (
-            <div className="py-16 text-center text-slate-500 border border-dashed border-slate-800 rounded-xl">
-              <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500/40 mb-2" />
-              <p className="text-sm font-medium text-slate-300">Nenhum artigo encontrado nesta categoria</p>
-              <p className="text-xs text-slate-500 mt-1">
-                {abaAtiva === 'faltando'
-                  ? 'Todos os artigos desta listagem já foram narrados!'
-                  : 'Nenhum item corresponde ao filtro.'}
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-800/60 max-h-[560px] overflow-y-auto rounded-xl border border-slate-800/80 bg-slate-950/40">
-              {artigosFiltrados.map(artigo => (
-                <div
-                  key={artigo.id}
-                  className="p-3.5 hover:bg-slate-900/60 transition-colors flex items-start justify-between gap-4"
-                >
-                  <div className="space-y-1 flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white bg-slate-800 px-2.5 py-0.5 rounded-md">
-                        {artigo.numeroFormatado}
-                      </span>
-
-                      {artigo.temAudio ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-900/60 px-2 py-0.5 rounded-full">
-                          <CheckCircle2 className="w-3 h-3" /> No Storage
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-400 bg-amber-950/40 border border-amber-900/60 px-2 py-0.5 rounded-full">
-                          <AlertCircle className="w-3 h-3" /> Faltando Gravar
-                        </span>
-                      )}
+            {/* LOGS DA SINCRONIZAÇÃO / HISTÓRICO */}
+            {logsSync.length > 0 && (
+              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Radio className="w-3 h-3 text-cyan-400" /> Registro de Atividades e Histórico
+                </h3>
+                <div className="bg-slate-950 rounded-xl p-3 max-h-36 overflow-y-auto space-y-1 font-mono text-[11px]">
+                  {logsSync.map((log, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-start gap-2 ${
+                        log.tipo === 'sucesso'
+                          ? 'text-emerald-400'
+                          : log.tipo === 'erro'
+                          ? 'text-red-400'
+                          : 'text-slate-400'
+                      }`}
+                    >
+                      <span className="text-slate-600">[{log.hora}]</span>
+                      <span>{log.msg}</span>
                     </div>
-
-                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                      {artigo.texto}
-                    </p>
-                  </div>
-
-                  {/* Ações de Áudio */}
-                  <div className="flex items-center gap-2 flex-shrink-0 pt-0.5">
-                    {artigo.temAudio && (
-                      <button
-                        onClick={() => handleTogglePlay(artigo.id, artigo.narracao_url)}
-                        className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                          audioTocandoId === artigo.id
-                            ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30'
-                            : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
-                        }`}
-                        title="Ouvir Narração"
-                      >
-                        {audioTocandoId === artigo.id ? (
-                          <>
-                            <Pause className="w-3.5 h-3.5" /> Pausar
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-3.5 h-3.5" /> Ouvir
-                          </>
-                        )}
-                      </button>
-                    )}
-
-                    {/* Botão de upload pontual para este artigo */}
-                    <label className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 cursor-pointer transition-colors" title="Subir áudio deste artigo manualmente">
-                      <FileAudio className="w-3.5 h-3.5" />
-                      <input
-                        type="file"
-                        accept="audio/*"
-                        className="hidden"
-                        onChange={e => {
-                          if (e.target.files && e.target.files[0]) {
-                            processarArquivosAudio([e.target.files[0]]);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* LOGS DA SINCRONIZAÇÃO */}
-        {logsSync.length > 0 && (
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Radio className="w-3 h-3 text-cyan-400" /> Registro de Atividades da Sincronização
-            </h3>
-            <div className="bg-slate-950 rounded-xl p-3 max-h-36 overflow-y-auto space-y-1 font-mono text-[11px]">
-              {logsSync.map((log, idx) => (
-                <div
-                  key={idx}
-                  className={`flex items-start gap-2 ${
-                    log.tipo === 'sucesso'
-                      ? 'text-emerald-400'
-                      : log.tipo === 'erro'
-                      ? 'text-red-400'
-                      : 'text-slate-400'
-                  }`}
-                >
-                  <span className="text-slate-600">[{log.hora}]</span>
-                  <span>{log.msg}</span>
-                </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

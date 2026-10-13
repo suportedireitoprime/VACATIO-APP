@@ -1,16 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export interface LeiNarracaoItem {
-  id: string;
-  slug: string;
-  nome: string;
-  categoria?: string;
-  totalArtigos: number;
-  totalComAudio: number;
-  totalPendentes: number;
-  percentual: number;
-  driveFolderUrl?: string;
-}
+
 
 export interface ArtigoNarracaoItem {
   id: string;
@@ -143,6 +133,42 @@ export function saveDriveUrl(leiIdOrSlug: string, url: string): void {
   }
 }
 
+export interface LeiNarracaoItem {
+  id: string;
+  slug: string;
+  nome: string;
+  categoria?: string;
+  categoriaFormatada: 'Códigos' | 'Estatutos' | 'Constituição' | 'Leis Ordinárias' | 'Geral';
+  totalArtigos: number;
+  totalComAudio: number;
+  totalPendentes: number;
+  percentual: number;
+  driveFolderUrl?: string;
+}
+
+/**
+ * Normaliza e formata a categoria da lei
+ */
+export function formatCategoriaLei(lei: { slug?: string; nome?: string; categoria?: string }): 'Códigos' | 'Estatutos' | 'Constituição' | 'Leis Ordinárias' | 'Geral' {
+  const slug = (lei.slug || '').toLowerCase();
+  const nome = (lei.nome || '').toLowerCase();
+  const cat = (lei.categoria || '').toLowerCase();
+
+  if (slug === 'cf' || slug === 'cf88' || nome.includes('constituição') || nome.includes('constituicao')) {
+    return 'Constituição';
+  }
+  if (cat === 'codigo' || nome.includes('código') || nome.includes('codigo') || slug === 'clt') {
+    return 'Códigos';
+  }
+  if (cat === 'estatuto' || nome.includes('estatuto')) {
+    return 'Estatutos';
+  }
+  if (cat === 'lei') {
+    return 'Leis Ordinárias';
+  }
+  return 'Geral';
+}
+
 /**
  * Busca todas as leis principais com métricas de narração
  */
@@ -159,42 +185,60 @@ export async function fetchLeisComMetricasNarracao(): Promise<LeiNarracaoItem[]>
 
   const driveUrls = getSavedDriveUrls();
 
-  // Buscar contagem de artigos para cada lei
-  const results: LeiNarracaoItem[] = [];
+  // Executar contagens com concorrência controlada
+  const results = await Promise.all(
+    leis.map(async (lei) => {
+      const { data: artigos } = await supabase
+        .from('vade_mecum_artigos')
+        .select('id, numero, narracao_url')
+        .eq('lei_id', lei.id);
 
-  for (const lei of leis) {
-    const { data: artigos } = await supabase
-      .from('vade_mecum_artigos')
-      .select('id, numero, narracao_url')
-      .eq('lei_id', lei.id);
+      const artigosReais = (artigos || []).filter(a => isArtigoReal(a.numero));
+      const totalArtigos = artigosReais.length;
+      if (totalArtigos === 0) return null; // Pula leis sem artigos
 
-    const artigosReais = (artigos || []).filter(a => isArtigoReal(a.numero));
-    const totalArtigos = artigosReais.length;
-    if (totalArtigos === 0) continue; // Pular leis vazias
+      const comAudio = artigosReais.filter(a => !!a.narracao_url && a.narracao_url.trim().length > 0).length;
+      const pendentes = Math.max(0, totalArtigos - comAudio);
+      const percentual = totalArtigos > 0 ? Math.round((comAudio / totalArtigos) * 100) : 0;
+      const categoriaFormatada = formatCategoriaLei(lei);
 
-    const comAudio = artigosReais.filter(a => !!a.narracao_url && a.narracao_url.trim().length > 0).length;
-    const pendentes = Math.max(0, totalArtigos - comAudio);
-    const percentual = totalArtigos > 0 ? Math.round((comAudio / totalArtigos) * 100) : 0;
+      return {
+        id: lei.id,
+        slug: lei.slug || '',
+        nome: lei.nome,
+        categoria: lei.categoria || 'Geral',
+        categoriaFormatada,
+        totalArtigos,
+        totalComAudio: comAudio,
+        totalPendentes: pendentes,
+        percentual,
+        driveFolderUrl: driveUrls[lei.id] || driveUrls[lei.slug || ''] || '',
+      } as LeiNarracaoItem;
+    })
+  );
 
-    results.push({
-      id: lei.id,
-      slug: lei.slug || '',
-      nome: lei.nome,
-      categoria: lei.categoria || 'Geral',
-      totalArtigos,
-      totalComAudio: comAudio,
-      totalPendentes: pendentes,
-      percentual,
-      driveFolderUrl: driveUrls[lei.id] || driveUrls[lei.slug || ''] || '',
-    });
-  }
+  const filtrados = results.filter((r): r is LeiNarracaoItem => r !== null);
 
-  // Ordenar para colocar o Código de Processo Penal e leis mais populares primeiro
-  return results.sort((a, b) => {
+  // Ordenação prioritária: Códigos primeiro (com CPP e CP no topo), depois Estatutos, Constituição, etc.
+  return filtrados.sort((a, b) => {
+    // CPP sempre em primeiro
     if (a.slug === 'cpp') return -1;
     if (b.slug === 'cpp') return 1;
     if (a.slug === 'cp') return -1;
     if (b.slug === 'cp') return 1;
+
+    // Ordem das categorias
+    const pesoCat: Record<string, number> = {
+      'Códigos': 1,
+      'Estatutos': 2,
+      'Constituição': 3,
+      'Leis Ordinárias': 4,
+      'Geral': 5,
+    };
+    const pesoA = pesoCat[a.categoriaFormatada] || 99;
+    const pesoB = pesoCat[b.categoriaFormatada] || 99;
+    if (pesoA !== pesoB) return pesoA - pesoB;
+
     return a.nome.localeCompare(b.nome);
   });
 }
