@@ -56,6 +56,18 @@ export function formatArtigoLabel(numero?: string | null): string {
 }
 
 /**
+ * Valida se a URL de áudio é de um servidor ativo e válido
+ * Descarta domínios descontinuados/mortos como izspjvegxdfgkgibpyst
+ */
+export function isAudioUrlValida(url?: string | null): boolean {
+  if (!url) return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  if (trimmed.includes('izspjvegxdfgkgibpyst.supabase.co')) return false;
+  return true;
+}
+
+/**
  * Normaliza o número do artigo para comparação (ex: "Art. 3º-A" -> "3-a", "12" -> "12")
  */
 export function normalizeArtigoKey(numero?: string | null): string {
@@ -197,7 +209,25 @@ export async function fetchLeisComMetricasNarracao(): Promise<LeiNarracaoItem[]>
       const totalArtigos = artigosReais.length;
       if (totalArtigos === 0) return null; // Pula leis sem artigos
 
-      const comAudio = artigosReais.filter(a => !!a.narracao_url && a.narracao_url.trim().length > 0).length;
+      const slug = (lei.slug || '').toLowerCase();
+      const storageKeys = new Set<string>();
+      if (slug) {
+        try {
+          const { data: storageFiles } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`);
+          if (storageFiles) {
+            for (const sf of storageFiles) {
+              const k = matchArtigoKeyFromFilename(sf.name);
+              if (k) storageKeys.add(k);
+            }
+          }
+        } catch {}
+      }
+
+      const comAudio = artigosReais.filter(a => {
+        const key = normalizeArtigoKey(a.numero);
+        if (storageKeys.has(key)) return true;
+        return isAudioUrlValida(a.narracao_url);
+      }).length;
       const pendentes = Math.max(0, totalArtigos - comAudio);
       const percentual = totalArtigos > 0 ? Math.round((comAudio / totalArtigos) * 100) : 0;
       const categoriaFormatada = formatCategoriaLei(lei);
@@ -253,8 +283,9 @@ interface RawArtigoRow {
 
 /**
  * Busca todos os artigos reais de uma lei com detalhes de narração
+ * Verifica também diretamente os arquivos no bucket 'narracoes' do Supabase Storage
  */
-export async function fetchArtigosDaLeiComNarracao(leiId: string): Promise<ArtigoNarracaoItem[]> {
+export async function fetchArtigosDaLeiComNarracao(leiId: string, leiSlug?: string): Promise<ArtigoNarracaoItem[]> {
   const all: RawArtigoRow[] = [];
   let from = 0;
   const chunkSize = 1000;
@@ -274,17 +305,52 @@ export async function fetchArtigosDaLeiComNarracao(leiId: string): Promise<Artig
     from += chunkSize;
   }
 
+  // Mapear arquivos existentes diretamente no Supabase Storage (bucket narracoes)
+  const storageAudiosMap = new Map<string, string>();
+  const slug = (leiSlug || '').toLowerCase();
+  if (slug) {
+    try {
+      const { data: storageFiles } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`);
+      if (storageFiles && storageFiles.length > 0) {
+        for (const file of storageFiles) {
+          if (!file.name || !/\.(mp3|wav|m4a|ogg)$/i.test(file.name)) continue;
+          const key = matchArtigoKeyFromFilename(file.name);
+          if (key) {
+            const { data: pubData } = supabase.storage
+              .from('narracoes')
+              .getPublicUrl(`vademecum/${slug}/${file.name}`);
+            if (pubData?.publicUrl) {
+              storageAudiosMap.set(key, pubData.publicUrl);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[fetchArtigosDaLeiComNarracao] Erro ao listar Storage:', err);
+    }
+  }
+
   return all
     .filter(a => isArtigoReal(a.numero))
-    .map(a => ({
-      id: a.id,
-      numero: a.numero,
-      numeroFormatado: formatArtigoLabel(a.numero),
-      texto: a.texto || '',
-      ordem: a.ordem ?? 0,
-      narracao_url: a.narracao_url || null,
-      temAudio: !!(a.narracao_url && a.narracao_url.trim().length > 0),
-    }));
+    .map(a => {
+      const keyArtigo = normalizeArtigoKey(a.numero);
+      const urlStorage = storageAudiosMap.get(keyArtigo);
+      const audioDbOk = isAudioUrlValida(a.narracao_url);
+
+      // Prioriza áudio verificado no Storage novo; se não houver no storage, usa URL válida do banco
+      const audioUrlFinal = urlStorage || (audioDbOk ? a.narracao_url : null);
+      const temAudioFinal = !!audioUrlFinal;
+
+      return {
+        id: a.id,
+        numero: a.numero,
+        numeroFormatado: formatArtigoLabel(a.numero),
+        texto: a.texto || '',
+        ordem: a.ordem ?? 0,
+        narracao_url: audioUrlFinal,
+        temAudio: temAudioFinal,
+      };
+    });
 }
 
 /**

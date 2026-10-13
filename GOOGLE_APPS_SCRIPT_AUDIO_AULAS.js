@@ -297,9 +297,9 @@ function sincronizarAudioAulasCPPComSupabase() {
     const sufixo = match[2] ? '-' + match[2].toUpperCase() : '';
     const key = numInt + (sufixo ? sufixo.toLowerCase() : '');
     
-    // Localizar artigo correspondente pendente
+    // Localizar artigo correspondente pendente (ignora links mortos do host descontinuado izspjvegxdfgkgibpyst)
     const artigoAlvo = artigos.find(function(a) {
-      if (a.narracao_url && a.narracao_url.trim().length > 0) return false; // Já tem áudio
+      if (a.narracao_url && a.narracao_url.trim().length > 0 && a.narracao_url.indexOf('izspjvegxdfgkgibpyst') === -1) return false; // Já tem áudio válido
       const numClean = String(a.numero).trim().toLowerCase().replace(/[º°o\.]/g, '');
       return numClean === key || numClean === numInt;
     });

@@ -124,6 +124,8 @@ export default function AdminNarracaoArtigos() {
   const [loadingArtigos, setLoadingArtigos] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // Menu de alternância da lei detalhada
+  const [secaoDetalhe, setSecaoDetalhe] = useState<'pasta' | 'cron' | 'artigos'>('pasta');
   // Filtros internos de artigos
   const [buscaArtigo, setBuscaArtigo] = useState('');
   const [abaArtigo, setAbaArtigo] = useState<'faltando' | 'com_audio' | 'todos'>('faltando');
@@ -178,7 +180,7 @@ export default function AdminNarracaoArtigos() {
     async function carregarArtigos() {
       setLoadingArtigos(true);
       try {
-        const itens = await fetchArtigosDaLeiComNarracao(leiSelecionada!.id);
+        const itens = await fetchArtigosDaLeiComNarracao(leiSelecionada!.id, leiSelecionada!.slug);
         if (!cancelado) {
           setArtigos(itens);
 
@@ -323,6 +325,8 @@ export default function AdminNarracaoArtigos() {
 
       try {
         const audio = new Audio(url);
+        audio.preload = 'auto';
+        audio.crossOrigin = 'anonymous';
         audioRef.current = audio;
 
         audio.onerror = () => {
@@ -336,10 +340,15 @@ export default function AdminNarracaoArtigos() {
 
         audio.play().then(() => {
           setAudioTocandoId(artigoId);
-        }).catch((err) => {
+          toast.info('Tocando áudio da narração...', { duration: 1800 });
+        }).catch((err: unknown) => {
           setAudioTocandoId(null);
           console.warn('Erro ao reproduzir áudio:', err);
-          toast.error('Não foi possível reproduzir o áudio. Verifique se o navegador autorizou a saída de som.');
+          if (err instanceof Error && err.name === 'NotAllowedError') {
+            toast.error('O navegador bloqueou a saída de som automática. Clique novamente para autorizar a reprodução.');
+          } else {
+            toast.error('Não foi possível reproduzir o áudio. Verifique se o navegador autorizou a saída de som.');
+          }
         });
       } catch {
         setAudioTocandoId(null);
@@ -704,425 +713,554 @@ export default function AdminNarracaoArtigos() {
             </div>
           </div>
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 space-y-6">
-            {/* CARD 1: STATUS DA PASTA DO GOOGLE DRIVE */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                    <FolderSync className="w-4 h-4 text-cyan-400" />
-                    Pasta do Google Drive com os Áudios Narrados
-                  </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Os áudios gerados nesta pasta serão baixados e salvos permanentemente no Supabase Storage.
-                  </p>
-                </div>
-
-                {driveUrl && !editandoDriveUrl && (
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={driveUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3.5 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                    >
-                      Abrir no Drive <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                    <button
-                      onClick={() => setEditandoDriveUrl(true)}
-                      className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
-                      title="Editar Link da Pasta"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Exibição do Link ou Input de Edição */}
-              {editandoDriveUrl ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={driveUrl}
-                    onChange={e => setDriveUrl(e.target.value)}
-                    placeholder="https://drive.google.com/drive/folders/..."
-                    className="flex-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-                  />
-                  <button
-                    onClick={handleSalvarDriveUrl}
-                    className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-cyan-600/20 whitespace-nowrap flex items-center gap-1.5"
-                  >
-                    <Check className="w-3.5 h-3.5" /> Salvar Link
-                  </button>
-                  {leiSelecionada.driveFolderUrl && (
-                    <button
-                      onClick={() => setEditandoDriveUrl(false)}
-                      className="px-3 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium hover:bg-slate-700"
-                    >
-                      Cancelar
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                    <span className="text-xs font-mono text-slate-300 truncate">{driveUrl}</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-900 px-2 py-0.5 rounded-full flex-shrink-0">
-                    Pasta Ativa
-                  </span>
-                </div>
-              )}
-
-              {/* CARD DE MÉTRICAS */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-slate-800">
-                <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
-                  <span className="text-xs text-slate-400 block mb-1">Total de Artigos</span>
-                  <span className="text-2xl font-bold text-white tracking-tight">{artigos.length}</span>
-                  <span className="text-[11px] text-slate-500 block mt-0.5">artigos reais numerados</span>
-                </div>
-
-                <div className="bg-emerald-950/20 border border-emerald-900/40 rounded-xl p-3.5">
-                  <span className="text-xs text-emerald-400 block mb-1 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Já Narrados
-                  </span>
-                  <span className="text-2xl font-bold text-emerald-300 tracking-tight">
-                    {artigos.filter(a => a.temAudio).length}
-                  </span>
-                  <span className="text-[11px] text-emerald-500 block mt-0.5">no Supabase Storage</span>
-                </div>
-
-                <div className="bg-amber-950/20 border border-amber-900/40 rounded-xl p-3.5">
-                  <span className="text-xs text-amber-400 block mb-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> Faltando
-                  </span>
-                  <span className="text-2xl font-bold text-amber-300 tracking-tight">
-                    {artigos.filter(a => !a.temAudio).length}
-                  </span>
-                  <span className="text-[11px] text-amber-500 block mt-0.5">aguardando geração</span>
-                </div>
-
-                <div className="bg-cyan-950/20 border border-cyan-900/40 rounded-xl p-3.5">
-                  <span className="text-xs text-cyan-400 block mb-1 flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5" /> Progresso
-                  </span>
-                  <span className="text-2xl font-bold text-cyan-300 tracking-tight">
-                    {artigos.length > 0
-                      ? Math.round((artigos.filter(a => a.temAudio).length / artigos.length) * 100)
-                      : 0}
-                    %
-                  </span>
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full rounded-full transition-all duration-300"
-                      style={{
-                        width: `${
-                          artigos.length > 0
-                            ? (artigos.filter(a => a.temAudio).length / artigos.length) * 100
-                            : 0
-                        }%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* CONTROLES: Cron Job & Upload Rápido */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Card Cron Job (10 minutos) */}
-              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-cyan-400" />
-                    Cron Job (10 min)
-                  </h3>
-
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
-                      cronAtivo
-                        ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                        : 'bg-slate-800 border-slate-700 text-slate-400'
-                    }`}
-                  >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        cronAtivo ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'
-                      }`}
-                    />
-                    {cronAtivo ? 'Ativo' : 'Pausado'}
-                  </span>
-                </div>
-
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 text-center">
-                  <span className="text-[11px] text-slate-400 block mb-0.5">Próxima checagem em</span>
-                  <span className="text-3xl font-mono font-bold text-cyan-400">
-                    {cronAtivo ? formatTimer(tempoRestanteSegundos) : '--:--'}
-                  </span>
-                  <span className="text-[10px] text-slate-500 block mt-1">
-                    {ultimaExecucao ? `Última: ${ultimaExecucao}` : 'Aguardando ciclo inicial'}
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <button
-                    onClick={executarCicloSincronizacao}
-                    disabled={isSyncing}
-                    className="w-full py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md shadow-cyan-600/20 disabled:opacity-50"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                    {isSyncing ? 'Verificando Agora...' : 'Sincronizar Agora'}
-                  </button>
-
-                  <button
-                    onClick={() => setCronAtivo(!cronAtivo)}
-                    className={`w-full py-2 rounded-xl text-xs font-medium border transition-colors ${
-                      cronAtivo
-                        ? 'border-red-900/40 text-red-400 hover:bg-red-950/20'
-                        : 'border-emerald-900/40 text-emerald-400 hover:bg-emerald-950/20'
-                    }`}
-                  >
-                    {cronAtivo ? 'Pausar Temporizador' : 'Ativar Temporizador (10 min)'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Card Ingestão Drag & Drop */}
-              <div className="lg:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4">
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2 mb-1">
-                    <UploadCloud className="w-4 h-4 text-cyan-400" />
-                    Ingestão Direta de Áudios (Upload / Drag & Drop)
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    Você também pode soltar os arquivos baixados da pasta para vinculação imediata no Supabase Storage.
-                  </p>
-                </div>
-
-                <div
-                  onDragOver={e => {
-                    e.preventDefault();
-                    setIsDragging(true);
-                  }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={e => {
-                    e.preventDefault();
-                    setIsDragging(false);
-                    if (e.dataTransfer.files) {
-                      processarArquivosAudio(e.dataTransfer.files);
-                    }
-                  }}
-                  className={`border-2 border-dashed rounded-xl p-6 text-center transition-all ${
-                    isDragging
-                      ? 'border-cyan-400 bg-cyan-950/20'
-                      : 'border-slate-800 hover:border-slate-700 bg-slate-950/40'
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-16 space-y-6">
+            {/* MENU DE ALTERNÂNCIA MINIMALISTA (SEGMENTED CONTROL / TABS) */}
+            <div className="bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl shadow-lg backdrop-blur-md">
+              <div className="grid grid-cols-3 gap-1">
+                {/* Aba 1: Pasta & Estatísticas */}
+                <button
+                  type="button"
+                  onClick={() => setSecaoDetalhe('pasta')}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                    secaoDetalhe === 'pasta'
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
                   }`}
                 >
-                  <UploadCloud className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-                  <p className="text-xs font-medium text-slate-200">
-                    Arraste arquivos de áudio narrados (.mp3, .wav) aqui
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    O sistema identifica o número do artigo automaticamente pelo nome do arquivo
-                  </p>
-                  <label className="inline-block mt-3 px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg cursor-pointer transition-colors border border-slate-700">
-                    Selecionar Arquivos
-                    <input
-                      type="file"
-                      multiple
-                      accept="audio/mp3,audio/wav,audio/*"
-                      className="hidden"
-                      onChange={e => {
-                        if (e.target.files) {
-                          processarArquivosAudio(e.target.files);
-                        }
-                      }}
-                    />
-                  </label>
+                  <FolderSync className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">Pasta & Estatísticas</span>
+                  <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 rounded-md bg-slate-800 text-slate-300 ml-1">
+                    {artigos.length > 0
+                      ? `${Math.round((artigos.filter(a => a.temAudio).length / artigos.length) * 100)}%`
+                      : '0%'}
+                  </span>
+                </button>
 
-                  {uploadProgress && (
-                    <div className="mt-3 text-xs text-cyan-300 animate-pulse">
-                      Enviando {uploadProgress.atual} de {uploadProgress.total} para o Supabase Storage...
+                {/* Aba 2: Cron Jobs */}
+                <button
+                  type="button"
+                  onClick={() => setSecaoDetalhe('cron')}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                    secaoDetalhe === 'cron'
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
+                  }`}
+                >
+                  <Clock className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">Cron Jobs (10 min)</span>
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] px-1.5 py-0.2 rounded-md bg-emerald-950/60 text-emerald-400 border border-emerald-900/60 ml-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    {cronAtivo ? formatTimer(tempoRestanteSegundos) : 'Pausa'}
+                  </span>
+                </button>
+
+                {/* Aba 3: Artigos da Lei */}
+                <button
+                  type="button"
+                  onClick={() => setSecaoDetalhe('artigos')}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                    secaoDetalhe === 'artigos'
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
+                  }`}
+                >
+                  <FileText className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">Lista de Artigos</span>
+                  <span className="hidden sm:inline-block text-[10px] px-1.5 py-0.2 rounded-md bg-slate-800 text-slate-300 ml-1">
+                    {artigos.filter(a => a.temAudio).length}/{artigos.length}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* ══════════════════════════════════════════════════════════════════ */}
+            {/* SEÇÃO 1: PASTA & ESTATÍSTICAS                                     */}
+            {/* ══════════════════════════════════════════════════════════════════ */}
+            {secaoDetalhe === 'pasta' && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                {/* Card do Google Drive */}
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                        <FolderSync className="w-4 h-4 text-cyan-400" />
+                        Pasta do Google Drive com os Áudios Narrados
+                      </h2>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Os áudios gerados nesta pasta são baixados e salvos permanentemente no Supabase Storage.
+                      </p>
+                    </div>
+
+                    {driveUrl && !editandoDriveUrl && (
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={driveUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3.5 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                        >
+                          Abrir no Drive <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                        <button
+                          onClick={() => setEditandoDriveUrl(true)}
+                          className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
+                          title="Editar Link da Pasta"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Exibição do Link ou Input de Edição */}
+                  {editandoDriveUrl ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={driveUrl}
+                        onChange={e => setDriveUrl(e.target.value)}
+                        placeholder="https://drive.google.com/drive/folders/..."
+                        className="flex-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                      />
+                      <button
+                        onClick={handleSalvarDriveUrl}
+                        className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-cyan-600/20 whitespace-nowrap flex items-center gap-1.5"
+                      >
+                        <Check className="w-3.5 h-3.5" /> Salvar Link
+                      </button>
+                      {leiSelecionada.driveFolderUrl && (
+                        <button
+                          onClick={() => setEditandoDriveUrl(false)}
+                          className="px-3 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium hover:bg-slate-700"
+                        >
+                          Cancelar
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                        <span className="text-xs font-mono text-slate-300 truncate">{driveUrl}</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-900 px-2 py-0.5 rounded-full flex-shrink-0">
+                        Pasta Ativa
+                      </span>
                     </div>
                   )}
-                </div>
-              </div>
-            </div>
 
-            {/* LISTAGEM DOS ARTIGOS DA LEI COM ABAS */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                {/* Abas */}
-                <div className="flex items-center gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 self-start">
-                  <button
-                    onClick={() => setAbaArtigo('faltando')}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                      abaArtigo === 'faltando'
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    Faltando ({artigos.filter(a => !a.temAudio).length})
-                  </button>
+                  {/* CARDS DE MÉTRICAS */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-slate-800">
+                    <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+                      <span className="text-xs text-slate-400 block mb-1">Total de Artigos</span>
+                      <span className="text-2xl font-bold text-white tracking-tight">{artigos.length}</span>
+                      <span className="text-[11px] text-slate-500 block mt-0.5">artigos reais numerados</span>
+                    </div>
 
-                  <button
-                    onClick={() => setAbaArtigo('com_audio')}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                      abaArtigo === 'com_audio'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Com Áudio ({artigos.filter(a => a.temAudio).length})
-                  </button>
+                    <div className="bg-emerald-950/20 border border-emerald-900/40 rounded-xl p-3.5">
+                      <span className="text-xs text-emerald-400 block mb-1 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Já Narrados
+                      </span>
+                      <span className="text-2xl font-bold text-emerald-300 tracking-tight">
+                        {artigos.filter(a => a.temAudio).length}
+                      </span>
+                      <span className="text-[11px] text-emerald-500 block mt-0.5">no Supabase Storage</span>
+                    </div>
 
-                  <button
-                    onClick={() => setAbaArtigo('todos')}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                      abaArtigo === 'todos'
-                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    Todos ({artigos.length})
-                  </button>
-                </div>
+                    <div className="bg-amber-950/20 border border-amber-900/40 rounded-xl p-3.5">
+                      <span className="text-xs text-amber-400 block mb-1 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" /> Faltando
+                      </span>
+                      <span className="text-2xl font-bold text-amber-300 tracking-tight">
+                        {artigos.filter(a => !a.temAudio).length}
+                      </span>
+                      <span className="text-[11px] text-amber-500 block mt-0.5">aguardando geração</span>
+                    </div>
 
-                {/* Campo de Busca de Artigo */}
-                <div className="relative w-full sm:w-72">
-                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={buscaArtigo}
-                    onChange={e => setBuscaArtigo(e.target.value)}
-                    placeholder="Buscar artigo ou termo..."
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-                  />
-                </div>
-              </div>
-
-              {/* Listagem */}
-              {loadingArtigos ? (
-                <div className="py-16 text-center text-slate-400">
-                  <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-cyan-400" />
-                  <p className="text-xs">Carregando artigos de {leiSelecionada.nome}...</p>
-                </div>
-              ) : artigosFiltrados.length === 0 ? (
-                <div className="py-16 text-center text-slate-500 border border-dashed border-slate-800 rounded-xl">
-                  <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500/40 mb-2" />
-                  <p className="text-sm font-medium text-slate-300">Nenhum artigo encontrado nesta categoria</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {abaArtigo === 'faltando'
-                      ? 'Todos os artigos desta listagem já foram narrados!'
-                      : 'Nenhum item corresponde ao filtro.'}
-                  </p>
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-800/60 max-h-[560px] overflow-y-auto rounded-xl border border-slate-800/80 bg-slate-950/40">
-                  {artigosFiltrados.map(artigo => (
-                    <div
-                      key={artigo.id}
-                      className="p-3.5 hover:bg-slate-900/60 transition-colors flex items-start justify-between gap-4"
-                    >
-                      <div className="space-y-1 flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-white bg-slate-800 px-2.5 py-0.5 rounded-md">
-                            {artigo.numeroFormatado}
-                          </span>
-
-                          {artigo.temAudio ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-900/60 px-2 py-0.5 rounded-full">
-                              <CheckCircle2 className="w-3 h-3" /> No Storage
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-400 bg-amber-950/40 border border-amber-900/60 px-2 py-0.5 rounded-full">
-                              <AlertCircle className="w-3 h-3" /> Faltando Gravar
-                            </span>
-                          )}
-                        </div>
-
-                        <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                          {artigo.texto}
-                        </p>
-                      </div>
-
-                      {/* Ações de Áudio */}
-                      <div className="flex items-center gap-2 flex-shrink-0 pt-0.5">
-                        {artigo.temAudio && (
-                          <button
-                            onClick={() => handleTogglePlay(artigo.id, artigo.narracao_url)}
-                            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                              audioTocandoId === artigo.id
-                                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30'
-                                : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
-                            }`}
-                            title="Ouvir Narração"
-                          >
-                            {audioTocandoId === artigo.id ? (
-                              <>
-                                <Pause className="w-3.5 h-3.5" /> Pausar
-                              </>
-                            ) : (
-                              <>
-                                <Play className="w-3.5 h-3.5" /> Ouvir
-                              </>
-                            )}
-                          </button>
-                        )}
-
-                        <label
-                          className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 cursor-pointer transition-colors"
-                          title="Subir áudio deste artigo manualmente"
-                        >
-                          <FileAudio className="w-3.5 h-3.5" />
-                          <input
-                            type="file"
-                            accept="audio/*"
-                            className="hidden"
-                            onChange={e => {
-                              if (e.target.files && e.target.files[0]) {
-                                processarArquivosAudio([e.target.files[0]]);
-                              }
-                            }}
-                          />
-                        </label>
+                    <div className="bg-cyan-950/20 border border-cyan-900/40 rounded-xl p-3.5">
+                      <span className="text-xs text-cyan-400 block mb-1 flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5" /> Progresso
+                      </span>
+                      <span className="text-2xl font-bold text-cyan-300 tracking-tight">
+                        {artigos.length > 0
+                          ? Math.round((artigos.filter(a => a.temAudio).length / artigos.length) * 100)
+                          : 0}
+                        %
+                      </span>
+                      <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full rounded-full transition-all duration-300"
+                          style={{
+                            width: `${
+                              artigos.length > 0
+                                ? (artigos.filter(a => a.temAudio).length / artigos.length) * 100
+                                : 0
+                            }%`,
+                          }}
+                        />
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              )}
-            </div>
 
-            {/* LOGS DA SINCRONIZAÇÃO / HISTÓRICO */}
-            {logsSync.length > 0 && (
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Radio className="w-3 h-3 text-cyan-400" /> Registro de Atividades e Histórico
-                </h3>
-                <div className="bg-slate-950 rounded-xl p-3 max-h-36 overflow-y-auto space-y-1 font-mono text-[11px]">
-                  {logsSync.map((log, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex items-start gap-2 ${
-                        log.tipo === 'sucesso'
-                          ? 'text-emerald-400'
-                          : log.tipo === 'erro'
-                          ? 'text-red-400'
-                          : 'text-slate-400'
-                      }`}
-                    >
-                      <span className="text-slate-600">[{log.hora}]</span>
-                      <span>{log.msg}</span>
-                    </div>
-                  ))}
+                {/* Card de Ingestão Direta de Áudios (Upload / Drag & Drop) */}
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2 mb-1">
+                      <UploadCloud className="w-4 h-4 text-cyan-400" />
+                      Ingestão Direta de Áudios (Upload em Lote / Arrastar Arquivos)
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Você pode soltar os arquivos baixados da pasta para vinculação imediata no Supabase Storage. O sistema identifica o número do artigo automaticamente pelo nome do arquivo.
+                    </p>
+                  </div>
+
+                  <div
+                    onDragOver={e => {
+                      e.preventDefault();
+                      setIsDragging(true);
+                    }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={e => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      if (e.dataTransfer.files) {
+                        processarArquivosAudio(e.dataTransfer.files);
+                      }
+                    }}
+                    className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+                      isDragging
+                        ? 'border-cyan-400 bg-cyan-950/20'
+                        : 'border-slate-800 hover:border-slate-700 bg-slate-950/40'
+                    }`}
+                  >
+                    <UploadCloud className="w-10 h-10 mx-auto text-slate-400 mb-2" />
+                    <p className="text-sm font-medium text-slate-200">
+                      Arraste arquivos de áudio narrados (.mp3, .wav) aqui
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Exemplos aceitos: art_1.mp3, CPP_Art_57.mp3, art_3_a.wav
+                    </p>
+                    <label className="inline-block mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg cursor-pointer transition-colors border border-slate-700 shadow-sm">
+                      Selecionar Arquivos no Computador
+                      <input
+                        type="file"
+                        multiple
+                        accept="audio/mp3,audio/wav,audio/*"
+                        className="hidden"
+                        onChange={e => {
+                          if (e.target.files) {
+                            processarArquivosAudio(e.target.files);
+                          }
+                        }}
+                      />
+                    </label>
+
+                    {uploadProgress && (
+                      <div className="mt-3 text-xs text-cyan-300 animate-pulse font-medium">
+                        Enviando {uploadProgress.atual} de {uploadProgress.total} para o Supabase Storage...
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
+
+            {/* ══════════════════════════════════════════════════════════════════ */}
+            {/* SEÇÃO 2: CRON JOBS (10 MINUTOS) & HISTÓRICO                       */}
+            {/* ══════════════════════════════════════════════════════════════════ */}
+            {secaoDetalhe === 'cron' && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Bloco do Temporizador */}
+                  <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-cyan-400" />
+                        Status do Cron Job
+                      </h3>
+
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          cronAtivo
+                            ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+                            : 'bg-slate-800 border-slate-700 text-slate-400'
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            cronAtivo ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'
+                          }`}
+                        />
+                        {cronAtivo ? 'Ativo' : 'Pausado'}
+                      </span>
+                    </div>
+
+                    <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-center">
+                      <span className="text-[11px] text-slate-400 block mb-0.5">Próxima checagem automática em</span>
+                      <span className="text-4xl font-mono font-bold text-cyan-400">
+                        {cronAtivo ? formatTimer(tempoRestanteSegundos) : '--:--'}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block mt-1.5">
+                        {ultimaExecucao ? `Última execução: ${ultimaExecucao}` : 'Aguardando ciclo inicial'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <button
+                        onClick={executarCicloSincronizacao}
+                        disabled={isSyncing}
+                        className="w-full py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md shadow-cyan-600/20 disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                        {isSyncing ? 'Verificando Agora...' : 'Sincronizar Agora'}
+                      </button>
+
+                      <button
+                        onClick={() => setCronAtivo(!cronAtivo)}
+                        className={`w-full py-2 rounded-xl text-xs font-medium border transition-colors ${
+                          cronAtivo
+                            ? 'border-red-900/40 text-red-400 hover:bg-red-950/20'
+                            : 'border-emerald-900/40 text-emerald-400 hover:bg-emerald-950/20'
+                        }`}
+                      >
+                        {cronAtivo ? 'Pausar Temporizador' : 'Ativar Temporizador (10 min)'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Informações de Execução Automática */}
+                  <div className="md:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                      <Radio className="w-4 h-4 text-cyan-400" />
+                      Como Funciona a Sincronização Periódica
+                    </h3>
+                    <div className="space-y-2 text-xs text-slate-400 leading-relaxed">
+                      <p>
+                        • <strong className="text-slate-200">Ciclo a cada 10 minutos:</strong> O sistema checa se novos arquivos de áudio narrados surgiram na pasta do Google Drive configurada.
+                      </p>
+                      <p>
+                        • <strong className="text-slate-200">Importação Automática:</strong> Arquivos identificados como <span className="font-mono text-cyan-300">art_*.mp3</span> ou <span className="font-mono text-cyan-300">art_*.wav</span> são enviados com status permanente para o bucket do Supabase Storage.
+                      </p>
+                      <p>
+                        • <strong className="text-slate-200">Finalização:</strong> Ao atingir 100% dos artigos da lei com áudio gravado, o Cron Job é automaticamente desativado.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* LOGS DA SINCRONIZAÇÃO / HISTÓRICO */}
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                      <Radio className="w-3.5 h-3.5 text-cyan-400" /> Histórico e Logs em Tempo Real
+                    </h3>
+                    {logsSync.length > 0 && (
+                      <button
+                        onClick={() => setLogsSync([])}
+                        className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
+                      >
+                        Limpar logs
+                      </button>
+                    )}
+                  </div>
+
+                  {logsSync.length === 0 ? (
+                    <div className="py-8 text-center text-slate-500 border border-dashed border-slate-800 rounded-xl text-xs">
+                      Nenhum registro de sincronização nesta sessão. Clique em &quot;Sincronizar Agora&quot; para iniciar.
+                    </div>
+                  ) : (
+                    <div className="bg-slate-950 rounded-xl p-3 max-h-60 overflow-y-auto space-y-1 font-mono text-[11px]">
+                      {logsSync.map((log, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex items-start gap-2 ${
+                            log.tipo === 'sucesso'
+                              ? 'text-emerald-400'
+                              : log.tipo === 'erro'
+                              ? 'text-red-400'
+                              : 'text-slate-400'
+                          }`}
+                        >
+                          <span className="text-slate-600 flex-shrink-0">[{log.hora}]</span>
+                          <span>{log.msg}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════════════════ */}
+            {/* SEÇÃO 3: LISTAGEM DOS ARTIGOS DA LEI COM ABAS                     */}
+            {/* ══════════════════════════════════════════════════════════════════ */}
+            {secaoDetalhe === 'artigos' && (
+              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 animate-in fade-in duration-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  {/* Sub-Abas de Artigos */}
+                  <div className="flex items-center gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 self-start">
+                    <button
+                      onClick={() => setAbaArtigo('faltando')}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                        abaArtigo === 'faltando'
+                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      Faltando ({artigos.filter(a => !a.temAudio).length})
+                    </button>
+
+                    <button
+                      onClick={() => setAbaArtigo('com_audio')}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                        abaArtigo === 'com_audio'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Com Áudio ({artigos.filter(a => a.temAudio).length})
+                    </button>
+
+                    <button
+                      onClick={() => setAbaArtigo('todos')}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                        abaArtigo === 'todos'
+                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      Todos ({artigos.length})
+                    </button>
+                  </div>
+
+                  {/* Campo de Busca de Artigo */}
+                  <div className="relative w-full sm:w-72">
+                    <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={buscaArtigo}
+                      onChange={e => setBuscaArtigo(e.target.value)}
+                      placeholder="Buscar artigo ou termo..."
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Listagem */}
+                {loadingArtigos ? (
+                  <div className="py-16 text-center text-slate-400">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-cyan-400" />
+                    <p className="text-xs">Carregando artigos de {leiSelecionada.nome}...</p>
+                  </div>
+                ) : artigosFiltrados.length === 0 ? (
+                  <div className="py-16 text-center text-slate-500 border border-dashed border-slate-800 rounded-xl">
+                    <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500/40 mb-2" />
+                    <p className="text-sm font-medium text-slate-300">Nenhum artigo encontrado nesta categoria</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {abaArtigo === 'faltando'
+                        ? 'Todos os artigos desta listagem já foram narrados!'
+                        : 'Nenhum item corresponde ao filtro.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-800/60 max-h-[560px] overflow-y-auto rounded-xl border border-slate-800/80 bg-slate-950/40">
+                    {artigosFiltrados.map(artigo => (
+                      <div
+                        key={artigo.id}
+                        className="p-3.5 hover:bg-slate-900/60 transition-colors flex items-start justify-between gap-4"
+                      >
+                        <div className="space-y-1 flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-white bg-slate-800 px-2.5 py-0.5 rounded-md">
+                              {artigo.numeroFormatado}
+                            </span>
+
+                            {artigo.temAudio ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-900/60 px-2 py-0.5 rounded-full">
+                                <CheckCircle2 className="w-3 h-3" /> No Storage
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-400 bg-amber-950/40 border border-amber-900/60 px-2 py-0.5 rounded-full">
+                                <AlertCircle className="w-3 h-3" /> Faltando Gravar
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                            {artigo.texto}
+                          </p>
+                        </div>
+
+                        {/* Ações de Áudio */}
+                        <div className="flex items-center gap-2 flex-shrink-0 pt-0.5">
+                          {artigo.temAudio && (
+                            <button
+                              onClick={() => handleTogglePlay(artigo.id, artigo.narracao_url)}
+                              className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                                audioTocandoId === artigo.id
+                                  ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30'
+                                  : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                              }`}
+                              title="Ouvir Narração"
+                            >
+                              {audioTocandoId === artigo.id ? (
+                                <>
+                                  <Pause className="w-3.5 h-3.5" /> Pausar
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="w-3.5 h-3.5" /> Ouvir
+                                </>
+                              )}
+                            </button>
+                          )}
+
+                          <label
+                            className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 cursor-pointer transition-colors"
+                            title="Subir áudio deste artigo manualmente"
+                          >
+                            <FileAudio className="w-3.5 h-3.5" />
+                            <input
+                              type="file"
+                              accept="audio/*"
+                              className="hidden"
+                              onChange={e => {
+                                if (e.target.files && e.target.files[0]) {
+                                  processarArquivosAudio([e.target.files[0]]);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* MINI-PLAYER FLUTUANTE DE ÁUDIO QUANDO ESTIVER REPRODUZINDO */}
+          {audioTocandoId && (
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 border border-cyan-500/50 shadow-2xl shadow-cyan-950/80 rounded-2xl px-5 py-3 flex items-center gap-4 backdrop-blur-md animate-in slide-in-from-bottom-5 duration-200">
+              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+              <div className="text-xs">
+                <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Reproduzindo Narração</span>
+                <span className="text-white font-semibold">
+                  {artigos.find(a => a.id === audioTocandoId)?.numeroFormatado || 'Artigo'} ({leiSelecionada.nome})
+                </span>
+              </div>
+              <button
+                onClick={() => handleTogglePlay(audioTocandoId, null)}
+                className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors ml-2"
+              >
+                <Pause className="w-3.5 h-3.5" /> Parar
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
