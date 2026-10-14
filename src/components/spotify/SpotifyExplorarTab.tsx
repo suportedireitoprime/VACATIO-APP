@@ -13,26 +13,26 @@ type CategoryFilter = 'todos' | 'codigos' | 'estatutos' | 'constituicao' | 'espe
 
 const DEFAULT_LEIS_INITIAL: LeiNarracaoItem[] = [
   {
-    id: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
-    slug: 'cp',
-    nome: 'Código Penal',
-    categoria: 'codigo',
-    categoriaFormatada: 'Códigos',
-    totalArtigos: 361,
-    totalComAudio: 10,
-    totalPendentes: 351,
-    percentual: 3,
-  },
-  {
     id: '246e8691-ebe2-478d-991d-f3930635151a',
     slug: 'cpp',
     nome: 'Código de Processo Penal',
     categoria: 'codigo',
     categoriaFormatada: 'Códigos',
     totalArtigos: 810,
-    totalComAudio: 1,
-    totalPendentes: 809,
-    percentual: 1,
+    totalComAudio: 266,
+    totalPendentes: 544,
+    percentual: 33,
+  },
+  {
+    id: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
+    slug: 'cp',
+    nome: 'Código Penal',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 361,
+    totalComAudio: 144,
+    totalPendentes: 217,
+    percentual: 40,
   },
 ];
 

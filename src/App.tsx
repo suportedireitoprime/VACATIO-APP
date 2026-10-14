@@ -146,6 +146,8 @@ const TesesSTF = lazy(() => import("./pages/TesesTribunal.tsx").then(m => ({ def
 const PesquisasProntasTema = lazy(() => import("./pages/PesquisasProntasTema.tsx"));
 const AdminPesquisasProntas = lazy(() => import("./pages/AdminPesquisasProntas.tsx"));
 const NarracaoMiniPlayer = lazy(() => import("./components/vademecum/NarracaoMiniPlayer.tsx"));
+import { AudioaulasPlayerProvider } from "@/contexts/AudioaulasPlayerContext";
+const GlobalAudioaulasMiniPlayer = lazy(() => import("./components/audioaulas/GlobalAudioaulasMiniPlayer"));
 
 const ResumosJuridicosAreas = lazy(() => import("./pages/resumos-juridicos/ResumosJuridicosAreas.tsx"));
 const ResumosJuridicosTemas = lazy(() => import("./pages/resumos-juridicos/ResumosJuridicosTemas.tsx"));
@@ -705,6 +707,9 @@ function AnimatedRoutes() {
           <Route path="/admin-boletins" element={<ProtectedRoute><PageTransition><AdminBoletins /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-audio-aulas" element={<ProtectedRoute><PageTransition><AdminAudioAulas /></PageTransition></ProtectedRoute>} />
           <Route path="/audio-aulas" element={<ProtectedRoute><PageTransition><AudioAulas /></PageTransition></ProtectedRoute>} />
+          <Route path="/audio-aulas/:area" element={<ProtectedRoute><PageTransition><AudioAulas /></PageTransition></ProtectedRoute>} />
+          <Route path="/audioaulas" element={<ProtectedRoute><PageTransition><AudioAulas /></PageTransition></ProtectedRoute>} />
+          <Route path="/audioaulas/:area" element={<ProtectedRoute><PageTransition><AudioAulas /></PageTransition></ProtectedRoute>} />
           <Route path="/audio-leis" element={<ProtectedRoute><PageTransition><AudioLeisPage /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-narracao-artigos" element={<ProtectedRoute><PageTransition><AdminNarracaoArtigos /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-feedbacks" element={<ProtectedRoute><PageTransition><AdminFeedbacks /></PageTransition></ProtectedRoute>} />
@@ -791,11 +796,14 @@ const App = () => (
               <ReminderInAppBanner />
               <HorusTakeoverNoticeDialog />
               {/* <IntroOverlay /> — desativado por preferência (splash estático) */}
-              <RecordingProvider>
-                <AnimatedRoutes />
-                <NarracaoMiniPlayer />
-                <GravacaoFlutuante />
-              </RecordingProvider>
+              <AudioaulasPlayerProvider>
+                <RecordingProvider>
+                  <AnimatedRoutes />
+                  <NarracaoMiniPlayer />
+                  <GlobalAudioaulasMiniPlayer />
+                  <GravacaoFlutuante />
+                </RecordingProvider>
+              </AudioaulasPlayerProvider>
 
 
 

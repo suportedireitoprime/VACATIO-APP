@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, BookMarked, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock, Shield, Camera, Wrench, Highlighter, Heart, Feather } from 'lucide-react';
+import { GraduationCap, Monitor, ChevronRight, ChevronDown, X, Search, Sparkles, MessageCircle, Bot, BookOpen, BookMarked, WifiOff, StickyNote, Newspaper, ScanEye, Scale, User, Library, Mic, FileText, FileSignature, Image as ImageIcon, Bell, Gavel, Star, Send, Video, Film, Clapperboard, Bird, AlarmClock, Shield, Camera, Wrench, Highlighter, Heart, Feather, Headphones } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import MentorOverlay from './MentorOverlay';
 // PessoalSheet removido — Meu Espaço agora é rota dedicada (/meu-espaco).
@@ -162,7 +162,7 @@ const BottomNav = ({ forceVisible = false }: BottomNavProps = {}) => {
     { id: 'novidades', label: 'Novidades', desc: 'Resenha diária do Planalto', icon: Bell, action: () => navigate('/novidades'), prefetch: 'novidades' },
     { id: 'locais', label: 'Locais Jurídicos', desc: 'Tribunais, cartórios, delegacias e museus perto de você', icon: Scale, action: () => navigate('/ferramentas/locais'), prefetch: 'locais' },
     { id: 'assistente', label: 'Assistente IA', desc: 'IA jurídica para tirar dúvidas', icon: Bot, action: () => navigate('/assistente-horus'), prefetch: 'assistenteHorus' },
-    { id: 'gravar-aula', label: 'Gravar aula', desc: 'Grave aulas longas com resumo automático por IA', icon: Mic, action: () => navigate('/anotacoes/audio'), prefetch: 'gravarAula' },
+    { id: 'gravar-aula', label: 'Gravar aula', desc: 'Grave aulas longas com resumo automático por IA', icon: Mic, action: () => navigate('/anotacoes/audio') },
     { id: 'tematica', label: 'Temática Jurídica', desc: 'Filmes, séries e documentários para juristas', icon: Clapperboard, action: () => navigate('/tematica-juridica'), prefetch: 'tematica' },
     { id: 'resumos', label: 'Resumos Jurídicos', desc: 'Biblioteca por área, tema e subtema', icon: FileText, action: () => navigate('/resumos-juridicos'), prefetch: 'resumosJuridicos' },
     { id: 'boletins', label: 'Boletins Jurídicos', desc: 'Vídeo diário com as normas quentes de hoje', icon: Video, action: () => navigate('/boletins'), prefetch: 'boletins' },
@@ -173,6 +173,8 @@ const BottomNav = ({ forceVisible = false }: BottomNavProps = {}) => {
   ];
 
   const ESTUDOS_ITENS: Array<{ id: string; label: string; desc: string; icon: any; action: () => void; prefetch?: PrefetchKey }> = [
+    { id: 'audio-leis', label: 'Áudio Leis', desc: 'Narrações dos artigos de leis e códigos', icon: Mic, action: () => navigate('/audio-leis') },
+    { id: 'audioaulas', label: 'Audioaulas', desc: '124 aulas em áudio por área do Direito', icon: Headphones, action: () => navigate('/audioaulas') },
     { id: 'resumos', label: 'Resumos Jurídicos', desc: 'Biblioteca por área, tema e subtema', icon: FileText, action: () => navigate('/resumos-juridicos'), prefetch: 'resumosJuridicos' },
     { id: 'videoaulas', label: 'Videoaulas', desc: 'Aulas em vídeo com transcrição', icon: Video, action: () => navigate('/estudos'), prefetch: 'estudos' },
   ];

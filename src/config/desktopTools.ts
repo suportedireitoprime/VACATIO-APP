@@ -20,6 +20,7 @@ import {
   Sparkles,
   Layers,
   Monitor,
+  Headphones,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -42,9 +43,11 @@ export type DesktopToolGroup = {
 export const DESKTOP_TOOL_GROUPS: DesktopToolGroup[] = [
   {
     id: 'pesquisa',
-    label: 'Pesquisa',
-    hint: 'Consulta rápida de conceitos, resumos e referências',
+    label: 'Pesquisa e Áudio',
+    hint: 'Consulta de conceitos, áudio-aulas e narrações da legislação',
     tools: [
+      { id: 'audio-leis', label: 'Áudio Leis', desc: 'Narrações dos artigos de leis e códigos', icon: Mic, route: '/audio-leis', color: '#10B981' },
+      { id: 'audioaulas', label: 'Audioaulas', desc: '124 aulas em áudio por área do Direito', icon: Headphones, route: '/audioaulas', color: '#EC4899' },
       { id: 'desktop', label: 'Modo Desktop', desc: 'Acesso via computador', icon: Monitor, route: '/desktop', color: '#10B981' },
       { id: 'biblioteca', label: 'Biblioteca', desc: 'Livros, manuais e doutrinas', icon: Library, route: '/biblioteca', color: '#F59E0B' },
       { id: 'dicionario', label: 'Dicionário Jurídico', desc: 'Termos e conceitos do Direito', icon: BookOpenText, route: '/ferramentas/dicionario', color: '#3B82F6' },

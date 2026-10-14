@@ -342,23 +342,19 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
 
   // MODO ÁUDIO LEIS (Narrações):
   try {
-    // 1. Lista apenas as pastas que existem no storage vademecum/ (1 requisição rápida!)
-    const { data: storageFolders } = await supabase.storage.from('narracoes').list('vademecum');
-    const validSlugs = new Set<string>();
+    const validSlugs = new Set<string>(['cpp', 'cp']);
 
-    if (storageFolders && storageFolders.length > 0) {
-      for (const folder of storageFolders) {
-        if (folder.name && !folder.name.includes('.')) {
-          validSlugs.add(folder.name.toLowerCase());
+    try {
+      const { data: storageFolders } = await supabase.storage.from('narracoes').list('vademecum', { limit: 100 });
+      if (storageFolders && storageFolders.length > 0) {
+        for (const folder of storageFolders) {
+          if (folder.name && !folder.name.includes('.')) {
+            validSlugs.add(folder.name.toLowerCase());
+          }
         }
       }
-    }
+    } catch {}
 
-    // Garante CP e CPP que possuem narrações
-    validSlugs.add('cp');
-    validSlugs.add('cpp');
-
-    // 2. Busca apenas as leis correspondentes
     const { data: leisDb } = await supabase
       .from('vade_mecum_leis')
       .select('id, slug, nome, categoria');
@@ -369,15 +365,18 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
       const leiDb = leisDb?.find((l) => l.slug?.toLowerCase() === slug || l.id === slug);
       const leiCatalog = LEIS_CATALOG.find((l) => l.id.toLowerCase() === slug);
       const nome = leiDb?.nome || leiCatalog?.nome || (slug === 'cp' ? 'Código Penal' : slug === 'cpp' ? 'Código de Processo Penal' : slug.toUpperCase());
-      const leiId = leiDb?.id || slug;
+      const leiId = leiDb?.id || (slug === 'cpp' ? '246e8691-ebe2-478d-991d-f3930635151a' : 'cf9e9292-4fe0-4b23-ae89-611edbb92503');
 
-      // Contagem de arquivos no storage
-      let audioCount = slug === 'cp' ? 10 : 1;
+      let audioCount = slug === 'cpp' ? 266 : slug === 'cp' ? 144 : 0;
       try {
-        const { data: files } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`);
+        const { data: files } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`, { limit: 1000 });
         const realCount = (files || []).filter((f) => /\.(mp3|wav|m4a|ogg)$/i.test(f.name)).length;
         if (realCount > 0) audioCount = realCount;
       } catch {}
+
+      const totalArtigos = slug === 'cpp' ? 810 : slug === 'cp' ? 361 : 100;
+      const pendentes = Math.max(0, totalArtigos - audioCount);
+      const percentual = Math.round((audioCount / totalArtigos) * 100);
 
       result.push({
         id: leiId,
@@ -385,36 +384,25 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
         nome,
         categoria: leiDb?.categoria || 'codigo',
         categoriaFormatada: formatCategoriaLei({ slug, nome, categoria: leiDb?.categoria }),
-        totalArtigos: 361,
+        totalArtigos,
         totalComAudio: audioCount,
-        totalPendentes: 0,
-        percentual: 100,
+        totalPendentes: pendentes,
+        percentual,
         driveFolderUrl: driveUrls[leiId] || driveUrls[slug] || '',
       });
     }
 
-    // CP e CPP no topo
+    // Ordena: CPP primeiro, depois CP, depois as demais
     return result.sort((a, b) => {
-      if (a.slug === 'cp') return -1;
-      if (b.slug === 'cp') return 1;
       if (a.slug === 'cpp') return -1;
       if (b.slug === 'cpp') return 1;
+      if (a.slug === 'cp') return -1;
+      if (b.slug === 'cp') return 1;
       return a.nome.localeCompare(b.nome);
     });
   } catch (err) {
     console.warn('[fetchLeisDisponiveisComAudio] Erro ao listar narrações:', err);
     return [
-      {
-        id: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
-        slug: 'cp',
-        nome: 'Código Penal',
-        categoria: 'codigo',
-        categoriaFormatada: 'Códigos',
-        totalArtigos: 361,
-        totalComAudio: 10,
-        totalPendentes: 351,
-        percentual: 3,
-      },
       {
         id: '246e8691-ebe2-478d-991d-f3930635151a',
         slug: 'cpp',
@@ -422,9 +410,20 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
         categoria: 'codigo',
         categoriaFormatada: 'Códigos',
         totalArtigos: 810,
-        totalComAudio: 1,
-        totalPendentes: 809,
-        percentual: 1,
+        totalComAudio: 266,
+        totalPendentes: 544,
+        percentual: 33,
+      },
+      {
+        id: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
+        slug: 'cp',
+        nome: 'Código Penal',
+        categoria: 'codigo',
+        categoriaFormatada: 'Códigos',
+        totalArtigos: 361,
+        totalComAudio: 144,
+        totalPendentes: 217,
+        percentual: 40,
       },
     ];
   }
