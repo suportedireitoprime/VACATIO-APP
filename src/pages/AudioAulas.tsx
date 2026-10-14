@@ -124,8 +124,21 @@ const Audioaulas = () => {
         pular={state.pular}
         setVelocidade={state.setVelocidade}
       />
+      </div>
+    </div>
+  );
 
-      {/* Navegação Inferior das Áudio Aulas */}
+  return (
+    <>
+      {isDesktop ? (
+        <DesktopPageLayout activeId="aprender" title={areaAtual ? `Audioaulas - ${areaAtual}` : "Audioaulas"} wide hideTabs>
+          {content}
+        </DesktopPageLayout>
+      ) : (
+        content
+      )}
+
+      {/* Navegação Inferior Fixa Global das Áudio Aulas */}
       <AudioaulasBottomNav
         ativo={areaAtual ? null : state.aba}
         hidden={state.aberto}
@@ -136,19 +149,8 @@ const Audioaulas = () => {
           if (t === 'buscar') window.setTimeout(() => buscaRef.current?.focus(), 150);
         }}
       />
-      </div>
-    </div>
+    </>
   );
-
-  if (isDesktop) {
-    return (
-      <DesktopPageLayout activeId="aprender" title={areaAtual ? `Audioaulas - ${areaAtual}` : "Audioaulas"} wide hideTabs>
-        {content}
-      </DesktopPageLayout>
-    );
-  }
-
-  return content;
 };
 
 export default Audioaulas;

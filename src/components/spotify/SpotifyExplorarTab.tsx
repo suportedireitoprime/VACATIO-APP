@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Play, Headphones, BookOpen } from 'lucide-react';
+import { Play, Headphones, BookOpen, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 import { fetchLeisDisponiveisComAudio, type LeiNarracaoItem } from '@/services/narracaoArtigosSyncService';
@@ -20,9 +20,9 @@ const DEFAULT_LEIS_INITIAL: LeiNarracaoItem[] = [
     categoria: 'codigo',
     categoriaFormatada: 'Códigos',
     totalArtigos: 810,
-    totalComAudio: 266,
-    totalPendentes: 544,
-    percentual: 33,
+    totalComAudio: 779,
+    totalPendentes: 31,
+    percentual: 96,
   },
   {
     id: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
@@ -78,42 +78,43 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
   }, [leis, activeCategory]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Seção Tocados Recentemente (Aparece se houver histórico) */}
       <SpotifyRecentTracks />
 
-      {/* Filtros em Pílulas Estilo Audio Aulas */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {[
-          { id: 'todos', label: 'Todos' },
-          { id: 'codigos', label: 'Códigos' },
-          { id: 'estatutos', label: 'Estatutos' },
-          { id: 'constituicao', label: 'Constituição' },
-          { id: 'especiais', label: 'Leis Especiais' },
-        ].map((cat) => (
-          <button
-            key={cat.id}
-            type="button"
-            onClick={() => setActiveCategory(cat.id as CategoryFilter)}
-            className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 border ${
-              activeCategory === cat.id
-                ? 'bg-primary text-primary-foreground border-primary/40 shadow-md shadow-primary/25'
-                : 'bg-white/5 text-zinc-300 border-white/10 hover:bg-white/10 hover:text-white'
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
+      {/* Seção de Legislações — Idêntica a Áudio Aulas */}
+      <section>
+        <div className="mb-6">
+          <h2 className="text-[22px] font-black text-white uppercase tracking-widest">
+            Catálogo de Legislação
+          </h2>
+          <p className="mt-1 text-[14px] text-zinc-400">
+            Mergulhe no conhecimento jurídico através de narrações completas artigo por artigo. Estude onde e quando quiser.
+          </p>
+        </div>
 
-      {/* Grid de Álbuns (Leis) */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-primary" />
-            Catálogo de Legislações ({filteredLeis.length})
-          </h3>
-          <span className="text-[11px] text-zinc-400 font-medium">Toque para ouvir</span>
+        {/* Filtros em Pílulas Estilo Audio Aulas */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-none">
+          {[
+            { id: 'todos', label: 'Todos' },
+            { id: 'codigos', label: 'Códigos' },
+            { id: 'estatutos', label: 'Estatutos' },
+            { id: 'constituicao', label: 'Constituição' },
+            { id: 'especiais', label: 'Leis Especiais' },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setActiveCategory(cat.id as CategoryFilter)}
+              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 border ${
+                activeCategory === cat.id
+                  ? 'bg-primary text-primary-foreground border-primary/40 shadow-md shadow-primary/25'
+                  : 'bg-white/5 text-zinc-300 border-white/10 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
 
         {filteredLeis.length === 0 ? (
@@ -127,14 +128,41 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-            {filteredLeis.map((lei) => {
+          /* Grade de Cards Idêntica ao AudioaulasGridAreas */
+          <motion.div
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5"
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: { opacity: 1, transition: { staggerChildren: 0.05 } },
+            }}
+          >
+            {filteredLeis.map((lei, i) => {
               const cover = getLeiCover(lei.slug || lei.id);
               return (
-                <motion.div
+                <motion.button
                   key={lei.id}
-                  whileHover={{ scale: 1.02, y: -4 }}
-                  whileTap={{ scale: 0.98 }}
+                  variants={{
+                    hidden: { opacity: 0, scale: 0.95, y: 0 },
+                    show: {
+                      opacity: 1,
+                      scale: 1,
+                      y: 0,
+                      transition: { type: 'spring', stiffness: 300, damping: 24 },
+                    },
+                  }}
+                  whileHover={{ scale: 1.03, y: -5 }}
+                  whileTap={{ scale: 0.97 }}
+                  animate={{
+                    y: [0, -8, 0],
+                    transition: {
+                      duration: 4 + (i % 3),
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                      delay: i * 0.2,
+                    },
+                  }}
                   onClick={() =>
                     onSelectLei({
                       id: lei.id,
@@ -143,50 +171,41 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
                       categoria: lei.categoriaFormatada,
                     })
                   }
-                  className="group relative bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-white/20 rounded-2xl p-3 flex flex-col justify-between transition-all cursor-pointer shadow-lg hover:shadow-2xl backdrop-blur-md"
+                  className="group relative aspect-square rounded-2xl overflow-hidden text-left transition-shadow duration-300 hover:shadow-2xl hover:shadow-primary/20 border border-white/10 focus-visible:outline-none"
                 >
-                  {/* Capa com Botão Play Flutuante */}
-                  <div className="relative aspect-square rounded-xl overflow-hidden mb-2.5 bg-zinc-950 shadow-md">
-                    <img
-                      src={cover}
-                      alt={lei.nome}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-
-                    {/* Botão Play estilo Audio Aulas no hover */}
-                    <div className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-200">
-                      <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xl hover:scale-110 active:scale-95">
-                        <Play className="w-4 h-4 fill-current ml-0.5" />
+                  <img
+                    src={cover}
+                    alt={lei.nome}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                  <div className="absolute inset-0 p-3.5 flex flex-col justify-between">
+                    <span className="self-start h-9 w-9 grid place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-black/40">
+                      <Headphones className="h-5 w-5" />
+                    </span>
+                    <div className="flex items-end justify-between gap-2">
+                      <div className="min-w-0 pr-1">
+                        <p className="font-bold leading-tight text-white text-sm sm:text-base line-clamp-2">
+                          {lei.nome}
+                        </p>
+                        <p className="text-[11px] text-zinc-300 mt-0.5">
+                          {lei.totalComAudio > 0
+                            ? `${lei.totalComAudio} áudio(s)`
+                            : `${lei.totalArtigos} artigos`}
+                        </p>
                       </div>
+                      <span className="shrink-0 h-8 w-8 grid place-items-center rounded-full bg-white/20 text-white backdrop-blur group-hover:bg-primary group-hover:text-primary-foreground transition">
+                        <ChevronRight className="h-5 w-5" />
+                      </span>
                     </div>
                   </div>
-
-                  {/* Informações da Lei */}
-                  <div className="space-y-1 min-w-0">
-                    <p className="text-xs sm:text-sm font-bold text-white truncate group-hover:text-primary transition-colors">
-                      {lei.nome}
-                    </p>
-                    <div className="flex items-center justify-between text-[11px] text-zinc-400">
-                      <span className="truncate">{lei.categoriaFormatada}</span>
-                      {lei.totalComAudio > 0 ? (
-                        <span className="text-primary font-bold shrink-0 text-[10px]">
-                          {lei.totalComAudio} áudios
-                        </span>
-                      ) : (
-                        <span className="text-zinc-500 shrink-0 text-[10px]">
-                          {lei.totalArtigos} arts
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
+                </motion.button>
               );
             })}
-          </div>
+          </motion.div>
         )}
-      </div>
+      </section>
     </div>
   );
 };

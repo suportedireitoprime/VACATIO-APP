@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PageHeader } from '@/components/vademecum/PageHeader';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 import { SpotifyBottomNav } from './SpotifyBottomNav';
 import { SpotifyMiniPlayer } from './SpotifyMiniPlayer';
@@ -12,6 +11,8 @@ import { SpotifyPlaylistsTab } from './SpotifyPlaylistsTab';
 import { SpotifyFavoritosTab } from './SpotifyFavoritosTab';
 import { SpotifyDownloadsTab } from './SpotifyDownloadsTab';
 import { SpotifyLeiAlbumView } from './SpotifyLeiAlbumView';
+import { AudioLeisHero } from './AudioLeisHero';
+import { fetchLeisDisponiveisComAudio } from '@/services/narracaoArtigosSyncService';
 import { AudioNavigationSwitcher } from '@/components/audio/AudioNavigationSwitcher';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 
@@ -64,6 +65,16 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
     categoria?: string;
   } | null>(null);
 
+  const [totalStats, setTotalStats] = React.useState({ totalAudios: 923, totalLeis: 2 });
+  React.useEffect(() => {
+    fetchLeisDisponiveisComAudio('leis').then((leis) => {
+      if (leis.length > 0) {
+        const sumAudios = leis.reduce((acc, l) => acc + (l.totalComAudio || 0), 0);
+        setTotalStats({ totalAudios: sumAudios, totalLeis: leis.length });
+      }
+    });
+  }, []);
+
   const handleSelectLei = (lei: { id: string; nome: string; slug: string; categoria?: string }) => {
     setSelectedLeiData(lei);
     setSelectedLeiId(lei.id);
@@ -75,7 +86,7 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-foreground pb-36 relative select-none overflow-hidden">
+    <div className="min-h-screen bg-zinc-950 text-foreground pb-40 relative select-none overflow-hidden">
       {/* Textura Geométrica Dinâmica idêntica ao Áudio Aulas */}
       <div className="absolute inset-0 z-0 opacity-60 pointer-events-none">
         <ShapeGrid
@@ -132,17 +143,14 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
 
         {!selectedLeiData && (
           <>
-            {/* Cabeçalho no Padrão Oficial do VACATIO */}
-            <PageHeader
-              title="Áudio Leis"
-              subtitle="Narrações oficiais dos artigos da legislação compilada"
-              onBack={() => navigate('/')}
-              variant="dark"
-              rightAction={<AudioNavigationSwitcher active="leis" />}
+            {/* Hero Idêntico a Áudio Aulas com Fita Cassete Animada */}
+            <AudioLeisHero
+              totalAudios={totalStats.totalAudios}
+              totalLeis={totalStats.totalLeis}
             />
 
             {/* Conteúdo Principal de Acordo com a Aba do Rodapé */}
-            <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5">
+            <main className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pb-32">
               {activeTab === 'explorar' && <SpotifyExplorarTab onSelectLei={handleSelectLei} />}
               {activeTab === 'pesquisar' && <SpotifyPesquisarTab onSelectLei={handleSelectLei} />}
               {activeTab === 'playlists' && <SpotifyPlaylistsTab />}
