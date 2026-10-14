@@ -12,6 +12,7 @@ import { AudioaulasListaAulas } from '@/components/audioaulas/home/AudioaulasLis
 import { AudioaulasBuscaInput } from '@/components/audioaulas/home/AudioaulasBuscaInput';
 import { AudioaulasPlayerModal } from '@/components/audioaulas/home/AudioaulasPlayerModal';
 import { AudioaulasCategoriasNav } from '@/components/audioaulas/AudioaulasCategoriasNav';
+import { AudioaulasAulasRecentes } from '@/components/audioaulas/home/AudioaulasAulasRecentes';
 import { AudioAppBottomNav } from '@/components/audio/AudioAppBottomNav';
 import { AudioaulasPlaylistsView } from '@/components/audioaulas/home/AudioaulasPlaylistsView';
 
@@ -60,6 +61,17 @@ const Audioaulas = () => {
           loading={state.loading}
           totalAulas={areaAtual ? state.daArea.length : state.aulas.length}
         />
+
+        {/* Últimas Aulas Ouvidas: antes do menu de alternância de categorias */}
+        {!areaAtual && state.aba === 'aulas' && (
+          <AudioaulasAulasRecentes
+            recentes={state.historicoRecentes}
+            atualId={state.atualId}
+            tocando={state.tocando}
+            onTocarAula={state.handleTocarAula}
+            onLimpar={state.limparRecentes}
+          />
+        )}
 
         {/* Menu Superior: Rolagem infinita por Áreas (Todos, Constituição, Trabalho...) */}
         <AudioaulasCategoriasNav

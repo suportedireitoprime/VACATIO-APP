@@ -30,7 +30,9 @@ interface AudioaulasPlayerContextType {
   aberto: boolean;
   fila: AulaAudio[];
   favoritos: Set<string>;
+  historicoRecentes: AulaAudio[];
   alternarFavorito: (a: AulaAudio) => void;
+  limparRecentes: () => void;
   setAberto: (v: boolean) => void;
   tocar: (a: AulaAudio, customFila?: AulaAudio[]) => Promise<void>;
   togglePlay: () => void;
@@ -47,6 +49,25 @@ const lerFavoritos = (): Set<string> => {
     return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
   } catch {
     return new Set();
+  }
+};
+
+const RECENTES_KEY = 'aa_recentes_v1';
+const lerRecentes = (): AulaAudio[] => {
+  try {
+    const raw = localStorage.getItem(RECENTES_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    /* ignore */
+  }
+  return [];
+};
+
+const salvarRecentes = (lista: AulaAudio[]) => {
+  try {
+    localStorage.setItem(RECENTES_KEY, JSON.stringify(lista.slice(0, 20)));
+  } catch {
+    /* ignore */
   }
 };
 
@@ -67,7 +88,9 @@ const fallbackAudioaulasContext: AudioaulasPlayerContextType = {
   aberto: false,
   fila: [],
   favoritos: new Set(),
+  historicoRecentes: [],
   alternarFavorito: () => {},
+  limparRecentes: () => {},
   setAberto: () => {},
   tocar: async () => {},
   togglePlay: () => {},
@@ -95,7 +118,17 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
   const [velocidade, setVelocidadeState] = useState(1);
   const [aberto, setAberto] = useState(false);
   const [favoritos, setFavoritos] = useState<Set<string>>(() => lerFavoritos());
+  const [historicoRecentes, setHistoricoRecentes] = useState<AulaAudio[]>(() => lerRecentes());
   const [filaCustom, setFilaCustom] = useState<AulaAudio[] | null>(null);
+
+  const limparRecentes = useCallback(() => {
+    setHistoricoRecentes([]);
+    try {
+      localStorage.removeItem(RECENTES_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const pularRef = useRef<(dir: 1 | -1) => void>(() => {});
@@ -227,6 +260,13 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
       setTempo(0);
       setDur(0);
 
+      // Atualiza histórico de aulas tocadas recentemente
+      setHistoricoRecentes((prev) => {
+        const novos = [a, ...prev.filter((item) => item.id !== a.id)].slice(0, 20);
+        salvarRecentes(novos);
+        return novos;
+      });
+
       try {
         const src = await fonteDeAudio(audioIdOf(a), a.url_audio);
         if (el) {
@@ -313,7 +353,9 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
     aberto,
     fila,
     favoritos,
+    historicoRecentes,
     alternarFavorito,
+    limparRecentes,
     setAberto,
     tocar,
     togglePlay,

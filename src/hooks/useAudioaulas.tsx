@@ -19,7 +19,9 @@ export function useAudioaulas(areaAtual: string | null) {
     aberto,
     fila,
     favoritos,
+    historicoRecentes,
     alternarFavorito,
+    limparRecentes,
     setAberto,
     tocar,
     togglePlay,
@@ -32,8 +34,8 @@ export function useAudioaulas(areaAtual: string | null) {
   const [aba, setAba] = useState<AudioaulasTab>('aulas');
   const [busca, setBusca] = useState('');
 
-  const gateDia = useGatedFeature('audioaula_dia', 'audioaula', { scope: null });
-  const gateMes = useGatedFeature('audioaula_mes', 'audioaula', { scope: null });
+  const gateDia = useGatedFeature('audioaula_dia', 'audioaula' as any, { scope: null });
+  const gateMes = useGatedFeature('audioaula_mes', 'audioaula' as any, { scope: null });
 
   useEffect(() => {
     let vivo = true;
@@ -145,6 +147,7 @@ export function useAudioaulas(areaAtual: string | null) {
     
     // Status
     favoritos, alternarFavorito, baixadas,
+    historicoRecentes, limparRecentes,
     
     // Actions
     handleTocarAula,
