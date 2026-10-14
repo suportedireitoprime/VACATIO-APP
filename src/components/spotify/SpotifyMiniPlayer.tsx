@@ -15,13 +15,36 @@ export const SpotifyMiniPlayer: React.FC = () => {
     setExpanded,
   } = useSpotifyAudioStore();
 
+  const [navHeight, setNavHeight] = React.useState(0);
+
+  React.useEffect(() => {
+    const medir = () => {
+      const nav = document.querySelector<HTMLElement>('[data-bottom-nav]');
+      setNavHeight(nav ? nav.getBoundingClientRect().height : 0);
+    };
+    medir();
+    window.addEventListener('resize', medir);
+    const t = window.setTimeout(medir, 300);
+    return () => {
+      window.removeEventListener('resize', medir);
+      window.clearTimeout(t);
+    };
+  }, []);
+
   if (!currentTrack) return null;
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const isFav = isFavorito(currentTrack.id);
 
   return (
-    <div className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-0 right-0 z-40 px-3 max-w-md mx-auto sm:max-w-xl md:max-w-2xl">
+    <div
+      className="fixed left-0 right-0 z-[80] px-3 max-w-md mx-auto sm:max-w-xl md:max-w-2xl transition-all duration-300"
+      style={{
+        bottom: navHeight
+          ? `${navHeight + 18}px`
+          : `calc(6.5rem + env(safe-area-inset-bottom, 0px))`,
+      }}
+    >
       <div
         onClick={() => setExpanded(true)}
         className="relative overflow-hidden rounded-2xl bg-zinc-900/95 border border-white/10 backdrop-blur-xl shadow-2xl p-2.5 flex items-center justify-between gap-3 cursor-pointer select-none transition-all hover:bg-zinc-800/90 hover:border-white/20 active:scale-[0.99]"

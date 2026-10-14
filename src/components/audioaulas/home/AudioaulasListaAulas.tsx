@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 interface LinhaAulaProps {
   a: AulaAudio;
   indice?: number;
-  atualId: string | null;
+  atualId: string | number | null;
   tocando: boolean;
   favoritos: Set<string>;
   alternarFavorito: (a: AulaAudio) => void;
@@ -89,7 +89,7 @@ interface AudioaulasListaAulasProps {
   temasDaArea: [string, AulaAudio[]][];
   listaAba: AulaAudio[];
   busca: string;
-  atualId: string | null;
+  atualId: string | number | null;
   tocando: boolean;
   favoritos: Set<string>;
   alternarFavorito: (a: AulaAudio) => void;

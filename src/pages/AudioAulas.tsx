@@ -11,7 +11,8 @@ import { AudioaulasGridAreas } from '@/components/audioaulas/home/AudioaulasGrid
 import { AudioaulasListaAulas } from '@/components/audioaulas/home/AudioaulasListaAulas';
 import { AudioaulasBuscaInput } from '@/components/audioaulas/home/AudioaulasBuscaInput';
 import { AudioaulasPlayerModal } from '@/components/audioaulas/home/AudioaulasPlayerModal';
-import { AudioaulasTopNav } from '@/components/audioaulas/AudioaulasTopNav';
+import { AudioaulasCategoriasNav } from '@/components/audioaulas/AudioaulasCategoriasNav';
+import { AudioAppBottomNav } from '@/components/audio/AudioAppBottomNav';
 import { AudioaulasPlaylistsView } from '@/components/audioaulas/home/AudioaulasPlaylistsView';
 
 const Audioaulas = () => {
@@ -38,7 +39,7 @@ const Audioaulas = () => {
   }, [searchParams, state.aulas, state.loading]);
 
   const content = (
-    <div className={`w-full bg-zinc-950 text-foreground relative ${isDesktop ? 'rounded-2xl pb-12 min-h-[700px] border border-white/5 overflow-hidden' : 'min-h-screen pb-24'}`}>
+    <div className={`w-full bg-zinc-950 text-foreground relative ${isDesktop ? 'rounded-2xl pb-16 min-h-[700px] border border-white/5 overflow-hidden' : 'min-h-screen pb-40'}`}>
       <div className="absolute inset-0 z-0 opacity-60">
         <ShapeGrid 
           speed={0.5} 
@@ -60,18 +61,19 @@ const Audioaulas = () => {
           totalAulas={areaAtual ? state.daArea.length : state.aulas.length}
         />
 
-        {/* Menu Superior: Explorar, Favoritos, Pesquisar, Playlists, Baixados */}
-        <AudioaulasTopNav
-          ativo={areaAtual ? 'aulas' : state.aba}
-          onSelect={(t) => {
-            if (areaAtual) navigate('/audioaulas');
-            state.setAba(t);
+        {/* Menu Superior: Rolagem infinita por Áreas (Todos, Constituição, Trabalho...) */}
+        <AudioaulasCategoriasNav
+          areas={state.areas}
+          areaAtual={areaAtual}
+          onSelectArea={(nome) => {
+            state.setAba('aulas');
             state.setAberto(false);
-            if (t === 'buscar') window.setTimeout(() => buscaRef.current?.focus(), 150);
+            if (nome) {
+              navigate(`/audioaulas/${encodeURIComponent(nome)}`);
+            } else {
+              navigate('/audioaulas');
+            }
           }}
-          totalFavoritas={state.favoritos.size}
-          totalBaixadas={state.baixadas.size}
-          totalPlaylists={state.areas.length}
         />
 
         {state.loading ? (
@@ -152,12 +154,47 @@ const Audioaulas = () => {
           pular={state.pular}
           setVelocidade={state.setVelocidade}
         />
+
+        {/* Menu de Rodapé Idêntico ao Início do App */}
+        <AudioAppBottomNav
+          ativo={
+            state.aba === 'favoritas'
+              ? 'favoritos'
+              : state.aba === 'playlists'
+              ? 'playlists'
+              : state.aba === 'buscar'
+              ? 'pesquisar'
+              : state.aba === 'baixadas'
+              ? 'baixados'
+              : 'explorar'
+          }
+          onSelect={(tab) => {
+            if (areaAtual) navigate('/audioaulas');
+            state.setAberto(false);
+            if (tab === 'favoritos') {
+              state.setAba('favoritas');
+            } else if (tab === 'playlists') {
+              state.setAba('playlists');
+            } else if (tab === 'pesquisar') {
+              state.setAba('buscar');
+              window.setTimeout(() => buscaRef.current?.focus(), 150);
+            } else if (tab === 'baixados') {
+              state.setAba('baixadas');
+            } else {
+              state.setAba('aulas');
+            }
+          }}
+          totalFavoritas={state.favoritos.size}
+          totalPlaylists={state.areas.length}
+          totalBaixadas={state.baixadas.size}
+          hidden={state.aberto}
+        />
       </div>
     </div>
   );
 
   return isDesktop ? (
-    <DesktopPageLayout activeId="aprender" title={areaAtual ? `Audioaulas - ${areaAtual}` : "Audioaulas"} wide hideTabs>
+    <DesktopPageLayout activeId="aprender" title={areaAtual ? `Audioaulas - ${areaAtual}` : "Audioaulas"}>
       {content}
     </DesktopPageLayout>
   ) : (

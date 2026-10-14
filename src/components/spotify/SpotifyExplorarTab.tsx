@@ -10,7 +10,13 @@ interface SpotifyExplorarTabProps {
   onSelectLei: (lei: { id: string; nome: string; slug: string; categoria?: string }) => void;
 }
 
-type CategoryFilter = 'todos' | 'codigos' | 'estatutos' | 'constituicao' | 'especiais';
+export type CategoryFilter = 'todos' | 'constituicao' | 'codigos' | 'estatutos' | 'especiais';
+
+interface SpotifyExplorarTabProps {
+  onSelectLei: (lei: { id: string; nome: string; slug: string; categoria?: string }) => void;
+  activeCategory?: CategoryFilter;
+  onSelectCategory?: (cat: CategoryFilter) => void;
+}
 
 const DEFAULT_LEIS_INITIAL: LeiNarracaoItem[] = [
   {
@@ -37,10 +43,12 @@ const DEFAULT_LEIS_INITIAL: LeiNarracaoItem[] = [
   },
 ];
 
-export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelectLei }) => {
+export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
+  onSelectLei,
+  activeCategory = 'todos',
+}) => {
   const { audioMode } = useSpotifyAudioStore();
   const [leis, setLeis] = useState<LeiNarracaoItem[]>(DEFAULT_LEIS_INITIAL);
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('todos');
 
   useEffect(() => {
     let isMounted = true;
@@ -66,7 +74,12 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
       if (activeCategory === 'todos') return true;
       if (activeCategory === 'codigos') return lei.categoriaFormatada === 'Códigos';
       if (activeCategory === 'estatutos') return lei.categoriaFormatada === 'Estatutos';
-      if (activeCategory === 'constituicao') return lei.categoriaFormatada === 'Constituição';
+      if (activeCategory === 'constituicao')
+        return (
+          lei.categoriaFormatada === 'Constituição' ||
+          lei.slug === 'cf' ||
+          /constitui/i.test(lei.nome)
+        );
       if (activeCategory === 'especiais')
         return (
           lei.categoriaFormatada === 'Leis Ordinárias' ||
@@ -82,7 +95,7 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
       {/* Seção Tocados Recentemente (Aparece se houver histórico) */}
       <SpotifyRecentTracks />
 
-      {/* Seção de Legislações — Idêntica a Áudio Aulas */}
+      {/* Seção de Legislações */}
       <section>
         <div className="mb-6">
           <h2 className="text-[22px] font-black text-white uppercase tracking-widest">
@@ -91,30 +104,6 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
           <p className="mt-1 text-xs sm:text-sm text-zinc-400 line-clamp-1">
             Narrações completas artigo por artigo gravadas em estúdio com voz humana.
           </p>
-        </div>
-
-        {/* Filtros em Pílulas Estilo Audio Aulas */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-none">
-          {[
-            { id: 'todos', label: 'Todos' },
-            { id: 'codigos', label: 'Códigos' },
-            { id: 'estatutos', label: 'Estatutos' },
-            { id: 'constituicao', label: 'Constituição' },
-            { id: 'especiais', label: 'Leis Especiais' },
-          ].map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setActiveCategory(cat.id as CategoryFilter)}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 border ${
-                activeCategory === cat.id
-                  ? 'bg-primary text-primary-foreground border-primary/40 shadow-md shadow-primary/25'
-                  : 'bg-white/5 text-zinc-300 border-white/10 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
         </div>
 
         {filteredLeis.length === 0 ? (

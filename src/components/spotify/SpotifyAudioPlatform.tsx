@@ -2,7 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
-import { AudioLeisTopNav } from './AudioLeisTopNav';
+import { AudioLeisCategoriasNav, type LeiCategoryFilter } from './AudioLeisCategoriasNav';
+import { AudioAppBottomNav } from '@/components/audio/AudioAppBottomNav';
 import { SpotifyMiniPlayer } from './SpotifyMiniPlayer';
 import { SpotifyExpandedPlayer } from './SpotifyExpandedPlayer';
 import { SpotifyExplorarTab } from './SpotifyExplorarTab';
@@ -29,6 +30,7 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
 
   const {
     activeTab,
+    setActiveTab,
     audioMode,
     setAudioMode,
     setSelectedLeiId,
@@ -38,7 +40,13 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
     _setIsPlaying,
     _handleTrackEnded,
     refreshDownloadedList,
+    favoritos,
+    playlists,
+    downloadedTrackIds,
+    isExpanded,
   } = useSpotifyAudioStore();
+
+  const [activeCategory, setActiveCategory] = React.useState<LeiCategoryFilter>('todos');
 
   // Define modo inicial de acordo com a rota
   useEffect(() => {
@@ -157,12 +165,23 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
               totalLeis={totalStats.totalLeis}
             />
 
-            {/* Conteúdo Principal de Acordo com a Aba do Menu Superior */}
-            <main className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pb-24">
-              {/* Menu Superior: Explorar, Favoritos, Pesquisar, Playlists, Baixados */}
-              <AudioLeisTopNav />
+            {/* Conteúdo Principal de Acordo com a Aba do Menu */}
+            <main className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pb-40">
+              {/* Menu Superior: Rolagem infinita (Todos, Constituição, Códigos...) */}
+              {activeTab === 'explorar' && (
+                <AudioLeisCategoriasNav
+                  activeCategory={activeCategory}
+                  onSelectCategory={setActiveCategory}
+                />
+              )}
 
-              {activeTab === 'explorar' && <SpotifyExplorarTab onSelectLei={handleSelectLei} />}
+              {activeTab === 'explorar' && (
+                <SpotifyExplorarTab
+                  onSelectLei={handleSelectLei}
+                  activeCategory={activeCategory}
+                  onSelectCategory={setActiveCategory}
+                />
+              )}
               {activeTab === 'pesquisar' && <SpotifyPesquisarTab onSelectLei={handleSelectLei} />}
               {activeTab === 'playlists' && <SpotifyPlaylistsTab />}
               {activeTab === 'favoritos' && <SpotifyFavoritosTab />}
@@ -171,6 +190,39 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
           </>
         )}
       </div>
+
+      {/* Menu de Rodapé Idêntico ao Início do App */}
+      <AudioAppBottomNav
+        ativo={
+          activeTab === 'favoritos'
+            ? 'favoritos'
+            : activeTab === 'playlists'
+            ? 'playlists'
+            : activeTab === 'pesquisar'
+            ? 'pesquisar'
+            : activeTab === 'downloads'
+            ? 'baixados'
+            : 'explorar'
+        }
+        onSelect={(tab) => {
+          if (selectedLeiData) handleBackFromAlbum();
+          if (tab === 'favoritos') {
+            setActiveTab('favoritos');
+          } else if (tab === 'playlists') {
+            setActiveTab('playlists');
+          } else if (tab === 'pesquisar') {
+            setActiveTab('pesquisar');
+          } else if (tab === 'baixados') {
+            setActiveTab('downloads');
+          } else {
+            setActiveTab('explorar');
+          }
+        }}
+        totalFavoritas={favoritos.length}
+        totalPlaylists={playlists.length}
+        totalBaixadas={downloadedTrackIds.length}
+        hidden={isExpanded || !!selectedLeiData}
+      />
 
       {/* Mini-Player Fixo Flutuante */}
       <SpotifyMiniPlayer />
