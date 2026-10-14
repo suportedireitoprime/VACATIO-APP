@@ -799,8 +799,10 @@ const App = () => (
               <AudioaulasPlayerProvider>
                 <RecordingProvider>
                   <AnimatedRoutes />
-                  <NarracaoMiniPlayer />
-                  <GlobalAudioaulasMiniPlayer />
+                  <Suspense fallback={null}>
+                    <NarracaoMiniPlayer />
+                    <GlobalAudioaulasMiniPlayer />
+                  </Suspense>
                   <GravacaoFlutuante />
                 </RecordingProvider>
               </AudioaulasPlayerProvider>

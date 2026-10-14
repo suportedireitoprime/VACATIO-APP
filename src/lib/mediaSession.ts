@@ -103,3 +103,37 @@ export function clearMediaSession() {
     /* ignore */
   }
 }
+
+export type RegistrarMidiaArgs = {
+  titulo: string;
+  subtitulo?: string;
+  album?: string;
+  capaUrl?: string;
+  audio: HTMLAudioElement;
+  onNext?: () => void;
+  onPrev?: () => void;
+  onStop?: () => void;
+  onSeek?: (timeSec: number) => void;
+};
+
+export function registrarMidia(args: RegistrarMidiaArgs) {
+  setupMediaSession({
+    title: args.titulo,
+    artist: args.subtitulo || DEFAULT_ARTIST,
+    album: args.album,
+    artworkUrl: args.capaUrl,
+    audio: args.audio,
+    onSeek: args.onSeek,
+  });
+
+  if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
+    const ms = navigator.mediaSession;
+    try {
+      if (args.onNext) ms.setActionHandler('nexttrack', () => args.onNext?.());
+      if (args.onPrev) ms.setActionHandler('previoustrack', () => args.onPrev?.());
+      if (args.onStop) ms.setActionHandler('stop', () => args.onStop?.());
+    } catch {
+      /* ignore */
+    }
+  }
+}
