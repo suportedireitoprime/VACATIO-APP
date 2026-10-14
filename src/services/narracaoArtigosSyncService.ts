@@ -344,7 +344,7 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
 
   // MODO ÁUDIO LEIS (Narrações):
   try {
-    const validSlugs = new Set<string>(['cpp', 'cp']);
+    const validSlugs = new Set<string>(['cpp', 'cp', 'cc']);
 
     try {
       const { data: storageFolders } = await supabase.storage.from('narracoes').list('vademecum', { limit: 100 });
@@ -368,17 +368,17 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
     for (const slug of validSlugs) {
       const leiDb = leisDb?.find((l) => l.slug?.toLowerCase() === slug || l.id === slug);
       const leiCatalog = LEIS_CATALOG.find((l) => l.id.toLowerCase() === slug);
-      const nome = leiDb?.nome || leiCatalog?.nome || (slug === 'cp' ? 'Código Penal' : slug === 'cpp' ? 'Código de Processo Penal' : slug.toUpperCase());
-      const leiId = leiDb?.id || (slug === 'cpp' ? '246e8691-ebe2-478d-991d-f3930635151a' : 'cf9e9292-4fe0-4b23-ae89-611edbb92503');
+      const nome = leiDb?.nome || leiCatalog?.nome || (slug === 'cp' ? 'Código Penal' : slug === 'cpp' ? 'Código de Processo Penal' : slug === 'cc' ? 'Código Civil' : slug.toUpperCase());
+      const leiId = leiDb?.id || (slug === 'cpp' ? '246e8691-ebe2-478d-991d-f3930635151a' : slug === 'cc' ? '32ae6146-3fd4-42e7-8879-81413f0f41cc' : 'cf9e9292-4fe0-4b23-ae89-611edbb92503');
 
-      let audioCount = slug === 'cpp' ? 266 : slug === 'cp' ? 144 : 0;
+      let audioCount = slug === 'cpp' ? 779 : slug === 'cp' ? 144 : slug === 'cc' ? 264 : 0;
       try {
-        const { data: files } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`, { limit: 1000 });
+        const { data: files } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`, { limit: 2000 });
         const realCount = (files || []).filter((f) => /\.(mp3|wav|m4a|ogg)$/i.test(f.name)).length;
         if (realCount > 0) audioCount = realCount;
       } catch {}
 
-      const totalArtigos = slug === 'cpp' ? 810 : slug === 'cp' ? 361 : 100;
+      const totalArtigos = slug === 'cpp' ? 810 : slug === 'cp' ? 361 : slug === 'cc' ? 2046 : 100;
       const pendentes = Math.max(0, totalArtigos - audioCount);
       const percentual = Math.round((audioCount / totalArtigos) * 100);
 
@@ -396,12 +396,14 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
       });
     }
 
-    // Ordena: CPP primeiro, depois CP, depois as demais
+    // Ordena: CPP primeiro, depois CP, depois CC, depois as demais
     return result.sort((a, b) => {
-      if (a.slug === 'cpp') return -1;
-      if (b.slug === 'cpp') return 1;
-      if (a.slug === 'cp') return -1;
-      if (b.slug === 'cp') return 1;
+      const order = ['cpp', 'cp', 'cc'];
+      const idxA = order.indexOf(a.slug);
+      const idxB = order.indexOf(b.slug);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
       return a.nome.localeCompare(b.nome);
     });
   } catch (err) {
@@ -414,9 +416,9 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
         categoria: 'codigo',
         categoriaFormatada: 'Códigos',
         totalArtigos: 810,
-        totalComAudio: 266,
-        totalPendentes: 544,
-        percentual: 33,
+        totalComAudio: 779,
+        totalPendentes: 31,
+        percentual: 96,
       },
       {
         id: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
@@ -428,6 +430,17 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
         totalComAudio: 144,
         totalPendentes: 217,
         percentual: 40,
+      },
+      {
+        id: '32ae6146-3fd4-42e7-8879-81413f0f41cc',
+        slug: 'cc',
+        nome: 'Código Civil',
+        categoria: 'codigo',
+        categoriaFormatada: 'Códigos',
+        totalArtigos: 2046,
+        totalComAudio: 264,
+        totalPendentes: 1782,
+        percentual: 13,
       },
     ];
   }

@@ -41,6 +41,17 @@ const DEFAULT_LEIS_INITIAL: LeiNarracaoItem[] = [
     totalPendentes: 217,
     percentual: 40,
   },
+  {
+    id: '32ae6146-3fd4-42e7-8879-81413f0f41cc',
+    slug: 'cc',
+    nome: 'Código Civil',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 2046,
+    totalComAudio: 264,
+    totalPendentes: 1782,
+    percentual: 13,
+  },
 ];
 
 export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({

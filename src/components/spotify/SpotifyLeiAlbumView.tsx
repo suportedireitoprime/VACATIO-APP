@@ -77,6 +77,9 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
       return 'linear-gradient(180deg, hsl(350 72% 34%) 0%, hsl(350 78% 38%) 40%, hsl(350 68% 26%) 100%)';
     }
     if (slug === 'cf' || slug.includes('constitu')) {
+      return 'linear-gradient(180deg, hsl(145 75% 30%) 0%, hsl(150 80% 34%) 40%, hsl(140 70% 24%) 100%)';
+    }
+    if (slug === 'cc' || slug.includes('civil')) {
       return 'linear-gradient(180deg, hsl(215 75% 36%) 0%, hsl(220 80% 40%) 40%, hsl(210 70% 28%) 100%)';
     }
     return 'linear-gradient(180deg, hsl(270 70% 30%) 0%, hsl(275 75% 35%) 40%, hsl(265 72% 28%) 100%)';
