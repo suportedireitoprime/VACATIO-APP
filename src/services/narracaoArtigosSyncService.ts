@@ -126,9 +126,6 @@ export function getSavedDriveUrls(): Record<string, string> {
     'cf9e9292-4fe0-4b23-ae89-611edbb92503': 'https://drive.google.com/drive/folders/1lwO3rzWUCFvmbGllwLvQQtX4eSXXXYQW',
     cpp: 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4',
     '246e8691-ebe2-478d-991d-f3930635151a': 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4',
-    'estatuto-oab': 'https://drive.google.com/drive/folders/1ipBkQi7VP5XTcfhpDjvfGx8J4DH4USp8',
-    '2986d542-bf86-4c70-b30f-8e16684db5ab': 'https://drive.google.com/drive/folders/1ipBkQi7VP5XTcfhpDjvfGx8J4DH4USp8',
-    oab: 'https://drive.google.com/drive/folders/1ipBkQi7VP5XTcfhpDjvfGx8J4DH4USp8',
   };
 
   try {
@@ -345,14 +342,16 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
 
   // MODO ÁUDIO LEIS (Narrações):
   try {
-    const validSlugs = new Set<string>(['cpp', 'cp', 'estatuto-oab']);
+    const validSlugs = new Set<string>(['cpp', 'cp']);
 
     try {
       const { data: storageFolders } = await supabase.storage.from('narracoes').list('vademecum', { limit: 100 });
       if (storageFolders && storageFolders.length > 0) {
         for (const folder of storageFolders) {
-          if (folder.name && !folder.name.includes('.')) {
-            validSlugs.add(folder.name.toLowerCase());
+          const fn = (folder.name || '').toLowerCase();
+          // Ignora áudio-aulas (como estatuto-oab), mantendo apenas narrações estritas
+          if (fn && !fn.includes('.') && fn !== 'estatuto-oab' && fn !== 'oab') {
+            validSlugs.add(fn);
           }
         }
       }
@@ -367,17 +366,17 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
     for (const slug of validSlugs) {
       const leiDb = leisDb?.find((l) => l.slug?.toLowerCase() === slug || l.id === slug);
       const leiCatalog = LEIS_CATALOG.find((l) => l.id.toLowerCase() === slug);
-      const nome = leiDb?.nome || leiCatalog?.nome || (slug === 'cp' ? 'Código Penal' : slug === 'cpp' ? 'Código de Processo Penal' : slug === 'estatuto-oab' ? 'Estatuto da OAB' : slug.toUpperCase());
-      const leiId = leiDb?.id || (slug === 'cpp' ? '246e8691-ebe2-478d-991d-f3930635151a' : slug === 'cp' ? 'cf9e9292-4fe0-4b23-ae89-611edbb92503' : '2986d542-bf86-4c70-b30f-8e16684db5ab');
+      const nome = leiDb?.nome || leiCatalog?.nome || (slug === 'cp' ? 'Código Penal' : slug === 'cpp' ? 'Código de Processo Penal' : slug.toUpperCase());
+      const leiId = leiDb?.id || (slug === 'cpp' ? '246e8691-ebe2-478d-991d-f3930635151a' : 'cf9e9292-4fe0-4b23-ae89-611edbb92503');
 
-      let audioCount = slug === 'cpp' ? 266 : slug === 'cp' ? 144 : slug === 'estatuto-oab' ? 99 : 0;
+      let audioCount = slug === 'cpp' ? 266 : slug === 'cp' ? 144 : 0;
       try {
         const { data: files } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`, { limit: 1000 });
         const realCount = (files || []).filter((f) => /\.(mp3|wav|m4a|ogg)$/i.test(f.name)).length;
         if (realCount > 0) audioCount = realCount;
       } catch {}
 
-      const totalArtigos = slug === 'cpp' ? 810 : slug === 'cp' ? 361 : slug === 'estatuto-oab' ? 87 : 100;
+      const totalArtigos = slug === 'cpp' ? 810 : slug === 'cp' ? 361 : 100;
       const pendentes = Math.max(0, totalArtigos - audioCount);
       const percentual = Math.round((audioCount / totalArtigos) * 100);
 
