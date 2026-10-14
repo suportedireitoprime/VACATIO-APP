@@ -126,6 +126,8 @@ export function getSavedDriveUrls(): Record<string, string> {
     'cf9e9292-4fe0-4b23-ae89-611edbb92503': 'https://drive.google.com/drive/folders/1lwO3rzWUCFvmbGllwLvQQtX4eSXXXYQW',
     cpp: 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4',
     '246e8691-ebe2-478d-991d-f3930635151a': 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4',
+    cc: 'https://drive.google.com/drive/folders/1DJ0PJOlGVzLamMc2YfSW8OyvR1qK67g7',
+    '32ae6146-3fd4-42e7-8879-81413f0f41cc': 'https://drive.google.com/drive/folders/1DJ0PJOlGVzLamMc2YfSW8OyvR1qK67g7',
   };
 
   try {
