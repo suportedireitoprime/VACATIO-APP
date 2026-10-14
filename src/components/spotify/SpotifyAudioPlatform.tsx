@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Volume2, GraduationCap } from 'lucide-react';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 import { SpotifyBottomNav } from './SpotifyBottomNav';
@@ -12,6 +11,7 @@ import { SpotifyPlaylistsTab } from './SpotifyPlaylistsTab';
 import { SpotifyFavoritosTab } from './SpotifyFavoritosTab';
 import { SpotifyDownloadsTab } from './SpotifyDownloadsTab';
 import { SpotifyLeiAlbumView } from './SpotifyLeiAlbumView';
+import { AudioNavigationSwitcher } from '@/components/audio/AudioNavigationSwitcher';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 
 interface SpotifyAudioPlatformProps {
@@ -124,31 +124,7 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
               subtitle="Narrações oficiais dos artigos da legislação compilada"
               onBack={() => navigate('/')}
               variant="dark"
-              rightAction={
-                <div className="flex items-center p-1 rounded-2xl bg-white/5 border border-white/10 shrink-0 backdrop-blur-md">
-                  <button
-                    type="button"
-                    onClick={() => setAudioMode('leis')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                      audioMode === 'leis'
-                        ? 'bg-primary text-primary-foreground shadow-md'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    <Volume2 className="w-3.5 h-3.5" />
-                    <span>Áudio Leis</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate('/audioaulas')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-zinc-400 hover:text-white"
-                  >
-                    <GraduationCap className="w-3.5 h-3.5" />
-                    <span>Áudio Aulas</span>
-                  </button>
-                </div>
-              }
+              rightAction={<AudioNavigationSwitcher active="leis" />}
             />
 
             {/* Conteúdo Principal de Acordo com a Aba do Rodapé */}

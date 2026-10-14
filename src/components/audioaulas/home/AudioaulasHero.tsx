@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { CAPA_HUB, capaDaArea } from '@/lib/audioaulasHelper';
 import { CapaOtimizada } from './CapaOtimizada';
 import CassetteAnimation from './CassetteAnimation';
+import { AudioNavigationSwitcher } from '@/components/audio/AudioNavigationSwitcher';
 
 interface AudioaulasHeroProps {
   areaAtual: string | null;
@@ -24,13 +25,17 @@ export const AudioaulasHero = React.memo(function AudioaulasHero({
   return (
     <div className="relative px-4 pt-[calc(2rem+var(--sai-top))] pb-6 overflow-visible sm:px-6 lg:px-10 lg:pt-[calc(3rem+var(--sai-top))] lg:pb-10">
       <div className="mx-auto w-full max-w-[1400px] 2xl:max-w-[1600px] relative z-10">
-        <button
-          onClick={() => (areaAtual ? navigate('/audioaulas') : navigate('/'))}
-          aria-label="Voltar"
-          className="mb-6 w-12 h-12 sm:w-[52px] sm:h-[52px] rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition shrink-0 active:opacity-70 z-10 relative"
-        >
-          <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.4} />
-        </button>
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => (areaAtual ? navigate('/audioaulas') : navigate('/'))}
+            aria-label="Voltar"
+            className="w-12 h-12 sm:w-[52px] sm:h-[52px] rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition shrink-0 active:opacity-70"
+          >
+            <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.4} />
+          </button>
+
+          <AudioNavigationSwitcher active="aulas" />
+        </div>
 
         <div className="flex items-center gap-4 lg:gap-8">
           <span className="relative h-24 w-24 sm:h-32 sm:w-32 lg:h-44 lg:w-44 shrink-0 rounded-2xl overflow-hidden shadow-2xl shadow-black/70 border border-white/10 bg-[#1c1c1c]">

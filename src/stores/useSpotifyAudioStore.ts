@@ -52,6 +52,7 @@ interface SpotifyAudioStoreState {
   // Coleções do Usuário
   playlists: SpotifyPlaylist[];
   favoritos: SpotifyTrack[];
+  historicoRecentes: SpotifyTrack[];
   downloadedTrackIds: string[]; // IDs de tracks baixadas em offlineDb
 
   // Ações do Player
@@ -78,9 +79,10 @@ interface SpotifyAudioStoreState {
   removeTrackFromPlaylist: (playlistId: string, trackId: string) => void;
   playPlaylist: (playlistId: string, startTrackId?: string) => Promise<void>;
 
-  // Favoritos
+  // Favoritos & Histórico
   toggleFavorito: (track: SpotifyTrack) => void;
   isFavorito: (trackId: string) => boolean;
+  limparRecentes: () => void;
 
   // Downloads / Offline
   downloadTrack: (track: SpotifyTrack) => Promise<boolean>;
@@ -99,6 +101,7 @@ interface SpotifyAudioStoreState {
 
 const STORAGE_KEY_PLAYLISTS = 'vacatio_spotify_playlists_v1';
 const STORAGE_KEY_FAVORITOS = 'vacatio_spotify_favoritos_v1';
+const STORAGE_KEY_RECENTES = 'vacatio_spotify_recentes_v1';
 
 // Playlists padrão pré-criadas para inspiração
 const DEFAULT_PLAYLISTS: SpotifyPlaylist[] = [
@@ -154,6 +157,24 @@ function saveFavoritos(favoritos: SpotifyTrack[]) {
   }
 }
 
+function loadSavedRecentes(): SpotifyTrack[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_RECENTES);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.warn('[SpotifyStore] Erro ao carregar recentes:', e);
+  }
+  return [];
+}
+
+function saveRecentes(recentes: SpotifyTrack[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY_RECENTES, JSON.stringify(recentes.slice(0, 20)));
+  } catch (e) {
+    console.warn('[SpotifyStore] Erro ao salvar recentes:', e);
+  }
+}
+
 export const useSpotifyAudioStore = create<SpotifyAudioStoreState>((set, get) => ({
   currentTrack: null,
   queue: [],
@@ -173,6 +194,7 @@ export const useSpotifyAudioStore = create<SpotifyAudioStoreState>((set, get) =>
 
   playlists: loadSavedPlaylists(),
   favoritos: loadSavedFavoritos(),
+  historicoRecentes: loadSavedRecentes(),
   downloadedTrackIds: [],
 
   _audioElement: null,
@@ -234,6 +256,11 @@ export const useSpotifyAudioStore = create<SpotifyAudioStoreState>((set, get) =>
       queueIndex = 0;
     }
 
+    // Atualiza histórico de reproduzidos recentemente
+    const prevRecentes = get().historicoRecentes || [];
+    const novosRecentes = [track, ...prevRecentes.filter((t) => t.id !== track.id)].slice(0, 20);
+    saveRecentes(novosRecentes);
+
     set({
       currentTrack: track,
       queue,
@@ -242,6 +269,7 @@ export const useSpotifyAudioStore = create<SpotifyAudioStoreState>((set, get) =>
       duration: 0,
       audioObjectUrl: newObjectUrl,
       isPlaying: true,
+      historicoRecentes: novosRecentes,
     });
 
     if (_audioElement) {
@@ -473,6 +501,11 @@ export const useSpotifyAudioStore = create<SpotifyAudioStoreState>((set, get) =>
 
   isFavorito: (trackId) => {
     return get().favoritos.some((t) => t.id === trackId);
+  },
+
+  limparRecentes: () => {
+    set({ historicoRecentes: [] });
+    saveRecentes([]);
   },
 
   // DOWNLOADS / OFFLINE

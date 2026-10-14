@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 import { fetchLeisDisponiveisComAudio, type LeiNarracaoItem } from '@/services/narracaoArtigosSyncService';
 import { getLeiCover, getLeiColor } from '@/lib/leiTheme';
+import { SpotifyRecentTracks } from './SpotifyRecentTracks';
 
 interface SpotifyExplorarTabProps {
   onSelectLei: (lei: { id: string; nome: string; slug: string; categoria?: string }) => void;
@@ -141,6 +142,9 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
           </div>
         </div>
       )}
+
+      {/* Seção Tocados Recentemente (Aparece elegantemente se houver histórico) */}
+      <SpotifyRecentTracks />
 
       {/* Filtros em Pílulas Estilo Audio Aulas */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
