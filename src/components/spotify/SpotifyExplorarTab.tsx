@@ -77,73 +77,9 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
     });
   }, [leis, activeCategory]);
 
-  // Lei em Destaque no Hero (Código de Processo Penal ou Código Penal)
-  const heroLei = useMemo(() => {
-    return (
-      leis.find((l) => l.slug === 'cpp' || l.slug === 'cp') ||
-      leis[0] ||
-      null
-    );
-  }, [leis]);
-
   return (
     <div className="space-y-6">
-      {/* Hero Banner Especial — Estética Moderna do Áudio Aulas */}
-      {heroLei && (
-        <div
-          onClick={() =>
-            onSelectLei({
-              id: heroLei.id,
-              nome: heroLei.nome,
-              slug: heroLei.slug,
-              categoria: heroLei.categoriaFormatada,
-            })
-          }
-          className="relative overflow-hidden rounded-3xl p-5 sm:p-7 border border-white/10 shadow-2xl cursor-pointer group transition-all hover:border-white/20 bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-md"
-        >
-          <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5">
-            <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-2xl overflow-hidden shadow-2xl border border-white/15 bg-zinc-900 shrink-0 group-hover:scale-105 transition-transform">
-              <img
-                src={getLeiCover(heroLei.slug)}
-                alt={heroLei.nome}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xl">
-                  <Play className="w-5 h-5 fill-current ml-0.5" />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-center sm:text-left flex-1 min-w-0">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full inline-block">
-                ★ Álbum Mais Tocado
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight uppercase">
-                {heroLei.nome}
-              </h2>
-              <p className="text-xs text-zinc-300 font-normal leading-relaxed line-clamp-2 max-w-xl">
-                {audioMode === 'aulas'
-                  ? 'Aulas e explicações artigo por artigo com conceitos doutrinários e exemplos práticos.'
-                  : 'Narrações oficiais com voz humana em estúdio de todos os artigos com gravação oficial.'}
-              </p>
-              <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3.5 py-1.5 rounded-full transition-colors">
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  Abrir Álbum
-                </span>
-                <span className="text-[11px] text-zinc-400">
-                  {heroLei.totalComAudio > 0
-                    ? `${heroLei.totalComAudio} áudios disponíveis`
-                    : `${heroLei.totalArtigos} artigos`}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Seção Tocados Recentemente (Aparece elegantemente se houver histórico) */}
+      {/* Seção Tocados Recentemente (Aparece se houver histórico) */}
       <SpotifyRecentTracks />
 
       {/* Filtros em Pílulas Estilo Audio Aulas */}

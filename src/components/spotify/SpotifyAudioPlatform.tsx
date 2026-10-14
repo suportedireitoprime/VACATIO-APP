@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 import { SpotifyBottomNav } from './SpotifyBottomNav';
@@ -107,16 +108,29 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
       />
 
       <div className="relative z-10">
-        {/* Se uma lei específica estiver aberta em modo álbum */}
-        {selectedLeiData ? (
-          <SpotifyLeiAlbumView
-            leiId={selectedLeiData.id}
-            leiNome={selectedLeiData.nome}
-            leiSlug={selectedLeiData.slug}
-            categoria={selectedLeiData.categoria}
-            onBack={handleBackFromAlbum}
-          />
-        ) : (
+        {/* Se uma lei específica estiver aberta em modo álbum — Abre de baixo para cima igual MapasOverlay */}
+        <AnimatePresence>
+          {selectedLeiData && (
+            <motion.div
+              key="lei-album-sheet"
+              initial={{ y: '100%', opacity: 1 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 1 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              className="fixed inset-0 z-[100] bg-zinc-950 flex flex-col overflow-hidden"
+            >
+              <SpotifyLeiAlbumView
+                leiId={selectedLeiData.id}
+                leiNome={selectedLeiData.nome}
+                leiSlug={selectedLeiData.slug}
+                categoria={selectedLeiData.categoria}
+                onBack={handleBackFromAlbum}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {!selectedLeiData && (
           <>
             {/* Cabeçalho no Padrão Oficial do VACATIO */}
             <PageHeader
