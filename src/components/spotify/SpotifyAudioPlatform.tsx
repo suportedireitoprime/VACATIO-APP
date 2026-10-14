@@ -65,7 +65,7 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
     categoria?: string;
   } | null>(null);
 
-  const [totalStats, setTotalStats] = React.useState({ totalAudios: 923, totalLeis: 2 });
+  const [totalStats, setTotalStats] = React.useState({ totalAudios: 1022, totalLeis: 3 });
   React.useEffect(() => {
     let active = true;
     fetchLeisDisponiveisComAudio('leis')

@@ -1,7 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import AudioaulasBottomNav from '@/components/audioaulas/AudioaulasBottomNav';
 import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
 import { useIsDesktop } from '@/hooks/use-desktop';
 import ShapeGrid from '@/components/ui/ShapeGrid';
@@ -12,6 +11,8 @@ import { AudioaulasGridAreas } from '@/components/audioaulas/home/AudioaulasGrid
 import { AudioaulasListaAulas } from '@/components/audioaulas/home/AudioaulasListaAulas';
 import { AudioaulasBuscaInput } from '@/components/audioaulas/home/AudioaulasBuscaInput';
 import { AudioaulasPlayerModal } from '@/components/audioaulas/home/AudioaulasPlayerModal';
+import { AudioaulasTopNav } from '@/components/audioaulas/AudioaulasTopNav';
+import { AudioaulasPlaylistsView } from '@/components/audioaulas/home/AudioaulasPlaylistsView';
 
 const Audioaulas = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const Audioaulas = () => {
   }, [searchParams, state.aulas, state.loading]);
 
   const content = (
-    <div className={`w-full bg-zinc-950 text-foreground relative ${isDesktop ? 'rounded-2xl pb-12 min-h-[700px] border border-white/5 overflow-hidden' : 'min-h-screen pb-40'}`}>
+    <div className={`w-full bg-zinc-950 text-foreground relative ${isDesktop ? 'rounded-2xl pb-12 min-h-[700px] border border-white/5 overflow-hidden' : 'min-h-screen pb-24'}`}>
       <div className="absolute inset-0 z-0 opacity-60">
         <ShapeGrid 
           speed={0.5} 
@@ -53,46 +54,34 @@ const Audioaulas = () => {
       <div className="relative z-10">
         {state.gateNodes}
 
-      <AudioaulasHero 
-        areaAtual={areaAtual}
-        loading={state.loading}
-        totalAulas={areaAtual ? state.daArea.length : state.aulas.length}
-      />
-
-      {state.loading ? (
-        <div className="py-20 grid place-items-center text-muted-foreground">
-          <Loader2 className="h-7 w-7 animate-spin text-primary" />
-        </div>
-      ) : areaAtual ? (
-        /* ───────── LISTA DA ÁREA ───────── */
-        <AudioaulasListaAulas
+        <AudioaulasHero 
           areaAtual={areaAtual}
-          aba={state.aba}
-          temasDaArea={state.temasDaArea}
-          listaAba={state.listaAba}
-          busca={state.busca}
-          atualId={state.atualId}
-          tocando={state.tocando}
-          favoritos={state.favoritos}
-          alternarFavorito={state.alternarFavorito}
-          handleTocarAula={state.handleTocarAula}
+          loading={state.loading}
+          totalAulas={areaAtual ? state.daArea.length : state.aulas.length}
         />
-      ) : state.aba === 'aulas' ? (
-        /* ───────── HUB DE ÁREAS ───────── */
-        <AudioaulasGridAreas areas={state.areas} />
-      ) : (
-        /* ───────── ABAS: favoritas / baixadas / buscar ───────── */
-        <>
-          {state.aba === 'buscar' && (
-            <AudioaulasBuscaInput 
-              busca={state.busca}
-              setBusca={state.setBusca}
-              buscaRef={buscaRef}
-            />
-          )}
 
+        {/* Menu Superior: Explorar, Favoritos, Pesquisar, Playlists, Baixados */}
+        <AudioaulasTopNav
+          ativo={areaAtual ? 'aulas' : state.aba}
+          onSelect={(t) => {
+            if (areaAtual) navigate('/audioaulas');
+            state.setAba(t);
+            state.setAberto(false);
+            if (t === 'buscar') window.setTimeout(() => buscaRef.current?.focus(), 150);
+          }}
+          totalFavoritas={state.favoritos.size}
+          totalBaixadas={state.baixadas.size}
+          totalPlaylists={state.areas.length}
+        />
+
+        {state.loading ? (
+          <div className="py-20 grid place-items-center text-muted-foreground">
+            <Loader2 className="h-7 w-7 animate-spin text-primary" />
+          </div>
+        ) : areaAtual ? (
+          /* ───────── LISTA DA ÁREA ───────── */
           <AudioaulasListaAulas
-            areaAtual={null}
+            areaAtual={areaAtual}
             aba={state.aba}
             temasDaArea={state.temasDaArea}
             listaAba={state.listaAba}
@@ -103,53 +92,76 @@ const Audioaulas = () => {
             alternarFavorito={state.alternarFavorito}
             handleTocarAula={state.handleTocarAula}
           />
-        </>
-      )}
+        ) : state.aba === 'aulas' ? (
+          /* ───────── HUB DE ÁREAS ───────── */
+          <AudioaulasGridAreas areas={state.areas} />
+        ) : state.aba === 'playlists' ? (
+          /* ───────── PLAYLISTS DE ESTUDO ───────── */
+          <AudioaulasPlaylistsView
+            aulas={state.aulas}
+            areas={state.areas}
+            onSelectArea={(ar) => navigate(`/audioaulas/${encodeURIComponent(ar)}`)}
+            onPlayArea={(ar) => {
+              const aulasDaArea = state.aulas.filter((a) => (a.area || 'Geral') === ar);
+              if (aulasDaArea.length > 0) {
+                state.handleTocarAula(aulasDaArea[0]);
+              }
+            }}
+          />
+        ) : (
+          /* ───────── ABAS: favoritas / baixadas / buscar ───────── */
+          <>
+            {state.aba === 'buscar' && (
+              <AudioaulasBuscaInput 
+                busca={state.busca}
+                setBusca={state.setBusca}
+                buscaRef={buscaRef}
+              />
+            )}
 
-      {/* Player Completo Expandido — Adaptado como Modal Centralizado em Desktop */}
-      <AudioaulasPlayerModal
-        aberto={state.aberto}
-        setAberto={state.setAberto}
-        atual={state.atual}
-        atualIdx={state.atualIdx}
-        fila={state.fila}
-        tempo={state.tempo}
-        dur={state.dur}
-        tocando={state.tocando}
-        velocidade={state.velocidade}
-        favoritos={state.favoritos}
-        alternarFavorito={state.alternarFavorito}
-        togglePlay={state.togglePlay}
-        seek={state.seek}
-        pular={state.pular}
-        setVelocidade={state.setVelocidade}
-      />
+            <AudioaulasListaAulas
+              areaAtual={null}
+              aba={state.aba}
+              temasDaArea={state.temasDaArea}
+              listaAba={state.listaAba}
+              busca={state.busca}
+              atualId={state.atualId}
+              tocando={state.tocando}
+              favoritos={state.favoritos}
+              alternarFavorito={state.alternarFavorito}
+              handleTocarAula={state.handleTocarAula}
+            />
+          </>
+        )}
+
+        {/* Player Completo Expandido — Adaptado como Modal Centralizado em Desktop */}
+        <AudioaulasPlayerModal
+          aberto={state.aberto}
+          setAberto={state.setAberto}
+          atual={state.atual}
+          atualIdx={state.atualIdx}
+          fila={state.fila}
+          tempo={state.tempo}
+          dur={state.dur}
+          tocando={state.tocando}
+          velocidade={state.velocidade}
+          favoritos={state.favoritos}
+          alternarFavorito={state.alternarFavorito}
+          togglePlay={state.togglePlay}
+          seek={state.seek}
+          pular={state.pular}
+          setVelocidade={state.setVelocidade}
+        />
       </div>
     </div>
   );
 
-  return (
-    <>
-      {isDesktop ? (
-        <DesktopPageLayout activeId="aprender" title={areaAtual ? `Audioaulas - ${areaAtual}` : "Audioaulas"} wide hideTabs>
-          {content}
-        </DesktopPageLayout>
-      ) : (
-        content
-      )}
-
-      {/* Navegação Inferior Fixa Global das Áudio Aulas */}
-      <AudioaulasBottomNav
-        ativo={areaAtual ? null : state.aba}
-        hidden={state.aberto}
-        onSelect={(t) => {
-          if (areaAtual) navigate('/audioaulas');
-          state.setAba(t);
-          state.setAberto(false);
-          if (t === 'buscar') window.setTimeout(() => buscaRef.current?.focus(), 150);
-        }}
-      />
-    </>
+  return isDesktop ? (
+    <DesktopPageLayout activeId="aprender" title={areaAtual ? `Audioaulas - ${areaAtual}` : "Audioaulas"} wide hideTabs>
+      {content}
+    </DesktopPageLayout>
+  ) : (
+    content
   );
 };
 

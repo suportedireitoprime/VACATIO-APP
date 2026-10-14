@@ -28,8 +28,8 @@ export const AudioaulasGridAreas = React.memo(function AudioaulasGridAreas({ are
       <section>
         <div className="mb-6">
           <h2 className="text-[22px] font-black text-white uppercase tracking-widest">Áreas do Direito</h2>
-          <p className="mt-1 text-[14px] text-zinc-400">
-            Mergulhe no conhecimento jurídico através de aulas completas em áudio. Estude onde e quando quiser.
+          <p className="mt-1 text-xs sm:text-sm text-zinc-400 line-clamp-1">
+            Aulas completas em áudio organizadas por área temática do Direito.
           </p>
         </div>
         <motion.div 

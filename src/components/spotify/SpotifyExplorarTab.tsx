@@ -35,6 +35,17 @@ const DEFAULT_LEIS_INITIAL: LeiNarracaoItem[] = [
     totalPendentes: 217,
     percentual: 40,
   },
+  {
+    id: '2986d542-bf86-4c70-b30f-8e16684db5ab',
+    slug: 'estatuto-oab',
+    nome: 'Estatuto da OAB',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 87,
+    totalComAudio: 99,
+    totalPendentes: 0,
+    percentual: 100,
+  },
 ];
 
 export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelectLei }) => {

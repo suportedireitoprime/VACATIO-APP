@@ -8,9 +8,11 @@ import capaMedico from '@/assets/capa-direito-medico.webp';
 import capaFilosofia from '@/assets/capa-filosofia.webp';
 import capaLeiPenalEspecial from '@/assets/capa-lei-penal-especial.webp';
 import capaProcessoPenal from '@/assets/capa-processo-penal.webp';
+import capaOab from '@/assets/lei-cover-eoab.webp';
 
 export const CAPA_HUB = srcOf(capaAudioaulas);
 const CAPAS: { re: RegExp; url: string }[] = [
+  { re: /oab|advocac/i, url: capaOab },
   { re: /médico|medico/i, url: capaMedico },
   { re: /filosofia/i, url: capaFilosofia },
   { re: /lei penal especial/i, url: capaLeiPenalEspecial },

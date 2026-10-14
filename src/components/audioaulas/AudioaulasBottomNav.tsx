@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Headphones, Heart, Download, Search } from 'lucide-react';
 import { haptic } from '@/lib/nativeHaptics';
 
-export type AudioaulasTab = 'aulas' | 'favoritas' | 'baixadas' | 'buscar';
+export type AudioaulasTab = 'aulas' | 'favoritas' | 'baixadas' | 'buscar' | 'playlists';
 
 const TABS: { id: AudioaulasTab; label: string; icon: typeof Headphones }[] = [
   { id: 'aulas', label: 'Aulas', icon: Headphones },
