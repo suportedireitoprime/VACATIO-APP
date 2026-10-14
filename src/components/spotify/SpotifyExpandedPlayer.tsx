@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ChevronDown,
   Play,
@@ -25,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 export const SpotifyExpandedPlayer: React.FC = () => {
+
   const {
     currentTrack,
     isPlaying,
@@ -58,6 +60,16 @@ export const SpotifyExpandedPlayer: React.FC = () => {
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
+
+  useEffect(() => {
+    if (isExpanded) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [isExpanded]);
 
   if (!isExpanded || !currentTrack) return null;
 
@@ -111,9 +123,9 @@ export const SpotifyExpandedPlayer: React.FC = () => {
     setPlaybackRate(nextRate);
   };
 
-  return (
+  const playerNode = (
     <>
-      <div className="fixed inset-0 z-50 bg-gradient-to-b from-zinc-900 via-slate-950 to-black text-white flex flex-col justify-between overflow-y-auto px-5 py-6 sm:px-8 sm:py-8 backdrop-blur-2xl animate-in fade-in slide-in-from-bottom duration-300">
+      <div className="fixed inset-0 z-[120] bg-gradient-to-b from-zinc-900 via-slate-950 to-black text-white flex flex-col justify-between overflow-y-auto overscroll-contain px-5 py-6 sm:px-8 sm:py-8 backdrop-blur-2xl animate-in fade-in slide-in-from-bottom duration-300">
         {/* Header Superior */}
         <div className="flex items-center justify-between w-full max-w-lg mx-auto">
           <button
@@ -458,4 +470,8 @@ export const SpotifyExpandedPlayer: React.FC = () => {
       </Dialog>
     </>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(playerNode, document.body);
 };
+
