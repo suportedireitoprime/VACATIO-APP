@@ -168,7 +168,7 @@ export const SpotifyPesquisarTab: React.FC<SpotifyPesquisarTabProps> = ({ onSele
                     <img
                       src={getLeiCover(lei.id)}
                       alt={lei.nome}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-right"
                     />
                   </div>
                   <div className="min-w-0">

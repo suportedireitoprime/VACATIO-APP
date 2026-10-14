@@ -272,7 +272,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
           <img
             src={coverUrl}
             alt=""
-            className="w-full h-full object-cover object-center scale-105 select-none opacity-40 transition-opacity duration-700"
+            className="w-full h-full object-cover object-right scale-105 select-none opacity-45 transition-opacity duration-700"
           />
           {/* Gradientes escuros integrados para contraste profissional sem divisões ou sombras no meio */}
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-zinc-950/45" />
@@ -467,7 +467,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                       <img
                         src={cap.capaUrl}
                         alt=""
-                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                        className="w-full h-full object-cover object-right transition-transform group-hover:scale-110"
                       />
                     ) : (
                       <Headphones className="h-7 w-7 text-white drop-shadow-sm transition-transform group-hover:scale-110" />

@@ -179,10 +179,11 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
                   <img
                     src={cover}
                     alt={lei.nome}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="absolute inset-0 w-full h-full object-cover object-right transition-transform duration-500 group-hover:scale-105 origin-right"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                  {/* Degradê apenas de baixo para cima para destacar o texto sem escurecer o restante da capa */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 via-30% to-transparent to-60%" />
                   <div className="absolute inset-0 p-3.5 flex flex-col justify-between">
                     <span className="self-start h-9 w-9 grid place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-black/40">
                       <Headphones className="h-5 w-5" />

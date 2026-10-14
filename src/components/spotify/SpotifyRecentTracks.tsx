@@ -60,7 +60,7 @@ export const SpotifyRecentTracks: React.FC = () => {
                 <img
                   src={track.coverUrl}
                   alt={track.titulo}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover object-right group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
