@@ -300,10 +300,12 @@ export function getCapitulosDaLei(leiSlug: string, totalArtigos: number = 0): Ca
 }
 
 /**
- * Converte um número textual de artigo (ex: "Art. 155", "155", "Art. 359-A") para número inteiro para conferência
+ * Converte um número textual de artigo (ex: "Art. 155", "155", "Art. 1.000", "Art. 359-A") para número inteiro para conferência
  */
 export function extrairNumeroArtigo(artigoStr: string): number {
   if (!artigoStr) return 0;
-  const match = artigoStr.match(/\d+/);
+  // Remove pontos de milhares (ex: 1.000 -> 1000, 2.046 -> 2046) e pontuação de "Art."
+  const semPontos = String(artigoStr).replace(/\./g, '');
+  const match = semPontos.match(/\d+/);
   return match ? parseInt(match[0], 10) : 0;
 }

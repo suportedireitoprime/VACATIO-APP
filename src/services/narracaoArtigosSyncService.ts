@@ -46,12 +46,14 @@ export function formatArtigoLabel(numero?: string | null): string {
   if (!numero) return '';
   const trimmed = numero.trim();
   if (/art(?:igo)?\.?\s*[úu]nico/i.test(trimmed)) return 'Art. Único';
-  const match = trimmed.match(/(?:art(?:igo)?\.?\s*)?(\d+)(?:[º°o]|\.º)?(?:-([a-zA-Z]))?/i);
+  const cleanDots = trimmed.replace(/\./g, '');
+  const match = cleanDots.match(/(?:art(?:igo)?\s*)?(\d+)(?:[º°o])?(?:-([a-zA-Z]))?/i);
   if (match) {
     const numInt = Number(match[1]);
     const sufixo = match[2] ? `-${match[2].toUpperCase()}` : '';
     if (numInt >= 1 && numInt <= 9) return `Art. ${numInt}º${sufixo}`;
-    return `Art. ${numInt}${sufixo}`;
+    const numDisplay = numInt >= 1000 ? numInt.toLocaleString('pt-BR') : `${numInt}`;
+    return `Art. ${numDisplay}${sufixo}`;
   }
   if (trimmed.startsWith('Art.')) return trimmed;
   return `Art. ${trimmed}`;
@@ -70,19 +72,20 @@ export function isAudioUrlValida(url?: string | null): boolean {
 }
 
 /**
- * Normaliza o número do artigo para comparação (ex: "Art. 3º-A" -> "3-a", "12" -> "12")
+ * Normaliza o número do artigo para comparação (ex: "Art. 3º-A" -> "3-a", "12" -> "12", "1.000" -> "1000")
  */
 export function normalizeArtigoKey(numero?: string | null): string {
   if (!numero) return '';
   const trimmed = numero.trim().toLowerCase();
   if (trimmed.includes('único') || trimmed.includes('unico')) return 'unico';
-  const match = trimmed.match(/(?:art(?:igo)?\.?\s*)?(\d+)(?:[º°o]|\.º)?(?:-([a-z]))?/i);
+  const withoutDots = trimmed.replace(/\./g, '');
+  const match = withoutDots.match(/(?:art(?:igo)?\s*)?(\d+)(?:[º°o])?(?:-([a-z]))?/i);
   if (match) {
     const num = match[1];
     const suf = match[2] ? `-${match[2]}` : '';
     return `${num}${suf}`;
   }
-  return trimmed.replace(/\D/g, '');
+  return withoutDots.replace(/\D/g, '');
 }
 
 /**
@@ -92,6 +95,7 @@ export function normalizeArtigoKey(numero?: string | null): string {
  * - "artigo_2_v2.wav" -> "2"
  * - "Art. 3º-A.mp3" -> "3-a"
  * - "CPP_Art_57.mp3" -> "57"
+ * - "art_1000.mp3" ou "art_1.000.mp3" -> "1000"
  * - "art_3__A_v2_1783361822923.wav" -> "3-a"
  * - "12.mp3" -> "12"
  */
@@ -99,17 +103,18 @@ export function matchArtigoKeyFromFilename(filename: string): string | null {
   let clean = filename.replace(/\.(mp3|wav|m4a|ogg|opus)$/i, '').trim();
   // Remove timestamp no final (ex: _1791935156084)
   clean = clean.replace(/_\d{10,}$/, '');
+  const cleanNoDots = clean.replace(/\./g, '');
 
   // Caso com sufixo letra (ex: art_3-a, art_3__A, Artigo 3-A, art_91-a)
   const regexComLetra = /(?:art(?:igo)?|_art)?[\s_.-]*(\d+)[\s_.-]*(?:[º°o]|\.º)?[\s_.-]*([a-zA-Z])(?:\b|_|$)/i;
-  const matchLetra = clean.match(regexComLetra);
+  const matchLetra = cleanNoDots.match(regexComLetra);
   if (matchLetra) {
     return `${matchLetra[1]}-${matchLetra[2].toLowerCase()}`;
   }
 
-  // Caso simples: art_57 ou Artigo 12 ou CPP_Art_5
+  // Caso simples: art_57 ou Artigo 12 ou CPP_Art_5 ou art_1000
   const regexSimples = /(?:art(?:igo)?|_art)?[\s_.-]*(\d+)(?:[º°o]|\.º)?/i;
-  const matchSimples = clean.match(regexSimples);
+  const matchSimples = cleanNoDots.match(regexSimples);
   if (matchSimples) {
     return matchSimples[1];
   }

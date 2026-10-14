@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Sparkles,
   BookOpen,
+  Route,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ import { fetchArtigosDaLeiComNarracao, type ArtigoNarracaoItem } from '@/service
 import { getAllAudioAulasConfigs, formatDriveStreamUrl } from '@/services/audioAulasService';
 import { getLeiCover } from '@/lib/leiTheme';
 import { getCapitulosDaLei, extrairNumeroArtigo, type CapituloDef } from '@/lib/leiCapitulosHelper';
+import { SpotifyAudioTrilhaModal } from './SpotifyAudioTrilhaModal';
 
 interface SpotifyLeiAlbumViewProps {
   leiId: string;
@@ -62,6 +64,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
   // Modo de exibição: 'capitulos' (estilo Mapas Mentais/Aulas Overlay) ou 'lista' (todos os artigos em lista corrida)
   const [modoVisualizacao, setModoVisualizacao] = useState<'capitulos' | 'lista'>('capitulos');
   const [capituloSelecionado, setCapituloSelecionado] = useState<CapituloDef | null>(null);
+  const [trilhaAberta, setTrilhaAberta] = useState(false);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -250,52 +253,52 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
   return (
     <div
       ref={containerRef}
-      className="flex flex-col h-full relative w-full overflow-y-auto select-none"
+      className="flex flex-col h-full relative w-full overflow-y-auto select-none bg-zinc-950"
       style={{
-        background: themeGradient,
         paddingBottom: 'calc(8rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
       }}
     >
-      {/* Reflexos Radiais Sofisticados do MapasOverlay */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.18),transparent_60%)] z-0" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.3),transparent_70%)] z-0" />
+      {/* Brilho atmosférico sutil no topo com a cor da legislação */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-96 opacity-20 z-0 blur-3xl"
+        style={{ background: themeGradient }}
+      />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.5),transparent_70%)] z-0" />
 
-      {/* CABEÇALHO DO ÁLBUM — ESTILO MAPASOVERLAY / AULASOVERLAY */}
-      <section className="relative isolate shrink-0 pb-5 overflow-hidden -mx-px rounded-t-[30px] z-10">
-        {/* Capa com mix-blend sutil à direita */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-[42%] sm:w-[32%] overflow-hidden">
+      {/* CABEÇALHO DO ÁLBUM — CAPA COMO FUNDO COM OVERLAY ELEGANTE */}
+      <section className="relative isolate shrink-0 pb-5 overflow-hidden -mx-px rounded-t-[30px] z-10 border-b border-white/10">
+        {/* Capa como imagem de fundo real e imersiva */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
           <img
             src={coverUrl}
             alt=""
-            className="absolute inset-y-0 right-0 h-full w-auto object-contain object-right opacity-35 mix-blend-luminosity transition-opacity duration-700"
+            className="w-full h-full object-cover object-center scale-105 select-none opacity-40 transition-opacity duration-700"
           />
-          <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+          {/* Gradientes escuros integrados para contraste profissional sem divisões ou sombras no meio */}
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-zinc-950/45" />
+          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/90 via-zinc-950/50 to-transparent" />
         </div>
 
         <div className="relative p-5 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+16px)] max-w-4xl mx-auto w-full">
-          {/* Barra Superior: Botão Voltar + Botão de Ação Rápida */}
+          {/* Barra Superior: Botão Voltar + Botão Trilhas */}
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={capituloSelecionado ? () => setCapituloSelecionado(null) : onBack}
               aria-label="Voltar"
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-white/20 text-white shadow-md active:scale-95 transition-all hover:bg-black/40"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white shadow-md active:scale-95 transition-all hover:bg-black/50"
             >
               <ArrowLeft className="w-5 h-5 drop-shadow-md" />
             </button>
 
-            {/* Botão de Ação Rápida no Topo */}
+            {/* Botão de Ação Rápida no Topo: Trilhas */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={
-                  capituloSelecionado
-                    ? () => handlePlayCapitulo(capituloSelecionado)
-                    : handlePlayAll
-                }
-                className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-white text-xs font-black uppercase tracking-wider flex items-center gap-2 hover:bg-white/30 active:scale-95 transition-all shadow-md"
+                onClick={() => setTrilhaAberta(true)}
+                className="px-4 py-2 rounded-full bg-emerald-500/20 backdrop-blur-md border border-emerald-500/40 text-emerald-300 text-xs font-black uppercase tracking-wider flex items-center gap-2 hover:bg-emerald-500/30 active:scale-95 transition-all shadow-lg shadow-emerald-950/40"
               >
-                <Play className="w-3.5 h-3.5 fill-white text-white" />
-                <span>{capituloSelecionado ? 'Ouvir Capítulo' : 'Reproduzir Tudo'}</span>
+                <Route className="w-4 h-4 text-emerald-400" />
+                <span>Trilhas</span>
               </button>
 
               {driveFolder && (
@@ -304,7 +307,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Google Drive"
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-white/20 text-white shadow-md active:scale-95 transition-all hover:bg-black/40"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white shadow-md active:scale-95 transition-all hover:bg-black/50"
                 >
                   <FolderOpen className="w-4 h-4 text-sky-300" />
                 </a>
@@ -665,6 +668,17 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* Modal de Trilha Sequencial Guiada */}
+      <SpotifyAudioTrilhaModal
+        isOpen={trilhaAberta}
+        onClose={() => setTrilhaAberta(false)}
+        leiId={leiId}
+        leiNome={leiNome}
+        leiSlug={leiSlug}
+        coverUrl={coverUrl}
+        tracks={albumTracks}
+      />
     </div>
   );
 };
