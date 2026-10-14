@@ -96,10 +96,12 @@ export function normalizeArtigoKey(numero?: string | null): string {
  * - "12.mp3" -> "12"
  */
 export function matchArtigoKeyFromFilename(filename: string): string | null {
-  const clean = filename.replace(/\.(mp3|wav|m4a|ogg|opus)$/i, '').trim();
+  let clean = filename.replace(/\.(mp3|wav|m4a|ogg|opus)$/i, '').trim();
+  // Remove timestamp no final (ex: _1791935156084)
+  clean = clean.replace(/_\d{10,}$/, '');
 
-  // Caso com sufixo letra (ex: art_3__A ou art-3-a ou Artigo 3-A)
-  const regexComLetra = /(?:art(?:igo)?|_art)?[\s_.-]*(\d+)[\s_.-]*(?:[º°o]|\.º)?[\s_.-]*([a-zA-Z])\b/i;
+  // Caso com sufixo letra (ex: art_3-a, art_3__A, Artigo 3-A, art_91-a)
+  const regexComLetra = /(?:art(?:igo)?|_art)?[\s_.-]*(\d+)[\s_.-]*(?:[º°o]|\.º)?[\s_.-]*([a-zA-Z])(?:\b|_|$)/i;
   const matchLetra = clean.match(regexComLetra);
   if (matchLetra) {
     return `${matchLetra[1]}-${matchLetra[2].toLowerCase()}`;
