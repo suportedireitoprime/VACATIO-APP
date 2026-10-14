@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
-import { SpotifyBottomNav } from './SpotifyBottomNav';
+import { AudioLeisTopNav } from './AudioLeisTopNav';
 import { SpotifyMiniPlayer } from './SpotifyMiniPlayer';
 import { SpotifyExpandedPlayer } from './SpotifyExpandedPlayer';
 import { SpotifyExplorarTab } from './SpotifyExplorarTab';
@@ -157,8 +157,11 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
               totalLeis={totalStats.totalLeis}
             />
 
-            {/* Conteúdo Principal de Acordo com a Aba do Rodapé */}
-            <main className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pb-32">
+            {/* Conteúdo Principal de Acordo com a Aba do Menu Superior */}
+            <main className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pb-24">
+              {/* Menu Superior: Explorar, Favoritos, Pesquisar, Playlists, Baixados */}
+              <AudioLeisTopNav />
+
               {activeTab === 'explorar' && <SpotifyExplorarTab onSelectLei={handleSelectLei} />}
               {activeTab === 'pesquisar' && <SpotifyPesquisarTab onSelectLei={handleSelectLei} />}
               {activeTab === 'playlists' && <SpotifyPlaylistsTab />}
@@ -169,11 +172,8 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
         )}
       </div>
 
-      {/* Mini-Player Fixo Acima do Rodapé */}
+      {/* Mini-Player Fixo Flutuante */}
       <SpotifyMiniPlayer />
-
-      {/* Menu de Rodapé Estilo Spotify */}
-      <SpotifyBottomNav />
 
       {/* Player Expandido em Tela Cheia */}
       <SpotifyExpandedPlayer />

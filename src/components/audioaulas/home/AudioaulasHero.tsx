@@ -25,7 +25,7 @@ export const AudioaulasHero = React.memo(function AudioaulasHero({
   return (
     <div className="relative px-4 pt-[calc(2rem+var(--sai-top))] pb-6 overflow-visible sm:px-6 lg:px-10 lg:pt-[calc(3rem+var(--sai-top))] lg:pb-10">
       <div className="mx-auto w-full max-w-[1400px] 2xl:max-w-[1600px] relative z-10">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 -mr-4 sm:-mr-6 lg:-mr-10">
           <button
             onClick={() => (areaAtual ? navigate('/audioaulas') : navigate('/'))}
             aria-label="Voltar"
@@ -34,7 +34,7 @@ export const AudioaulasHero = React.memo(function AudioaulasHero({
             <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.4} />
           </button>
 
-          <AudioNavigationSwitcher active="aulas" />
+          <AudioNavigationSwitcher active="aulas" infiniteRight />
         </div>
 
         <div className="flex items-center gap-4 lg:gap-8">
@@ -49,18 +49,23 @@ export const AudioaulasHero = React.memo(function AudioaulasHero({
               />
             )}
           </span>
-          <div className="min-w-0">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/20 text-primary text-[11px] font-semibold uppercase tracking-widest mb-2 border border-primary/30">
-              <Headphones className="h-3.5 w-3.5" /> {areaAtual ? 'Área' : 'Acervo'}
-            </span>
+          <div className="min-w-0 flex-1">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-widest uppercase leading-none text-white drop-shadow-md">
               {heroTitulo}
             </h1>
-            <p className="text-xs sm:text-sm lg:text-base text-zinc-300 mt-2.5 font-medium">{heroSub}</p>
+            <p className="text-xs sm:text-sm lg:text-base text-zinc-300 mt-2 font-medium line-clamp-1">{heroSub}</p>
             {!loading && (
-              <p className="text-xs text-zinc-400 mt-1 font-medium">
-                {totalAulas} aula(s) disponível(is)
-              </p>
+              <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary/20 text-primary border border-primary/30 font-bold text-xs sm:text-sm shadow-sm shadow-primary/20">
+                  <Headphones className="w-3.5 h-3.5" />
+                  {totalAulas} aula(s) disponível(is)
+                </span>
+                {areaAtual && (
+                  <span className="text-xs text-zinc-400 font-medium">
+                    em {areaAtual}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </div>

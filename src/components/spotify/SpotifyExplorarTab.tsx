@@ -88,8 +88,8 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
           <h2 className="text-[22px] font-black text-white uppercase tracking-widest">
             Catálogo de Legislação
           </h2>
-          <p className="mt-1 text-[14px] text-zinc-400">
-            Mergulhe no conhecimento jurídico através de narrações completas artigo por artigo. Estude onde e quando quiser.
+          <p className="mt-1 text-xs sm:text-sm text-zinc-400 line-clamp-1">
+            Narrações completas artigo por artigo gravadas em estúdio com voz humana.
           </p>
         </div>
 

@@ -21,7 +21,7 @@ export const SpotifyMiniPlayer: React.FC = () => {
   const isFav = isFavorito(currentTrack.id);
 
   return (
-    <div className="fixed bottom-[4.2rem] left-0 right-0 z-40 px-3 max-w-md mx-auto sm:max-w-xl md:max-w-2xl">
+    <div className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-0 right-0 z-40 px-3 max-w-md mx-auto sm:max-w-xl md:max-w-2xl">
       <div
         onClick={() => setExpanded(true)}
         className="relative overflow-hidden rounded-2xl bg-zinc-900/95 border border-white/10 backdrop-blur-xl shadow-2xl p-2.5 flex items-center justify-between gap-3 cursor-pointer select-none transition-all hover:bg-zinc-800/90 hover:border-white/20 active:scale-[0.99]"

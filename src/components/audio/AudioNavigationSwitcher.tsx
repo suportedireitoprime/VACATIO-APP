@@ -5,17 +5,23 @@ import { Volume2, GraduationCap } from 'lucide-react';
 interface AudioNavigationSwitcherProps {
   active: 'leis' | 'aulas';
   className?: string;
+  infiniteRight?: boolean;
 }
 
 export const AudioNavigationSwitcher: React.FC<AudioNavigationSwitcherProps> = ({
   active,
   className = '',
+  infiniteRight = false,
 }) => {
   const navigate = useNavigate();
 
   return (
     <div
-      className={`flex items-center p-1 rounded-2xl bg-white/5 border border-white/10 shrink-0 backdrop-blur-md shadow-lg ${className}`}
+      className={`flex items-center p-1 bg-white/5 border border-white/10 shrink-0 backdrop-blur-md shadow-lg ${
+        infiniteRight
+          ? 'rounded-l-2xl rounded-r-none border-r-0 pr-4 sm:pr-6 pl-1.5'
+          : 'rounded-2xl'
+      } ${className}`}
     >
       <button
         type="button"
