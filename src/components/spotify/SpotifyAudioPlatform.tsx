@@ -151,6 +151,8 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
                 leiNome={selectedLeiData.nome}
                 leiSlug={selectedLeiData.slug}
                 categoria={selectedLeiData.categoria}
+                totalArtigosInitial={selectedLeiData.totalArtigos}
+                totalAudiosInitial={selectedLeiData.totalComAudio}
                 onBack={handleBackFromAlbum}
               />
             </motion.div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, SkipForward, Heart, ChevronUp, Headphones } from 'lucide-react';
+import { Play, Pause, SkipForward, Heart, X, Headphones } from 'lucide-react';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 
 export const SpotifyMiniPlayer: React.FC = () => {
@@ -13,6 +13,7 @@ export const SpotifyMiniPlayer: React.FC = () => {
     toggleFavorito,
     isFavorito,
     setExpanded,
+    closePlayer,
   } = useSpotifyAudioStore();
 
   const [navHeight, setNavHeight] = React.useState(0);
@@ -132,14 +133,18 @@ export const SpotifyMiniPlayer: React.FC = () => {
             <SkipForward className="w-4 h-4" />
           </button>
 
-          {/* Expandir */}
+          {/* Botão de Fechar e Encerrar Áudio */}
           <button
             type="button"
-            onClick={() => setExpanded(true)}
-            aria-label="Abrir tela cheia"
-            className="p-1.5 text-zinc-400 hover:text-white transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              closePlayer();
+            }}
+            aria-label="Encerrar áudio"
+            title="Encerrar áudio"
+            className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded-full transition-colors active:scale-95"
           >
-            <ChevronUp className="w-4 h-4" />
+            <X className="w-4 h-4" />
           </button>
         </div>
       </div>

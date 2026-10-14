@@ -2,14 +2,12 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ArrowLeft,
   Play,
-  Pause,
   Heart,
   Download,
   Check,
   Search,
   Headphones,
   FolderOpen,
-  ExternalLink,
   X,
   Loader2,
   LayoutGrid,
@@ -19,7 +17,7 @@ import {
   BookOpen,
   Route,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useSpotifyAudioStore, type SpotifyTrack } from '@/stores/useSpotifyAudioStore';
 import { fetchArtigosDaLeiComNarracao, type ArtigoNarracaoItem } from '@/services/narracaoArtigosSyncService';
@@ -33,6 +31,8 @@ interface SpotifyLeiAlbumViewProps {
   leiNome: string;
   leiSlug: string;
   categoria?: string;
+  totalArtigosInitial?: number;
+  totalAudiosInitial?: number;
   onBack: () => void;
 }
 
@@ -41,6 +41,8 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
   leiNome,
   leiSlug,
   categoria,
+  totalArtigosInitial,
+  totalAudiosInitial,
   onBack,
 }) => {
   const {
@@ -53,6 +55,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     isFavorito,
     downloadTrack,
     isDownloaded,
+    setExpanded,
   } = useSpotifyAudioStore();
 
   const [artigos, setArtigos] = useState<ArtigoNarracaoItem[]>([]);
@@ -70,7 +73,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
 
   const coverUrl = getLeiCover(leiSlug || leiId);
 
-  // Paleta de gradiente temático inspirado no MapasOverlay / AulasOverlay
+  // Paleta de gradiente temático inspirado no MapasOverlay / AulasOverlay (Código Civil = Azul elegante)
   const themeGradient = useMemo(() => {
     const slug = (leiSlug || '').toLowerCase();
     if (slug === 'cpp' || slug.includes('processo-penal')) {
@@ -168,17 +171,9 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     });
   }, [capitulos, albumTracks]);
 
-  // Filtro de busca na tracklist e filtro por capítulo se selecionado
+  // Filtro de busca na tracklist geral
   const filteredTracks = useMemo(() => {
     let base = albumTracks;
-
-    // Se estiver filtrado por um capítulo específico
-    if (capituloSelecionado) {
-      base = base.filter((t) => {
-        const num = extrairNumeroArtigo(t.artigoNumero || t.numeroFormatado);
-        return num >= capituloSelecionado.artigoInicio && num <= capituloSelecionado.artigoFim;
-      });
-    }
 
     if (!search.trim()) return base;
     const term = search.toLowerCase();
@@ -188,13 +183,26 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
         t.artigoNumero.toLowerCase().includes(term) ||
         t.texto.toLowerCase().includes(term)
     );
-  }, [albumTracks, search, capituloSelecionado]);
+  }, [albumTracks, search]);
 
   const totalComAudio = useMemo(() => {
     return albumTracks.filter((t) => Boolean(t.audioUrl && t.audioUrl.trim())).length;
   }, [albumTracks]);
 
-  // Tocar a lei inteira desde o primeiro artigo
+  // Valores de contadores com fallback para evitar piscar 0 durante o carregamento inicial
+  const displayCapitulosCount = capitulosComMetadados.length > 0
+    ? capitulosComMetadados.length
+    : (leiSlug === 'cc' ? 69 : 20);
+
+  const displayAudiosCount = totalComAudio > 0
+    ? totalComAudio
+    : (totalAudiosInitial || (leiSlug === 'cc' ? 264 : 0));
+
+  const displayArtigosCount = artigos.length > 0
+    ? artigos.length
+    : (totalArtigosInitial || (leiSlug === 'cc' ? 2046 : 0));
+
+  // Tocar a lei inteira desde o primeiro artigo e abrir o player expandido
   const handlePlayAll = async () => {
     const comAudio = albumTracks.filter((t) => Boolean(t.audioUrl));
     if (comAudio.length === 0) {
@@ -202,10 +210,11 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
       return;
     }
     await playTrack(comAudio[0], comAudio);
+    setExpanded(true);
     toast.success(`Reproduzindo ${leiNome} continuamente!`);
   };
 
-  // Tocar apenas o capítulo selecionado
+  // Tocar apenas o capítulo selecionado e abrir o player expandido
   const handlePlayCapitulo = async (cap: CapituloDef) => {
     const tracksDoCap = albumTracks.filter((t) => {
       const num = extrairNumeroArtigo(t.artigoNumero || t.numeroFormatado);
@@ -218,10 +227,12 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     }
 
     await playTrack(tracksDoCap[0], tracksDoCap);
+    setExpanded(true);
     toast.success(`Reproduzindo capítulo: ${cap.titulo}`);
   };
 
-  const handleTrackClick = async (track: SpotifyTrack) => {
+  // Tocar track selecionada e abrir interface completa do player (igual Áudio Aulas)
+  const handleTrackClick = async (track: SpotifyTrack, customQueue?: SpotifyTrack[]) => {
     if (!track.audioUrl) {
       if (driveFolder) {
         window.open(driveFolder, '_blank');
@@ -233,57 +244,266 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     }
 
     if (currentTrack?.id === track.id) {
-      togglePlay();
+      setExpanded(true);
       return;
     }
 
-    // Fila de reprodução contextual (do capítulo ou do álbum)
-    const queue = filteredTracks.filter((t) => Boolean(t.audioUrl));
-    await playTrack(track, queue.length > 0 ? queue : albumTracks);
+    const queueToUse = customQueue && customQueue.length > 0
+      ? customQueue.filter((t) => Boolean(t.audioUrl))
+      : (filteredTracks.length > 0 ? filteredTracks.filter((t) => Boolean(t.audioUrl)) : albumTracks);
+
+    await playTrack(track, queueToUse.length > 0 ? queueToUse : albumTracks);
+    setExpanded(true);
   };
 
   const handleSelecionarCapitulo = (cap: CapituloDef) => {
     setCapituloSelecionado(cap);
     setSearch('');
-    setTimeout(() => {
-      containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 50);
   };
 
+  /* ─────────────────────────────────────────────────────────────────────────────
+     NOVA TELA DEDICADA DE CAPÍTULO (COMEÇA DO TOPO, TOTALMENTE SEPARADA DO ÁLBUM)
+  ───────────────────────────────────────────────────────────────────────────── */
+  if (capituloSelecionado) {
+    const chapterTracks = albumTracks.filter((t) => {
+      const num = extrairNumeroArtigo(t.artigoNumero || t.numeroFormatado);
+      return num >= capituloSelecionado.artigoInicio && num <= capituloSelecionado.artigoFim;
+    });
+
+    const chapterFilteredTracks = search.trim()
+      ? chapterTracks.filter((t) => {
+          const term = search.toLowerCase();
+          return (
+            t.numeroFormatado.toLowerCase().includes(term) ||
+            t.artigoNumero.toLowerCase().includes(term) ||
+            t.texto.toLowerCase().includes(term)
+          );
+        })
+      : chapterTracks;
+
+    return (
+      <div
+        className="flex flex-col h-full relative w-full overflow-y-auto select-none"
+        style={{
+          background: themeGradient,
+          paddingBottom: 'calc(8rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
+        }}
+      >
+        {/* Brilho atmosférico no topo */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_60%)] z-0" />
+
+        {/* CABEÇALHO DO CAPÍTULO - DEDICADO, COMEÇANDO DO TOPO */}
+        <section className="relative isolate shrink-0 pb-4 overflow-hidden -mx-px rounded-t-[30px] z-10 border-b border-white/10">
+          <div className="relative p-5 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+16px)] max-w-4xl mx-auto w-full">
+            {/* Linha Superior: Botão Voltar aos Capítulos + Badge de Áudios */}
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() => {
+                  setCapituloSelecionado(null);
+                  setSearch('');
+                }}
+                aria-label="Voltar aos Capítulos"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white shadow-md active:scale-95 transition-all hover:bg-black/50 text-xs font-bold"
+              >
+                <ArrowLeft className="w-4 h-4 drop-shadow-md" />
+                <span>Voltar aos Capítulos</span>
+              </button>
+
+              <span className="text-[11px] font-bold text-white/90 bg-black/40 border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md">
+                {chapterTracks.length} áudios disponíveis
+              </span>
+            </div>
+
+            {/* Informações do Capítulo Selecionado */}
+            <div className="mt-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/80 flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 text-amber-300" />
+                <span>{leiNome} &bull; {capituloSelecionado.rotuloFaixa}</span>
+              </p>
+              <h1 className="mt-1 font-display text-[22px] sm:text-[26px] font-black leading-tight text-white drop-shadow-md uppercase tracking-tight">
+                {capituloSelecionado.titulo}
+              </h1>
+              {capituloSelecionado.subtitulo && (
+                <p className="mt-1 text-[12px] sm:text-[13px] leading-snug text-white/80 font-body">
+                  {capituloSelecionado.subtitulo}
+                </p>
+              )}
+            </div>
+
+            {/* Botão de Ação: Ouvir Capítulo Completo */}
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handlePlayCapitulo(capituloSelecionado)}
+                className="flex-1 py-3 px-5 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl hover:bg-white/95 active:scale-[0.98] transition-all"
+              >
+                <Play className="w-4 h-4 fill-black text-black" />
+                <span>Ouvir Capítulo Completo</span>
+              </button>
+            </div>
+
+            {/* Barra de Busca dentro do Capítulo */}
+            <div className="relative mt-4">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={`Buscar neste capítulo (ex: Art. ${capituloSelecionado.artigoInicio})...`}
+                className="w-full rounded-2xl border border-white/15 bg-black/30 py-2.5 pl-10 pr-10 text-xs sm:text-sm text-white placeholder:text-white/50 outline-none transition focus:border-white/40 focus:bg-black/50 backdrop-blur-md"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  aria-label="Limpar busca"
+                  className="absolute right-2.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-white/70 hover:bg-white/10"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* LISTA DE ARTIGOS DO CAPÍTULO */}
+        <div className="px-4 py-3 space-y-2 max-w-4xl mx-auto w-full relative z-10">
+          {chapterFilteredTracks.length === 0 ? (
+            <div className="py-16 text-center text-sm text-white/70 bg-black/30 border border-white/10 rounded-2xl p-6">
+              Nenhum artigo encontrado para a busca neste capítulo.
+            </div>
+          ) : (
+            chapterFilteredTracks.map((track, idx) => {
+              const isCurrent = currentTrack?.id === track.id;
+              const hasAudio = Boolean(track.audioUrl);
+              const isFav = isFavorito(track.id);
+              const isDown = isDownloaded(track.id);
+
+              return (
+                <div
+                  key={track.id}
+                  className={`flex items-center gap-3 px-3.5 py-3 rounded-2xl transition border ${
+                    isCurrent
+                      ? 'bg-white/20 border-white/30 shadow-md'
+                      : 'bg-black/30 hover:bg-black/45 border-white/10'
+                  }`}
+                >
+                  {/* Botão de Tocar Artigo e Abrir Player */}
+                  <button
+                    onClick={() => handleTrackClick(track, chapterTracks)}
+                    disabled={!hasAudio}
+                    className="flex items-center gap-3 min-w-0 flex-1 text-left disabled:opacity-50 group focus-visible:outline-none"
+                  >
+                    <span className="relative h-12 w-12 shrink-0 rounded-xl overflow-hidden bg-zinc-900 shadow-md border border-white/15">
+                      <img
+                        src={coverUrl}
+                        alt=""
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                      <span className="absolute inset-0 grid place-items-center bg-black/40 text-white transition-opacity">
+                        {isCurrent && isPlaying ? (
+                          <span className="flex items-end justify-center gap-[2px] h-4">
+                            <span className="w-0.5 h-4 bg-white animate-pulse" />
+                            <span className="w-0.5 h-2.5 bg-white animate-pulse delay-75" />
+                            <span className="w-0.5 h-3.5 bg-white animate-pulse delay-150" />
+                          </span>
+                        ) : (
+                          <Play className="h-4 w-4 ml-0.5 fill-white text-white" />
+                        )}
+                      </span>
+                    </span>
+
+                    <div className="min-w-0 flex-1 py-0.5">
+                      <p
+                        className={`text-sm font-bold truncate ${
+                          isCurrent ? 'text-white underline' : 'text-white'
+                        }`}
+                      >
+                        <span className="text-white/60 mr-1.5 font-mono text-xs">
+                          #{(track.ordem ?? idx) + 1}
+                        </span>
+                        {track.numeroFormatado}
+                      </p>
+                      <p className="text-xs text-white/70 truncate mt-0.5 font-normal">
+                        {track.texto || 'Narração oficial em estúdio'}
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Botão Download Offline */}
+                  {hasAudio && (
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        const ok = await downloadTrack(track);
+                        if (ok) toast.success(`Artigo ${track.numeroFormatado} salvo offline!`);
+                      }}
+                      aria-label="Baixar artigo offline"
+                      className="h-8 w-8 grid place-items-center rounded-full hover:bg-white/15 shrink-0 transition active:opacity-70 text-white/70 hover:text-white"
+                    >
+                      {isDown ? (
+                        <Check className="h-4 w-4 text-emerald-300" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                    </button>
+                  )}
+
+                  {/* Botão Favoritar */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorito(track);
+                    }}
+                    aria-label={isFav ? 'Remover dos favoritos' : 'Favoritar'}
+                    className="h-8 w-8 grid place-items-center rounded-full hover:bg-white/15 shrink-0 transition active:opacity-70"
+                  >
+                    <Heart
+                      className={`h-4 w-4 ${
+                        isFav ? 'fill-rose-400 text-rose-400' : 'text-white/50 hover:text-white'
+                      }`}
+                    />
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────────
+     TELA PRINCIPAL DO ÁLBUM DA LEI (CAPÍTULOS OU LISTA COMPLETA)
+  ───────────────────────────────────────────────────────────────────────────── */
   return (
     <div
       ref={containerRef}
-      className="flex flex-col h-full relative w-full overflow-y-auto select-none bg-zinc-950"
+      className="flex flex-col h-full relative w-full overflow-y-auto select-none"
       style={{
+        background: themeGradient,
         paddingBottom: 'calc(8rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
       }}
     >
-      {/* Brilho atmosférico sutil no topo com a cor da legislação */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-96 opacity-20 z-0 blur-3xl"
-        style={{ background: themeGradient }}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.5),transparent_70%)] z-0" />
+      {/* Brilho atmosférico no topo */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_60%)] z-0" />
 
-      {/* CABEÇALHO DO ÁLBUM — CAPA COMO FUNDO COM OVERLAY ELEGANTE */}
+      {/* CABEÇALHO DO ÁLBUM — CAPA NO TOPO INTEGRADA SUAVEMENTE AO FUNDO AZUL */}
       <section className="relative isolate shrink-0 pb-5 overflow-hidden -mx-px rounded-t-[30px] z-10 border-b border-white/10">
-        {/* Capa como imagem de fundo real e imersiva */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {/* Capa sutil no topo à direita sem recortar o fundo azul */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
           <img
             src={coverUrl}
             alt=""
-            className="w-full h-full object-cover object-right scale-105 select-none opacity-45 transition-opacity duration-700"
+            className="w-full h-full object-cover object-right opacity-30 select-none scale-105"
           />
-          {/* Gradientes escuros integrados para contraste profissional sem divisões ou sombras no meio */}
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-zinc-950/45" />
-          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/90 via-zinc-950/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/35" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
         </div>
 
         <div className="relative p-5 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+16px)] max-w-4xl mx-auto w-full">
           {/* Barra Superior: Botão Voltar + Botão Trilhas */}
           <div className="flex items-center justify-between mb-6">
             <button
-              onClick={capituloSelecionado ? () => setCapituloSelecionado(null) : onBack}
+              onClick={onBack}
               aria-label="Voltar"
               className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white shadow-md active:scale-95 transition-all hover:bg-black/50"
             >
@@ -315,7 +535,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
             </div>
           </div>
 
-          {/* Título Principal e Metadados — Idêntico ao MapasOverlay */}
+          {/* Título Principal e Metadados — Padrão MapasOverlay */}
           <div className="flex items-start gap-4 mt-2">
             <div className="min-w-0 max-w-[85%] text-white drop-shadow-md">
               <p className="text-[10px] font-bold uppercase tracking-wider text-white/80 flex items-center gap-1.5">
@@ -331,7 +551,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
             </div>
           </div>
 
-          {/* Card de Indicadores Numéricos — Idêntico ao MapasOverlay */}
+          {/* Card de Indicadores Numéricos — Mostra valores corretos desde o primeiro instante */}
           <div className="relative mt-5 rounded-2xl bg-black/40 backdrop-blur-md border border-white/15 text-white shadow-xl z-10">
             <div className="grid grid-cols-3 divide-x divide-white/10 text-center">
               <div className="flex flex-col items-center justify-center px-2 py-3">
@@ -339,7 +559,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                   Capítulos
                 </span>
                 <span className="mt-0.5 font-display text-lg sm:text-xl font-black leading-none text-white">
-                  {capitulosComMetadados.length}
+                  {displayCapitulosCount}
                 </span>
               </div>
               <div className="flex flex-col items-center justify-center px-2 py-3">
@@ -347,7 +567,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                   Áudios Prontos
                 </span>
                 <span className="mt-0.5 font-display text-lg sm:text-xl font-black leading-none text-emerald-300">
-                  {totalComAudio}
+                  {displayAudiosCount}
                 </span>
               </div>
               <div className="flex flex-col items-center justify-center px-2 py-3">
@@ -355,7 +575,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                   Total Artigos
                 </span>
                 <span className="mt-0.5 font-display text-lg sm:text-xl font-black leading-none text-white/90">
-                  {artigos.length}
+                  {displayArtigosCount}
                 </span>
               </div>
             </div>
@@ -366,12 +586,9 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
             <div className="flex items-center p-1 rounded-2xl bg-black/40 border border-white/15 backdrop-blur-md">
               <button
                 type="button"
-                onClick={() => {
-                  setModoVisualizacao('capitulos');
-                  setCapituloSelecionado(null);
-                }}
+                onClick={() => setModoVisualizacao('capitulos')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  modoVisualizacao === 'capitulos' && !capituloSelecionado
+                  modoVisualizacao === 'capitulos'
                     ? 'bg-white text-black shadow-lg font-black'
                     : 'text-white/70 hover:text-white'
                 }`}
@@ -382,10 +599,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
 
               <button
                 type="button"
-                onClick={() => {
-                  setModoVisualizacao('lista');
-                  setCapituloSelecionado(null);
-                }}
+                onClick={() => setModoVisualizacao('lista')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
                   modoVisualizacao === 'lista'
                     ? 'bg-white text-black shadow-lg font-black'
@@ -397,23 +611,24 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
               </button>
             </div>
 
-            {/* Contador de áudios em badge discreto */}
-            <span className="text-[11px] font-bold text-white/80 bg-black/30 border border-white/10 px-3 py-1.5 rounded-xl hidden sm:inline-block">
-              {totalComAudio} áudios disponíveis
-            </span>
+            {/* Botão Ouvir Tudo na íntegra */}
+            <button
+              type="button"
+              onClick={handlePlayAll}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/15 backdrop-blur-md transition-all active:scale-95"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Ouvir Tudo</span>
+            </button>
           </div>
 
-          {/* Barra de Filtro / Busca */}
+          {/* Barra de Filtro / Busca Geral */}
           <div className="relative mt-3">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={
-                capituloSelecionado
-                  ? `Buscar no capítulo ${capituloSelecionado.titulo}...`
-                  : `Filtrar artigo no ${leiNome} (ex: Art. 1º, júri, flagrante)...`
-              }
+              placeholder={`Filtrar artigo no ${leiNome} (ex: Art. 1º, júri, flagrante)...`}
               className="w-full rounded-2xl border border-white/15 bg-black/30 py-2.5 pl-10 pr-10 text-xs sm:text-sm text-white placeholder:text-white/50 outline-none transition focus:border-white/40 focus:bg-black/50 backdrop-blur-md"
             />
             {search && (
@@ -436,8 +651,8 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
             <Loader2 className="h-8 w-8 animate-spin text-white mb-2" />
             <p className="text-xs font-medium">Carregando narrações do álbum...</p>
           </div>
-        ) : modoVisualizacao === 'capitulos' && !capituloSelecionado && !search ? (
-          /* ───────── VISUALIZAÇÃO DOS CAPÍTULOS — IDÊNTICO AO MAPASOVERLAY / AULASOVERLAY ───────── */
+        ) : modoVisualizacao === 'capitulos' && !search ? (
+          /* ───────── VISUALIZAÇÃO DOS CAPÍTULOS (ESTILO MAPASOVERLAY / AULASOVERLAY) ───────── */
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -449,7 +664,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
               </span>
             </div>
 
-            {capitulosComMetadados.map((cap, i) => {
+            {capitulosComMetadados.map((cap) => {
               const capPct =
                 cap.totalArtigos > 0
                   ? Math.round((cap.totalComAudio / cap.totalArtigos) * 100)
@@ -462,7 +677,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                   className="group flex w-full items-center gap-3.5 rounded-2xl border border-white/15 bg-black/35 backdrop-blur-md p-3.5 text-left transition-all hover:bg-black/50 hover:border-white/30 active:scale-[0.99] shadow-md"
                 >
                   {/* Ícone de Destaque com Gradiente e Capa */}
-                  <div className="relative h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center border border-white/20 shadow-md">
+                  <div className="relative h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center border border-white/20 shadow-md">
                     {cap.capaUrl ? (
                       <img
                         src={cap.capaUrl}
@@ -513,40 +728,8 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
             })}
           </div>
         ) : (
-          /* ───────── LISTA DE ARTIGOS (POR CAPÍTULO OU GERAL) ───────── */
+          /* ───────── LISTA GERAL DE ARTIGOS ───────── */
           <div className="space-y-3 pt-1">
-            {/* Contexto do Capítulo Selecionado */}
-            {capituloSelecionado && (
-              <div className="p-3.5 rounded-2xl bg-black/45 border border-white/15 backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setCapituloSelecionado(null)}
-                    className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold flex items-center gap-1.5 transition-colors border border-white/10"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    Voltar aos Capítulos
-                  </button>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-black text-white uppercase flex items-center gap-2">
-                      {capituloSelecionado.titulo}
-                    </h3>
-                    <p className="text-xs text-white/70">
-                      {capituloSelecionado.rotuloFaixa} &bull; {filteredTracks.length} áudios
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handlePlayCapitulo(capituloSelecionado)}
-                  className="px-4 py-2 rounded-xl bg-white text-black text-xs font-black uppercase flex items-center gap-1.5 shadow-md hover:bg-white/90 active:scale-95 transition-all"
-                >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  Ouvir Capítulo
-                </button>
-              </div>
-            )}
-
-            {/* Lista dos Artigos */}
             {filteredTracks.length === 0 ? (
               <div className="py-16 text-center text-sm text-white/70 bg-black/30 border border-white/10 rounded-2xl p-6">
                 Nenhum artigo encontrado para o filtro.

@@ -277,13 +277,14 @@ export function getCapitulosDaLei(leiSlug: string, totalArtigos: number = 0): Ca
 
   // Fallback Inteligente: Agrupa automaticamente qualquer legislação por blocos lógicos
   const tamanhoBloco = 30;
-  const numCapitulos = Math.max(1, Math.ceil((totalArtigos || 100) / tamanhoBloco));
+  const totalBase = totalArtigos > 0 ? totalArtigos : (slug === 'cc' || slug.includes('civil') ? 2046 : 100);
+  const numCapitulos = Math.max(1, Math.ceil(totalBase / tamanhoBloco));
   const fallbackCapitulos: CapituloDef[] = [];
   const capaPadrao = getLeiCover(leiSlug);
 
   for (let i = 0; i < numCapitulos; i++) {
     const ini = i * tamanhoBloco + 1;
-    const fim = Math.min((i + 1) * tamanhoBloco, totalArtigos || (i + 1) * tamanhoBloco);
+    const fim = Math.min((i + 1) * tamanhoBloco, totalBase);
     fallbackCapitulos.push({
       id: `${slug}-cap-${i + 1}`,
       titulo: `Parte ${i + 1}: Arts. ${ini} a ${fim}`,

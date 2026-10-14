@@ -68,6 +68,7 @@ interface SpotifyAudioStoreState {
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   setExpanded: (expanded: boolean) => void;
+  closePlayer: () => void;
   setActiveTab: (tab: SpotifyTabType) => void;
   setAudioMode: (mode: 'leis' | 'aulas') => void;
   setSelectedLeiId: (leiId: string | null) => void;
@@ -332,6 +333,29 @@ export const useSpotifyAudioStore = create<SpotifyAudioStoreState>((set, get) =>
       _audioElement.pause();
       set({ isPlaying: false });
     }
+  },
+
+  closePlayer: () => {
+    const { _audioElement, audioObjectUrl } = get();
+    if (_audioElement) {
+      _audioElement.pause();
+      _audioElement.currentTime = 0;
+      _audioElement.removeAttribute('src');
+      _audioElement.load();
+    }
+    if (audioObjectUrl) {
+      try {
+        URL.revokeObjectURL(audioObjectUrl);
+      } catch {}
+    }
+    set({
+      currentTrack: null,
+      isPlaying: false,
+      currentTime: 0,
+      duration: 0,
+      isExpanded: false,
+      audioObjectUrl: null,
+    });
   },
 
   resume: () => {
