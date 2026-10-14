@@ -466,7 +466,8 @@ export async function fetchArtigosDaLeiComNarracao(leiId: string, leiSlug?: stri
   const slug = (leiSlug || '').toLowerCase();
   if (slug) {
     try {
-      const { data: storageFiles } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`);
+      // 1. Bucket narracoes
+      const { data: storageFiles } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`, { limit: 1000 });
       if (storageFiles && storageFiles.length > 0) {
         for (const file of storageFiles) {
           if (!file.name || !/\.(mp3|wav|m4a|ogg)$/i.test(file.name)) continue;
@@ -475,6 +476,23 @@ export async function fetchArtigosDaLeiComNarracao(leiId: string, leiSlug?: stri
             const { data: pubData } = supabase.storage
               .from('narracoes')
               .getPublicUrl(`vademecum/${slug}/${file.name}`);
+            if (pubData?.publicUrl) {
+              storageAudiosMap.set(key, pubData.publicUrl);
+            }
+          }
+        }
+      }
+
+      // 2. Bucket narracao-artigos (onde ficam as narrações massivas do drive)
+      const { data: storageArtigosFiles } = await supabase.storage.from('narracao-artigos').list(slug, { limit: 1000 });
+      if (storageArtigosFiles && storageArtigosFiles.length > 0) {
+        for (const file of storageArtigosFiles) {
+          if (!file.name || !/\.(mp3|wav|m4a|ogg)$/i.test(file.name)) continue;
+          const key = matchArtigoKeyFromFilename(file.name);
+          if (key && !storageAudiosMap.has(key)) {
+            const { data: pubData } = supabase.storage
+              .from('narracao-artigos')
+              .getPublicUrl(`${slug}/${file.name}`);
             if (pubData?.publicUrl) {
               storageAudiosMap.set(key, pubData.publicUrl);
             }

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Volume2, GraduationCap, Headphones } from 'lucide-react';
+import { Volume2, GraduationCap } from 'lucide-react';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 import { SpotifyBottomNav } from './SpotifyBottomNav';
@@ -12,6 +12,7 @@ import { SpotifyPlaylistsTab } from './SpotifyPlaylistsTab';
 import { SpotifyFavoritosTab } from './SpotifyFavoritosTab';
 import { SpotifyDownloadsTab } from './SpotifyDownloadsTab';
 import { SpotifyLeiAlbumView } from './SpotifyLeiAlbumView';
+import ShapeGrid from '@/components/ui/ShapeGrid';
 
 interface SpotifyAudioPlatformProps {
   initialMode?: 'leis' | 'aulas';
@@ -20,7 +21,6 @@ interface SpotifyAudioPlatformProps {
 
 export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
   initialMode = 'leis',
-  title,
 }) => {
   const navigate = useNavigate();
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -29,7 +29,6 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
     activeTab,
     audioMode,
     setAudioMode,
-    selectedLeiId,
     setSelectedLeiId,
     _setAudioElement,
     _setCurrentTime,
@@ -75,7 +74,20 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-36 relative select-none">
+    <div className="min-h-screen bg-zinc-950 text-foreground pb-36 relative select-none overflow-hidden">
+      {/* Textura Geométrica Dinâmica idêntica ao Áudio Aulas */}
+      <div className="absolute inset-0 z-0 opacity-60 pointer-events-none">
+        <ShapeGrid
+          speed={0.5}
+          squareSize={40}
+          direction="diagonal"
+          borderColor="rgba(255, 255, 255, 0.05)"
+          hoverFillColor="rgba(255, 255, 255, 0.1)"
+          shape="square"
+          hoverTrailAmount={5}
+        />
+      </div>
+
       {/* Elemento de Áudio Invisível Gerenciado pelo Store */}
       <audio
         ref={audioRef}
@@ -94,68 +106,62 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
         }}
       />
 
-      {/* Se uma lei específica estiver aberta em modo álbum */}
-      {selectedLeiData ? (
-        <SpotifyLeiAlbumView
-          leiId={selectedLeiData.id}
-          leiNome={selectedLeiData.nome}
-          leiSlug={selectedLeiData.slug}
-          categoria={selectedLeiData.categoria}
-          onBack={handleBackFromAlbum}
-        />
-      ) : (
-        <>
-          {/* Cabeçalho no Padrão Oficial do VACATIO */}
-          <PageHeader
-            title={audioMode === 'leis' ? 'Áudio Leis' : 'Áudio Aulas'}
-            subtitle={
-              audioMode === 'leis'
-                ? 'Narrações oficiais dos artigos da legislação'
-                : 'Aulas didáticas e conceituais para fixação'
-            }
-            onBack={() => navigate('/')}
-            variant="dark"
-            rightAction={
-              <div className="flex items-center p-1 rounded-2xl bg-zinc-900 border border-white/10 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setAudioMode('leis')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    audioMode === 'leis'
-                      ? 'bg-emerald-500 text-black shadow-md'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  <Volume2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Áudio </span>Leis
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setAudioMode('aulas')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    audioMode === 'aulas'
-                      ? 'bg-emerald-500 text-black shadow-md'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Áudio </span>Aulas
-                </button>
-              </div>
-            }
+      <div className="relative z-10">
+        {/* Se uma lei específica estiver aberta em modo álbum */}
+        {selectedLeiData ? (
+          <SpotifyLeiAlbumView
+            leiId={selectedLeiData.id}
+            leiNome={selectedLeiData.nome}
+            leiSlug={selectedLeiData.slug}
+            categoria={selectedLeiData.categoria}
+            onBack={handleBackFromAlbum}
           />
+        ) : (
+          <>
+            {/* Cabeçalho no Padrão Oficial do VACATIO */}
+            <PageHeader
+              title="Áudio Leis"
+              subtitle="Narrações oficiais dos artigos da legislação compilada"
+              onBack={() => navigate('/')}
+              variant="dark"
+              rightAction={
+                <div className="flex items-center p-1 rounded-2xl bg-white/5 border border-white/10 shrink-0 backdrop-blur-md">
+                  <button
+                    type="button"
+                    onClick={() => setAudioMode('leis')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      audioMode === 'leis'
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    <Volume2 className="w-3.5 h-3.5" />
+                    <span>Áudio Leis</span>
+                  </button>
 
-          {/* Conteúdo Principal de Acordo com a Aba do Rodapé */}
-          <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5">
-            {activeTab === 'explorar' && <SpotifyExplorarTab onSelectLei={handleSelectLei} />}
-            {activeTab === 'pesquisar' && <SpotifyPesquisarTab onSelectLei={handleSelectLei} />}
-            {activeTab === 'playlists' && <SpotifyPlaylistsTab />}
-            {activeTab === 'favoritos' && <SpotifyFavoritosTab />}
-            {activeTab === 'downloads' && <SpotifyDownloadsTab />}
-          </main>
-        </>
-      )}
+                  <button
+                    type="button"
+                    onClick={() => navigate('/audioaulas')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-zinc-400 hover:text-white"
+                  >
+                    <GraduationCap className="w-3.5 h-3.5" />
+                    <span>Áudio Aulas</span>
+                  </button>
+                </div>
+              }
+            />
+
+            {/* Conteúdo Principal de Acordo com a Aba do Rodapé */}
+            <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5">
+              {activeTab === 'explorar' && <SpotifyExplorarTab onSelectLei={handleSelectLei} />}
+              {activeTab === 'pesquisar' && <SpotifyPesquisarTab onSelectLei={handleSelectLei} />}
+              {activeTab === 'playlists' && <SpotifyPlaylistsTab />}
+              {activeTab === 'favoritos' && <SpotifyFavoritosTab />}
+              {activeTab === 'downloads' && <SpotifyDownloadsTab />}
+            </main>
+          </>
+        )}
+      </div>
 
       {/* Mini-Player Fixo Acima do Rodapé */}
       <SpotifyMiniPlayer />
