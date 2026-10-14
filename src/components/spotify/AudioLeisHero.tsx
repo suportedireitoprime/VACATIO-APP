@@ -49,9 +49,6 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
                 <Headphones className="w-3.5 h-3.5" />
                 {totalAudios > 0 ? `${totalAudios} áudios disponíveis` : 'Carregando áudios...'}
               </span>
-              <span className="text-xs text-zinc-400 font-medium">
-                em {totalLeis} legislação(ões)
-              </span>
             </div>
           </div>
         </div>

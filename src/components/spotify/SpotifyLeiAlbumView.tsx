@@ -343,7 +343,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                 <span className="text-[9px] font-bold uppercase tracking-wider text-white/60">
                   Áudios Prontos
                 </span>
-                <span className="mt-0.5 font-display text-lg sm:text-xl font-black leading-none text-emerald-300 font-mono">
+                <span className="mt-0.5 font-display text-lg sm:text-xl font-black leading-none text-emerald-300">
                   {totalComAudio}
                 </span>
               </div>
