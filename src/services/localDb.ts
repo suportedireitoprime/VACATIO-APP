@@ -16,31 +16,67 @@ const DB_VERSION = 1;
 let readyPromise: Promise<void> | null = null;
 let db: any = null;
 
+const memoryStore = new Map<string, string>();
+
+const mockDb = {
+  execute: async () => {},
+  run: async (sql: string, params: any[] = []) => {
+    if (sql.includes('INSERT INTO kv')) {
+      const [k, v] = params;
+      if (k) memoryStore.set(String(k), String(v));
+    }
+  },
+  query: async (sql: string, params: any[] = []) => {
+    if (sql.includes('FROM kv WHERE k=?')) {
+      const k = params[0];
+      const v = memoryStore.get(String(k));
+      return { values: v ? [{ v }] : [] };
+    }
+    return { values: [] };
+  },
+  open: async () => {},
+};
+
 async function initWeb(sqlite: any): Promise<void> {
-  // Registra o web component jeep-sqlite (só web)
-  if (!customElements.get('jeep-sqlite')) {
-    await import('jeep-sqlite/loader').then((m: any) => m.defineCustomElements(window));
+  try {
+    // Registra o web component jeep-sqlite (só web)
+    if (!customElements.get('jeep-sqlite')) {
+      await import('jeep-sqlite/loader').then((m: any) => m.defineCustomElements(window));
+    }
+    const el = document.createElement('jeep-sqlite');
+    document.body.appendChild(el);
+    await customElements.whenDefined('jeep-sqlite');
+    await sqlite.initWebStore();
+  } catch (err) {
+    console.warn('[localDb] Não foi possível carregar jeep-sqlite web component:', err);
+    throw err;
   }
-  const el = document.createElement('jeep-sqlite');
-  document.body.appendChild(el);
-  await customElements.whenDefined('jeep-sqlite');
-  await sqlite.initWebStore();
 }
 
 async function boot(): Promise<void> {
-  const { CapacitorSQLite, SQLiteConnection } = await import('@capacitor-community/sqlite');
-  const sqlite = new SQLiteConnection(CapacitorSQLite);
-  if (!Capacitor.isNativePlatform()) {
-    await initWeb(sqlite);
+  try {
+    const { CapacitorSQLite, SQLiteConnection } = await import('@capacitor-community/sqlite');
+    const sqlite = new SQLiteConnection(CapacitorSQLite);
+    if (!Capacitor.isNativePlatform()) {
+      try {
+        await initWeb(sqlite);
+      } catch {
+        db = mockDb;
+        return;
+      }
+    }
+    const isConn = (await sqlite.isConnection(DB_NAME, false)).result;
+    if (isConn) {
+      db = await sqlite.retrieveConnection(DB_NAME, false);
+    } else {
+      db = await sqlite.createConnection(DB_NAME, false, 'no-encryption', DB_VERSION, false);
+    }
+    await db.open();
+    await runMigrations();
+  } catch (err) {
+    console.warn('[localDb] Usando banco de dados local seguro (fallback):', err);
+    db = mockDb;
   }
-  const isConn = (await sqlite.isConnection(DB_NAME, false)).result;
-  if (isConn) {
-    db = await sqlite.retrieveConnection(DB_NAME, false);
-  } else {
-    db = await sqlite.createConnection(DB_NAME, false, 'no-encryption', DB_VERSION, false);
-  }
-  await db.open();
-  await runMigrations();
 }
 
 async function runMigrations(): Promise<void> {
@@ -90,10 +126,12 @@ async function runMigrations(): Promise<void> {
 
 export const localDb = {
   ready(): Promise<void> {
-    if (!readyPromise) readyPromise = boot().catch((e) => {
-      readyPromise = null;
-      throw e;
-    });
+    if (!readyPromise) {
+      readyPromise = boot().catch((e) => {
+        console.warn('[localDb] Falha ao inicializar localDb, usando fallback:', e);
+        db = mockDb;
+      });
+    }
     return readyPromise;
   },
 

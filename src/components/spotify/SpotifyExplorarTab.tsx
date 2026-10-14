@@ -139,10 +139,13 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
             }}
           >
             {filteredLeis.map((lei, i) => {
+              if (!lei || !lei.id) return null;
               const cover = getLeiCover(lei.slug || lei.id);
+              const totalAudios = typeof lei.totalComAudio === 'number' ? lei.totalComAudio : 0;
+              const totalArts = typeof lei.totalArtigos === 'number' ? lei.totalArtigos : 0;
               return (
                 <motion.button
-                  key={lei.id}
+                  key={lei.id || `lei-${i}`}
                   variants={{
                     hidden: { opacity: 0, scale: 0.95, y: 0 },
                     show: {
@@ -190,9 +193,9 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({ onSelect
                           {lei.nome}
                         </p>
                         <p className="text-[11px] text-zinc-300 mt-0.5">
-                          {lei.totalComAudio > 0
-                            ? `${lei.totalComAudio} áudio(s)`
-                            : `${lei.totalArtigos} artigos`}
+                          {totalAudios > 0
+                            ? `${totalAudios} áudio(s)`
+                            : `${totalArts} artigos`}
                         </p>
                       </div>
                       <span className="shrink-0 h-8 w-8 grid place-items-center rounded-full bg-white/20 text-white backdrop-blur group-hover:bg-primary group-hover:text-primary-foreground transition">

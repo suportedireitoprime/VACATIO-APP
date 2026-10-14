@@ -67,12 +67,20 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
 
   const [totalStats, setTotalStats] = React.useState({ totalAudios: 923, totalLeis: 2 });
   React.useEffect(() => {
-    fetchLeisDisponiveisComAudio('leis').then((leis) => {
-      if (leis.length > 0) {
-        const sumAudios = leis.reduce((acc, l) => acc + (l.totalComAudio || 0), 0);
-        setTotalStats({ totalAudios: sumAudios, totalLeis: leis.length });
-      }
-    });
+    let active = true;
+    fetchLeisDisponiveisComAudio('leis')
+      .then((leis) => {
+        if (active && Array.isArray(leis) && leis.length > 0) {
+          const sumAudios = leis.reduce((acc, l) => acc + (l?.totalComAudio || 0), 0);
+          setTotalStats({ totalAudios: sumAudios, totalLeis: leis.length });
+        }
+      })
+      .catch((err) => {
+        console.warn('[SpotifyAudioPlatform] Aviso ao carregar métricas:', err);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSelectLei = (lei: { id: string; nome: string; slug: string; categoria?: string }) => {
