@@ -55,6 +55,12 @@ const Ferramentas = () => {
 
   const toolsList = (
     <div className="space-y-8">
+      {/* 1. Primeiro carrossel: Notícias Jurídicas acima dos cards de Destaques */}
+      <section className="-mx-4 pb-2">
+        <HomeNoticiasCarousel />
+      </section>
+
+      {/* 2. Cards de Destaques */}
       <section className="space-y-3">
         <div className="flex items-baseline gap-2 pb-1 border-b border-border/40 px-1">
           <h2 className="font-display text-lg font-bold text-foreground">Destaques</h2>
@@ -102,10 +108,6 @@ const Ferramentas = () => {
 
       <section className="mt-2 -mx-2">
         <TematicaCarrossel />
-      </section>
-
-      <section className="mt-6 -mx-4 pb-2">
-        <HomeNoticiasCarousel />
       </section>
 
       <section className="space-y-3 mt-4">
