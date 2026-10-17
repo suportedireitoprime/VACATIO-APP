@@ -11,14 +11,14 @@ import { getAreaCover } from '@/lib/areasDireitoCovers';
 import { prefetchAprenderArea } from '@/lib/aprenderAreaLoader';
 import { prefetchAprenderAula } from '@/lib/aprenderAulaPrefetch';
 import { warmAprenderCache, saveAprenderHomeSnapshot, getAprenderHomeSnapshot, prefetchAllAulas } from '@/lib/warmAprenderCache';
-import hero1 from '@/assets/aprender-hero/hero-1.png.asset.json';
-import hero2 from '@/assets/aprender-hero/hero-2.png.asset.json';
-import hero3 from '@/assets/aprender-hero/hero-3.png.asset.json';
-import hero4 from '@/assets/aprender-hero/hero-4.png.asset.json';
-import hero5 from '@/assets/aprender-hero/hero-5.png.asset.json';
-import hero6 from '@/assets/aprender-hero/hero-6.png.asset.json';
+import hero1 from '@/assets/aprender-hero/hero-1.webp';
+import hero2 from '@/assets/aprender-hero/hero-2.webp';
+import hero3 from '@/assets/aprender-hero/hero-3.webp';
+import hero4 from '@/assets/aprender-hero/hero-4.webp';
+import hero5 from '@/assets/aprender-hero/hero-5.webp';
+import hero6 from '@/assets/aprender-hero/hero-6.webp';
 
-const HERO_ILLUSTRATIONS = [hero1.url, hero2.url, hero3.url, hero4.url, hero5.url, hero6.url];
+const HERO_ILLUSTRATIONS = [hero1, hero2, hero3, hero4, hero5, hero6];
 
 // Ícones vetoriais por área — no estilo dos ícones dos códigos.
 // Cada entrada tem o Icon (lucide) e uma cor de tinta para o fundo.

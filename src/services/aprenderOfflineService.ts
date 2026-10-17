@@ -35,14 +35,17 @@ async function collectAprenderAssetUrls(): Promise<string[]> {
   // Hero illustrations
   try {
     const heros = await Promise.all([
-      import('@/assets/aprender-hero/hero-1.png.asset.json'),
-      import('@/assets/aprender-hero/hero-2.png.asset.json'),
-      import('@/assets/aprender-hero/hero-3.png.asset.json'),
-      import('@/assets/aprender-hero/hero-4.png.asset.json'),
-      import('@/assets/aprender-hero/hero-5.png.asset.json'),
-      import('@/assets/aprender-hero/hero-6.png.asset.json'),
+      import('@/assets/aprender-hero/hero-1.webp'),
+      import('@/assets/aprender-hero/hero-2.webp'),
+      import('@/assets/aprender-hero/hero-3.webp'),
+      import('@/assets/aprender-hero/hero-4.webp'),
+      import('@/assets/aprender-hero/hero-5.webp'),
+      import('@/assets/aprender-hero/hero-6.webp'),
     ]);
-    heros.forEach((h: any) => { if (h?.default?.url) urls.add(h.default.url); });
+    heros.forEach((h: any) => {
+      const u = h?.default?.url || h?.default;
+      if (typeof u === 'string') urls.add(u);
+    });
   } catch { /* opcional */ }
 
   return [...urls];

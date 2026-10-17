@@ -1,6 +1,6 @@
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import TeoriaTab from './tema/TeoriaTab';
-import bgImage from '@/assets/trilha_juridica_bg.jpg';
+import bgImage from '@/assets/trilha_juridica_bg.webp';
 import { ArrowLeft } from 'lucide-react';
 
 type Aula = {

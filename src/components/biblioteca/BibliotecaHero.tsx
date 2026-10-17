@@ -6,7 +6,7 @@ import HeroMotifs from '@/components/vademecum/home/HeroMotifs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTotalLivrosCount } from '@/hooks/useTotalLivrosCount';
 
-import bibliotecaCoverImg from '@/assets/biblioteca-cover.jpg';
+import bibliotecaCoverImg from '@/assets/biblioteca-cover.webp';
 
 interface Props {
   onBuscar?: () => void;

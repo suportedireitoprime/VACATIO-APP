@@ -11,10 +11,10 @@ import landingVideoaulasAsset from '@/assets/landing-videoaulas.webp.asset.json'
 import logoVacatioAsset from '@/assets/logo-vacatio-v2.png.asset.json';
 import themisMarbleCutoutAsset from '@/assets/themis-marble-cutout.webp.asset.json';
 
-import cp from '@/assets/lei-cover-cp.jpg';
-import cpc from '@/assets/lei-cover-cpc.jpg';
-import cf88 from '@/assets/lei-cover-cf88.jpg';
-import cc from '@/assets/lei-cover-cc.jpg';
+import cp from '@/assets/lei-cover-cp.webp';
+import cpc from '@/assets/lei-cover-cpc.webp';
+import cf88 from '@/assets/lei-cover-cf88.webp';
+import cc from '@/assets/lei-cover-cc.webp';
 import clt from '@/assets/lei-cover-clt.webp';
 import cdc from '@/assets/lei-cover-cdc.webp';
 import defaultCover from '@/assets/lei-cover-default.webp';
