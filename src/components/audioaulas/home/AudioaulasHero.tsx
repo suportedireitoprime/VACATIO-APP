@@ -58,7 +58,7 @@ export const AudioaulasHero = React.memo(function AudioaulasHero({
               <div className="mt-2.5 flex items-center gap-2 flex-wrap">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary/20 text-primary border border-primary/30 font-bold text-xs sm:text-sm shadow-sm shadow-primary/20">
                   <Headphones className="w-3.5 h-3.5" />
-                  {totalAulas} aula(s) disponível(is)
+                  {totalAulas} aulas
                 </span>
                 {areaAtual && (
                   <span className="text-xs text-zinc-400 font-medium">

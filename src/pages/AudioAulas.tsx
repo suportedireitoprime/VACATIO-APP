@@ -172,7 +172,8 @@ const Audioaulas = () => {
             <div className="mx-auto w-full max-w-[1400px] px-4 space-y-4 mt-2 lg:px-10 2xl:max-w-[1600px]">
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider flex items-center gap-2.5">
+                    <span className="w-1.5 h-6 rounded-full bg-primary shrink-0" />
                     {filtroHome === 'em_alta' && <Flame className="w-5 h-5 text-amber-500" />}
                     {filtroHome === 'recentes' && <Clock className="w-5 h-5 text-blue-400" />}
                     {filtroHome === 'mais_ouvidas' && <HeadphonesIcon className="w-5 h-5 text-purple-400" />}
@@ -194,7 +195,7 @@ const Audioaulas = () => {
                       ? 'Histórico das últimas aulas acessadas na plataforma.'
                       : filtroHome === 'mais_ouvidas'
                       ? 'Aulas mais reproduzidas e fundamentais do acervo.'
-                      : `${listaFiltradaHome.length} aula(s) salvas no seu acervo pessoal.`}
+                      : `${listaFiltradaHome.length} aulas salvas no seu acervo pessoal.`}
                   </p>
                 </div>
               </div>

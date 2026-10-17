@@ -29,6 +29,7 @@ export const AudioaulasAulasRecentes: React.FC<AudioaulasAulasRecentesProps> = R
       <section className="mx-auto w-full max-w-[1400px] px-4 mt-2 mb-6 lg:px-10 2xl:max-w-[1600px] space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <span className="w-1.5 h-4 rounded-full bg-primary shrink-0" />
             <History className="w-4 h-4 text-primary" />
             <span>Últimas Aulas Ouvidas</span>
             <span className="text-[10px] uppercase font-bold tracking-widest text-primary/80 bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full inline-flex items-center gap-1">

@@ -121,7 +121,7 @@ export const AudioaulasListaAulas = React.memo(function AudioaulasListaAulas({
         {temasDaArea.map(([tema, lista]) => (
           <section key={tema} className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-3 sm:p-4">
             <h2 className="text-base sm:text-lg font-bold text-white mb-3 px-1 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-primary" />
+              <span className="w-1.5 h-4 rounded-full bg-primary shrink-0" />
               {tema}
             </h2>
             <motion.div 
@@ -155,7 +155,8 @@ export const AudioaulasListaAulas = React.memo(function AudioaulasListaAulas({
   // Se for abas extras (favoritas, baixadas, buscar)
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 space-y-4 mt-4 lg:px-10 2xl:max-w-[1600px]">
-      <h2 className="text-lg font-bold text-white">
+      <h2 className="text-lg font-bold text-white flex items-center gap-2">
+        <span className="w-1.5 h-4 rounded-full bg-primary shrink-0" />
         {aba === 'favoritas' ? 'Favoritas' : aba === 'baixadas' ? 'Baixadas' : 'Resultados da Busca'}
       </h2>
 
