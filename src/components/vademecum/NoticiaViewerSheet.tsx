@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronDown, Clock, Scale, ExternalLink, Share2, MessageCircle, Heart, Type, Plus, Minus } from 'lucide-react';
+import { X, ChevronDown, Clock, Scale, ExternalLink, Share2, MessageCircle, Heart, Type, Plus, Minus, BookOpen, ArrowUpRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useIsDesktop } from '@/hooks/use-desktop';
@@ -12,6 +13,7 @@ import { type Noticia, fetchNoticiaConteudo } from '@/services/noticiasService';
 import NoticiaComentarios from '@/components/vademecum/NoticiaComentarios';
 import ShareSheet from './ShareSheet';
 import { useFavoritoNoticia } from '@/hooks/useNoticiaTracking';
+import { linkifyLegalMarkdown, extractLegalCitations } from '@/lib/legalLinker';
 
 function cleanMd(md: string): string {
   if (!md) return '';
@@ -29,6 +31,7 @@ interface Props {
 }
 
 export default function NoticiaViewerSheet({ noticia, onClose }: Props) {
+  const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const [comentariosOpen, setComentariosOpen] = useState(false);
   const [comentariosCount, setComentariosCount] = useState(0);
@@ -41,6 +44,60 @@ export default function NoticiaViewerSheet({ noticia, onClose }: Props) {
   const incFont = () => setFontSize((s) => Math.min(24, s + 2));
   const decFont = () => setFontSize((s) => Math.max(12, s - 2));
   const { fav, toggle: toggleFav } = useFavoritoNoticia(noticia?.id ?? null);
+
+  const handleLegalNavigate = useCallback((url: string) => {
+    onClose();
+    navigate(url);
+  }, [onClose, navigate]);
+
+  const rawMarkdown = useMemo(() => {
+    return cleanMd(fullMd || noticia?.conteudo_md || noticia?.conteudo || noticia?.resumo || 'Conteúdo não disponível.');
+  }, [fullMd, noticia?.conteudo_md, noticia?.conteudo, noticia?.resumo]);
+
+  const dispositivosCitados = useMemo(() => {
+    return extractLegalCitations(rawMarkdown);
+  }, [rawMarkdown]);
+
+  const linkedMarkdown = useMemo(() => {
+    return linkifyLegalMarkdown(rawMarkdown);
+  }, [rawMarkdown]);
+
+  const markdownComponents = useMemo(() => ({
+    a: ({ href, children, ...props }: any) => {
+      const isLegal = href?.startsWith('#legal:') || href?.startsWith('/legislacao') || href?.startsWith('/jurisprudencia');
+      if (isLegal) {
+        const targetUrl = href.replace(/^#legal:/, '');
+        return (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleLegalNavigate(targetUrl);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                handleLegalNavigate(targetUrl);
+              }
+            }}
+            className="inline-flex items-center gap-1 font-semibold text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-primary bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded cursor-pointer transition-all active:scale-95 mx-0.5 text-xs sm:text-sm"
+            title="Abrir no Vade Mecum"
+          >
+            <Scale className="w-3 h-3 text-primary shrink-0" />
+            <span>{children}</span>
+          </span>
+        );
+      }
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+          {children}
+        </a>
+      );
+    },
+  }), [handleLegalNavigate]);
 
   useEffect(() => {
     if (noticia && scrollRef.current) {
@@ -246,6 +303,36 @@ export default function NoticiaViewerSheet({ noticia, onClose }: Props) {
                   })}
                 </p>
 
+                {/* Chips de Acesso Rápido às Normas Citadas */}
+                {dispositivosCitados.length > 0 && (
+                  <div className="rounded-2xl p-3.5 sm:p-4 bg-primary/[0.04] dark:bg-card/90 border border-primary/25 shadow-sm space-y-2.5 my-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-[11.5px] sm:text-xs font-bold text-foreground tracking-wide uppercase">
+                        <Scale className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span>Normas e Artigos Citados ({dispositivosCitados.length})</span>
+                      </div>
+                      <span className="text-[10.5px] text-muted-foreground font-body hidden sm:inline">
+                        Toque para abrir no Vade Mecum
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-0.5">
+                      {dispositivosCitados.map((disp, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleLegalNavigate(disp.url)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 text-xs font-semibold text-primary active:scale-[0.97] transition-all group"
+                          title={`Abrir ${disp.leiNome}${disp.artigoNumero ? ` - Art. ${disp.artigoNumero}` : ''}`}
+                        >
+                          <BookOpen className="w-3 h-3 text-primary/80 group-hover:text-primary shrink-0" />
+                          <span>{disp.label}</span>
+                          <ArrowUpRight className="w-3 h-3 opacity-60 group-hover:opacity-100 shrink-0 ml-0.5" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <article
                   style={{ fontSize: `${fontSize}px` }}
                   className="
@@ -260,8 +347,8 @@ export default function NoticiaViewerSheet({ noticia, onClose }: Props) {
                     prose-img:hidden
                   "
                 >
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {cleanMd(fullMd || noticia.conteudo_md || noticia.conteudo || noticia.resumo || 'Conteúdo não disponível.')}
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                    {linkedMarkdown}
                   </ReactMarkdown>
                   {loadingMd && !fullMd && (
                     <p className="text-xs text-muted-foreground italic mt-3">Carregando conteúdo completo…</p>

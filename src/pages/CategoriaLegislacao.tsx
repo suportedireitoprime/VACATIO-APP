@@ -613,21 +613,28 @@ const CategoriaLegislacao = () => {
   // Auto-select lei baseado no slug da URL (padrão novo /legislacao/<tipo>/<leiSlug>).
   useEffect(() => {
     if (!tipo) return;
+    const searchArtigo = new URLSearchParams(location.search).get('artigo');
+    const targetArtigo = artigoNumeroParam || searchArtigo;
+
     // Constituição é única no seu tipo: URL canônica é /legislacao/constituicao.
     // Se vier com slug redundante (ex.: /legislacao/constituicao/constituicao-federal),
-    // redireciona para a rota curta.
+    // redireciona para a rota curta, preservando o artigo se houver.
     if (tipo === 'constituicao') {
       const cf = LEIS_CATALOG.find((l) => l.tipo === 'constituicao');
       if (cf) {
-        if (leiSlugParam) {
-          navigate(`/legislacao/${tipoToSlug('constituicao')}`, { replace: true });
+        const isArtigoSlug = leiSlugParam && /^(?:art-?)?\d+[a-z]?$/i.test(leiSlugParam);
+        const artFromSlug = isArtigoSlug ? leiSlugParam.replace(/^art-?/i, '') : null;
+        const effectiveArtigo = artFromSlug || targetArtigo;
+
+        if (leiSlugParam && !isArtigoSlug) {
+          navigate(`/legislacao/${tipoToSlug('constituicao')}${effectiveArtigo ? `?artigo=${effectiveArtigo}` : ''}`, { replace: true });
           return;
         }
         setSelectedLeiId(cf.id);
         setSelectedLeiNome(cf.nome);
         setSelectedLeiDescricao(cf.descricao);
         setSelectedTabelaNome(cf.tabela_nome);
-        if (artigoNumeroParam) setPendingArtigoNumero(artigoNumeroParam);
+        if (effectiveArtigo) setPendingArtigoNumero(effectiveArtigo);
         return;
       }
     }
@@ -638,7 +645,7 @@ const CategoriaLegislacao = () => {
       setSelectedLeiNome(lei.nome);
       setSelectedLeiDescricao(lei.descricao);
       setSelectedTabelaNome(lei.tabela_nome);
-      if (artigoNumeroParam) setPendingArtigoNumero(artigoNumeroParam);
+      if (targetArtigo) setPendingArtigoNumero(targetArtigo);
       return;
     }
     // Fallback: tipos dinâmicos (estaduais) — casa contra a lista carregada do banco
@@ -649,9 +656,9 @@ const CategoriaLegislacao = () => {
       setSelectedLeiNome(dyn.nome);
       setSelectedLeiDescricao(dyn.descricao);
       setSelectedTabelaNome(dyn.tabela_nome);
-      if (artigoNumeroParam) setPendingArtigoNumero(artigoNumeroParam);
+      if (targetArtigo) setPendingArtigoNumero(targetArtigo);
     }
-  }, [leiSlugParam, tipo, artigoNumeroParam, leis, navigate]);
+  }, [leiSlugParam, tipo, artigoNumeroParam, leis, navigate, location.search]);
 
 
   // Fetch leis ordinárias when year selected
