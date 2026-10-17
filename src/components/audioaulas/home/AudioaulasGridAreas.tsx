@@ -77,10 +77,10 @@ export const AudioaulasGridAreas = React.memo(function AudioaulasGridAreas({ are
                 </span>
                 <div className="flex items-end justify-between gap-2">
                   <div className="min-w-0 pr-1">
-                    <p className="font-bold leading-tight text-white text-sm sm:text-base line-clamp-2">
+                    <p className="font-card font-bold leading-tight text-white text-sm sm:text-base line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                       {nomeFormatado}
                     </p>
-                    <p className="text-[11px] text-zinc-300 mt-0.5">{total} aula(s)</p>
+                    <p className="font-card text-[11px] text-zinc-300/90 mt-0.5 font-medium">{total} aulas</p>
                   </div>
                   <span className="shrink-0 h-8 w-8 grid place-items-center rounded-full bg-white/20 text-white backdrop-blur group-hover:bg-primary group-hover:text-primary-foreground transition">
                     <ChevronRight className="h-5 w-5" />

@@ -121,11 +121,11 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
                   </span>
                   <div className="flex items-end justify-between gap-1.5">
                     <div className="min-w-0 pr-1">
-                      {/* Tipografia maior, marcante e legível sem ocupar espaço excessivo */}
-                      <p className="font-black leading-tight text-white text-base sm:text-lg md:text-xl line-clamp-2 tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
+                      {/* Tipografia moderna e limpa com Plus Jakarta Sans */}
+                      <p className="font-card font-bold leading-tight text-white text-base sm:text-lg md:text-xl line-clamp-2 tracking-normal drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
                         {nomeFormatado}
                       </p>
-                      <p className="text-xs text-zinc-300 mt-1 font-semibold drop-shadow-sm">
+                      <p className="font-card text-xs text-zinc-300/90 mt-1 font-medium drop-shadow-sm">
                         {total} aulas
                       </p>
                     </div>
@@ -251,13 +251,13 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
 
                             {/* Informações da área */}
                             <div className="min-w-0 flex-1">
-                              <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-primary transition-colors">
+                              <h4 className="font-card text-sm sm:text-base font-bold text-white group-hover:text-primary transition-colors">
                                 {nomeFormatado}
                               </h4>
-                              <p className="text-xs text-zinc-400 mt-0.5">
+                              <p className="font-card text-xs text-zinc-400 mt-0.5">
                                 {nome}
                               </p>
-                              <span className="inline-block mt-1 text-[11px] font-semibold text-primary/90 bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
+                              <span className="font-card inline-block mt-1 text-[11px] font-semibold text-primary/90 bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
                                 {total} aulas
                               </span>
                             </div>
