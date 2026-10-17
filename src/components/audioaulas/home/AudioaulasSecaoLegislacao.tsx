@@ -125,7 +125,7 @@ export const AudioaulasSecaoLegislacao = React.memo(function AudioaulasSecaoLegi
           </span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wider flex items-center gap-2.5">
-          <span className="w-1.5 h-7 rounded-full bg-primary shrink-0 shadow-sm shadow-primary/50" />
+          <span className="w-1.5 h-7 rounded-full bg-primary shrink-0" />
           <span>Legislação & Vade Mecum</span>
         </h2>
         <p className="mt-1 text-xs sm:text-sm text-zinc-400">

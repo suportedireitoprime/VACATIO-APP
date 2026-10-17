@@ -104,7 +104,7 @@ export const AudioaulasCategoriasNav: React.FC<AudioaulasCategoriasNavProps> = (
               onClick={() => handleSelect(item.id)}
               className={`relative px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 border cursor-pointer select-none flex items-center gap-2 ${
                 isAtivo
-                  ? 'text-white border-primary/40 shadow-lg shadow-primary/20 scale-[1.02]'
+                  ? 'text-white border-white/20 shadow-md scale-[1.02]'
                   : 'bg-white/[0.04] text-zinc-300 border-white/10 hover:bg-white/10 hover:text-white'
               }`}
             >

@@ -88,7 +88,7 @@ export default function GlobalAudioaulasMiniPlayer() {
             <button
               onClick={togglePlay}
               aria-label={tocando ? 'Pausar' : 'Continuar'}
-              className="flex-shrink-0 w-10 h-10 rounded-full bg-primary hover:bg-primary/90 active:opacity-70 transition flex items-center justify-center relative z-10 shadow-md shadow-primary/30"
+              className="flex-shrink-0 w-10 h-10 rounded-full bg-primary hover:bg-primary/90 active:opacity-70 transition flex items-center justify-center relative z-10 shadow-md shadow-black/40"
             >
               {tocando ? (
                 <Pause className="w-4 h-4 text-primary-foreground" fill="currentColor" />

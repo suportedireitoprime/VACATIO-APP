@@ -187,7 +187,7 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
             <button
               onClick={togglePlay}
               aria-label={tocando ? 'Pausar' : 'Tocar'}
-              className="h-16 w-16 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/40 active:opacity-70 transition hover:scale-105"
+              className="h-16 w-16 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-black/50 active:opacity-70 transition hover:scale-105"
             >
               {tocando ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8 ml-1" />}
             </button>

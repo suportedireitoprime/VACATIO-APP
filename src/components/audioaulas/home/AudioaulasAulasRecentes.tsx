@@ -59,7 +59,7 @@ export const AudioaulasAulasRecentes: React.FC<AudioaulasAulasRecentesProps> = R
                 onClick={() => onTocarAula(aula)}
                 className={`group relative flex-shrink-0 w-36 sm:w-40 rounded-2xl p-2.5 border transition-all cursor-pointer backdrop-blur-md select-none ${
                   isSelected
-                    ? 'bg-primary/15 border-primary/40 shadow-lg shadow-primary/20'
+                    ? 'bg-white/10 border-white/25 shadow-lg shadow-black/50'
                     : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 hover:border-white/20'
                 }`}
               >

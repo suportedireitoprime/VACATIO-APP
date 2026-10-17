@@ -57,7 +57,7 @@ export const AudioaulasTopNav: React.FC<AudioaulasTopNavProps> = ({
               {active && (
                 <motion.span
                   layoutId="audioaulas-top-pill"
-                  className="absolute inset-0 rounded-xl bg-primary shadow-lg shadow-primary/25 border border-primary/40"
+                  className="absolute inset-0 rounded-xl bg-primary shadow-md border border-white/10"
                   transition={{ type: 'spring', damping: 26, stiffness: 320 }}
                 />
               )}

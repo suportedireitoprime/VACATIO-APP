@@ -43,11 +43,11 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 space-y-4 mt-2 lg:px-10 2xl:max-w-[1600px]">
       <section className="relative">
-        {/* Cabeçalho: Risquinho vermelho antes do título à esquerda, Botão 'Ver todos' à direita */}
+        {/* Cabeçalho: Risquinho sutil antes do título à esquerda, Botão 'Ver todos' à direita */}
         <div className="flex items-center justify-between gap-4 mb-3">
           <div className="min-w-0 flex-1">
             <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider flex items-center gap-2.5">
-              <span className="w-1.5 h-6 rounded-full bg-primary shrink-0 shadow-sm shadow-primary/50" />
+              <span className="w-1.5 h-6 rounded-full bg-primary shrink-0" />
               <span>Áreas do Direito</span>
             </h2>
             <p className="mt-0.5 text-xs sm:text-sm text-zinc-400 line-clamp-1">
@@ -61,10 +61,10 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
               haptic.selection();
               setModalAberto(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-white border border-white/10 text-xs sm:text-sm font-semibold transition active:scale-95 shrink-0 shadow-sm"
+            className="group flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-white border border-white/10 text-xs sm:text-sm font-semibold transition active:scale-95 shrink-0 shadow-sm"
           >
             <span>Ver todos</span>
-            <ChevronRight className="w-4 h-4 text-primary" />
+            <ChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
           </button>
         </div>
 
@@ -105,33 +105,35 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
                   haptic.selection();
                   navigate(`/audioaulas/${encodeURIComponent(nome)}`);
                 }}
-                className="group relative w-[170px] sm:w-[200px] md:w-[220px] shrink-0 aspect-square rounded-2xl overflow-hidden text-left transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 border border-white/10 focus-visible:outline-none snap-start bg-zinc-900"
+                className="group relative w-[170px] sm:w-[200px] md:w-[220px] shrink-0 aspect-square rounded-2xl overflow-hidden text-left transition-all duration-300 hover:shadow-2xl hover:shadow-black/60 border border-white/10 hover:border-white/20 focus-visible:outline-none snap-start bg-zinc-900"
               >
                 <CapaOtimizada
                   src={capaDaArea(nome)}
                   alt={nome}
                   animacaoEntrada
-                  className="absolute inset-0 transition-transform duration-500 group-hover:scale-110 object-cover"
+                  className="absolute inset-0 transition-transform duration-500 group-hover:scale-105 object-cover"
                 />
                 {/* Gradiente escuro no rodapé para máxima legibilidade do título */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
                 <div className="absolute inset-0 p-3 sm:p-3.5 flex flex-col justify-between">
-                  <span className="self-start h-8 w-8 sm:h-9 sm:w-9 grid place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-black/40">
-                    <Headphones className="h-4 w-4 sm:h-5 sm:w-5" />
+                  {/* Ícone de fone elegante em vidro fosco neutro (sem iluminação/badge vermelho) */}
+                  <span className="self-start h-7 w-7 sm:h-8 sm:w-8 grid place-items-center rounded-lg bg-black/60 backdrop-blur-md border border-white/15 text-white/90 shadow-md">
+                    <Headphones className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </span>
-                  <div className="flex items-end justify-between gap-1.5">
-                    <div className="min-w-0 pr-1">
-                      {/* Tipografia moderna e limpa com Plus Jakarta Sans */}
-                      <p className="font-card font-bold leading-tight text-white text-base sm:text-lg md:text-xl line-clamp-2 tracking-normal drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
-                        {nomeFormatado}
-                      </p>
-                      <p className="font-card text-xs text-zinc-300/90 mt-1 font-medium drop-shadow-sm">
-                        {total} aulas
-                      </p>
+
+                  {/* Informações da área organizadas com tipografia proporcional para não extrapolar a capa */}
+                  <div className="w-full space-y-1">
+                    <p className="font-card font-bold leading-tight text-white text-xs sm:text-sm md:text-base line-clamp-1 tracking-normal drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
+                      {nomeFormatado}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="font-card text-[11px] sm:text-xs text-zinc-300/90 font-medium drop-shadow-sm">
+                        {total} {total === 1 ? 'aula' : 'aulas'}
+                      </span>
+                      <span className="shrink-0 h-6 w-6 sm:h-7 sm:w-7 grid place-items-center rounded-full bg-white/15 text-white/90 backdrop-blur group-hover:bg-white/30 transition shadow-sm">
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </span>
                     </div>
-                    <span className="shrink-0 h-8 w-8 sm:h-9 sm:w-9 grid place-items-center rounded-full bg-white/20 text-white backdrop-blur group-hover:bg-primary group-hover:text-primary-foreground transition shadow-md">
-                      <ChevronRight className="h-4 w-4" />
-                    </span>
                   </div>
                 </div>
               </motion.button>
