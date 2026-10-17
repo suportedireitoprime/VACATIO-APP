@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
-import { Search, BookOpen, ChevronRight, ChevronDown, Scale, ArrowLeft, Landmark, Shield, FileText, ScrollText, Loader2, Star, Heart, Gavel, Building2, Briefcase, ShieldCheck, DollarSign, Car, Vote, Droplets, Plane, Bus, ListMusic, Sparkles, StickyNote, Calendar, ExternalLink, ArrowUp, BadgeCheck, Ban, Play, Pause, CheckCircle2, Radar, GitBranch, Info, BookMarked, HeartPulse, History, Mic, MicOff, Volume2, Camera, LayoutGrid, Maximize2, Minimize2, GraduationCap, Layers, Target, Pencil, X as XIcon, Brain } from 'lucide-react';
+import { Search, BookOpen, ChevronRight, ChevronDown, Scale, ArrowLeft, Landmark, Shield, FileText, ScrollText, Loader2, Star, Heart, Gavel, Building2, Briefcase, ShieldCheck, DollarSign, Car, Vote, Droplets, Plane, Bus, ListMusic, Sparkles, StickyNote, Calendar, ExternalLink, ArrowUp, BadgeCheck, Ban, Play, Pause, CheckCircle2, Radar, GitBranch, Info, BookMarked, HeartPulse, History, Mic, MicOff, Volume2, Camera, LayoutGrid, Maximize2, Minimize2, GraduationCap, Layers, Target, Pencil, X as XIcon, Brain, Headphones } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { supabase } from '@/integrations/supabase/client';
 import { LEIS_SUPABASE_URL, leisAuthHeaders } from '@/lib/legislacaoBackend';
@@ -25,6 +25,7 @@ import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
 import { AulasOverlay } from '@/components/vademecum/AulasOverlay';
+import { AudioaulasOverlay } from '@/components/vademecum/AudioaulasOverlay';
 import { LicoesOverlay } from '@/components/vademecum/LicoesOverlay';
 import { FlashcardsOverlay } from '@/components/vademecum/FlashcardsOverlay';
 import { QuestoesOverlay } from '@/components/vademecum/QuestoesOverlay';
@@ -173,6 +174,7 @@ const CategoriaLegislacao = () => {
   const [stickySearch, setStickySearch] = useState(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
   const [isAulasOpen, setIsAulasOpen] = useState(false);
+  const [isAudioaulasOpen, setIsAudioaulasOpen] = useState(false);
   const [isLicoesOpen, setIsLicoesOpen] = useState(false);
   const [isFlashcardsOpen, setIsFlashcardsOpen] = useState(false);
   const [isQuestoesOpen, setIsQuestoesOpen] = useState(false);
@@ -2514,6 +2516,28 @@ const CategoriaLegislacao = () => {
         )}
       </AnimatePresence>
       <AnimatePresence>
+        {isAudioaulasOpen && (
+          <motion.div
+            initial={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            animate={isDesktop ? { opacity: 1, y: 0 } : { y: 0, opacity: 1 }}
+            exit={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[1401] bg-background lg:w-[480px] lg:h-[80vh] lg:m-auto lg:rounded-3xl lg:shadow-2xl lg:border lg:border-white/10 overflow-hidden"
+          >
+            <AudioaulasOverlay
+              capituloGroups={capituloGroups}
+              leiNome={selectedLeiNome}
+              leiSigla={selectedLeiId || undefined}
+              onClose={() => setIsAudioaulasOpen(false)}
+              onArtigoSelect={(artigo) => {
+                setIsAudioaulasOpen(false);
+                openArtigoWithRecent(artigo);
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
         {isAulasOpen && (
           <motion.div
             initial={isDesktop ? { opacity: 0, y: 20 } : { y: '100%', opacity: 1 }}
@@ -2758,12 +2782,12 @@ const CategoriaLegislacao = () => {
               <div className="relative z-10 px-3 sm:px-5 pb-4 pt-3 flex justify-center w-full">
                 <div className="flex items-center gap-1.5 w-full max-w-2xl bg-black/40 backdrop-blur-md rounded-3xl p-2 border border-white/10 shadow-2xl overflow-x-auto hide-scrollbar snap-x snap-mandatory">
                   {[
-                    { key: 'aulas' as const, icon: GraduationCap, label: 'Aulas', color: '#F87171' },
+                    { key: 'audioaulas' as const, icon: Headphones, label: 'Audioaulas', color: '#EF4444' },
                     { key: 'licoes' as const, icon: Pencil, label: 'Lições', color: '#38BDF8' },
                     { key: 'flashcards' as const, icon: Layers, label: 'Flashcards', color: '#34D399' },
                     { key: 'questoes' as const, icon: Target, label: 'Questões', color: '#FACC15' },
                   ].map((tab, index) => {
-                    const active = (tab.key === 'aulas' && isAulasOpen) ||
+                    const active = (tab.key === 'audioaulas' && isAudioaulasOpen) ||
                                    (tab.key === 'licoes' && isLicoesOpen) ||
                                    (tab.key === 'flashcards' && isFlashcardsOpen) ||
                                    (tab.key === 'questoes' && isQuestoesOpen);
@@ -2771,7 +2795,7 @@ const CategoriaLegislacao = () => {
                       <button
                         key={tab.key}
                         onClick={() => {
-                          if (tab.key === 'aulas') setIsAulasOpen(true);
+                          if (tab.key === 'audioaulas') setIsAudioaulasOpen(true);
                           else if (tab.key === 'licoes') setIsLicoesOpen(true);
                           else if (tab.key === 'flashcards') setIsFlashcardsOpen(true);
                           else if (tab.key === 'questoes') setIsQuestoesOpen(true);
