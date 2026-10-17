@@ -11,6 +11,9 @@ import { SkipToContent } from "@/components/a11y/SkipToContent";
 
 // Boot GA4 o mais cedo possível (Consent Mode v2 default = denied).
 if (typeof window !== "undefined") {
+  if ('scrollRestoration' in window.history) {
+    window.history.scrollRestoration = 'manual';
+  }
   initAnalytics();
   initNavTelemetry();
   import("@/lib/enableMouseDragScroll").then((m) => m.enableMouseDragScroll());
@@ -31,6 +34,8 @@ const Router = typeof window !== "undefined" && (window as any).desktopApp?.isEl
 const routerBasename = import.meta.env.VITE_BASE_URL || "/";
 
 import PageTransition from "@/components/PageTransition";
+import ScrollToTop from "@/components/layout/ScrollToTop";
+import { resetGlobalScroll } from "@/lib/scrollUtils";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { routePrefetch } from "@/lib/routePrefetch";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -524,9 +529,7 @@ function AnimatedRoutes() {
 
   // Sempre voltar ao topo ao navegar (voltar, avançar, clique).
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    }
+    resetGlobalScroll();
   }, [location.pathname, location.search]);
 
   // GA4/Meta: vincular user_id e propriedades quando autentica / desloga.
@@ -781,6 +784,7 @@ const App = () => (
       }}
     >
       <Router basename={routerBasename} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <ScrollToTop />
         <AuthProvider>
           <ThemeProvider>
             <TooltipProvider>

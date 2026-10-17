@@ -1,5 +1,6 @@
-import { ReactNode } from "react";
+import { ReactNode, useLayoutEffect } from "react";
 import { useNavigationType } from "react-router-dom";
+import { resetGlobalScroll } from "@/lib/scrollUtils";
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -17,6 +18,17 @@ interface PageTransitionProps {
 const PageTransition = ({ children }: PageTransitionProps) => {
   const navType = useNavigationType();
   const cls = navType === "POP" ? "min-h-dvh" : "min-h-dvh animate-page-in";
+
+  useLayoutEffect(() => {
+    resetGlobalScroll();
+    const rafId = requestAnimationFrame(resetGlobalScroll);
+    const t = setTimeout(resetGlobalScroll, 60);
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(t);
+    };
+  }, []);
+
   return <div className={cls}>{children}</div>;
 };
 

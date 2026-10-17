@@ -803,7 +803,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                 </div>
               )}
 
-              <div className="flex-1 overflow-y-auto px-4 pb-4">
+              <div key={categoryOpen?.id} className="flex-1 overflow-y-auto px-4 pb-4">
                 {categoryOpen?.id === 'cat-estadual' ? (
                   (() => {
                     const q = normalizeSearch(categorySearch.trim());
