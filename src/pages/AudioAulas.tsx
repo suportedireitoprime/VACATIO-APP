@@ -1,20 +1,23 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Flame, Clock, Headphones as HeadphonesIcon, Heart, Sparkles } from 'lucide-react';
 import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
 import { useIsDesktop } from '@/hooks/use-desktop';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 
 import { useAudioaulas } from '@/hooks/useAudioaulas';
 import { AudioaulasHero } from '@/components/audioaulas/home/AudioaulasHero';
-import { AudioaulasGridAreas } from '@/components/audioaulas/home/AudioaulasGridAreas';
-import { AudioaulasListaAulas } from '@/components/audioaulas/home/AudioaulasListaAulas';
+import { AudioaulasCarrosselAreas } from '@/components/audioaulas/home/AudioaulasCarrosselAreas';
+import { AudioaulasSecaoLegislacao } from '@/components/audioaulas/home/AudioaulasSecaoLegislacao';
+import { AudioaulasListaAulas, LinhaAula } from '@/components/audioaulas/home/AudioaulasListaAulas';
 import { AudioaulasBuscaInput } from '@/components/audioaulas/home/AudioaulasBuscaInput';
 import { AudioaulasPlayerModal } from '@/components/audioaulas/home/AudioaulasPlayerModal';
-import { AudioaulasCategoriasNav } from '@/components/audioaulas/AudioaulasCategoriasNav';
+import { AudioaulasCategoriasNav, type AudioaulasFiltroMenu } from '@/components/audioaulas/AudioaulasCategoriasNav';
 import { AudioaulasAulasRecentes } from '@/components/audioaulas/home/AudioaulasAulasRecentes';
 import { AudioAppBottomNav } from '@/components/audio/AudioAppBottomNav';
 import { AudioaulasPlaylistsView } from '@/components/audioaulas/home/AudioaulasPlaylistsView';
+import { audioIdOf } from '@/contexts/AudioaulasPlayerContext';
+import { motion } from 'framer-motion';
 
 const Audioaulas = () => {
   const navigate = useNavigate();
@@ -24,20 +27,61 @@ const Audioaulas = () => {
 
   const isDesktop = useIsDesktop();
   const state = useAudioaulas(areaAtual);
+  const { aulas, loading, historicoRecentes, favoritos, handleTocarAula } = state;
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Filtro de alternância superior (Todos, Em alta, Recentes, Mais Ouvidas, Favoritas)
+  const [filtroHome, setFiltroHome] = useState<AudioaulasFiltroMenu>('todos');
+
+  // Listas computadas para as opções do menu de alternância
+  const aulasEmAlta = useMemo(() => {
+    const destaques: typeof aulas = [];
+    const mapAreas = new Map<string, number>();
+    for (const a of aulas) {
+      const ar = a.area || 'Geral';
+      const c = mapAreas.get(ar) || 0;
+      if (c < 3) {
+        destaques.push(a);
+        mapAreas.set(ar, c + 1);
+      }
+      if (destaques.length >= 24) break;
+    }
+    return destaques.length > 0 ? destaques : aulas.slice(0, 20);
+  }, [aulas]);
+
+  const aulasMaisOuvidas = useMemo(() => {
+    return aulas.filter((a) => a.sequencia === 1 || !a.sequencia).slice(0, 25);
+  }, [aulas]);
+
+  const aulasRecentesFiltro = useMemo(() => {
+    if (historicoRecentes.length > 0) return historicoRecentes;
+    return aulas.slice(0, 20);
+  }, [historicoRecentes, aulas]);
+
+  const aulasFavoritasFiltro = useMemo(() => {
+    return aulas.filter((a) => favoritos.has(audioIdOf(a)));
+  }, [aulas, favoritos]);
+
+  const listaFiltradaHome = useMemo(() => {
+    if (filtroHome === 'em_alta') return aulasEmAlta;
+    if (filtroHome === 'recentes') return aulasRecentesFiltro;
+    if (filtroHome === 'mais_ouvidas') return aulasMaisOuvidas;
+    if (filtroHome === 'favoritas') return aulasFavoritasFiltro;
+    return [];
+  }, [filtroHome, aulasEmAlta, aulasRecentesFiltro, aulasMaisOuvidas, aulasFavoritasFiltro]);
 
   // Handle deep link from push notifications
   useEffect(() => {
     const playId = searchParams.get('play_id');
-    if (playId && state.aulas.length > 0 && !state.loading) {
-      const aulaToPlay = state.aulas.find(a => String(a.id) === String(playId));
+    if (playId && aulas.length > 0 && !loading) {
+      const aulaToPlay = aulas.find((a) => String(a.id) === String(playId));
       if (aulaToPlay) {
-        state.handleTocarAula(aulaToPlay);
+        handleTocarAula(aulaToPlay);
         // Remove play_id from url to prevent looping on reload
         setSearchParams({}, { replace: true });
       }
     }
-  }, [searchParams, state.aulas, state.loading]);
+  }, [searchParams, aulas, loading, handleTocarAula, setSearchParams]);
 
   const content = (
     <div className={`w-full bg-zinc-950 text-foreground relative ${isDesktop ? 'rounded-2xl pb-16 min-h-[700px] border border-white/5 overflow-hidden' : 'min-h-screen pb-40'}`}>
@@ -62,8 +106,8 @@ const Audioaulas = () => {
           totalAulas={areaAtual ? state.daArea.length : state.aulas.length}
         />
 
-        {/* Últimas Aulas Ouvidas: antes do menu de alternância de categorias */}
-        {!areaAtual && state.aba === 'aulas' && (
+        {/* Últimas Aulas Ouvidas: antes do menu de alternância quando na visão Todos */}
+        {!areaAtual && state.aba === 'aulas' && filtroHome === 'todos' && (
           <AudioaulasAulasRecentes
             recentes={state.historicoRecentes}
             atualId={state.atualId}
@@ -73,18 +117,18 @@ const Audioaulas = () => {
           />
         )}
 
-        {/* Menu Superior: Rolagem infinita por Áreas (Todos, Constituição, Trabalho...) */}
+        {/* Menu Superior: Alternância (Todos, Em alta, Recentes, Mais Ouvidas, Favoritas) */}
         <AudioaulasCategoriasNav
-          areas={state.areas}
-          areaAtual={areaAtual}
-          onSelectArea={(nome) => {
+          filtroAtivo={filtroHome}
+          onSelectFiltro={(filtro) => {
+            setFiltroHome(filtro);
             state.setAba('aulas');
-            state.setAberto(false);
-            if (nome) {
-              navigate(`/audioaulas/${encodeURIComponent(nome)}`);
-            } else {
-              navigate('/audioaulas');
-            }
+            if (areaAtual) navigate('/audioaulas');
+          }}
+          areaAtual={areaAtual}
+          onVoltarParaTodos={() => {
+            setFiltroHome('todos');
+            navigate('/audioaulas');
           }}
         />
 
@@ -107,8 +151,86 @@ const Audioaulas = () => {
             handleTocarAula={state.handleTocarAula}
           />
         ) : state.aba === 'aulas' ? (
-          /* ───────── HUB DE ÁREAS ───────── */
-          <AudioaulasGridAreas areas={state.areas} />
+          /* ───────── VISÃO PRINCIPAL DE AUDIOAULAS ───────── */
+          filtroHome === 'todos' ? (
+            <>
+              {/* 1. Carrossel de Áreas do Direito com botão 'Ver todos' na mesma linha */}
+              <AudioaulasCarrosselAreas areas={state.areas} />
+
+              {/* 2. Categoria Legislação: Códigos, Estatutos, Súmulas e Leis Especiais */}
+              <AudioaulasSecaoLegislacao
+                aulas={state.aulas}
+                atualId={state.atualId}
+                tocando={state.tocando}
+                favoritos={state.favoritos}
+                alternarFavorito={state.alternarFavorito}
+                handleTocarAula={state.handleTocarAula}
+              />
+            </>
+          ) : (
+            /* ───────── LISTAS FILTRADAS (Em alta / Recentes / Mais Ouvidas / Favoritas) ───────── */
+            <div className="mx-auto w-full max-w-[1400px] px-4 space-y-4 mt-2 lg:px-10 2xl:max-w-[1600px]">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    {filtroHome === 'em_alta' && <Flame className="w-5 h-5 text-amber-500" />}
+                    {filtroHome === 'recentes' && <Clock className="w-5 h-5 text-blue-400" />}
+                    {filtroHome === 'mais_ouvidas' && <HeadphonesIcon className="w-5 h-5 text-purple-400" />}
+                    {filtroHome === 'favoritas' && <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />}
+                    <span>
+                      {filtroHome === 'em_alta'
+                        ? 'Aulas Em Alta'
+                        : filtroHome === 'recentes'
+                        ? 'Aulas Recentes'
+                        : filtroHome === 'mais_ouvidas'
+                        ? 'Mais Ouvidas'
+                        : 'Aulas Favoritas'}
+                    </span>
+                  </h2>
+                  <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">
+                    {filtroHome === 'em_alta'
+                      ? 'Temas mais populares e relevantes para concursos e OAB.'
+                      : filtroHome === 'recentes'
+                      ? 'Histórico das últimas aulas acessadas na plataforma.'
+                      : filtroHome === 'mais_ouvidas'
+                      ? 'Aulas mais reproduzidas e fundamentais do acervo.'
+                      : `${listaFiltradaHome.length} aula(s) salvas no seu acervo pessoal.`}
+                  </p>
+                </div>
+              </div>
+
+              {listaFiltradaHome.length === 0 ? (
+                <div className="py-16 text-center text-sm text-muted-foreground bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                  {filtroHome === 'favoritas'
+                    ? 'Nenhuma aula favoritada ainda. Toque no coração de uma aula para salvá-la aqui.'
+                    : 'Nenhuma aula disponível neste filtro.'}
+                </div>
+              ) : (
+                <motion.div
+                  className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-2 divide-y divide-white/[0.06] lg:grid lg:grid-cols-2 lg:divide-y-0 lg:gap-2 2xl:grid-cols-3"
+                  initial="hidden"
+                  animate="show"
+                  variants={{
+                    hidden: { opacity: 0 },
+                    show: { opacity: 1, transition: { staggerChildren: 0.04 } }
+                  }}
+                >
+                  {listaFiltradaHome.map((a, i) => (
+                    <LinhaAula
+                      key={a.id}
+                      a={a}
+                      indice={i + 1}
+                      atualId={state.atualId}
+                      tocando={state.tocando}
+                      favoritos={state.favoritos}
+                      alternarFavorito={state.alternarFavorito}
+                      handleTocarAula={state.handleTocarAula}
+                    />
+                  ))}
+                </motion.div>
+              )}
+            </div>
+          )
         ) : state.aba === 'playlists' ? (
           /* ───────── PLAYLISTS DE ESTUDO ───────── */
           <AudioaulasPlaylistsView

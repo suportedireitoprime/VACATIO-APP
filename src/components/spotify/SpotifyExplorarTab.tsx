@@ -48,9 +48,9 @@ const DEFAULT_LEIS_INITIAL: LeiNarracaoItem[] = [
     categoria: 'codigo',
     categoriaFormatada: 'Códigos',
     totalArtigos: 2046,
-    totalComAudio: 264,
-    totalPendentes: 1782,
-    percentual: 13,
+    totalComAudio: 2046,
+    totalPendentes: 0,
+    percentual: 100,
   },
 ];
 

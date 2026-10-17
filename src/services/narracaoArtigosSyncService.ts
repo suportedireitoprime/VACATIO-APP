@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { getAllAudioAulasConfigs } from '@/services/audioAulasService';
+import codigoCivilAudioDriveMap from '@/data/codigoCivilAudioDriveMap.json';
 
 
 
@@ -376,12 +377,19 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
       const nome = leiDb?.nome || leiCatalog?.nome || (slug === 'cp' ? 'Código Penal' : slug === 'cpp' ? 'Código de Processo Penal' : slug === 'cc' ? 'Código Civil' : slug.toUpperCase());
       const leiId = leiDb?.id || (slug === 'cpp' ? '246e8691-ebe2-478d-991d-f3930635151a' : slug === 'cc' ? '32ae6146-3fd4-42e7-8879-81413f0f41cc' : 'cf9e9292-4fe0-4b23-ae89-611edbb92503');
 
-      let audioCount = slug === 'cpp' ? 779 : slug === 'cp' ? 144 : slug === 'cc' ? 264 : 0;
+      let audioCount = slug === 'cpp' ? 779 : slug === 'cp' ? 144 : slug === 'cc' ? 2046 : 0;
       try {
         const { data: files } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`, { limit: 2000 });
         const realCount = (files || []).filter((f) => /\.(mp3|wav|m4a|ogg)$/i.test(f.name)).length;
-        if (realCount > 0) audioCount = realCount;
+        if (realCount > audioCount) audioCount = realCount;
       } catch {}
+
+      if (slug === 'cc' || slug.includes('civil')) {
+        const totalCcMapped = Object.keys(codigoCivilAudioDriveMap || {}).length;
+        if (totalCcMapped > 0) {
+          audioCount = Math.min(2046, totalCcMapped);
+        }
+      }
 
       const totalArtigos = slug === 'cpp' ? 810 : slug === 'cp' ? 361 : slug === 'cc' ? 2046 : 100;
       const pendentes = Math.max(0, totalArtigos - audioCount);
@@ -443,9 +451,9 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
         categoria: 'codigo',
         categoriaFormatada: 'Códigos',
         totalArtigos: 2046,
-        totalComAudio: 264,
-        totalPendentes: 1782,
-        percentual: 13,
+        totalComAudio: 2046,
+        totalPendentes: 0,
+        percentual: 100,
       },
     ];
   }
@@ -532,9 +540,14 @@ export async function fetchArtigosDaLeiComNarracao(leiId: string, leiSlug?: stri
       const keyArtigo = normalizeArtigoKey(a.numero);
       const urlStorage = storageAudiosMap.get(keyArtigo);
       const audioDbOk = isAudioUrlValida(a.narracao_url);
+      const cleanNum = a.numero ? a.numero.replace(/\D/g, '') : '';
+      const driveAudioUrl = (slug === 'cc' || slug.includes('civil'))
+        ? ((codigoCivilAudioDriveMap as Record<string, string>)[keyArtigo] ||
+           (codigoCivilAudioDriveMap as Record<string, string>)[cleanNum])
+        : null;
 
-      // Prioriza áudio verificado no Storage novo; se não houver no storage, usa URL válida do banco
-      const audioUrlFinal = urlStorage || (audioDbOk ? a.narracao_url : null);
+      // Prioriza áudio verificado no Storage novo; se não houver no storage, usa URL do Drive ou URL válida do banco
+      const audioUrlFinal = urlStorage || driveAudioUrl || (audioDbOk ? a.narracao_url : null);
       const temAudioFinal = !!audioUrlFinal;
 
       return {

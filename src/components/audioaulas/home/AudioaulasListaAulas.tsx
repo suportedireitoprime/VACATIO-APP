@@ -16,7 +16,7 @@ interface LinhaAulaProps {
   handleTocarAula: (a: AulaAudio) => void;
 }
 
-const LinhaAula = React.memo(function LinhaAula({
+export const LinhaAula = React.memo(function LinhaAula({
   a,
   indice,
   atualId,

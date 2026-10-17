@@ -1,47 +1,50 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { haptic } from '@/lib/nativeHaptics';
+import { Flame, Clock, Headphones, Heart, Sparkles, ChevronLeft } from 'lucide-react';
 
-interface AudioaulasCategoriasNavProps {
-  areas: [string, number][]; // [nomeOriginal, totalAulas]
-  areaAtual: string | null;
-  onSelectArea: (areaNome: string | null) => void;
-  className?: string;
+export type AudioaulasFiltroMenu = 'todos' | 'em_alta' | 'recentes' | 'mais_ouvidas' | 'favoritas';
+
+export interface FiltroItem {
+  id: AudioaulasFiltroMenu;
+  label: string;
+  icone: React.ComponentType<{ className?: string }>;
 }
 
-/** Formata o rótulo de exibição da área (ex: "Direito Constitucional" -> "Constituição") */
-function formatAreaLabel(area: string): string {
-  if (/constituc/i.test(area)) return 'Constituição';
-  return area.replace(/^Direitos?\s+(do\s+|da\s+|de\s+)?/i, '').trim();
+export const OPCOES_FILTRO_AUDIOAULAS: FiltroItem[] = [
+  { id: 'todos', label: 'Todos', icone: Sparkles },
+  { id: 'em_alta', label: 'Em alta', icone: Flame },
+  { id: 'recentes', label: 'Recentes', icone: Clock },
+  { id: 'mais_ouvidas', label: 'Mais Ouvidas', icone: Headphones },
+  { id: 'favoritas', label: 'Favoritas', icone: Heart },
+];
+
+interface AudioaulasCategoriasNavProps {
+  filtroAtivo?: AudioaulasFiltroMenu;
+  onSelectFiltro?: (filtro: AudioaulasFiltroMenu) => void;
+  areaAtual?: string | null;
+  onVoltarParaTodos?: () => void;
+  className?: string;
+  // Compatibilidade com chamadas legadas
+  areas?: [string, number][];
+  onSelectArea?: (areaNome: string | null) => void;
 }
 
 /**
  * Menu de alternância superior para Áudio Aulas.
- * Sem ícones, com rolagem horizontal infinita, iniciando com:
- * "Todos", seguido de "Constituição" e demais áreas do Direito.
+ * Configuração solicitada: "Todos", seguido de "Em alta", "Recentes", "Mais Ouvidas", "Favoritas".
  */
 export const AudioaulasCategoriasNav: React.FC<AudioaulasCategoriasNavProps> = ({
-  areas,
+  filtroAtivo = 'todos',
+  onSelectFiltro,
   areaAtual,
-  onSelectArea,
+  onVoltarParaTodos,
   className = '',
+  onSelectArea,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Garante que "Direito Constitucional" (Constituição) venha logo após "Todos"
-  const sortedAreas = useMemo(() => {
-    const list = [...areas];
-    list.sort(([a], [b]) => {
-      const isConstA = /constituc/i.test(a);
-      const isConstB = /constituc/i.test(b);
-      if (isConstA && !isConstB) return -1;
-      if (!isConstA && isConstB) return 1;
-      return a.localeCompare(b, 'pt-BR');
-    });
-    return list;
-  }, [areas]);
-
-  // Rola suavemente até a pílula ativa quando mudar de área
+  // Rola suavemente até a pílula ativa quando mudar
   useEffect(() => {
     if (!containerRef.current) return;
     const activeEl = containerRef.current.querySelector<HTMLElement>('[data-active="true"]');
@@ -52,7 +55,19 @@ export const AudioaulasCategoriasNav: React.FC<AudioaulasCategoriasNavProps> = (
         inline: 'center',
       });
     }
-  }, [areaAtual]);
+  }, [filtroAtivo, areaAtual]);
+
+  const handleSelect = (filtro: AudioaulasFiltroMenu) => {
+    haptic.selection();
+    if (areaAtual && onVoltarParaTodos) {
+      onVoltarParaTodos();
+    }
+    if (onSelectFiltro) {
+      onSelectFiltro(filtro);
+    } else if (onSelectArea) {
+      onSelectArea(null);
+    }
+  };
 
   return (
     <div className={`mx-auto w-full max-w-[1400px] 2xl:max-w-[1600px] px-4 sm:px-6 lg:px-10 mb-6 -mt-2 ${className}`}>
@@ -60,45 +75,34 @@ export const AudioaulasCategoriasNav: React.FC<AudioaulasCategoriasNavProps> = (
         ref={containerRef}
         className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1.5 px-0.5 select-none"
       >
-        {/* 1. Todos */}
-        <button
-          type="button"
-          data-active={!areaAtual ? 'true' : 'false'}
-          onClick={() => {
-            haptic.selection();
-            onSelectArea(null);
-          }}
-          className={`relative px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 border cursor-pointer select-none ${
-            !areaAtual
-              ? 'text-white border-primary/40 shadow-lg shadow-primary/20 scale-[1.02]'
-              : 'bg-white/[0.04] text-zinc-300 border-white/10 hover:bg-white/10 hover:text-white'
-          }`}
-        >
-          {!areaAtual && (
-            <motion.span
-              layoutId="audioaulas-cat-active-pill"
-              className="absolute inset-0 rounded-2xl bg-primary"
-              transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-            />
-          )}
-          <span className="relative z-10 whitespace-nowrap">Todos</span>
-        </button>
+        {/* Botão de retorno se estiver dentro de uma área específica */}
+        {areaAtual && (
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              if (onVoltarParaTodos) onVoltarParaTodos();
+              else if (onSelectArea) onSelectArea(null);
+            }}
+            className="flex items-center gap-1 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold bg-primary/20 text-primary border border-primary/40 shrink-0 cursor-pointer hover:bg-primary/30 transition shadow-sm"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Voltar ao Hub</span>
+          </button>
+        )}
 
-        {/* 2. Áreas do Direito (infinito, iniciando por Constituição) */}
-        {sortedAreas.map(([nome, total]) => {
-          const isAtivo = areaAtual === nome;
-          const label = formatAreaLabel(nome);
+        {/* Pílulas de alternância */}
+        {OPCOES_FILTRO_AUDIOAULAS.map((item) => {
+          const isAtivo = !areaAtual && filtroAtivo === item.id;
+          const Icone = item.icone;
 
           return (
             <button
-              key={nome}
+              key={item.id}
               type="button"
               data-active={isAtivo ? 'true' : 'false'}
-              onClick={() => {
-                haptic.selection();
-                onSelectArea(nome);
-              }}
-              className={`relative px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 border cursor-pointer select-none ${
+              onClick={() => handleSelect(item.id)}
+              className={`relative px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 border cursor-pointer select-none flex items-center gap-2 ${
                 isAtivo
                   ? 'text-white border-primary/40 shadow-lg shadow-primary/20 scale-[1.02]'
                   : 'bg-white/[0.04] text-zinc-300 border-white/10 hover:bg-white/10 hover:text-white'
@@ -112,16 +116,8 @@ export const AudioaulasCategoriasNav: React.FC<AudioaulasCategoriasNavProps> = (
                 />
               )}
               <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
-                <span>{label}</span>
-                {total > 0 && (
-                  <span
-                    className={`text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.2 rounded-full ${
-                      isAtivo ? 'bg-white/20 text-white' : 'bg-white/5 text-zinc-400'
-                    }`}
-                  >
-                    {total}
-                  </span>
-                )}
+                <Icone className={`w-3.5 h-3.5 ${isAtivo ? 'text-white' : 'text-zinc-400'}`} />
+                <span>{item.label}</span>
               </span>
             </button>
           );

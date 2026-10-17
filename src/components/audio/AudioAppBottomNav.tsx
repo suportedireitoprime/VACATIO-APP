@@ -62,13 +62,20 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           }`}
           aria-label="Favoritos"
         >
-          <Heart
-            className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-              ativo === 'favoritos' ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
-            }`}
-            strokeWidth={1.5}
-            fill={ativo === 'favoritos' ? 'currentColor' : 'none'}
-          />
+          <div className="relative inline-flex items-center justify-center">
+            <Heart
+              className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
+                ativo === 'favoritos' ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+              }`}
+              strokeWidth={1.5}
+              fill={ativo === 'favoritos' ? 'currentColor' : 'none'}
+            />
+            {totalFavoritas > 0 && (
+              <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black bg-primary text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none">
+                {totalFavoritas}
+              </span>
+            )}
+          </div>
           <span
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
               ativo === 'favoritos' ? 'font-semibold text-primary' : ''
@@ -76,11 +83,6 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           >
             Favoritos
           </span>
-          {totalFavoritas > 0 && (
-            <span className="absolute top-0 right-2 px-1.5 py-0.2 rounded-full text-[10px] font-black bg-primary text-white shadow-sm leading-tight">
-              {totalFavoritas}
-            </span>
-          )}
         </button>
 
         {/* 2. Playlist */}
@@ -97,12 +99,19 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           }`}
           aria-label="Playlist"
         >
-          <ListMusic
-            className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-              ativo === 'playlists' ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
-            }`}
-            strokeWidth={1.5}
-          />
+          <div className="relative inline-flex items-center justify-center">
+            <ListMusic
+              className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
+                ativo === 'playlists' ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+              }`}
+              strokeWidth={1.5}
+            />
+            {totalPlaylists > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black bg-primary text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none">
+                {totalPlaylists}
+              </span>
+            )}
+          </div>
           <span
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
               ativo === 'playlists' ? 'font-semibold text-primary' : ''
@@ -110,11 +119,6 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           >
             Playlist
           </span>
-          {totalPlaylists > 0 && (
-            <span className="absolute top-0 right-2 px-1.5 py-0.2 rounded-full text-[10px] font-black bg-primary text-white shadow-sm leading-tight">
-              {totalPlaylists}
-            </span>
-          )}
         </button>
 
         {/* 3. Pesquisar (FAB centralizado em relevo idêntico ao início do app) */}
@@ -169,12 +173,19 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           }`}
           aria-label="Baixados"
         >
-          <ArrowDownToLine
-            className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-              ativo === 'baixados' ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
-            }`}
-            strokeWidth={1.5}
-          />
+          <div className="relative inline-flex items-center justify-center">
+            <ArrowDownToLine
+              className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
+                ativo === 'baixados' ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+              }`}
+              strokeWidth={1.5}
+            />
+            {totalBaixadas > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black bg-primary text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none">
+                {totalBaixadas}
+              </span>
+            )}
+          </div>
           <span
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
               ativo === 'baixados' ? 'font-semibold text-primary' : ''
@@ -182,11 +193,6 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           >
             Baixados
           </span>
-          {totalBaixadas > 0 && (
-            <span className="absolute top-0 right-2 px-1.5 py-0.2 rounded-full text-[10px] font-black bg-primary text-white shadow-sm leading-tight">
-              {totalBaixadas}
-            </span>
-          )}
         </button>
 
         {/* 5. Explorar */}
