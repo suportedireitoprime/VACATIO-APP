@@ -62,7 +62,7 @@ const HomeCardImpl = ({
               }}
               strokeWidth={1.5}
             />
-            <p className="font-card text-foreground font-semibold text-[14.5px] sm:text-[15.5px] tracking-[-0.015em] leading-snug line-clamp-1 min-h-[24px] flex items-center">
+            <p className="font-card text-foreground font-medium text-[14px] sm:text-[15px] tracking-[-0.01em] leading-snug line-clamp-1 min-h-[22px] flex items-center">
               {label}
             </p>
           </div>
@@ -92,7 +92,7 @@ const HomeCardImpl = ({
           <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
         </div>
         <div className="w-full min-w-0 mt-auto">
-          <p className="font-card text-foreground font-semibold text-[14.5px] sm:text-[15.5px] tracking-[-0.015em] leading-snug line-clamp-1">
+          <p className="font-card text-foreground font-medium text-[14px] sm:text-[15px] tracking-[-0.01em] leading-snug line-clamp-1">
             {label}
           </p>
           {sublabel && (

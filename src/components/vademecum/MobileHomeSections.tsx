@@ -549,7 +549,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               onClick={() => {
                 setActiveTab(tab.id);
               }}
-              className={`min-h-[44px] px-5 py-2.5 rounded-full text-[14px] font-display font-bold uppercase tracking-wide flex items-center justify-center whitespace-nowrap transition-colors ${
+              className={`min-h-[44px] px-5 py-2.5 rounded-full text-[13.5px] font-card font-medium flex items-center justify-center whitespace-nowrap transition-colors ${
                 activeTab === tab.id
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-secondary/60 text-muted-foreground border border-border/50 hover:bg-secondary'
@@ -561,7 +561,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
         </div>
 
         <div className="pt-1">
-          <h3 className="font-display text-foreground text-[18px] font-bold uppercase flex items-center gap-2">
+          <h3 className="font-card text-foreground text-[17px] font-semibold flex items-center gap-2 tracking-[-0.01em]">
             <span className="w-1 h-5 rounded-full bg-primary shrink-0" />
             <span className="truncate">
               {activeTab === 'categorias' ? 'Legislação Brasileira' : 
@@ -732,7 +732,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                     />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-display text-xl text-foreground font-bold leading-none truncate">
+                    <h3 className="font-card text-[18px] text-foreground font-semibold leading-tight truncate tracking-[-0.01em]">
                       {categoryOpen.label}
                     </h3>
                     <p className="text-muted-foreground text-[12px] font-body leading-tight mt-1 truncate">
@@ -785,7 +785,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                   <div className="flex bg-secondary/60 rounded-2xl p-1.5 border border-border/50">
                     <button
                       onClick={() => setListFilter('todos')}
-                      className={`flex-1 min-h-[44px] rounded-xl text-[14px] font-bold uppercase tracking-wide transition-all ${
+                      className={`flex-1 min-h-[44px] rounded-xl text-[13.5px] font-medium transition-all ${
                         listFilter === 'todos' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-white'
                       }`}
                     >
@@ -793,7 +793,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                     </button>
                     <button
                       onClick={() => setListFilter('favoritos')}
-                      className={`flex-1 min-h-[44px] rounded-xl text-[14px] font-bold uppercase tracking-wide transition-all ${
+                      className={`flex-1 min-h-[44px] rounded-xl text-[13.5px] font-medium transition-all ${
                         listFilter === 'favoritos' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-white'
                       }`}
                     >
@@ -842,7 +842,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                               />
                             </div>
                             <div className="flex-1 min-w-0 text-left">
-                              <p className="font-display text-foreground text-[16px] font-bold leading-tight line-clamp-1 uppercase tracking-[0.06em]">
+                              <p className="font-card text-foreground text-[15px] sm:text-[15.5px] font-medium leading-snug line-clamp-1 tracking-[-0.01em]">
                                 {estado.nome}
                               </p>
                               <p className="font-body text-muted-foreground text-[12.5px] leading-snug mt-1 line-clamp-1">
@@ -907,10 +907,10 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                       </div>
 
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="font-display text-foreground text-[16px] font-bold leading-tight line-clamp-1 uppercase tracking-[0.08em]">
+                        <p className="font-card text-foreground text-[15px] sm:text-[15.5px] font-medium leading-snug line-clamp-1 tracking-[-0.01em]">
                           {displayLabel}
                         </p>
-                        <p className="font-body text-muted-foreground text-[12.5px] leading-snug mt-1 line-clamp-2">
+                        <p className="font-body text-muted-foreground text-[12px] leading-snug mt-1 line-clamp-1 truncate">
                           {displaySublabel}
                         </p>
                       </div>
