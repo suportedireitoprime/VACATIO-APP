@@ -6,6 +6,7 @@ import { fonteDeAudio } from '@/lib/nativo/audioOffline';
 import { notifyMediaPlay, subscribeMediaPlay } from '@/lib/mediaCoordinator';
 import { toast } from 'sonner';
 import { AUDIOAULAS_ACERVO_INICIAL } from '@/data/audioaulasAcervo';
+import { capaDaArea } from '@/lib/audioaulasHelper';
 
 export interface AulaAudio {
   id: number;
@@ -201,16 +202,32 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
     };
   }, [tocando]);
 
-  // Registro na MediaSession nativa
+  // Registro na MediaSession nativa (Lock screen / Notificação / Smartwatch / Carro)
   useEffect(() => {
     const el = audioRef.current;
     if (!el || !atual) return;
-    registrarMidia({
+
+    const capa =
+      (atual as any).capa_url ||
+      (atual as any).url_capa ||
+      (atual as any).imagem_url ||
+      capaDaArea(atual.area);
+
+    const cleanup = registrarMidia({
       titulo: atual.titulo,
-      subtitulo: atual.tema || atual.area,
-      album: 'Audioaulas',
-      capaUrl: (atual as any).capa_url || (atual as any).url_capa || (atual as any).imagem_url,
+      subtitulo: atual.tema ? `${atual.area} · ${atual.tema}` : atual.area,
+      album: 'Audioaulas · Vacatio',
+      capaUrl: capa,
       audio: el,
+      onPlay: () => {
+        notifyMediaPlay('audioaula');
+        el.play().catch(() => {});
+        setTocando(true);
+      },
+      onPause: () => {
+        el.pause();
+        setTocando(false);
+      },
       onNext: atualIdx >= 0 && fila[atualIdx + 1] ? () => pularRef.current(1) : undefined,
       onPrev: atualIdx > 0 ? () => pularRef.current(-1) : undefined,
       onStop: () => {
@@ -222,6 +239,10 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
         setTempo(t);
       },
     });
+
+    return () => {
+      cleanup();
+    };
   }, [atual, atualIdx, fila]);
 
   // Coordenador Universal: pausa se outro player de mídia iniciar
@@ -331,7 +352,7 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
       el.pause();
       el.removeAttribute('src');
       el.load();
-      clearMediaSession(el);
+      clearMediaSession();
     }
     setTocando(false);
     setAtualId(null);

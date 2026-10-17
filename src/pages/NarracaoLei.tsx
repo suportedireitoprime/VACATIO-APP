@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { getLeisCatalog, fetchArtigosLei } from '@/services/legislacaoService';
 import type { ArtigoLei } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
+import { registrarMidia, clearMediaSession } from '@/lib/mediaSession';
 
 const ALL_LAWS = (() => {
   const catalog = getLeisCatalog();
@@ -138,9 +139,10 @@ export default function NarracaoLei() {
     }
   };
 
-  const togglePlay = (url: string) => {
+  const togglePlay = (url: string, numero?: string) => {
     if (playingUrl === url && audioRef) {
       audioRef.pause();
+      clearMediaSession();
       setPlayingUrl(null);
       setAudioRef(null);
       return;
@@ -148,14 +150,38 @@ export default function NarracaoLei() {
 
     if (audioRef) {
       audioRef.pause();
+      clearMediaSession();
     }
 
     const audio = new Audio(url);
-    audio.play();
+    audio.play().catch(() => {});
     audio.onended = () => {
+      clearMediaSession();
       setPlayingUrl(null);
       setAudioRef(null);
     };
+
+    registrarMidia({
+      titulo: numero ? `Art. ${numero}` : 'Narração de Artigo',
+      subtitulo: selectedLei?.nome || 'Vade Mecum',
+      album: 'Narração de Leis',
+      audio,
+      onPlay: () => {
+        audio.play().catch(() => {});
+        setPlayingUrl(url);
+      },
+      onPause: () => {
+        audio.pause();
+        setPlayingUrl(null);
+      },
+      onStop: () => {
+        audio.pause();
+        clearMediaSession();
+        setPlayingUrl(null);
+        setAudioRef(null);
+      },
+    });
+
     setPlayingUrl(url);
     setAudioRef(audio);
   };
@@ -232,7 +258,7 @@ export default function NarracaoLei() {
                         variant="ghost"
                         size="icon"
                         className="w-8 h-8"
-                        onClick={() => togglePlay(audioUrl)}
+                        onClick={() => togglePlay(audioUrl, artigo.numero)}
                       >
                         {isPlaying ? (
                           <Pause className="w-4 h-4 text-primary" />
