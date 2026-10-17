@@ -45,6 +45,39 @@ const ANALYZE_STEPS = [
   'Estruturando resposta',
 ];
 
+const ARTIFACT_STEPS: Record<string, string[]> = {
+  flashcards: [
+    'Analisando a fundamentação jurídica',
+    'Extraindo conceitos-chave e teses',
+    'Criando flashcards de memorização',
+    'Quase pronto, finalizando seus cartões',
+  ],
+  questoes: [
+    'Mapeando os pontos centrais da matéria',
+    'Formulando enunciados e alternativas',
+    'Fundamentando gabarito e comentários',
+    'Quase pronto, organizando seu simulado',
+  ],
+  mapa: [
+    'Mapeando ramificações e hierarquia da lei',
+    'Conectando institutos e artigos correlatos',
+    'Estruturando diagrama visual dos tópicos',
+    'Quase pronto, renderizando mapa mental',
+  ],
+  termos: [
+    'Identificando termos técnicos e expressões',
+    'Consultando definições e aplicações práticas',
+    'Sintetizando glossário com fundamentação',
+    'Quase pronto, organizando vocabulário',
+  ],
+  pdf: [
+    'Compilando o conteúdo e citações',
+    'Formatando artigos e notas explicativas',
+    'Diagramando layout profissional para impressão',
+    'Quase pronto, gerando seu PDF',
+  ],
+};
+
 const SUGGESTIONS_POOL = [
   'O que é habeas corpus?',
   'Explique o Art. 5º da CF',
@@ -166,6 +199,21 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
   const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID());
   const [sessions, setSessions] = useState<Session[]>([]);
   const [genOverlay, setGenOverlay] = useState<null | { kind: 'pdf' | 'flashcards' | 'questoes' | 'mapa' | 'termos'; label: string }>(null);
+  const [genStep, setGenStep] = useState(0);
+
+  // Avanço sequencial das etapas visuais com ticks enquanto a IA gera o artefato
+  useEffect(() => {
+    if (!genOverlay) {
+      setGenStep(0);
+      return;
+    }
+    setGenStep(0);
+    const steps = ARTIFACT_STEPS[genOverlay.kind] || ARTIFACT_STEPS.flashcards;
+    const interval = setInterval(() => {
+      setGenStep(prev => Math.min(prev + 1, steps.length - 1));
+    }, 1300);
+    return () => clearInterval(interval);
+  }, [genOverlay]);
   const [activeArtifact, setActiveArtifact] = useState<Artifact | null>(null);
   const [shareText, setShareText] = useState<string | null>(null);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
@@ -1112,20 +1160,129 @@ REGRAS DE ESTILO E FORMATO:
             )}
           </AnimatePresence>
 
-          {/* Generation card overlay */}
+          {/* Generation card overlay with interactive step checklist */}
           <AnimatePresence>
             {genOverlay && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm flex items-center justify-center">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6"
+              >
+                {/* 3D rotating card with kind icon */}
                 <motion.div
                   initial={{ rotateY: 0, scale: 0.85, opacity: 0 }}
                   animate={{ rotateY: 360, scale: 1, opacity: 1 }}
-                  transition={{ duration: 1.2, ease: 'easeOut', repeat: Infinity }}
-                  className="w-40 h-56 rounded-3xl bg-gradient-to-br from-accent via-primary to-accent shadow-2xl flex items-center justify-center"
+                  transition={{ duration: 1.4, ease: 'easeInOut', repeat: Infinity }}
+                  className="w-28 h-36 sm:w-32 sm:h-44 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-accent via-primary to-accent shadow-[0_0_40px_rgba(244,63,94,0.35)] flex flex-col items-center justify-center mb-4 sm:mb-6 border border-white/20 shrink-0"
                 >
-                  <Sparkles className="w-12 h-12 text-accent-foreground" />
+                  {genOverlay.kind === 'flashcards' && <Layers className="w-9 h-9 sm:w-11 sm:h-11 text-white drop-shadow-md" />}
+                  {genOverlay.kind === 'questoes' && <HelpCircle className="w-9 h-9 sm:w-11 sm:h-11 text-white drop-shadow-md" />}
+                  {genOverlay.kind === 'mapa' && <GitBranch className="w-9 h-9 sm:w-11 sm:h-11 text-white drop-shadow-md" />}
+                  {genOverlay.kind === 'termos' && <BookOpen className="w-9 h-9 sm:w-11 sm:h-11 text-white drop-shadow-md" />}
+                  {genOverlay.kind === 'pdf' && <FileDown className="w-9 h-9 sm:w-11 sm:h-11 text-white drop-shadow-md" />}
+                  <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-white/80 mt-2 font-display">
+                    IA Jurídica
+                  </span>
                 </motion.div>
-                <p className="absolute bottom-[35%] font-display text-lg font-bold text-white">{genOverlay.label}…</p>
+
+                {/* Steps checklist card */}
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full max-w-sm rounded-2xl bg-card/95 border border-border/80 p-4 shadow-2xl backdrop-blur-xl"
+                >
+                  <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-border/60">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-accent animate-pulse" />
+                      <h3 className="font-display text-sm font-bold text-foreground tracking-wide uppercase">
+                        {genOverlay.label}
+                      </h3>
+                    </div>
+                    <span className="text-[11px] font-mono font-semibold text-accent px-2 py-0.5 rounded-full bg-accent/15 border border-accent/25">
+                      {Math.min(genStep + 1, (ARTIFACT_STEPS[genOverlay.kind] || ARTIFACT_STEPS.flashcards).length)}/
+                      {(ARTIFACT_STEPS[genOverlay.kind] || ARTIFACT_STEPS.flashcards).length}
+                    </span>
+                  </div>
+
+                  {/* Checklist items with ticks */}
+                  <div className="space-y-2">
+                    {(ARTIFACT_STEPS[genOverlay.kind] || ARTIFACT_STEPS.flashcards).map((stepText, idx) => {
+                      const isDone = idx < genStep;
+                      const isCurrent = idx === genStep;
+
+                      return (
+                        <motion.div
+                          key={stepText}
+                          initial={{ opacity: 0, x: -6 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl transition-all ${
+                            isCurrent
+                              ? 'bg-accent/10 border border-accent/30 shadow-xs'
+                              : isDone
+                              ? 'bg-emerald-500/10'
+                              : 'opacity-40'
+                          }`}
+                        >
+                          {/* Status tick / spinner / pending */}
+                          <div className="shrink-0 flex items-center justify-center">
+                            {isDone ? (
+                              <motion.span
+                                initial={{ scale: 0.4, rotate: -45 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40 shadow-xs"
+                              >
+                                <Check className="w-3 h-3 stroke-[3]" />
+                              </motion.span>
+                            ) : isCurrent ? (
+                              <span className="w-5 h-5 rounded-full bg-accent/20 text-accent flex items-center justify-center border border-accent/40 shadow-xs">
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              </span>
+                            ) : (
+                              <span className="w-5 h-5 rounded-full bg-muted/60 border border-border flex items-center justify-center text-muted-foreground text-[10px]">
+                                •
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Step description */}
+                          <span
+                            className={`text-[12.5px] font-body transition-colors leading-tight ${
+                              isDone
+                                ? 'text-foreground/90 font-medium'
+                                : isCurrent
+                                ? 'text-accent font-semibold'
+                                : 'text-muted-foreground'
+                            }`}
+                          >
+                            {stepText}
+                          </span>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Mini animated progress bar */}
+                  <div className="mt-3 pt-2.5 border-t border-border/50">
+                    <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                      <motion.div
+                        className="h-full bg-gradient-to-r from-accent to-primary rounded-full"
+                        initial={{ width: '15%' }}
+                        animate={{
+                          width: `${Math.min(
+                            ((genStep + 1) / (ARTIFACT_STEPS[genOverlay.kind] || ARTIFACT_STEPS.flashcards).length) * 100,
+                            95
+                          )}%`,
+                        }}
+                        transition={{ duration: 0.5, ease: 'easeOut' }}
+                      />
+                    </div>
+                    <p className="text-[10.5px] text-center text-muted-foreground mt-2 font-body">
+                      Aguarde alguns instantes enquanto a IA estrutura o material…
+                    </p>
+                  </div>
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
