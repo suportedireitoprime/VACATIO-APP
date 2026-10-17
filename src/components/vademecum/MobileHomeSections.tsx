@@ -11,7 +11,7 @@ import {
   Landmark, LandPlot, LayoutGrid, Leaf, List, Map, Mic, MicOff, Network, NotebookPen,
   PiggyBank, Plane, PocketKnife, RadioTower, ReceiptText, Scale, Scroll, ScrollText, Search,
   Shield, ShieldAlert, ShieldCheck, ShieldX, Ship, ShoppingCart, Siren, Sprout, Stamp, Store,
-  Tractor, TreePine, Users, Vote, Wallet, Wifi, X, MessageCircle, BookOpen, Heart, ArrowRight, type LucideIcon,
+  Tractor, TreePine, Users, Vote, Wallet, Wifi, X, MessageCircle, BookOpen, Heart, ArrowRight, Sparkles, type LucideIcon,
 } from 'lucide-react';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { ESTADOS } from '@/pages/LegislacaoEstadual';
@@ -117,6 +117,7 @@ const CATEGORIA_CARDS: AreaCat[] = [
   { id: 'cat-decreto', label: 'Decretos', sublabel: 'Regulamentos do Poder Executivo', icon: Stamp, color: '#06B6D4', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto nº') && !l.descricao.includes('Decreto-Lei')).map(l => l.id) },
   { id: 'cat-decreto-lei', label: 'Decretos-Leis', sublabel: 'Atos com força de lei', icon: Stamp, color: '#F97316', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto-Lei')).map(l => l.id) },
   { id: 'cat-mp', label: 'Medidas Provisórias', sublabel: 'Medidas do Poder Executivo', icon: FileWarning, color: '#EF4444', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Medida Provisória') || l.descricao.includes('MPv')).map(l => l.id) },
+  { id: 'cat-leis-especiais', label: 'Leis Especiais', sublabel: 'Legislação extravagante e especial', icon: Sparkles, color: '#EC4899', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'lei-especial' || l.tipo === 'previdenciario').map(l => l.id) },
 ];
 
 const OAB_CARDS: AreaCat[] = [
@@ -536,6 +537,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             { id: 'areas', label: 'Áreas' },
             { id: 'cat-codigo', label: 'Códigos' },
             { id: 'cat-estatuto', label: 'Estatutos' },
+            { id: 'cat-leis-especiais', label: 'Leis Especiais' },
             { id: 'cat-oab', label: 'OAB' },
             { id: 'jurisprudencia', label: 'Jurisprudência' },
             { id: 'cat-lei', label: 'Ordinárias' },

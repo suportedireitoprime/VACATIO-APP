@@ -119,14 +119,45 @@ async function fetchPlanaltoText(rawUrl: string): Promise<{ text: string; finalU
 }
 
 async function gerarExplicacao(numero: string, tipo: string, texto: string): Promise<string | null> {
-  if (!GEMINI_KEY) return null;
-  const model = MODELS.text;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
   const prompt =
     `Explique, de forma didática e objetiva, o que muda com a norma abaixo (${tipo} ${numero}). ` +
     `Estruture em: 1) O que é; 2) Principais pontos; 3) A quem se aplica; 4) Impacto prático. ` +
     `Use markdown com títulos curtos e listas. Máximo 350 palavras. ` +
     `Base-se apenas no texto oficial fornecido:\n\n${texto.slice(0, 15000)}`;
+
+  // 1. Prioriza OmniRoute
+  const OMNIROUTE_KEY = Deno.env.get("OMNIROUTE_API_KEY_NOVA") || Deno.env.get("OMNIROUTE_API_KEY");
+  if (OMNIROUTE_KEY) {
+    try {
+      const res = await fetch("https://omniroute-production-fb57.up.railway.app/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OMNIROUTE_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "antigravity/gemini-3-flash",
+          messages: [
+            { role: "system", content: "Você é um jurista e professor de Direito especialista em legislação brasileira." },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.3,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const content = json?.choices?.[0]?.message?.content;
+        if (content && typeof content === "string") return content.trim();
+      }
+    } catch (omniErr) {
+      console.warn("OmniRoute explicacao failed, falling back to geminiFetch:", omniErr);
+    }
+  }
+
+  // 2. Fallback: Gemini direto
+  if (!GEMINI_KEY) return null;
+  const model = MODELS.text;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
   try {
     const res = await geminiFetch(url, {
       method: "POST",

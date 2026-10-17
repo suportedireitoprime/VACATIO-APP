@@ -10,6 +10,7 @@ import brasaoImgAsset from '@/assets/brasao-republica.webp';
 const brasaoImg = brasaoImgAsset;
 import ArtigoBottomSheet from './ArtigoBottomSheet';
 import type { LeiOrdinaria } from '@/services/legislacaoService';
+import { generateOmniText } from '@/lib/omniRouteClient';
 
 interface ParsedLei {
   titulo: string;
@@ -502,29 +503,62 @@ function ExplicacaoTab({ lei }: { lei: LeiOrdinaria }) {
     if (loading) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('popular-texto-resenha', {
-        body: { id: lei.id, only_explicacao: true, force: true },
+      // 1. Obtém o texto mais completo possível da lei/publicação
+      let textoBase = (lei.texto_completo || '').trim();
+      let ementaBase = (lei.ementa || '').trim();
+
+      if (!textoBase) {
+        const { data: row } = await (supabase.from as any)('resenha_diaria')
+          .select('texto_completo, ementa')
+          .eq('id', lei.id)
+          .maybeSingle();
+        if (row?.texto_completo) textoBase = row.texto_completo.trim();
+        if (row?.ementa && !ementaBase) ementaBase = row.ementa.trim();
+      }
+
+      const conteudo = textoBase || ementaBase || lei.numero_lei;
+
+      const prompt = `Você é um jurista e professor de Direito especialista em legislação brasileira.
+Analise a seguinte publicação oficial da República Federativa do Brasil:
+
+**Norma**: ${lei.numero_lei}
+${ementaBase ? `**Ementa**: ${ementaBase}\n` : ''}
+**Texto Oficial**:
+${conteudo.slice(0, 20000)}
+
+Por favor, elabore uma explicação didática, clara e completa, estruturada com os seguintes tópicos em markdown:
+1. **O que é e Contexto**: Visão geral acessível explicando o objetivo da norma.
+2. **Principais Mudanças e Dispositivos**: Pontos mais importantes do texto oficial em tópicos objetivos.
+3. **A quem se aplica**: Quem é diretamente afetado (cidadãos, empresas, servidores, Judiciário, etc.).
+4. **Impacto Prático**: O que muda na prática jurídica e na sociedade a partir de agora.
+
+Escreva em linguagem fluida, precisa e acessível, com formatação rica em markdown (títulos, negritos e listas).`;
+
+      const response = await generateOmniText({
+        prompt,
+        systemPrompt: 'Você é um assistente jurídico sênior especializado em Direito Constitucional e Legislação Federal Brasileira.',
+        temperature: 0.3,
+        complexity: 'medium',
       });
-      if (error) throw error;
-      type ResenhaExplicacaoRow = { explicacao: string | null };
-      const { data: row } = await (supabase.from as unknown as (t: string) => {
-        select: (cols: string) => {
-          eq: (col: string, val: string) => {
-            single: () => Promise<{ data: ResenhaExplicacaoRow | null }>;
-          };
-        };
-      })('resenha_diaria')
-        .select('explicacao')
-        .eq('id', lei.id)
-        .single();
-      const ex = row?.explicacao;
-      if (ex) {
-        setExplicacao(ex);
-        toast.success('Explicação gerada!');
+
+      if (response && response.trim()) {
+        const novaExplicacao = response.trim();
+        setExplicacao(novaExplicacao);
+        toast.success('Explicação gerada com sucesso via OmniRoute!');
+
+        // Persiste no banco de dados na tabela resenha_diaria para ficar salvo para sempre
+        try {
+          await (supabase.from as any)('resenha_diaria')
+            .update({ explicacao: novaExplicacao })
+            .eq('id', lei.id);
+        } catch (dbErr) {
+          console.warn('Erro ao salvar explicação no banco:', dbErr);
+        }
       } else {
         toast.error('Não foi possível gerar a explicação agora.');
       }
     } catch (e: unknown) {
+      console.error('Erro ao gerar explicação via OmniRoute:', e);
       const msg = e instanceof Error ? e.message : 'Falha ao gerar explicação';
       toast.error(msg);
     } finally {
