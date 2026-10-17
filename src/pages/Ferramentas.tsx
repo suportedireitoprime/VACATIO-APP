@@ -56,7 +56,7 @@ const Ferramentas = () => {
   const toolsList = (
     <div className="space-y-8">
       {/* 1. Primeiro carrossel: Notícias Jurídicas acima dos cards de Destaques */}
-      <section className="-mx-4 pb-2">
+      <section className="-mx-4 md:mx-0 pb-2">
         <HomeNoticiasCarousel />
       </section>
 
