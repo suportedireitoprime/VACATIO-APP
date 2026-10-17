@@ -465,7 +465,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           onClick={() => {
             const leiCat = LEIS_CATALOG.find(l => l.id === ultimaLei.leiId);
             const base = leiCat ? leiPath(leiCat) : `/legislacao/${tipoToSlug(ultimaLei.tipo)}/${leiToSlug({ id: ultimaLei.leiId, nome: ultimaLei.nome })}`;
-            navigate(ultimaLei.artigoNumero ? `${base}/${encodeURIComponent(ultimaLei.artigoNumero)}` : base);
+            navigate(base);
           }}
           style={{
             background: `linear-gradient(to right, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}33, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}0D)`,

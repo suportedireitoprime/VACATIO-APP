@@ -230,7 +230,7 @@ const BottomNav = ({ forceVisible = false }: BottomNavProps = {}) => {
           }`}
           aria-label="Grifos"
         >
-          <Feather className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${path.startsWith('/pessoal/grifos') ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
+          <Highlighter className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${path.startsWith('/pessoal/grifos') ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'}`} strokeWidth={1.5} />
           <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm">Grifos</span>
         </button>
 

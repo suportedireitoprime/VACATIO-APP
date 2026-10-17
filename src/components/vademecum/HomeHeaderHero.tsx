@@ -143,7 +143,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
             <button
               onClick={() => setNotifOpen(true)}
               aria-label={`Abrir notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
-              className="grid w-12 h-12 sm:w-[52px] sm:h-[52px] shrink-0 place-items-center rounded-full bg-black/40 border border-white/10 text-white backdrop-blur-md transition-colors hover:bg-black/60 active:scale-95 relative"
+              className="grid w-12 h-12 sm:w-[52px] sm:h-[52px] shrink-0 place-items-center rounded-full bg-[#1C1C1E] border border-white/10 text-white backdrop-blur-md transition-colors hover:bg-[#2C2C2E] active:scale-95 relative"
             >
               <Bell className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.4} />
               {unreadCount > 0 && (
@@ -155,7 +155,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
             <button
               onClick={handleOpenMenu}
               aria-label="Abrir menu"
-              className="grid w-12 h-12 sm:w-[52px] sm:h-[52px] shrink-0 place-items-center rounded-full bg-black/40 border border-white/10 text-white backdrop-blur-md transition-colors hover:bg-black/60 active:scale-95"
+              className="grid w-12 h-12 sm:w-[52px] sm:h-[52px] shrink-0 place-items-center rounded-full bg-[#1C1C1E] border border-white/10 text-white backdrop-blur-md transition-colors hover:bg-[#2C2C2E] active:scale-95"
             >
               <MenuIcon className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.4} />
             </button>
