@@ -1,4 +1,5 @@
 import { useState, useMemo, lazy, Suspense } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Bell, Menu as MenuIcon, Search, X, Gavel, BookMarked, type LucideIcon } from 'lucide-react';
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
@@ -119,17 +120,24 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
             aria-hidden="true"
           />
 
-          {/* Imagem de Capa do Painel do Início (lado direito) — Altura total original sem corte */}
+          {/* Imagem de Capa do Painel do Início (lado direito) — Altura total original sem corte com animação estilo Biblioteca */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            <img
-              src={heroEstudanteImg}
-              alt=""
-              aria-hidden="true"
-              loading="eager"
-              decoding="async"
-              fetchPriority="high"
-              className="absolute top-0 bottom-0 right-0 h-full w-auto max-w-none object-contain object-right select-none"
-            />
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={`hub-cover-${resolvedTipo}`}
+                src={heroEstudanteImg}
+                alt=""
+                aria-hidden="true"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+                initial={{ opacity: 0, scale: 1.03 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2, ease: 'easeOut' }}
+                className="absolute top-0 bottom-0 right-0 h-full w-auto max-w-none object-contain object-right select-none"
+              />
+            </AnimatePresence>
           </div>
 
           {/* Overlay amarelo com gradiente e sombra diagonal dupla */}

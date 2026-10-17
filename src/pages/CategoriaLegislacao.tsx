@@ -2648,16 +2648,23 @@ const CategoriaLegislacao = () => {
                 backgroundColor: '#050505',
               }}
             >
-              {/* Imagem de capa da lei (lado direito) - movida levemente para a direita */}
+              {/* Imagem de capa da lei (lado direito) — animação de entrada igual à da Biblioteca Jurídica */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-                <img
-                  src={cover}
-                  alt={`Capa — ${selectedLeiNome}`}
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                  className="absolute inset-0 w-full h-full object-cover object-right select-none"
-                />
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={`lei-cover-${selectedLeiId || tipo}`}
+                    src={cover}
+                    alt={`Capa — ${selectedLeiNome}`}
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
+                    initial={{ opacity: 0, scale: 1.03 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1.2, ease: 'easeOut' }}
+                    className="absolute inset-0 w-full h-full object-cover object-right select-none"
+                  />
+                </AnimatePresence>
               </div>
 
               {/* Fundo animado sobre a área preta da imagem */}
