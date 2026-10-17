@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAudioaulasPlayer, type AulaAudio } from '@/contexts/AudioaulasPlayerContext';
 import { AUDIOAULAS_ACERVO_INICIAL } from '@/data/audioaulasAcervo';
 import type { ArtigoLei } from '@/data/mockData';
+import { haptic } from '@/lib/nativeHaptics';
 
 type ArtigoType = ArtigoLei | Record<string, any>;
 type CapGroup = { capitulo: string; artigos: ArtigoType[]; titulo?: string };
@@ -42,6 +43,22 @@ function norm(s: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim();
+}
+
+/** Formata rótulo e título do capítulo de forma elegante, tratando '__sem_capitulo__' */
+function formatCapituloDisplay(rawCap: string, rawTitulo?: string): { tag: string; title: string } {
+  const isSemCap = !rawCap || rawCap.toUpperCase().includes('SEM_CAPITULO');
+  const isSemTit = !rawTitulo || rawTitulo.toUpperCase().includes('SEM_TITULO');
+
+  if (isSemCap) {
+    const title = !isSemTit ? rawTitulo! : 'Disposições Gerais';
+    return { tag: 'Disposições Gerais', title };
+  }
+
+  const parts = rawCap.split(' - ');
+  const tag = parts[0] || 'Capítulo';
+  const title = parts.slice(1).join(' - ') || rawCap;
+  return { tag, title };
 }
 
 /**
@@ -238,7 +255,7 @@ export function AudioaulasOverlay({
   // Tocar todas as aulas da lei em sequência
   const handlePlayAll = () => {
     if (aulasDaLei.length === 0) return;
-    haptic.impactMedium();
+    haptic.medium();
     handlePlayAula(aulasDaLei[0], aulasDaLei);
   };
 
@@ -279,7 +296,7 @@ export function AudioaulasOverlay({
                 }
               }}
               className="w-10 h-10 rounded-full bg-black/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/40 active:scale-95 transition-all shadow-md shrink-0"
-              aria-label="Voltar"
+              aria-label={selectedCapitulo ? 'Voltar aos capítulos' : 'Voltar'}
             >
               <ArrowLeft className="w-5 h-5 text-white drop-shadow-md" />
             </button>
@@ -290,9 +307,9 @@ export function AudioaulasOverlay({
                 <Headphones className="w-3 h-3 text-red-200 animate-pulse" />
                 Audioaulas
               </div>
-              <h1 className="font-display font-black text-lg sm:text-xl text-white truncate drop-shadow-md mt-0.5">
+              <h1 className="font-card font-bold text-lg sm:text-xl text-white truncate drop-shadow-md mt-0.5">
                 {selectedCapitulo
-                  ? selectedCapitulo.capitulo.split(' - ').slice(1).join(' - ') || selectedCapitulo.capitulo
+                  ? formatCapituloDisplay(selectedCapitulo.capitulo, selectedCapitulo.tituloNome).title
                   : leiNome}
               </h1>
               <p className="text-[11px] sm:text-xs text-white/80 font-medium truncate">
@@ -302,17 +319,21 @@ export function AudioaulasOverlay({
               </p>
             </div>
 
-            {/* Botão Fechar Geral */}
-            <button
-              onClick={() => {
-                haptic.light();
-                onClose();
-              }}
-              className="w-10 h-10 rounded-full bg-black/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/40 active:scale-95 transition-all shadow-md shrink-0"
-              aria-label="Fechar"
-            >
-              <X className="w-5 h-5 text-white drop-shadow-md" />
-            </button>
+            {/* Lado Direito: exibe fechar apenas quando dentro de capítulo, ou espaçador transparente no topo para manter simetria sem duplicidade */}
+            {selectedCapitulo ? (
+              <button
+                onClick={() => {
+                  haptic.light();
+                  onClose();
+                }}
+                className="w-10 h-10 rounded-full bg-black/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/40 active:scale-95 transition-all shadow-md shrink-0"
+                aria-label="Fechar"
+              >
+                <X className="w-5 h-5 text-white drop-shadow-md" />
+              </button>
+            ) : (
+              <div className="w-10 h-10 shrink-0" aria-hidden="true" />
+            )}
           </div>
 
           {/* Cards de Resumo e Botão "Tocar Todas" */}
@@ -363,10 +384,10 @@ export function AudioaulasOverlay({
             <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-bold uppercase tracking-wider text-red-400">
-                  {selectedCapitulo.capitulo.split(' - ')[0]}
+                  {formatCapituloDisplay(selectedCapitulo.capitulo, selectedCapitulo.tituloNome).tag}
                 </span>
-                <h3 className="font-display font-bold text-base text-white leading-snug">
-                  {selectedCapitulo.capitulo.split(' - ').slice(1).join(' - ') || selectedCapitulo.capitulo}
+                <h3 className="font-card font-bold text-base text-white leading-snug">
+                  {formatCapituloDisplay(selectedCapitulo.capitulo, selectedCapitulo.tituloNome).title}
                 </h3>
                 <p className="text-xs text-white/60 mt-0.5">
                   {selectedCapitulo.artigos.length} artigos nesta seção
@@ -591,17 +612,24 @@ export function AudioaulasOverlay({
 
                       {/* Textos do Capítulo */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-red-400">
-                            {cap.capitulo.split(' - ')[0]}
-                          </span>
-                          <span className="text-[10px] text-white/40 truncate">
-                            {cap.artigos.length} artigos
-                          </span>
-                        </div>
-                        <h4 className="font-bold text-sm text-white leading-snug line-clamp-2">
-                          {cap.capitulo.split(' - ').slice(1).join(' - ') || cap.capitulo}
-                        </h4>
+                        {(() => {
+                          const { tag, title } = formatCapituloDisplay(cap.capitulo, cap.tituloNome);
+                          return (
+                            <>
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-red-400">
+                                  {tag}
+                                </span>
+                                <span className="text-[10px] text-white/40 truncate">
+                                  {cap.artigos.length} artigos
+                                </span>
+                              </div>
+                              <h4 className="font-card font-medium text-sm text-white leading-snug line-clamp-2">
+                                {title}
+                              </h4>
+                            </>
+                          );
+                        })()}
 
                         <div className="mt-2 flex items-center gap-2">
                           {temAulas ? (
