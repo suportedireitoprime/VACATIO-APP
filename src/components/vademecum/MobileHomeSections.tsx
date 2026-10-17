@@ -64,8 +64,8 @@ const ESTATUTOS_LIST: Array<{
 // Cards de "Outras normas" que apontam para o Radar 360 com filtro pré-selecionado
 type RadarCat = Cat & { radarTipo: string; normaSlug: string };
 const RADAR_CATS: RadarCat[] = [
-  { id: 'radar-lei',       label: 'Leis Ordinárias',     sublabel: 'Leis ordinárias publicadas no DOU',   icon: Scroll,     color: '#FACC15', radarTipo: 'Lei',                normaSlug: 'leis' },
-  { id: 'radar-lc',        label: 'Leis Complementares', sublabel: 'Complementares à Constituição',       icon: ScrollText, color: '#F59E0B', radarTipo: 'Lei Complementar',   normaSlug: 'leis-complementares' },
+  { id: 'radar-lei',       label: 'Ordinárias',          sublabel: 'Leis ordinárias publicadas no DOU',   icon: Scroll,     color: '#FACC15', radarTipo: 'Lei',                normaSlug: 'leis' },
+  { id: 'radar-lc',        label: 'Complementares',      sublabel: 'Complementares à Constituição',       icon: ScrollText, color: '#F59E0B', radarTipo: 'Lei Complementar',   normaSlug: 'leis-complementares' },
   { id: 'radar-decreto',   label: 'Decretos',            sublabel: 'Regulamentos do Executivo',           icon: Stamp,      color: '#FBBF24', radarTipo: 'Decreto',            normaSlug: 'decretos' },
   { id: 'radar-mp',        label: 'Medidas Provisórias', sublabel: 'Editadas pelo Presidente',            icon: FileWarning,color: '#FB923C', radarTipo: 'Medida Provisória',  normaSlug: 'medidas-provisorias' },
 ];
@@ -108,12 +108,12 @@ const CATEGORIA_CATS: CategoriaFormal[] = [
 ];
 
 const CATEGORIA_CARDS: AreaCat[] = [
-  { id: 'cat-cf', label: 'Constituição Federal', sublabel: 'Constituição de 1988', icon: Landmark, color: '#FACC15', leiIds: ['cf88'] },
+  { id: 'cat-cf', label: 'Constituição', sublabel: 'Constituição de 1988', icon: Landmark, color: '#FACC15', leiIds: ['cf88'] },
   { id: 'cat-codigo', label: 'Códigos', sublabel: 'Principais códigos nacionais', icon: BookOpen, color: '#3B82F6', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'codigo').map(l => l.id) },
   { id: 'cat-estatuto', label: 'Estatutos', sublabel: 'Principais estatutos nacionais', icon: Shield, color: '#10B981', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'estatuto').map(l => l.id) },
   { id: 'cat-oab', label: 'OAB & Advocacia', sublabel: 'Normas e ética da advocacia', icon: Scale, color: '#1D4ED8', leiIds: ['ced2015', 'ced1995', 'eoab', 'reg_oab', 'prov205', 'prov188', 'prov112', 'prov144', 'res02', 'res01'] },
-  { id: 'cat-lei', label: 'Leis Ordinárias', sublabel: 'Legislação ordinária federal', icon: FileText, color: '#F59E0B', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'lei-especial' && !l.descricao.includes('Decreto') && !l.descricao.includes('Complementar') && !l.descricao.includes('LC')).map(l => l.id) },
-  { id: 'cat-lei-complementar', label: 'Leis Complementares', sublabel: 'Legislação complementar federal', icon: FilePlus, color: '#8B5CF6', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Complementar') || l.descricao.includes('LC nº')).map(l => l.id) },
+  { id: 'cat-lei', label: 'Ordinárias', sublabel: 'Legislação ordinária federal', icon: FileText, color: '#F59E0B', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'lei-especial' && !l.descricao.includes('Decreto') && !l.descricao.includes('Complementar') && !l.descricao.includes('LC')).map(l => l.id) },
+  { id: 'cat-lei-complementar', label: 'Complementares', sublabel: 'Legislação complementar federal', icon: FilePlus, color: '#8B5CF6', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Complementar') || l.descricao.includes('LC nº')).map(l => l.id) },
   { id: 'cat-decreto', label: 'Decretos', sublabel: 'Regulamentos do Poder Executivo', icon: Stamp, color: '#06B6D4', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto nº') && !l.descricao.includes('Decreto-Lei')).map(l => l.id) },
   { id: 'cat-decreto-lei', label: 'Decretos-Leis', sublabel: 'Atos com força de lei', icon: Stamp, color: '#F97316', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto-Lei')).map(l => l.id) },
   { id: 'cat-mp', label: 'Medidas Provisórias', sublabel: 'Medidas do Poder Executivo', icon: FileWarning, color: '#EF4444', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Medida Provisória') || l.descricao.includes('MPv')).map(l => l.id) },
@@ -538,8 +538,8 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             { id: 'cat-estatuto', label: 'Estatutos' },
             { id: 'cat-oab', label: 'OAB' },
             { id: 'jurisprudencia', label: 'Jurisprudência' },
-            { id: 'cat-lei', label: 'Leis Ordinárias' },
-            { id: 'cat-lei-complementar', label: 'Leis Complementares' },
+            { id: 'cat-lei', label: 'Ordinárias' },
+            { id: 'cat-lei-complementar', label: 'Complementares' },
             { id: 'cat-decreto', label: 'Decretos' },
             { id: 'cat-decreto-lei', label: 'Decretos-Leis' },
             { id: 'cat-mp', label: 'Medidas Provisórias' },

@@ -22,7 +22,7 @@ const CATEGORIAS = [
   { id: 'constituicao', tipo: 'constituicao', label: 'Constituição', icon: Landmark, color: '#10B981' },
   { id: 'codigo', tipo: 'codigo', label: 'Códigos', icon: BookOpen, color: '#3B82F6' },
   { id: 'estatuto', tipo: 'estatuto', label: 'Estatutos', icon: Shield, color: '#F43F5E' },
-  { id: 'lei-ordinaria', tipo: 'lei-ordinaria', label: 'Leis Ordinárias', icon: FileText, color: '#F59E0B' },
+  { id: 'lei-ordinaria', tipo: 'lei-ordinaria', label: 'Ordinárias', icon: FileText, color: '#F59E0B' },
   { id: 'decreto', tipo: 'decreto', label: 'Decretos', icon: ScrollText, color: '#F97316' },
   { id: 'sumula', tipo: 'sumula', label: 'Súmulas', icon: Gavel, color: '#EF4444' },
   { id: 'lei-especial', tipo: 'lei-especial', label: 'Leis Especiais', icon: BookMarked, color: '#A855F7' },
