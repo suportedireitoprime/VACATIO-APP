@@ -20,9 +20,7 @@ const MESES_URL: Record<string, string> = {
 };
 
 function classificarTipo(t: string): string | null {
-  // Projetos de Lei do Congresso Nacional / Complementar (páginas de índice do portal)
-  if (/Projetos?\s+de\s+Lei\s+Complementar|\bPLP\b/i.test(t)) return "Projeto de Lei Complementar (PLP)";
-  if (/Projetos?\s+de\s+Lei\s+do\s+Congresso\s+Nacional|\bPLN\b/i.test(t)) return "Projeto de Lei do Congresso Nacional (PLN)";
+  if (/Emenda\s+Constitucional/i.test(t)) return "Emenda Constitucional";
   if (/Lei\s+Complementar/i.test(t)) return "Lei Complementar";
   if (/Medida\s+Provis[oó]ria/i.test(t)) return "Medida Provisória";
   if (/Decreto\s/i.test(t)) return "Decreto";
@@ -139,12 +137,8 @@ function parseResenhaHTML(html: string): AtoExtraido[] {
   for (const link of allLinks) {
     const tipo = classificarTipo(link.text);
     if (!tipo) continue;
-    // Atos individuais (Leis/Decretos/MPs) precisam ser ccivil_03. Já os
-    // Projetos de Lei (PLP/PLN) são páginas de portal — aceitos como estão
-    // e sua raspagem é feita no popular-texto-resenha via Browserless.
-    const ehProjeto = /^Projeto\s+de\s+Lei/i.test(tipo);
-    if (!ehProjeto && !/ccivil_03\/_?[Aa]to|ccivil_03\/(leis|decreto|mpv|constituicao)/i.test(link.url)) continue;
-    if (ehProjeto && !/planalto\.gov\.br/i.test(link.url)) continue;
+    // Atos individuais precisam ser ccivil_03 (onde residem os textos das normas)
+    if (!/ccivil_03\/_?[Aa]to|ccivil_03\/(leis|decreto|mpv|constituicao)/i.test(link.url)) continue;
 
     let bestDate = dates[0];
     for (const d of dates) { if (d.pos <= link.pos) bestDate = d; else break; }

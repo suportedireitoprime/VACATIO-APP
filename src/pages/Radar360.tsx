@@ -15,6 +15,7 @@ import brasaoImgAsset from '@/assets/brasao-republica.webp';
 const brasaoImg = brasaoImgAsset;
 
 const TIPO_COLORS: Record<string, { badge: string; border: string; card: string }> = {
+  'Emenda Constitucional': { badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20', border: 'border-l-emerald-500', card: 'from-emerald-500/10 to-transparent' },
   'Lei': { badge: 'bg-primary/15 text-primary border-primary/20', border: 'border-l-primary', card: 'from-primary/10 to-transparent' },
   'Lei Complementar': { badge: 'bg-copper-light/15 text-copper-light border-copper-light/20', border: 'border-l-copper-light', card: 'from-copper-light/10 to-transparent' },
   'Decreto': { badge: 'bg-copper/15 text-copper border-copper/20', border: 'border-l-copper', card: 'from-copper/10 to-transparent' },
@@ -22,7 +23,7 @@ const TIPO_COLORS: Record<string, { badge: string; border: string; card: string 
   'Outro': { badge: 'bg-muted text-muted-foreground border-border', border: 'border-l-muted-foreground', card: 'from-muted/10 to-transparent' },
 };
 
-const TIPO_FILTERS = ['Todos', 'Lei', 'Lei Complementar', 'Decreto', 'Medida Provisória'];
+const TIPO_FILTERS = ['Todos', 'Emenda Constitucional', 'Lei', 'Lei Complementar', 'Decreto', 'Medida Provisória'];
 const WEEKDAYS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 const MONTHS = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
 

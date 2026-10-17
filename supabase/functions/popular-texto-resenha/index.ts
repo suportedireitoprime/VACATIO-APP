@@ -70,7 +70,7 @@ function htmlToText(html: string): string {
   src = src.replace(/\r/g, "").replace(/\u00A0/g, " ");
   src = src.split("\n").map((l) => l.replace(/[ \t]+/g, " ").trim()).filter(Boolean).join("\n");
   // Trim boilerplate top/bottom often present on Planalto pages
-  const startIdx = src.search(/Presid[eê]ncia\s+da\s+Rep[uú]blica|LEI\s+N[º°]?|DECRETO\s+N[º°]?|MEDIDA\s+PROVIS[ÓO]RIA\s+N[º°]?/i);
+  const startIdx = src.search(/Presid[eê]ncia\s+da\s+Rep[uú]blica|EMENDA\s+CONSTITUCIONAL|LEI\s+N[º°]?|DECRETO\s+N[º°]?|MEDIDA\s+PROVIS[ÓO]RIA\s+N[º°]?|LEI\s+COMPLEMENTAR|ATO\s+DECLARAT[ÓO]RIO/i);
   if (startIdx > 0) src = src.slice(startIdx);
   const endIdx = src.search(/Este texto n[aã]o substitui o publicado no DOU|Bras[ií]lia,\s+em[\s\S]{0,300}?\n[\s\S]{0,50}Publicado no DOU/i);
   if (endIdx > 200) src = src.slice(0, endIdx + 60);
@@ -80,17 +80,42 @@ function htmlToText(html: string): string {
 async function fetchPlanaltoText(rawUrl: string): Promise<{ text: string; finalUrl: string; status: number }> {
   // Force https so http->https redirect works reliably from Deno.
   const url = rawUrl.replace(/^http:\/\//i, "https://");
-  const res = await fetch(url, {
-    redirect: "follow",
-    headers: {
-      "User-Agent": UA,
-      "Accept": "text/html,application/xhtml+xml",
-      "Accept-Language": "pt-BR,pt;q=0.9",
-    },
-  });
-  const buf = await res.arrayBuffer();
-  const html = decodePlanalto(buf, res.headers.get("content-type"));
-  return { text: htmlToText(html), finalUrl: res.url, status: res.status };
+  try {
+    const res = await fetch(url, {
+      redirect: "follow",
+      headers: {
+        "User-Agent": UA,
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "pt-BR,pt;q=0.9",
+      },
+    });
+    const buf = await res.arrayBuffer();
+    const html = decodePlanalto(buf, res.headers.get("content-type"));
+    const text = htmlToText(html);
+    if (res.status < 400 && text.length >= 200) {
+      return { text, finalUrl: res.url, status: res.status };
+    }
+  } catch (e) {
+    console.warn("Direct fetchPlanaltoText failed, trying Jina fallback:", e);
+  }
+
+  // Jina Reader fallback (bypasses bot challenges or network timeouts)
+  try {
+    const jinaRes = await fetch(`https://r.jina.ai/${url}`, {
+      headers: { "X-Return-Format": "html", "User-Agent": UA }
+    });
+    if (jinaRes.ok) {
+      const jinaHtml = await jinaRes.text();
+      const jinaText = htmlToText(jinaHtml);
+      if (jinaText.length >= 200) {
+        return { text: jinaText, finalUrl: url, status: 200 };
+      }
+    }
+  } catch (jinaErr) {
+    console.warn("Jina fallback failed:", jinaErr);
+  }
+
+  return { text: "", finalUrl: url, status: 500 };
 }
 
 async function gerarExplicacao(numero: string, tipo: string, texto: string): Promise<string | null> {

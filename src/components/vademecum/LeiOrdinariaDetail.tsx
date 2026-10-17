@@ -91,7 +91,10 @@ function normalizeArticleText(text: string): string {
 function parseTextoCompleto(texto: string): ParsedLei {
   let clean = normalizeLegislativeText(texto);
   
-  const leiTitleMatch = clean.match(/(?:LEI|DECRETO)\s*\n*\s*N[ºo°]\s*[\d.]+[^\n]*/i);
+  // 1. Título do ato (Emenda Constitucional, Lei, Decreto, MP, LC, etc.)
+  const leiTitleMatch = clean.match(
+    /(?:EMENDA\s+CONSTITUCIONAL|LEI\s+COMPLEMENTAR|MEDIDA\s+PROVIS[ÓO]RIA|LEI|DECRETO|ATO\s+DECLARAT[ÓO]RIO|ATO\s+CONJUNTO|RESOLU[ÇC][ÃA]O|PORTARIA)\s*(?:N[ºo°°]\s*)?[\d.]+[^\n]*(?:\n[^\n]*)?/i
+  );
   let titulo = '';
   
   if (leiTitleMatch) {
@@ -102,26 +105,45 @@ function parseTextoCompleto(texto: string): ParsedLei {
 
   let ementa = '';
   let preambulo = '';
-  const presidenteMatch = clean.match(/O\s*PRESIDENTE\s*DA\s*REP(?:Ú|U)BLICA/i);
   
-  if (presidenteMatch) {
-    const presIdx = clean.indexOf(presidenteMatch[0]);
+  // 2. Preâmbulo e Ementa
+  const preambuloMatch = clean.match(
+    /(?:O\s*PRESIDENTE\s*DA\s*REP(?:Ú|U)BLICA|AS\s*MESAS\s*DA\s*C\s*[ÂA]MARA|O\s*CONGRESSO\s*NACIONAL|FA[ÇC]O\s*SABER)/i
+  );
+  
+  if (preambuloMatch) {
+    const presIdx = clean.indexOf(preambuloMatch[0]);
     ementa = clean.substring(0, presIdx).replace(/\s+/g, ' ').trim();
     
-    const afterPresidente = clean.substring(presIdx);
-    const artMatch = afterPresidente.match(/Art\.\s*1[ºo°]?\s/);
+    const afterPreambulo = clean.substring(presIdx);
+    const artMatch = afterPreambulo.match(/(?:^|\n)\s*Art(?:igo)?\.\s*1[ºo°]?\b/i);
     if (artMatch) {
-      const artIdx = afterPresidente.indexOf(artMatch[0]);
-      preambulo = afterPresidente.substring(0, artIdx).replace(/\s+/g, ' ').trim();
-      clean = afterPresidente.substring(artIdx);
+      const artIdx = afterPreambulo.indexOf(artMatch[0]);
+      preambulo = afterPreambulo.substring(0, artIdx).replace(/\s+/g, ' ').trim();
+      clean = afterPreambulo.substring(artIdx);
     } else {
-      preambulo = afterPresidente.replace(/\s+/g, ' ').trim();
+      preambulo = afterPreambulo.replace(/\s+/g, ' ').trim();
       clean = '';
+    }
+  } else {
+    const artMatch = clean.match(/(?:^|\n)\s*Art(?:igo)?\.\s*1[ºo°]?\b/i);
+    if (artMatch) {
+      const artIdx = clean.indexOf(artMatch[0]);
+      const headerPart = clean.substring(0, artIdx).trim();
+      const blocks = headerPart.split('\n\n').filter(Boolean);
+      if (blocks.length > 1) {
+        ementa = blocks[0].replace(/\s+/g, ' ').trim();
+        preambulo = blocks.slice(1).join(' ').replace(/\s+/g, ' ').trim();
+      } else {
+        ementa = headerPart.replace(/\s+/g, ' ').trim();
+      }
+      clean = clean.substring(artIdx);
     }
   }
 
+  // 3. Artigos
   const artigos: { numero: string; texto: string }[] = [];
-  const artPattern = /(?=Art\.\s*\d+[ºo°]?(?:-[A-Z])?\s+(?![\.…]{3}))/;
+  const artPattern = /(?=(?:^|\n)\s*Art(?:igo)?\.\s*\d+[ºo°]?(?:-[A-Z])?\b)/g;
   const artParts = clean.split(artPattern).filter(s => s.trim());
 
   let assinatura = '';
@@ -130,17 +152,22 @@ function parseTextoCompleto(texto: string): ParsedLei {
     const trimmed = part.trim();
     if (!trimmed) continue;
     
-    if (/^Bras[ií]lia/.test(trimmed) || /^LUIZ\s+IN[ÁA]CIO/.test(trimmed)) {
+    if (
+      /^Bras[ií]lia/i.test(trimmed) ||
+      /^LUIZ\s+IN[ÁA]CIO/i.test(trimmed) ||
+      /^Deputad[oa]/i.test(trimmed) ||
+      /^Senador[a]?/i.test(trimmed)
+    ) {
       assinatura += (assinatura ? '\n' : '') + trimmed;
       continue;
     }
     
-    const numMatch = trimmed.match(/^(Art\.\s*\d+[ºo°]?(?:-[A-Z])?)/);
+    const numMatch = trimmed.match(/^(Art(?:igo)?\.\s*\d+[ºo°]?(?:-[A-Z])?)/i);
     if (numMatch) {
-      const numero = numMatch[1];
+      const numero = numMatch[1].replace(/\s+/g, ' ');
       let textoArt = trimmed.substring(numMatch[0].length).trim();
       
-      if (/^[\s\.…]{5,}/.test(textoArt) || /^\.{3,}/.test(textoArt.replace(/\s/g, ''))) {
+      if (/^[\s.…]{5,}/.test(textoArt) || /^\.{3,}/.test(textoArt.replace(/\s/g, ''))) {
         if (artigos.length > 0) {
           artigos[artigos.length - 1].texto += '\n' + trimmed;
         }
@@ -159,12 +186,20 @@ function parseTextoCompleto(texto: string): ParsedLei {
       }
       
       artigos.push({ numero, texto: normalizeArticleText(textoArt) });
+    } else {
+      if (trimmed.length > 0 && artigos.length > 0) {
+        if (/Secret[aá]ri[oa]|Presidente|Mesa/i.test(trimmed)) {
+          assinatura += (assinatura ? '\n' : '') + trimmed;
+        } else {
+          artigos[artigos.length - 1].texto += '\n\n' + trimmed;
+        }
+      }
     }
   }
   
   assinatura = assinatura.replace(/Este texto n(?:ã|a)o substitui[\s\S]*/i, '').replace(/\*+\s*$/, '').trim();
 
-  // Normalize signature: join broken name lines (e.g. "LUIZ" + "INÁCIO LULA DA SILVA" → single line)
+  // Normalize signature: join broken name lines
   const sigLines = assinatura.split('\n').filter(l => l.trim());
   const mergedSigLines: string[] = [];
   for (let i = 0; i < sigLines.length; i++) {
@@ -172,14 +207,12 @@ function parseTextoCompleto(texto: string): ParsedLei {
     const isName = /^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÚÜÇ\s]+$/.test(trimmed) && trimmed.length > 3;
     const startsWithBrasilia = /^Bras[ií]lia/i.test(trimmed);
     
-    // Check if next line is also an ALL-CAPS name — merge them
     const nextTrimmed = i + 1 < sigLines.length ? sigLines[i + 1].trim() : '';
     const nextIsName = /^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÚÜÇ\s]+$/.test(nextTrimmed) && nextTrimmed.length > 3;
     
     if (isName && nextIsName && !startsWithBrasilia) {
-      // Merge current + next as one name line
       mergedSigLines.push(trimmed + ' ' + nextTrimmed);
-      i++; // skip next
+      i++;
     } else if (isName || startsWithBrasilia) {
       mergedSigLines.push(trimmed);
     } else if (mergedSigLines.length > 0) {
@@ -272,17 +305,17 @@ const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
             {parsed ? (
               <>
                 {/* Title */}
-                {parsed.titulo && (
+                {(parsed.titulo || lei.numero_lei) && (
                   <h2 className="text-primary-light font-display text-lg font-bold text-center">
-                    {parsed.titulo}
+                    {parsed.titulo || lei.numero_lei}
                   </h2>
                 )}
 
                 {/* Ementa */}
-                {parsed.ementa && (
+                {(parsed.ementa || lei.ementa) && (
                   <div className="bg-card/50 border border-red-500/20 rounded-2xl p-3 sm:p-4">
                     <p className="text-red-400 font-body italic text-[15px] leading-relaxed">
-                      {parsed.ementa}
+                      {parsed.ementa || lei.ementa}
                     </p>
                   </div>
                 )}
@@ -295,7 +328,7 @@ const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
                 )}
 
                 {/* Artigos */}
-                {parsed.artigos.length > 0 && (
+                {parsed.artigos.length > 0 ? (
                   <div className="space-y-2">
                     {parsed.artigos.map((art, i) => {
                       const isFocused = focusMode ? focusedIndex === i : true;
@@ -336,7 +369,15 @@ const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
                       );
                     })}
                   </div>
-                )}
+                ) : lei.texto_completo ? (
+                  <div className="bg-card/40 border border-white/5 rounded-2xl p-4 sm:p-6 space-y-4">
+                    {lei.texto_completo.split('\n\n').filter(Boolean).map((paragraph, idx) => (
+                      <p key={idx} className="text-foreground/90 font-body text-[14px] leading-relaxed">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
 
                 {/* Assinatura */}
                 {parsed.assinatura && (
@@ -355,10 +396,39 @@ const LeiOrdinariaDetail = ({ lei, onBack }: LeiOrdinariaDetailProps) => {
                 )}
               </>
             ) : (
-              /* Fallback: show ementa only */
-              <p className="text-foreground font-body text-sm leading-relaxed">
-                {lei.ementa}
-              </p>
+              /* Fallback: se não houver parse mas houver texto completo */
+              lei.texto_completo ? (
+                <div className="space-y-4">
+                  {lei.numero_lei && (
+                    <h2 className="text-primary-light font-display text-lg font-bold text-center">
+                      {lei.numero_lei}
+                    </h2>
+                  )}
+                  {lei.ementa && (
+                    <div className="bg-card/50 border border-red-500/20 rounded-2xl p-3 sm:p-4">
+                      <p className="text-red-400 font-body italic text-[15px] leading-relaxed">
+                        {lei.ementa}
+                      </p>
+                    </div>
+                  )}
+                  <div className="bg-card/40 border border-white/5 rounded-2xl p-4 sm:p-6 space-y-4">
+                    {lei.texto_completo.split('\n\n').filter(Boolean).map((paragraph, idx) => (
+                      <p key={idx} className="text-foreground/90 font-body text-[14px] leading-relaxed">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-card/40 border border-white/5 rounded-2xl p-4 sm:p-6 space-y-3">
+                  <p className="text-foreground font-body text-sm leading-relaxed">
+                    {lei.ementa}
+                  </p>
+                  <p className="text-xs text-muted-foreground italic">
+                    Texto integral ainda não disponível localmente. Toque no botão abaixo para abrir a publicação no portal oficial do Planalto.
+                  </p>
+                </div>
+              )
             )}
 
             {/* Ver texto oficial */}
