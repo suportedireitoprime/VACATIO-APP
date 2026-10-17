@@ -64,19 +64,23 @@ export default function Radar360() {
   const [detailItem, setDetailItem] = useState<LeiOrdinaria | null>(null);
   const autoReextractedRef = useRef(false);
 
-  const centerDate = useMemo(() => getLatestDate() || new Date(), [items]);
+  const centerDate = useMemo(() => getLatestDate(items) || new Date(), [items]);
   const dayList = useMemo(() => getDayList(centerDate, 3), [centerDate]);
 
   const reload = useCallback(async () => {
-    const { data } = await supabase
-      .from('resenha_diaria' as any)
+    const { data } = await (supabase.from as unknown as (t: string) => {
+      select: (cols: string) => {
+        order: (col: string, opts: { ascending: boolean }) => {
+          limit: (n: number) => Promise<{ data: ResenhaItem[] | null }>;
+        };
+      };
+    })('resenha_diaria')
       .select('id,tipo_ato,numero_ato,ementa,url,data_publicacao,data_dou,texto_completo,explicacao')
       .order('data_dou', { ascending: false })
       .limit(300);
     if (data) {
-      const parsed = data as unknown as ResenhaItem[];
-      setItems(parsed);
-      setResenhaCache(parsed);
+      setItems(data);
+      setResenhaCache(data);
     }
   }, []);
 
@@ -142,15 +146,21 @@ export default function Radar360() {
           () => supabase.functions.invoke('popular-texto-resenha', { body: { id: item.id, force: true } }),
           { message: 'Sem internet — o texto integral desta publicação será carregado quando você reconectar.' },
         );
-        const { data } = await supabase
-          .from('resenha_diaria' as any)
+        type TextoExplicacaoRow = { texto_completo: string | null; explicacao: string | null };
+        const { data } = await (supabase.from as unknown as (t: string) => {
+          select: (cols: string) => {
+            eq: (col: string, val: string) => {
+              single: () => Promise<{ data: TextoExplicacaoRow | null }>;
+            };
+          };
+        })('resenha_diaria')
           .select('texto_completo,explicacao')
           .eq('id', item.id)
           .single();
-        const novoTexto = cleanText((data as any)?.texto_completo);
+        const novoTexto = cleanText(data?.texto_completo ?? null);
         if (novoTexto) {
           item.texto_completo = novoTexto;
-          item.explicacao = (data as any)?.explicacao ?? item.explicacao;
+          item.explicacao = data?.explicacao ?? item.explicacao;
           setDetailItem({ ...lei, texto_completo: novoTexto, explicacao: item.explicacao });
         }
       } catch { /* silencioso */ }
@@ -167,11 +177,12 @@ export default function Radar360() {
         body: { origem: 'manual', notify: false },
       });
       if (error) throw error;
-      const n = (data as any)?.novos ?? 0;
+      const n = (data as { novos?: number } | null)?.novos ?? 0;
       toast.success(n > 0 ? `${n} nova(s) publicação(ões) encontrada(s)` : 'Nenhuma novidade agora', { id: 'radar-scrape' });
       await reload();
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Falha ao atualizar', { id: 'radar-scrape' });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Falha ao atualizar';
+      toast.error(msg, { id: 'radar-scrape' });
     } finally {
       setRefreshing(false);
     }

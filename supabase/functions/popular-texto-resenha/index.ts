@@ -137,8 +137,8 @@ async function gerarExplicacao(numero: string, tipo: string, texto: string): Pro
       }),
     });
     if (!res.ok) return null;
-    const data = await res.json();
-    const out = data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text ?? "").join("\n").trim();
+    const data = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+    const out = data?.candidates?.[0]?.content?.parts?.map((p) => p?.text ?? "").join("\n").trim();
     return out || null;
   } catch (e) {
     console.warn("explicacao err", e);
@@ -146,16 +146,44 @@ async function gerarExplicacao(numero: string, tipo: string, texto: string): Pro
   }
 }
 
-Deno.serve(async (req) => {
+interface RequestBody {
+  id?: string;
+  ids?: string[];
+  force?: boolean;
+  limit?: number;
+  skipExplicacao?: boolean;
+}
+
+interface ResenhaRow {
+  id: string;
+  tipo_ato: string | null;
+  numero_ato: string | null;
+  url: string | null;
+  texto_completo: string | null;
+  explicacao: string | null;
+}
+
+interface ProcessResult {
+  id: string;
+  ok?: boolean;
+  skipped?: boolean;
+  reason?: string;
+  error?: string;
+  finalUrl?: string;
+  chars?: number;
+  hasExplicacao?: boolean;
+}
+
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
-  let body: any = {};
-  try { body = await req.json(); } catch { /* empty body allowed */ }
+  let body: RequestBody = {};
+  try { body = (await req.json()) as RequestBody; } catch { /* empty body allowed */ }
   const { id, ids, force = false, limit = 25, skipExplicacao = false } = body ?? {};
 
   // Load target rows
-  let rows: any[] = [];
+  let rows: ResenhaRow[] = [];
   const wantedIds: string[] = Array.isArray(ids) ? ids.filter(Boolean) : [];
   if (id) wantedIds.push(id);
 
@@ -165,7 +193,7 @@ Deno.serve(async (req) => {
       .select("id,tipo_ato,numero_ato,url,texto_completo,explicacao")
       .in("id", wantedIds);
     if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
-    rows = data ?? [];
+    rows = (data as ResenhaRow[]) ?? [];
   } else {
     const { data, error } = await supabase
       .from("resenha_diaria")
@@ -175,10 +203,10 @@ Deno.serve(async (req) => {
       .order("data_dou", { ascending: false })
       .limit(Math.min(Math.max(limit, 1), 50));
     if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
-    rows = data ?? [];
+    rows = (data as ResenhaRow[]) ?? [];
   }
 
-  const results: any[] = [];
+  const results: ProcessResult[] = [];
   for (const row of rows) {
     try {
       const hasText = (row.texto_completo ?? "").trim().length >= 400;
@@ -210,8 +238,9 @@ Deno.serve(async (req) => {
         continue;
       }
       results.push({ id: row.id, ok: true, chars: text.length, hasExplicacao: !!explicacao });
-    } catch (e: any) {
-      results.push({ id: row.id, error: String(e?.message ?? e) });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.push({ id: row.id, error: msg });
     }
   }
 

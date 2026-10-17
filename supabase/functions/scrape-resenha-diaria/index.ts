@@ -157,7 +157,7 @@ function parseResenhaHTML(html: string): AtoExtraido[] {
   return atos;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
     const b = await req.json();
     if (b?.origem) origem = String(b.origem);
     if (b?.notify === false) notify = false;
-    if (Array.isArray(b?.meses)) mesesCustom = b.meses.map((m: any) => String(m).padStart(2, "0"));
+    if (Array.isArray(b?.meses)) mesesCustom = b.meses.map((m: unknown) => String(m).padStart(2, "0"));
     if (Array.isArray(b?.urls)) urlsCustom = b.urls.map(String);
     if (b?.ano) anoCustom = Number(b.ano);
     if (b?.inspectPortal) inspectPortal = true;
@@ -304,7 +304,7 @@ Deno.serve(async (req) => {
         .from("resenha_diaria")
         .select("url")
         .in("url", urls);
-      const existSet = new Set((existentes ?? []).map((r: any) => r.url));
+      const existSet = new Set(((existentes as Array<{ url: string }>) ?? []).map((r) => r.url));
       novosAtos = unique.filter(a => !existSet.has(a.url));
 
       const { data: inserted, error } = await supabase.from("resenha_diaria").upsert(
@@ -312,15 +312,15 @@ Deno.serve(async (req) => {
         { onConflict: "url", ignoreDuplicates: true }
       ).select("id,url");
       if (error) throw error;
-      const urlToId = new Map((inserted ?? []).map((r: any) => [r.url, r.id]));
+      const urlToId = new Map(((inserted as Array<{ id: string; url: string }>) ?? []).map((r) => [r.url, r.id]));
       // Para atos novos, pega o id via select por segurança
       if (novosAtos.length > 0) {
         const { data: idsRows } = await supabase
           .from("resenha_diaria")
           .select("id,url")
           .in("url", novosAtos.map(a => a.url));
-        for (const r of (idsRows ?? []) as any[]) urlToId.set(r.url, r.id);
-        novosIds = novosAtos.map(a => urlToId.get(a.url)).filter(Boolean);
+        for (const r of ((idsRows as Array<{ id: string; url: string }>) ?? [])) urlToId.set(r.url, r.id);
+        novosIds = novosAtos.map(a => urlToId.get(a.url)).filter((id): id is string => Boolean(id));
       }
     }
 

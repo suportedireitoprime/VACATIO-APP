@@ -506,20 +506,27 @@ function ExplicacaoTab({ lei }: { lei: LeiOrdinaria }) {
         body: { id: lei.id, only_explicacao: true, force: true },
       });
       if (error) throw error;
-      const { data: row } = await supabase
-        .from('resenha_diaria' as any)
+      type ResenhaExplicacaoRow = { explicacao: string | null };
+      const { data: row } = await (supabase.from as unknown as (t: string) => {
+        select: (cols: string) => {
+          eq: (col: string, val: string) => {
+            single: () => Promise<{ data: ResenhaExplicacaoRow | null }>;
+          };
+        };
+      })('resenha_diaria')
         .select('explicacao')
         .eq('id', lei.id)
         .single();
-      const ex = (row as any)?.explicacao;
+      const ex = row?.explicacao;
       if (ex) {
         setExplicacao(ex);
         toast.success('Explicação gerada!');
       } else {
         toast.error('Não foi possível gerar a explicação agora.');
       }
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Falha ao gerar explicação');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Falha ao gerar explicação';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

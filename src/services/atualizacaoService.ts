@@ -31,9 +31,10 @@ export function getLatestDayCount(): number {
   return resenhaCache.filter(i => (i.data_dou || i.data_publicacao || '').slice(0, 10) === latest).length;
 }
 
-export function getLatestDate(): Date | null {
-  if (!resenhaCache || resenhaCache.length === 0) return null;
-  const dates = resenhaCache.map(i => (i.data_dou || i.data_publicacao || '').slice(0, 10)).filter(Boolean);
+export function getLatestDate(items?: ResenhaItem[]): Date | null {
+  const list = items && items.length > 0 ? items : resenhaCache;
+  if (!list || list.length === 0) return null;
+  const dates = list.map(i => (i.data_dou || i.data_publicacao || '').slice(0, 10)).filter(Boolean);
   if (dates.length === 0) return null;
   const latest = dates.sort().reverse()[0];
   const [y, m, d] = latest.split('-').map(Number);
