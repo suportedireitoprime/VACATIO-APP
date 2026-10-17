@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { withOnlineGuard, assertOnline } from '@/lib/onlineGuard';
-import { getResenhaCache, prefetchResenha, getLatestDate, type ResenhaItem } from '@/services/atualizacaoService';
+import { getResenhaCache, setResenhaCache, prefetchResenha, getLatestDate, type ResenhaItem } from '@/services/atualizacaoService';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import type { LeiOrdinaria } from '@/services/legislacaoService';
@@ -71,16 +71,29 @@ export default function Radar360() {
       .from('resenha_diaria' as any)
       .select('id,tipo_ato,numero_ato,ementa,url,data_publicacao,data_dou,texto_completo,explicacao')
       .order('data_dou', { ascending: false })
-      .limit(200);
-    if (data) setItems(data as unknown as ResenhaItem[]);
+      .limit(300);
+    if (data) {
+      const parsed = data as unknown as ResenhaItem[];
+      setItems(parsed);
+      setResenhaCache(parsed);
+    }
   }, []);
 
   useEffect(() => {
     const cached = getResenhaCache();
-    if (cached) { setItems(cached); setLoading(false); }
-    else { prefetchResenha().then(() => { const d = getResenhaCache(); if (d) setItems(d); setLoading(false); }); }
+    if (cached && cached.length > 0) {
+      setItems(cached);
+      setLoading(false);
+      reload();
+    } else {
+      prefetchResenha().then(() => {
+        const d = getResenhaCache();
+        if (d) setItems(d);
+        setLoading(false);
+      });
+    }
     try { localStorage.setItem('radar_leis_last_seen', new Date().toISOString()); } catch { /* ignore */ }
-  }, []);
+  }, [reload]);
 
   const availableDates = useMemo(() => {
     const set = new Set<string>();

@@ -19,6 +19,10 @@ export function getResenhaCache(): ResenhaItem[] | null {
   return resenhaCache;
 }
 
+export function setResenhaCache(data: ResenhaItem[]): void {
+  resenhaCache = data;
+}
+
 export function getLatestDayCount(): number {
   if (!resenhaCache || resenhaCache.length === 0) return 0;
   const dates = resenhaCache.map(i => (i.data_dou || i.data_publicacao || '').slice(0, 10)).filter(Boolean);
@@ -36,8 +40,8 @@ export function getLatestDate(): Date | null {
   return new Date(y, m - 1, d);
 }
 
-export async function prefetchResenha(): Promise<void> {
-  if (resenhaCache) return;
+export async function prefetchResenha(force = false): Promise<void> {
+  if (resenhaCache && !force) return;
   if (fetchPromise) return fetchPromise;
 
   fetchPromise = (async () => {

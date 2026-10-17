@@ -170,14 +170,37 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  // Parse body para conhecer origem/notify
+  // Parse body para conhecer origem/notify e parâmetros de backfill
   let origem = "cron";
   let notify = true;
+  let mesesCustom: string[] | null = null;
+  let urlsCustom: string[] | null = null;
+  let anoCustom: number | null = null;
+  let inspectPortal = false;
   try {
     const b = await req.json();
     if (b?.origem) origem = String(b.origem);
     if (b?.notify === false) notify = false;
+    if (Array.isArray(b?.meses)) mesesCustom = b.meses.map((m: any) => String(m).padStart(2, "0"));
+    if (Array.isArray(b?.urls)) urlsCustom = b.urls.map(String);
+    if (b?.ano) anoCustom = Number(b.ano);
+    if (b?.inspectPortal) inspectPortal = true;
   } catch { /* body opcional */ }
+
+  if (inspectPortal) {
+    const rootHtml = await fetchPage("https://www4.planalto.gov.br/legislacao/portal-legis/resenha-diaria");
+    const linkMatches: string[] = [];
+    if (rootHtml) {
+      const re = /href="(https?:\/\/[^"]*planalto\.gov\.br\/legislacao\/portal-legis\/resenha-diaria\/[^"]*)"/gi;
+      let m;
+      while ((m = re.exec(rootHtml)) !== null) {
+        if (!linkMatches.includes(m[1])) linkMatches.push(m[1]);
+      }
+    }
+    return new Response(JSON.stringify({ links: linkMatches, htmlLen: rootHtml?.length ?? 0 }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   // Cria linha de run
   const { data: runRow } = await supabase
@@ -189,34 +212,87 @@ Deno.serve(async (req) => {
 
   try {
     const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const curYear = now.getFullYear();
     const curMonth = String(now.getMonth() + 1).padStart(2, "0");
     const prevMonth = String(now.getMonth() === 0 ? 12 : now.getMonth()).padStart(2, "0");
-    const curYear = now.getFullYear();
     const prevYear = now.getMonth() === 0 ? curYear - 1 : curYear;
+    const targetYear = anoCustom ?? curYear;
 
     const allAtos: AtoExtraido[] = [];
+    const scrapedUrls: string[] = [];
 
-    // O URL genérico (mês sem ano) é o que o Planalto mantém atualizado.
-    // Os URLs com ano explícito costumam ser stubs vazios; ficam como fallback.
-    const monthSlugCur = MESES_URL[curMonth];
-    const monthSlugPrev = MESES_URL[prevMonth];
-    const urlsCur = [
-      `https://www4.planalto.gov.br/legislacao/portal-legis/resenha-diaria/${monthSlugCur}`,
-      `https://www4.planalto.gov.br/legislacao/portal-legis/resenha-diaria/${curYear}/${monthSlugCur}-${curYear}`,
-    ];
-    for (const u of urlsCur) {
-      const html = await fetchPage(u);
-      if (html) { allAtos.push(...parseResenhaHTML(html)); break; }
-    }
-
-    if (now.getDate() <= 5 || allAtos.length === 0) {
-      const urlsPrev = [
-        `https://www4.planalto.gov.br/legislacao/portal-legis/resenha-diaria/${monthSlugPrev}`,
-        `https://www4.planalto.gov.br/legislacao/portal-legis/resenha-diaria/${prevYear}/${monthSlugPrev}-${prevYear}`,
+    const getCandidates = (monthStr: string, y: number) => {
+      const slug = MESES_URL[monthStr];
+      if (!slug) return [];
+      const base = slug.replace("-resenha-diaria", "");
+      return [
+        `https://www4.planalto.gov.br/legislacao/portal-legis/resenha-diaria/${slug}`,
+        `https://www4.planalto.gov.br/legislacao/portal-legis/resenha-diaria/${y}/${slug}-${y}`,
+        `https://www4.planalto.gov.br/legislacao/portal-legis/resenha-diaria/${y}/${slug}`,
+        `https://www4.planalto.gov.br/legislacao/portal-legis/resenha-diaria/${y}/${base}`,
+        `https://www4.planalto.gov.br/legislacao/portal-legis/resenha-diaria/${y}/${base}-${y}`,
       ];
-      for (const u of urlsPrev) {
+    };
+
+    if (urlsCustom && urlsCustom.length > 0) {
+      for (const u of urlsCustom) {
+        console.log(`Scraping custom URL: ${u}`);
         const html = await fetchPage(u);
-        if (html) { allAtos.push(...parseResenhaHTML(html)); break; }
+        if (html) {
+          const parsed = parseResenhaHTML(html);
+          allAtos.push(...parsed);
+          scrapedUrls.push(`${u} (${parsed.length} atos)`);
+        } else {
+          scrapedUrls.push(`${u} (falhou/vazio)`);
+        }
+      }
+    } else if (mesesCustom && mesesCustom.length > 0) {
+      for (const m of mesesCustom) {
+        const candidates = getCandidates(m, targetYear);
+        let found = false;
+        for (const u of candidates) {
+          console.log(`Trying candidate for month ${m}: ${u}`);
+          const html = await fetchPage(u);
+          if (html) {
+            const parsed = parseResenhaHTML(html);
+            if (parsed.length > 0) {
+              allAtos.push(...parsed);
+              scrapedUrls.push(`${u} (${parsed.length} atos)`);
+              found = true;
+              break;
+            }
+          }
+        }
+        if (!found) scrapedUrls.push(`mes ${m} (nenhum candidato retornou atos)`);
+      }
+    } else {
+      // Comportamento padrão (cron diário): mês atual + mês anterior se início do mês
+      const candidatesCur = getCandidates(curMonth, curYear);
+      for (const u of candidatesCur) {
+        const html = await fetchPage(u);
+        if (html) {
+          const parsed = parseResenhaHTML(html);
+          if (parsed.length > 0) {
+            allAtos.push(...parsed);
+            scrapedUrls.push(`${u} (${parsed.length} atos)`);
+            break;
+          }
+        }
+      }
+
+      if (now.getDate() <= 5 || allAtos.length === 0) {
+        const candidatesPrev = getCandidates(prevMonth, prevYear);
+        for (const u of candidatesPrev) {
+          const html = await fetchPage(u);
+          if (html) {
+            const parsed = parseResenhaHTML(html);
+            if (parsed.length > 0) {
+              allAtos.push(...parsed);
+              scrapedUrls.push(`${u} (${parsed.length} atos)`);
+              break;
+            }
+          }
+        }
       }
     }
 
@@ -296,7 +372,7 @@ Deno.serve(async (req) => {
         .eq("id", runId);
     }
 
-    return new Response(JSON.stringify({ message: `Scraped ${unique.length} atos`, count: unique.length, novos: novosAtos.length, run_id: runId }),
+    return new Response(JSON.stringify({ message: `Scraped ${unique.length} atos`, count: unique.length, novos: novosAtos.length, run_id: runId, urls: scrapedUrls }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("Error:", err);
