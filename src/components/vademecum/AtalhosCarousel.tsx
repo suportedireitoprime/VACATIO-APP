@@ -5,7 +5,7 @@ import {
   BookText, Baby, Newspaper, ChevronRight, Gavel as GavelIcon,
   LayoutDashboard, Heart, Columns3, Stamp, Clock, BookMarked, X, Search, Mic, MicOff, HeartOff,
   Home, Sword, Handshake, Briefcase, ShoppingCart, Car, Vote, Trees, Ship, Plane,
-  Droplets, Pickaxe, Radio, Users, Accessibility, Building2, Trophy, Sparkles,
+  Droplets, Pickaxe, Radio, Users, Accessibility, Building2, Trophy, GraduationCap,
   Mountain, Globe2, Store, Ribbon, Palette, Tent, HeartPulse,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -49,7 +49,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   ed: Sword,             // Desarmamento
   eoab: Scale,           // OAB
   et: Trophy,            // Torcedor
-  ej: Sparkles,          // Juventude
+  ej: GraduationCap,     // Juventude
   em: Shield,            // Militares
   eind: Tent,            // Índio
   eterra: Mountain,      // Terra

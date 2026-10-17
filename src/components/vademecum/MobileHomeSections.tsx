@@ -117,7 +117,7 @@ const CATEGORIA_CARDS: AreaCat[] = [
   { id: 'cat-decreto', label: 'Decretos', sublabel: 'Regulamentos do Poder Executivo', icon: Stamp, color: '#06B6D4', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto nº') && !l.descricao.includes('Decreto-Lei')).map(l => l.id) },
   { id: 'cat-decreto-lei', label: 'Decretos-Leis', sublabel: 'Atos com força de lei', icon: Stamp, color: '#F97316', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto-Lei')).map(l => l.id) },
   { id: 'cat-mp', label: 'Medidas Provisórias', sublabel: 'Medidas do Poder Executivo', icon: FileWarning, color: '#EF4444', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Medida Provisória') || l.descricao.includes('MPv')).map(l => l.id) },
-  { id: 'cat-leis-especiais', label: 'Leis Especiais', sublabel: 'Legislação extravagante e especial', icon: Sparkles, color: '#EC4899', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'lei-especial' || l.tipo === 'previdenciario').map(l => l.id) },
+  { id: 'cat-leis-especiais', label: 'Leis Especiais', sublabel: 'Legislação extravagante e especial', icon: BookMarked, color: '#EC4899', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'lei-especial' || l.tipo === 'previdenciario').map(l => l.id) },
 ];
 
 const OAB_CARDS: AreaCat[] = [
@@ -248,6 +248,64 @@ const LAW_ICON_MAP: Record<string, LucideIcon> = {
   lfl: Vote,
   lsa: BriefcaseBusiness,
   lpi: HandCoins,
+  loman: Gavel,
+  lat: ShieldAlert,
+  lch: ShieldAlert,
+  ltort: ShieldAlert,
+  lca: TreePine,
+  lrac: Users,
+  llav: CircleDollarSign,
+  lpaf: FileText,
+  lcp: ShieldAlert,
+  lomp: Landmark,
+  lda: NotebookPen,
+  lace: ShieldAlert,
+  lcon: Building,
+  lppp: Handshake,
+  lhd: FileLock,
+  lmi: FileCheck,
+  lcsf: PiggyBank,
+  lpt: ShieldCheck,
+  lpsu: LandPlot,
+  lalp: Baby,
+  lalim: HeartPulse,
+  lcade: Scale,
+  lci: RadioTower,
+  line: Vote,
+  lotcu: Landmark,
+  lle: CircleDollarSign,
+  ces: IdCard,
+  lmls: Store,
+  lrt: ReceiptText,
+  // Leis Especiais — Extravagantes Federais
+  'lei-desapropriacao': House,
+  'lei-identificacao-criminal': IdCard,
+  'lei-adpf': Landmark,
+  'lei-adi-adc': Scale,
+  'lei-juizados-fazenda': Building,
+  'lei-juizados-federais': Scale,
+  'lei-crimes-responsabilidade': Gavel,
+  'lei-crimes-tributario': CircleDollarSign,
+  'lei-defensoria': Scale,
+  'lei-governo-digital': Globe,
+  'lei-residuos-solidos': TreePine,
+  'lei-superendividamento': CircleDollarSign,
+  'lei-greve': Users,
+  'lei-prisao-temporaria': ShieldAlert,
+  'lei-pacote-anticrime': ShieldCheck,
+  'lei-meio-ambiente': TreePine,
+  'lei-recursos-hidricos': Droplets,
+  'lei-mediacao': Handshake,
+  'lei-execucao-fiscal': ReceiptText,
+  'lei-henry-borel': Baby,
+  'lei-escuta-protegida': Shield,
+  'lei-sinase': GraduationCap,
+  'lei-oscip': Building,
+  // Previdenciário
+  lbps: HeartPulse,
+  lcss: HandCoins,
+  lpc: PiggyBank,
+  loas: HeartPulse,
 };
 
 const normalizeSearch = (value: string) =>
@@ -865,7 +923,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                 ) : (
                 <div className="space-y-2">
                   {filteredCategoryItems.map((lei, i) => {
-                    const LawIcon = LAW_ICON_MAP[lei.id] || CategorySheetIcon;
+                    const LawIcon = LAW_ICON_MAP[lei.id] || (CategorySheetIcon === Sparkles ? BookMarked : CategorySheetIcon);
                     
                     let displayLabel = lei.nome;
                     let displaySublabel = lei.descricao;
