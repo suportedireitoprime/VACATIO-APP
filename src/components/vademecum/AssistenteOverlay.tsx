@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { PageHeader } from '@/components/vademecum/PageHeader';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send, Sparkles, Plus, Globe, History as HistoryIcon,
   FileDown, Layers, HelpCircle, GitBranch, Paperclip, X, Check, Loader2, Zap, FileText, Image as ImageIcon,
-  BookOpen, Share2, Scale, Mic, Camera, Music, Brain, ChevronDown,
+  BookOpen, Share2, Scale, Mic, Camera, Music, Brain, ChevronDown, ArrowLeft,
 } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import ReactMarkdown from 'react-markdown';
@@ -181,6 +180,14 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Auto-dimensionamento da altura do textarea conforme digitação
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
+    }
+  }, [input]);
+
   useEffect(() => { if (open) { setSessions(loadSessions()); } }, [open]);
 
   // Sugestões variam cada vez que o chat abre
@@ -300,6 +307,15 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
       web_search: webSearch,
       message_length: text.length,
     });
+
+    const userMsg: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: text,
+      attachment: attachment || undefined,
+      createdAt: Date.now(),
+    };
+
     const asMsgId = crypto.randomUUID();
     const assistantMsgPlaceholder: Message = {
       id: asMsgId,
@@ -327,6 +343,7 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
 
     try {
       const systemInstruction = `Você é um assistente jurídico especializado em Direito Brasileiro.
+${webSearch ? 'MODO PESQUISA NA WEB ATIVADO: Forneça informações jurídicas atualizadas, jurisprudências recentes dos tribunais superiores (STF, STJ) e novidades legislativas.' : ''}
 REGRAS DE ESTILO E FORMATO:
 - Seja direto, técnico e didático. Primeira linha já responde à questão sem saudações ou preâmbulos.
 - Cite artigos e leis com exatidão no formato canônico ("art. X da CF", "art. Y do CP", etc.).
@@ -345,7 +362,9 @@ REGRAS DE ESTILO E FORMATO:
           { role: 'system', content: systemInstruction },
           ...newMessages.slice(0, -1).map(m => ({
             role: m.role === 'assistant' ? ('assistant' as const) : m.role === 'user' ? ('user' as const) : ('system' as const),
-            content: m.content
+            content: m.attachment
+              ? `${m.content ? m.content + '\n\n' : ''}[Arquivo Anexado: ${m.attachment.name}]`
+              : m.content
           }))
         ],
         temperature: 0.7,
@@ -562,29 +581,72 @@ REGRAS DE ESTILO E FORMATO:
 
           {/* Main column */}
           <div className="flex-1 flex flex-col min-w-0 min-h-0">
-          {/* Header */}
-          {!isDesktop && <PageHeader
-            title="Chat Jurídico"
-            subtitle="Assistente Jurídico • IA"
-            onBack={onClose}
-            rightAction={
+          {/* Header Mobile: Botão Voltar + Pesquisar na Internet centralizado + Histórico (sem títulos) */}
+          {!isDesktop && (
+            <header
+              className="flex items-center justify-between gap-2 px-3 py-2 shrink-0 bg-background/95 backdrop-blur-md border-b border-border/70 z-10"
+              style={{
+                paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 0.6rem)',
+                paddingLeft: 'calc(1rem + var(--sai-left, env(safe-area-inset-left, 0px)))',
+                paddingRight: 'calc(1rem + var(--sai-right, env(safe-area-inset-right, 0px)))',
+                minHeight: 'calc(4rem + var(--sai-top, env(safe-area-inset-top, 0px)))',
+              }}
+            >
+              {/* Botão Voltar */}
               <button
-                onClick={() => setHistoryOpen(true)}
-                aria-label="Histórico"
-                className="w-12 h-12 md:w-11 md:h-11 rounded-full bg-muted flex items-center justify-center active:scale-95 transition-transform"
+                type="button"
+                onClick={onClose}
+                aria-label="Voltar"
+                className="w-11 h-11 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center shrink-0 active:scale-95 transition-all text-foreground select-none"
               >
-                <HistoryIcon className="w-[20px] h-[20px] text-foreground" />
+                <ArrowLeft className="w-5 h-5" />
               </button>
-            }
-          />}
 
+              {/* Botão Pesquisar na Internet centralizado */}
+              <button
+                type="button"
+                onClick={toggleWebSearch}
+                aria-pressed={webSearch}
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-medium transition-all active:scale-95 shadow-xs select-none ${
+                  webSearch
+                    ? 'bg-accent/15 border-accent text-accent shadow-accent/10 ring-1 ring-accent/30'
+                    : 'bg-muted/70 border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                <Globe className={`w-3.5 h-3.5 transition-colors ${webSearch ? 'text-accent' : 'text-muted-foreground'}`} />
+                <span className="text-[12px] font-sans font-medium">Pesquisar na internet</span>
+                <span
+                  className={`w-7 h-4 rounded-full flex items-center px-0.5 transition-colors ${
+                    webSearch ? 'bg-accent justify-end' : 'bg-muted-foreground/30 justify-start'
+                  }`}
+                >
+                  <motion.span layout className="w-3 h-3 rounded-full bg-white shadow-xs" />
+                </span>
+              </button>
 
+              {/* Botão Histórico */}
+              <button
+                type="button"
+                onClick={() => setHistoryOpen(true)}
+                aria-label="Histórico de conversas"
+                className="w-11 h-11 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center shrink-0 active:scale-95 transition-all text-foreground select-none"
+              >
+                <HistoryIcon className="w-5 h-5" />
+              </button>
+            </header>
+          )}
 
           {/* Messages */}
           <div ref={scrollRef} onScroll={handleScroll} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-4 space-y-3 relative">
             <div className={isDesktop ? 'max-w-3xl mx-auto w-full space-y-3' : 'contents'}>
             {messages.length === 0 && !loading && (
-              <BrainEmptyState suggestions={suggestions} onSelect={(q) => setInput(q)} />
+              <BrainEmptyState
+                suggestions={suggestions}
+                onSelect={(q) => {
+                  setInput(q);
+                  setTimeout(() => textareaRef.current?.focus(), 50);
+                }}
+              />
             )}
 
             {messages.map(msg => {
@@ -765,88 +827,101 @@ REGRAS DE ESTILO E FORMATO:
           <div className={
             isDesktop
               ? 'relative px-6 pt-2 pb-6 bg-gradient-to-t from-background via-background to-transparent'
-              : 'relative px-3 pt-3 pb-[calc(0.75rem+var(--sai-bottom,var(--sai-bottom)))] border-t border-border bg-card/95 backdrop-blur-md'
+              : 'relative px-3 pt-2 pb-[calc(0.75rem+var(--sai-bottom,0px))] border-t border-border/60 bg-background/95 backdrop-blur-md'
           }>
-            <div className={isDesktop ? 'max-w-3xl mx-auto w-full rounded-3xl bg-secondary/95 border border-border shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] p-2' : 'contents'}>
-            {attachment && (
-              <div className="mb-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/80 border border-border">
-                <Paperclip className="w-4 h-4 text-accent" />
-                <span className="text-xs font-body text-foreground truncate flex-1">{attachment.name}</span>
-                <button onClick={() => setAttachment(null)} className="p-1"><X className="w-3.5 h-3.5 text-muted-foreground" /></button>
-              </div>
-            )}
-            <div className="flex items-end gap-2 relative">
-              <button
-                onClick={() => abrirAnexos()}
-                aria-label="Anexar"
-                aria-expanded={attachOpen}
-                className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-transform ${attachOpen ? 'bg-accent text-accent-foreground rotate-45' : isDesktop ? 'bg-background/60 text-foreground hover:bg-background' : 'bg-secondary text-foreground'}`}
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                rows={1}
-                placeholder={voice.listening ? 'Ouvindo…' : 'Pergunte sobre leis, artigos...'}
-                className={isDesktop
-                  ? "flex-1 min-h-[44px] max-h-40 bg-transparent px-2 py-2.5 text-[15px] font-body text-foreground placeholder:text-muted-foreground focus:outline-none resize-none"
-                  : "flex-1 min-h-[64px] max-h-40 rounded-2xl bg-secondary border border-border px-4 py-4 text-[15px] font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent resize-none"}
-              />
-              {/* Botão híbrido: microfone quando input vazio, enviar quando há texto */}
-              {(input.trim() || attachment) ? (
+            <div className={isDesktop ? 'max-w-3xl mx-auto w-full' : 'w-full'}>
+              {/* Attachment chip if present */}
+              {attachment && (
+                <div className="mb-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary/90 border border-border shadow-xs max-w-full">
+                  <Paperclip className="w-3.5 h-3.5 text-accent shrink-0" />
+                  <span className="text-xs font-body text-foreground truncate max-w-[240px]">{attachment.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setAttachment(null)}
+                    aria-label="Remover anexo"
+                    className="p-1 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+
+              {/* Unified modern capsule */}
+              <div className="flex items-end gap-1.5 bg-secondary/70 hover:bg-secondary/90 border border-border/80 focus-within:border-accent/60 focus-within:ring-1 focus-within:ring-accent/40 rounded-[24px] p-1.5 transition-all shadow-sm">
                 <button
-                  onClick={sendMessage}
-                  disabled={loading}
-                  aria-label="Enviar"
-                  className="w-11 h-11 rounded-full bg-accent flex items-center justify-center disabled:opacity-40 shrink-0"
-                >
-                  <Send className="w-5 h-5 text-accent-foreground" />
-                </button>
-              ) : (
-                <button
-                  onClick={toggleMic}
-                  aria-label={voice.listening ? 'Parar gravação' : 'Falar'}
-                  className={`relative w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-colors active:scale-95 ${
-                    voice.listening ? 'bg-red-500 text-white' : 'bg-accent text-accent-foreground'
+                  type="button"
+                  onClick={() => abrirAnexos()}
+                  aria-label="Anexar arquivo"
+                  aria-expanded={attachOpen}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform ${
+                    attachOpen
+                      ? 'bg-accent text-accent-foreground rotate-45'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/60 active:scale-95'
                   }`}
                 >
-                  <Mic className="w-5 h-5" />
-                  {voice.listening && (
-                    <span className="absolute inset-0 rounded-full ring-4 ring-red-400/40 animate-ping" />
-                  )}
+                  <Plus className="w-5 h-5" />
                 </button>
-              )}
-            </div>
-            {/* Web search toggle abaixo do campo de texto (mobile apenas — no desktop, fica na sidebar) */}
-            {!isDesktop && <div className="mt-2 flex items-center justify-start">
-              <button
-                onClick={() => toggleWebSearch()}
-                aria-pressed={webSearch}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full border text-xs font-body transition-colors ${
-                  webSearch
-                    ? 'bg-accent/20 border-accent text-foreground'
-                    : 'bg-secondary border-border text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Globe className={`w-3.5 h-3.5 ${webSearch ? 'text-accent' : ''}`} />
-                Pesquisar na internet
-                <span className={`ml-1 w-8 h-4 rounded-full flex items-center px-0.5 transition-colors ${webSearch ? 'bg-accent justify-end' : 'bg-muted justify-start'}`}>
-                  <span className="w-3 h-3 rounded-full bg-background" />
-                </span>
-              </button>
-            </div>}
-            <input ref={fileInputRef} type="file" hidden
-              onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
+
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  rows={1}
+                  placeholder={voice.listening ? 'Ouvindo…' : 'Pergunte sobre leis, artigos...'}
+                  className="flex-1 min-h-[38px] max-h-36 bg-transparent px-1.5 py-2 text-[14.5px] leading-relaxed font-body text-foreground placeholder:text-muted-foreground/60 focus:outline-none resize-none"
+                />
+
+                {/* Send / Mic button */}
+                {(input.trim() || attachment) ? (
+                  <button
+                    type="button"
+                    onClick={sendMessage}
+                    disabled={loading || !!streamingId}
+                    aria-label="Enviar mensagem"
+                    className="w-9 h-9 rounded-full bg-accent text-accent-foreground flex items-center justify-center shrink-0 active:scale-95 transition-all disabled:opacity-40 shadow-sm"
+                  >
+                    <Send className="w-4.5 h-4.5" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={toggleMic}
+                    aria-label={voice.listening ? 'Parar gravação' : 'Falar'}
+                    className={`relative w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-95 shadow-sm ${
+                      voice.listening ? 'bg-red-500 text-white' : 'bg-muted/80 text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Mic className="w-4.5 h-4.5" />
+                    {voice.listening && (
+                      <span className="absolute inset-0 rounded-full ring-4 ring-red-400/40 animate-ping" />
+                    )}
+                  </button>
+                )}
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                hidden
+                onChange={e => {
+                  const f = e.target.files?.[0];
+                  if (f) handleFile(f);
+                  e.target.value = '';
+                }}
+              />
             </div>
           </div>
 
           {voice.listening && (
             <div
               className="fixed left-4 right-4 z-[64] pointer-events-none flex justify-center"
-              style={{ bottom: 'calc(11rem + var(--sai-bottom, var(--sai-bottom)))' }}
+              style={{ bottom: 'calc(7rem + var(--sai-bottom, var(--sai-bottom)))' }}
             >
               <div className="px-3 py-1.5 rounded-full bg-red-500/95 text-white text-[11px] font-body shadow-lg">
                 🎙️ Ouvindo… fale agora
@@ -868,7 +943,7 @@ REGRAS DE ESTILO E FORMATO:
                   exit={{ opacity: 0, y: 12, scale: 0.9 }}
                   transition={{ type: 'spring', damping: 22, stiffness: 320 }}
                   className="fixed left-3 z-[69] bg-card border border-border rounded-2xl shadow-2xl p-2 flex flex-col gap-1 min-w-[200px]"
-                  style={{ bottom: 'calc(9.5rem + var(--sai-bottom, var(--sai-bottom)))' }}
+                  style={{ bottom: 'calc(4.75rem + var(--sai-bottom, 0px))' }}
                 >
                   {[
                     {
