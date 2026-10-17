@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Library } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { COLECOES, normalizeLivro, type LivroNormalizado } from '@/lib/bibliotecaColecoes';
@@ -316,7 +316,7 @@ const RecomendacoesCarousel = ({ onAbrirLivro }: Props) => {
                   // Congela imediatamente qualquer auto-scroll suave em curso
                   // (o handler do scroller só roda depois, no bubbling).
                   const sc = scrollerRef.current;
-                  if (sc) sc.scrollLeft = sc.scrollLeft;
+                  if (sc) sc.scrollTo({ left: sc.scrollLeft });
                   tapRef.current = {
                     pointerId: e.pointerId,
                     x: e.clientX,
@@ -392,13 +392,32 @@ const RecomendacoesCarousel = ({ onAbrirLivro }: Props) => {
                       loading={i < 3 ? 'eager' : 'lazy'}
                       {...(i < 3 ? { fetchpriority: 'high' as any } : {})}
                       decoding="async"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.parentElement?.querySelector('[data-cover-fallback]');
+                        if (fallback) (fallback as HTMLElement).style.display = 'flex';
+                      }}
                       className="absolute inset-0 w-full h-full object-cover"
                     />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground p-2 text-center">
-                      {livro.titulo}
+                  ) : null}
+
+                  {/* Fallback caso não haja capa ou falhe o carregamento */}
+                  <div
+                    data-cover-fallback
+                    className={`absolute inset-0 p-3 flex flex-col justify-between text-center bg-gradient-to-b from-card via-card/90 to-background border border-border/40 ${
+                      livro.capa ? 'hidden' : 'flex'
+                    }`}
+                  >
+                    <div className="w-full flex justify-center pt-2">
+                      <Library className="w-6 h-6 text-primary/60" />
                     </div>
-                  )}
+                    <p className="font-display text-[12px] font-bold text-foreground line-clamp-3 leading-tight px-1">
+                      {livro.titulo}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground truncate px-1">
+                      {livro.autor || 'Clássico do Direito'}
+                    </p>
+                  </div>
 
                   {/* Reflexo/brilho que passa quando fica ativa */}
                   {isActive && (

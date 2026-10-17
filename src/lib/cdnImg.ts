@@ -122,21 +122,26 @@ export const safeStorageUrl = (url: string | null | undefined): string | null =>
   // Corrige barras duplicadas acidentais após o protocolo (ex: https://dominio//storage//v1)
   sanitized = sanitized.replace(/([^:]\/)\/+/g, '$1');
 
-  // Remapeia qualquer projeto Supabase legado para o projeto oficial ativo VACATIO-APP (tlpxubeagmxapkysgobk)
-  if (sanitized.includes('izspjvegxdfgkgibpyst.supabase.co') || sanitized.includes('dnjrgpldcwcpoywamorr.supabase.co') || sanitized.includes('vooaldsmaddplxhcaouw.supabase.co') || sanitized.includes('iftdrbxvekrhzstayjwp.supabase.co')) {
+  // Remapeia instâncias desativadas legadas (ex: vooaldsmaddplxhcaouw ou iftdrbxvekrhzstayjwp).
+  // IMPORTANTE: NUNCA substituir 'dnjrgpldcwcpoywamorr.supabase.co', pois é o storage host ativo onde vivem as capas da biblioteca ('biblioteca-obras') e as audioaulas.
+  if (sanitized.includes('vooaldsmaddplxhcaouw.supabase.co') || sanitized.includes('iftdrbxvekrhzstayjwp.supabase.co')) {
     sanitized = sanitized
-      .replace('izspjvegxdfgkgibpyst.supabase.co', 'tlpxubeagmxapkysgobk.supabase.co')
-      .replace('dnjrgpldcwcpoywamorr.supabase.co', 'tlpxubeagmxapkysgobk.supabase.co')
       .replace('vooaldsmaddplxhcaouw.supabase.co', 'tlpxubeagmxapkysgobk.supabase.co')
       .replace('iftdrbxvekrhzstayjwp.supabase.co', 'tlpxubeagmxapkysgobk.supabase.co');
   }
 
-  // Converte caminhos relativos conhecidos do bucket (ex: 'covers/minha-capa.webp' ou 'biblioteca-obras/...')
+  // Converte caminhos relativos conhecidos do bucket (ex: 'biblioteca-obras/...' ou 'covers/minha-capa.webp')
   if (!sanitized.startsWith('http://') && !sanitized.startsWith('https://') && !sanitized.startsWith('/') && !sanitized.startsWith('data:') && !sanitized.startsWith('blob:')) {
+    if (sanitized.startsWith('biblioteca-obras/')) {
+      return `https://dnjrgpldcwcpoywamorr.supabase.co/storage/v1/object/public/${sanitized}`;
+    }
     return `https://tlpxubeagmxapkysgobk.supabase.co/storage/v1/object/public/${sanitized}`;
   }
 
-  // Se for caminho absoluto sem domínio (ex: '/storage/v1/object/public/...')
+  // Se for caminho absoluto sem domínio (ex: '/storage/v1/object/public/biblioteca-obras/...')
+  if (sanitized.startsWith('/storage/v1/object/public/biblioteca-obras/')) {
+    return `https://dnjrgpldcwcpoywamorr.supabase.co${sanitized}`;
+  }
   if (sanitized.startsWith('/storage/v1/')) {
     return `https://tlpxubeagmxapkysgobk.supabase.co${sanitized}`;
   }

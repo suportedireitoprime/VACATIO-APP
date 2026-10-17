@@ -50,6 +50,10 @@ export const getPublicBucketUrl = (bucketName: string, path: string): string => 
     console.warn(`[storageBuckets] Tentativa de gerar URL pública para bucket privado: "${cleanBucket}". Utilize createSignedUrl().`);
   }
 
+  if (cleanBucket === 'biblioteca-obras') {
+    return `https://dnjrgpldcwcpoywamorr.supabase.co/storage/v1/object/public/${cleanBucket}/${cleanPath}`;
+  }
+
   return `https://tlpxubeagmxapkysgobk.supabase.co/storage/v1/object/public/${cleanBucket}/${cleanPath}`;
 };
 
