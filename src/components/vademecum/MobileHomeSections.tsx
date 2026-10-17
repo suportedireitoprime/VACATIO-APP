@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { getRecentes, LEIS_RECENTES_EVENT } from '@/lib/leisRecentes';
 import {
   Accessibility, Baby, Banknote, BookMarked, Briefcase, BriefcaseBusiness, Building,
-  Cannabis, Car, ChevronRight, CircleDollarSign, Clock, Columns3, Cross, Drama,
+  Cannabis, Car, ChevronDown, ChevronRight, CircleDollarSign, Clock, Columns3, Cross, Drama,
   Droplets, Factory, FileCheck, FileLock, FilePlus, FileText, FileWarning, Flame, Gavel,
   Globe, GraduationCap, HandCoins, Handshake, HeartPulse, Hospital, House, IdCard,
   Landmark, LandPlot, LayoutGrid, Leaf, List, Map, Mic, MicOff, Network, NotebookPen,
@@ -717,36 +717,34 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
-              className="fixed bottom-0 left-0 right-0 z-[1401] flex h-[90dvh] flex-col rounded-t-3xl border-t border-border bg-background pb-[calc(1rem+var(--sai-bottom,var(--sai-bottom)))]"
+              className="fixed inset-0 z-[1401] flex h-[100dvh] w-full flex-col bg-background pt-[max(0.5rem,var(--sai-top,0px))] pb-[calc(1rem+var(--sai-bottom,0px))]"
             >
-              <div className="flex items-center justify-center pt-2 pb-1">
+              <div className="flex items-center justify-center pt-1.5 pb-1">
                 <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
               </div>
-              <div className="flex items-center justify-between px-5 pb-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-secondary/70 flex items-center justify-center shrink-0">
-                    <CategorySheetIcon
-                      className="w-6 h-6"
-                      style={{ color: categoryOpen.color, filter: 'saturate(1.3) brightness(1.1)' }}
-                      strokeWidth={1.2}
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-card text-[18px] text-foreground font-semibold leading-tight truncate tracking-[-0.01em]">
-                      {categoryOpen.label}
-                    </h3>
-                    <p className="text-muted-foreground text-[12px] font-body leading-tight mt-1 truncate">
-                      {categoryOpen.sublabel}
-                    </p>
-                  </div>
-                </div>
+              <div className="flex items-center justify-between px-4 pb-3 pt-1">
                 <button
                   onClick={() => setCategoryOpen(null)}
                   aria-label="Fechar"
-                  className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-full bg-secondary/60 flex items-center justify-center shrink-0 hover:bg-secondary transition-colors"
+                  className="w-10 h-10 min-h-[40px] min-w-[40px] rounded-full bg-secondary/70 flex items-center justify-center shrink-0 hover:bg-secondary active:scale-95 transition-all"
                 >
-                  <X className="w-5 h-5 text-foreground" />
+                  <ChevronDown className="w-5 h-5 text-foreground" />
                 </button>
+                <div className="min-w-0 flex-1 px-3">
+                  <h3 className="font-card text-[17px] sm:text-[18px] text-foreground font-semibold leading-tight truncate tracking-[-0.01em]">
+                    {categoryOpen.label}
+                  </h3>
+                  <p className="text-muted-foreground text-[12px] font-body leading-tight mt-0.5 truncate">
+                    {categoryOpen.sublabel}
+                  </p>
+                </div>
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-secondary/70 flex items-center justify-center shrink-0">
+                  <CategorySheetIcon
+                    className="w-5 h-5 sm:w-6 sm:h-6"
+                    style={{ color: categoryOpen.color, filter: 'saturate(1.3) brightness(1.1)' }}
+                    strokeWidth={1.3}
+                  />
+                </div>
               </div>
               <div className="px-4 pb-3">
                 <div className="flex items-center gap-2.5">
@@ -781,20 +779,22 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               </div>
 
               {categoryOpen?.id !== 'cat-estadual' && (
-                <div className="px-4 pb-2 space-y-2">
-                  <div className="flex bg-secondary/60 rounded-2xl p-1.5 border border-border/50">
+                <div className="px-4 pb-2">
+                  <div className="inline-flex w-full sm:w-auto p-1 rounded-xl bg-secondary/50 border border-border/40 gap-1">
                     <button
+                      type="button"
                       onClick={() => setListFilter('todos')}
-                      className={`flex-1 min-h-[44px] rounded-xl text-[13.5px] font-medium transition-all ${
-                        listFilter === 'todos' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-white'
+                      className={`flex-1 sm:flex-initial sm:min-w-[120px] h-8 px-4 rounded-lg text-[12.5px] font-medium transition-all flex items-center justify-center gap-1.5 ${
+                        listFilter === 'todos' ? 'bg-primary text-white shadow-sm font-semibold' : 'text-muted-foreground hover:text-white'
                       }`}
                     >
                       Todos
                     </button>
                     <button
+                      type="button"
                       onClick={() => setListFilter('favoritos')}
-                      className={`flex-1 min-h-[44px] rounded-xl text-[13.5px] font-medium transition-all ${
-                        listFilter === 'favoritos' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-white'
+                      className={`flex-1 sm:flex-initial sm:min-w-[120px] h-8 px-4 rounded-lg text-[12.5px] font-medium transition-all flex items-center justify-center gap-1.5 ${
+                        listFilter === 'favoritos' ? 'bg-primary text-white shadow-sm font-semibold' : 'text-muted-foreground hover:text-white'
                       }`}
                     >
                       Favoritos
@@ -868,7 +868,9 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                     let displayLabel = lei.nome;
                     let displaySublabel = lei.descricao;
                     
-                    if (lei.tipo === 'estatuto') {
+                    if (lei.id === 'cf88') {
+                      displayLabel = 'Constituição';
+                    } else if (lei.tipo === 'estatuto') {
                       if (lei.id === 'eca') {
                         displayLabel = 'ECA';
                       } else if (lei.id === 'epd') {
