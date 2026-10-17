@@ -79,51 +79,51 @@ const ALL_CATS: Cat[] = [...GRID_CATS, ...LIST_CATS];
 interface AreaCat extends Cat { leiIds: string[]; }
 
 const AREA_CATS: AreaCat[] = [
-  { id: 'area-penal',          label: 'Penal',          sublabel: 'CP, CPP, LEP, Lei Maria da Penha…',          icon: ShieldAlert, color: '#EF4444', leiIds: ['cp','cpp','lep','lmp','ld','loc','laa','lcp','lch','ltort','lcsf','lpt','laa'] },
-  { id: 'area-civil',          label: 'Civil',          sublabel: 'CC, LI, LRP, alimentos, alienação…',          icon: House,       color: '#3B82F6', leiIds: ['cc','li','lrp','lalim','lalp','lgpd','mci','ld','laa'] },
-  { id: 'area-tributario',     label: 'Tributário',     sublabel: 'CTN, LRF, Reforma Tributária…',              icon: CircleDollarSign, color: '#10B981', leiIds: ['ctn','lrf','lrt'] },
-  { id: 'area-constitucional', label: 'Constitucional', sublabel: 'CF/88, LINDB, LPAF, LAI…',                  icon: Landmark,    color: '#FACC15', leiIds: ['cf88','lindb','lpaf','lai','lap','lap','lmi','lms','lhd'] },
-  { id: 'area-processual-civil',  label: 'Processual Civil',  sublabel: 'CPC, LJE, mandado de segurança…',       icon: FileText,    color: '#F59E0B', leiIds: ['cpc','lje','lms','lmi','lhd'] },
-  { id: 'area-processual-penal',  label: 'Processual Penal',  sublabel: 'CPP, interceptação, mandado…',        icon: ShieldCheck, color: '#F97316', leiIds: ['cpp','lit','lpt','lms'] },
-  { id: 'area-trabalho',       label: 'Trabalho',    sublabel: 'CLT, legislação trabalhista…',              icon: Briefcase,   color: '#8B5CF6', leiIds: ['clt'] },
-  { id: 'area-empresarial',    label: 'Empresarial',    sublabel: 'CCom, LSA, LF, arbitragem, startups…',      icon: Store,       color: '#A855F7', leiIds: ['ccom','lsa','lf','la','lpi','lace','lcon','lppp','lmls','lda','eme','lfl'] },
-  { id: 'area-administrativo', label: 'Administrativo', sublabel: 'LIA, LPAF, licitações, improbidade…',       icon: Building,    color: '#06B6D4', leiIds: ['lia','lpaf','nll','lai','lms','l8112','loman','lotcu','ces'] },
-  { id: 'area-eleitoral',      label: 'Eleitoral',      sublabel: 'CE, LPP, Lei das Eleições, Ficha Limpa…',   icon: Vote,        color: '#6366F1', leiIds: ['ce','lpp','lele','lfl','line'] },
-  { id: 'area-previdenciario', label: 'Previdenciário', sublabel: 'LBPS, LCSS, LPC, LOAS…',                    icon: HeartPulse,  color: '#14B8A6', leiIds: ['lbps','lcss','lpc','loas'] },
-  { id: 'area-ambiental',      label: 'Ambiental',      sublabel: 'Código Florestal, crimes ambientais, biossegurança…', icon: TreePine, color: '#16A34A', leiIds: ['cflor','lca','lbio'] },
-  { id: 'area-consumidor',     label: 'Consumidor',  sublabel: 'CDC, defesa do consumidor…',                icon: ShoppingCart, color: '#EC4899', leiIds: ['cdc'] },
-  { id: 'area-crianca-idoso',  label: 'Criança, Idoso e PCD',   sublabel: 'ECA, Estatuto do Idoso, EPD…',              icon: Baby,        color: '#F43F5E', leiIds: ['eca','ei','epd'] },
-  { id: 'area-militar',        label: 'Militar',        sublabel: 'CPM, CPPM, Estatuto dos Militares…',        icon: Shield,      color: '#64748B', leiIds: ['cpm','cppm','em'] },
-  { id: 'area-internacional',  label: 'Internacional',  sublabel: 'Estatuto da Migração, Refugiado…',          icon: Globe,       color: '#0891B2', leiIds: ['emig','eref'] },
+  { id: 'area-penal',          label: 'Penal',          sublabel: 'Crimes e execução penal',             icon: ShieldAlert, color: '#EF4444', leiIds: ['cp','cpp','lep','lmp','ld','loc','laa','lcp','lch','ltort','lcsf','lpt','laa'] },
+  { id: 'area-civil',          label: 'Civil',          sublabel: 'Pessoas, contratos e família',        icon: House,       color: '#3B82F6', leiIds: ['cc','li','lrp','lalim','lalp','lgpd','mci','ld','laa'] },
+  { id: 'area-tributario',     label: 'Tributário',     sublabel: 'Tributos e finanças públicas',        icon: CircleDollarSign, color: '#10B981', leiIds: ['ctn','lrf','lrt'] },
+  { id: 'area-constitucional', label: 'Constitucional', sublabel: 'Normas e direitos fundamentais',     icon: Landmark,    color: '#FACC15', leiIds: ['cf88','lindb','lpaf','lai','lap','lap','lmi','lms','lhd'] },
+  { id: 'area-processual-civil',  label: 'Processual Civil',  sublabel: 'Prazos, recursos e ritos cíveis', icon: FileText,    color: '#F59E0B', leiIds: ['cpc','lje','lms','lmi','lhd'] },
+  { id: 'area-processual-penal',  label: 'Processual Penal',  sublabel: 'Investigação, ritos e recursos',  icon: ShieldCheck, color: '#F97316', leiIds: ['cpp','lit','lpt','lms'] },
+  { id: 'area-trabalho',       label: 'Trabalho',       sublabel: 'Relações de emprego e direitos',      icon: Briefcase,   color: '#8B5CF6', leiIds: ['clt'] },
+  { id: 'area-empresarial',    label: 'Empresarial',    sublabel: 'Sociedades e direito empresarial',    icon: Store,       color: '#A855F7', leiIds: ['ccom','lsa','lf','la','lpi','lace','lcon','lppp','lmls','lda','eme','lfl'] },
+  { id: 'area-administrativo', label: 'Administrativo', sublabel: 'Servidores e gestão pública',        icon: Building,    color: '#06B6D4', leiIds: ['lia','lpaf','nll','lai','lms','l8112','loman','lotcu','ces'] },
+  { id: 'area-eleitoral',      label: 'Eleitoral',      sublabel: 'Partidos e processo eleitoral',       icon: Vote,        color: '#6366F1', leiIds: ['ce','lpp','lele','lfl','line'] },
+  { id: 'area-previdenciario', label: 'Previdenciário', sublabel: 'Benefícios e seguridade social',     icon: HeartPulse,  color: '#14B8A6', leiIds: ['lbps','lcss','lpc','loas'] },
+  { id: 'area-ambiental',      label: 'Ambiental',      sublabel: 'Meio ambiente e sustentabilidade',    icon: TreePine, color: '#16A34A', leiIds: ['cflor','lca','lbio'] },
+  { id: 'area-consumidor',     label: 'Consumidor',     sublabel: 'Direitos e relações de consumo',      icon: ShoppingCart, color: '#EC4899', leiIds: ['cdc'] },
+  { id: 'area-crianca-idoso',  label: 'Criança, Idoso e PCD', sublabel: 'Proteção integral e inclusão',  icon: Baby,        color: '#F43F5E', leiIds: ['eca','ei','epd'] },
+  { id: 'area-militar',        label: 'Militar',        sublabel: 'Direito e processo penal militar',    icon: Shield,      color: '#64748B', leiIds: ['cpm','cppm','em'] },
+  { id: 'area-internacional',  label: 'Internacional',  sublabel: 'Tratados e migração',                 icon: Globe,       color: '#0891B2', leiIds: ['emig','eref'] },
 ];
 
 interface CategoriaFormal extends Cat { route?: string; leiIds?: string[]; }
 
 const CATEGORIA_CATS: CategoriaFormal[] = [
-  { id: 'cat-federais',      label: 'Leis Federais',      sublabel: 'Constituição, Códigos, Estatutos…', icon: ScrollText, color: '#FACC15', leiIds: LEIS_CATALOG.map(l => l.id) },
+  { id: 'cat-federais',      label: 'Leis Federais',      sublabel: 'Constituição, códigos e estatutos', icon: ScrollText, color: '#FACC15', leiIds: LEIS_CATALOG.map(l => l.id) },
   { id: 'cat-estadual',      label: 'Legislação Estadual', sublabel: '27 unidades federativas',           icon: Map,        color: '#38BDF8', route: '/legislacao-estadual' },
-  { id: 'cat-jurisprudencia',label: 'Jurisprudência',      sublabel: 'STF, STJ, Súmulas Vinculantes',     icon: Gavel,      color: '#EC4899' },
+  { id: 'cat-jurisprudencia',label: 'Jurisprudência',      sublabel: 'Súmulas e precedentes',             icon: Gavel,      color: '#EC4899' },
   { id: 'cat-oab',           label: 'OAB',                 sublabel: 'Estatuto, ética e advocacia',       icon: Scale,      color: '#1D4ED8' },
-  { id: 'cat-decretos',      label: 'Decretos',            sublabel: 'Regulamentos do Executivo',         icon: Stamp,      color: '#FBBF24', route: '/normas/decretos' },
+  { id: 'cat-decretos',      label: 'Decretos',            sublabel: 'Regulamentos do Poder Executivo',   icon: Stamp,      color: '#FBBF24', route: '/normas/decretos' },
 ];
 
 const CATEGORIA_CARDS: AreaCat[] = [
   { id: 'cat-cf', label: 'Constituição Federal', sublabel: 'Constituição de 1988', icon: Landmark, color: '#FACC15', leiIds: ['cf88'] },
-  { id: 'cat-codigo', label: 'Códigos', sublabel: 'CP, CC, CPC, CPP...', icon: BookOpen, color: '#3B82F6', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'codigo').map(l => l.id) },
-  { id: 'cat-estatuto', label: 'Estatutos', sublabel: 'ECA, Estatuto do Idoso...', icon: Shield, color: '#10B981', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'estatuto').map(l => l.id) },
-  { id: 'cat-oab', label: 'OAB & Advocacia', sublabel: 'Códigos, Estatuto, Regulamento, Provimentos e Resoluções', icon: Scale, color: '#1D4ED8', leiIds: ['ced2015', 'ced1995', 'eoab', 'reg_oab', 'prov205', 'prov188', 'prov112', 'prov144', 'res02', 'res01'] },
-  { id: 'cat-lei', label: 'Leis Ordinárias', sublabel: 'Leis Federais Comuns', icon: FileText, color: '#F59E0B', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'lei-especial' && !l.descricao.includes('Decreto') && !l.descricao.includes('Complementar') && !l.descricao.includes('LC')).map(l => l.id) },
-  { id: 'cat-lei-complementar', label: 'Leis Complementares', sublabel: 'LC 101, etc', icon: FilePlus, color: '#8B5CF6', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Complementar') || l.descricao.includes('LC nº')).map(l => l.id) },
-  { id: 'cat-decreto', label: 'Decretos', sublabel: 'Regulamentos Executivos', icon: Stamp, color: '#06B6D4', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto nº') && !l.descricao.includes('Decreto-Lei')).map(l => l.id) },
-  { id: 'cat-decreto-lei', label: 'Decretos-Leis', sublabel: 'Decretos-Leis', icon: Stamp, color: '#F97316', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto-Lei')).map(l => l.id) },
-  { id: 'cat-mp', label: 'Medidas Provisórias', sublabel: 'MPs em tramitação', icon: FileWarning, color: '#EF4444', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Medida Provisória') || l.descricao.includes('MPv')).map(l => l.id) },
+  { id: 'cat-codigo', label: 'Códigos', sublabel: 'Principais códigos nacionais', icon: BookOpen, color: '#3B82F6', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'codigo').map(l => l.id) },
+  { id: 'cat-estatuto', label: 'Estatutos', sublabel: 'Principais estatutos nacionais', icon: Shield, color: '#10B981', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'estatuto').map(l => l.id) },
+  { id: 'cat-oab', label: 'OAB & Advocacia', sublabel: 'Normas e ética da advocacia', icon: Scale, color: '#1D4ED8', leiIds: ['ced2015', 'ced1995', 'eoab', 'reg_oab', 'prov205', 'prov188', 'prov112', 'prov144', 'res02', 'res01'] },
+  { id: 'cat-lei', label: 'Leis Ordinárias', sublabel: 'Legislação ordinária federal', icon: FileText, color: '#F59E0B', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'lei-especial' && !l.descricao.includes('Decreto') && !l.descricao.includes('Complementar') && !l.descricao.includes('LC')).map(l => l.id) },
+  { id: 'cat-lei-complementar', label: 'Leis Complementares', sublabel: 'Legislação complementar federal', icon: FilePlus, color: '#8B5CF6', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Complementar') || l.descricao.includes('LC nº')).map(l => l.id) },
+  { id: 'cat-decreto', label: 'Decretos', sublabel: 'Regulamentos do Poder Executivo', icon: Stamp, color: '#06B6D4', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto nº') && !l.descricao.includes('Decreto-Lei')).map(l => l.id) },
+  { id: 'cat-decreto-lei', label: 'Decretos-Leis', sublabel: 'Atos com força de lei', icon: Stamp, color: '#F97316', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Decreto-Lei')).map(l => l.id) },
+  { id: 'cat-mp', label: 'Medidas Provisórias', sublabel: 'Medidas do Poder Executivo', icon: FileWarning, color: '#EF4444', leiIds: LEIS_CATALOG.filter(l => l.descricao.includes('Medida Provisória') || l.descricao.includes('MPv')).map(l => l.id) },
 ];
 
 const OAB_CARDS: AreaCat[] = [
   {
     id: 'oab-codigos',
     label: 'Códigos',
-    sublabel: 'Código de Ética e Disciplina da OAB (CED 2015 e 1995)',
+    sublabel: 'Código de Ética e Disciplina',
     icon: Scale,
     color: '#EF4444',
     leiIds: ['ced2015', 'ced1995'],
@@ -131,7 +131,7 @@ const OAB_CARDS: AreaCat[] = [
   {
     id: 'oab-estatuto',
     label: 'Estatuto',
-    sublabel: 'Estatuto da Advocacia e da OAB · Lei nº 8.906/1994',
+    sublabel: 'Estatuto da Advocacia e da OAB',
     icon: Landmark,
     color: '#2563EB',
     leiIds: ['eoab'],
@@ -139,7 +139,7 @@ const OAB_CARDS: AreaCat[] = [
   {
     id: 'oab-regulamentos',
     label: 'Regulamentos',
-    sublabel: 'Regulamento Geral do Estatuto da Advocacia e da OAB',
+    sublabel: 'Regulamento Geral da OAB',
     icon: ScrollText,
     color: '#10B981',
     leiIds: ['reg_oab'],
@@ -147,7 +147,7 @@ const OAB_CARDS: AreaCat[] = [
   {
     id: 'oab-provimentos',
     label: 'Provimentos',
-    sublabel: 'Marketing Jurídico, Investigação Defensiva e mais',
+    sublabel: 'Provimentos do Conselho Federal',
     icon: FileText,
     color: '#F59E0B',
     leiIds: ['prov205', 'prov188', 'prov112', 'prov144'],
@@ -155,7 +155,7 @@ const OAB_CARDS: AreaCat[] = [
   {
     id: 'oab-resolucoes',
     label: 'Resoluções',
-    sublabel: 'Resoluções Normativas e Regimento Interno do CFOAB',
+    sublabel: 'Resoluções e regimento interno',
     icon: Stamp,
     color: '#8B5CF6',
     leiIds: ['res02', 'res01'],
@@ -435,7 +435,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       const haystack = normalizeSearch(`${lei.nome} ${lei.sigla} ${lei.descricao} ${(lei.tags || []).join(' ')}`);
       return haystack.includes(needle);
     });
-  }, [categoryItems, categorySearch, listFilter, categoryOpen, favoriteIds]);
+  }, [categoryItems, categorySearch, listFilter, favoriteIds]);
   const CategorySheetIcon = categoryOpen?.icon || BookMarked;
 
   // Lock background scroll while any bottom sheet is open

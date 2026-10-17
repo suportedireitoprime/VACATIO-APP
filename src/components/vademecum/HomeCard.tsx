@@ -62,7 +62,7 @@ const HomeCardImpl = ({
               }}
               strokeWidth={1.5}
             />
-            <p className="font-display text-foreground font-bold uppercase text-[15px] sm:text-[16px] tracking-wide leading-tight line-clamp-1 min-h-[24px] flex items-center">
+            <p className="font-card text-foreground font-semibold text-[14.5px] sm:text-[15.5px] tracking-[-0.015em] leading-snug line-clamp-1 min-h-[24px] flex items-center">
               {label}
             </p>
           </div>
@@ -70,7 +70,7 @@ const HomeCardImpl = ({
         <div className="flex items-end justify-between w-full mt-auto pt-1 gap-2">
           <div className="min-w-0 flex-1">
             {sublabel && (
-              <p className="font-body text-muted-foreground text-[11.5px] sm:text-[12px] leading-snug line-clamp-2">
+              <p className="font-body text-muted-foreground text-[11px] sm:text-[11.5px] leading-tight line-clamp-1 truncate">
                 {sublabel}
               </p>
             )}
@@ -92,11 +92,11 @@ const HomeCardImpl = ({
           <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
         </div>
         <div className="w-full min-w-0 mt-auto">
-          <p className="font-display text-foreground text-[15px] sm:text-[16px] font-bold uppercase tracking-wide leading-tight line-clamp-1">
+          <p className="font-card text-foreground font-semibold text-[14.5px] sm:text-[15.5px] tracking-[-0.015em] leading-snug line-clamp-1">
             {label}
           </p>
           {sublabel && (
-            <p className="font-body text-muted-foreground text-[11.5px] sm:text-[12px] leading-snug mt-0.5 line-clamp-2">
+            <p className="font-body text-muted-foreground text-[11px] sm:text-[11.5px] leading-tight mt-1 line-clamp-1 truncate">
               {sublabel}
             </p>
           )}
