@@ -1,37 +1,61 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Highlighter, Loader2, ChevronRight } from "lucide-react";
+import { Highlighter, Loader2, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/vademecum/PageHeader";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getLeiByTabela } from "@/data/leisCatalog";
 import { tipoToSlug, leiToSlug } from "@/lib/legislacaoSlugs";
-
-type Grifo = {
-  id: string;
-  tabela_codigo: string;
-  numero_artigo: string;
-  highlights: any;
-  updated_at: string;
-};
+import { getCache } from "@/lib/pessoalCache";
+import { listArtigosGrifos, ARTIGOS_GRIFOS_EVENT, type ArtigoGrifoRecord } from "@/lib/artigosGrifos";
 
 const GrifosPage = ({ onClose }: { onClose?: () => void }) => {
   const navigate = useNavigate();
-  const [grifos, setGrifos] = useState<Grifo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [grifos, setGrifos] = useState<ArtigoGrifoRecord[]>(() => {
+    const cached = getCache<ArtigoGrifoRecord[]>("grifos");
+    return Array.isArray(cached) ? cached.filter(g => Array.isArray(g.highlights) && g.highlights.length > 0) : [];
+  });
+  const [loading, setLoading] = useState(grifos.length === 0);
 
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("artigos_grifos")
-        .select("id, tabela_codigo, numero_artigo, highlights, updated_at")
-        .order("updated_at", { ascending: false });
-      setGrifos((data || []) as any);
+  const loadData = useCallback(async () => {
+    try {
+      const rows = await listArtigosGrifos();
+      setGrifos(rows);
+    } catch (err) {
+      console.warn("Erro ao carregar grifos:", err);
+    } finally {
       setLoading(false);
-    })();
+    }
   }, []);
 
-  const abrir = (g: Grifo) => {
+  useEffect(() => {
+    loadData();
+
+    // 1. Escuta eventos locais e entre abas em tempo real
+    const onEvent = () => loadData();
+    window.addEventListener(ARTIGOS_GRIFOS_EVENT, onEvent);
+    window.addEventListener("storage", onEvent);
+
+    // 2. Canal Supabase Realtime para sincronização instantânea
+    const channel = supabase
+      .channel("pessoal_artigos_grifos_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "artigos_grifos" },
+        () => {
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener(ARTIGOS_GRIFOS_EVENT, onEvent);
+      window.removeEventListener("storage", onEvent);
+      supabase.removeChannel(channel);
+    };
+  }, [loadData]);
+
+  const abrir = (g: ArtigoGrifoRecord) => {
     const lei = getLeiByTabela(g.tabela_codigo);
     if (!lei) return;
     const url = `/legislacao/${tipoToSlug(lei.tipo)}/${leiToSlug(lei)}/${encodeURIComponent(g.numero_artigo)}`;
@@ -39,8 +63,12 @@ const GrifosPage = ({ onClose }: { onClose?: () => void }) => {
   };
 
   // Group by lei
-  const grupos: Record<string, Grifo[]> = {};
-  for (const g of grifos) (grupos[g.tabela_codigo] ||= []).push(g);
+  const grupos: Record<string, ArtigoGrifoRecord[]> = {};
+  for (const g of grifos) {
+    if (Array.isArray(g.highlights) && g.highlights.length > 0) {
+      (grupos[g.tabela_codigo] ||= []).push(g);
+    }
+  }
 
   return (
     <div className={onClose ? "pb-6" : "min-h-dvh bg-background text-foreground pb-24"}>
@@ -54,11 +82,12 @@ const GrifosPage = ({ onClose }: { onClose?: () => void }) => {
         }
       />
 
-
       <div className="max-w-2xl mx-auto px-4 py-4">
         {loading ? (
-          <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
-        ) : grifos.length === 0 ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : Object.keys(grupos).length === 0 ? (
           <div className="text-center py-16 space-y-3">
             <Highlighter className="w-12 h-12 mx-auto text-muted-foreground/40" />
             <p className="text-muted-foreground">Você ainda não grifou nada.</p>
@@ -72,23 +101,31 @@ const GrifosPage = ({ onClose }: { onClose?: () => void }) => {
                 <div key={tabela} className="space-y-2">
                   <div className="flex items-center gap-2 px-1">
                     <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                      {lei?.sigla || tabela}
+                      {lei?.sigla || lei?.nome || tabela.toUpperCase()}
                     </span>
-                    <span className="text-[11px] text-muted-foreground bg-secondary rounded-full px-2 py-0.5 font-semibold">{itens.length}</span>
+                    <span className="text-[11px] text-muted-foreground bg-secondary rounded-full px-2 py-0.5 font-semibold">
+                      {itens.length}
+                    </span>
                   </div>
                   {itens.map((g) => {
                     const hl = Array.isArray(g.highlights) ? g.highlights : [];
-                    const preview = hl.find((h: any) => h?.text)?.text || "Grifo salvo";
+                    const firstHl = hl.find((h) => h?.text || h?.trechoExato);
+                    const preview = firstHl?.text || firstHl?.trechoExato || "Grifo salvo";
+                    const cor = firstHl?.color || firstHl?.cor || "rgba(234, 179, 8, 0.55)";
+
                     return (
                       <motion.button
-                        key={g.id}
+                        key={g.id || `${g.tabela_codigo}::${g.numero_artigo}`}
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         onClick={() => abrir(g)}
                         className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border hover:border-primary/40 transition-all text-left"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-yellow-500/15 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-yellow-400">Art.</span>
+                        <div
+                          className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-white/10"
+                          style={{ backgroundColor: cor }}
+                        >
+                          <span className="text-xs font-bold text-white drop-shadow-sm">Art.</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-foreground">Art. {g.numero_artigo}</p>

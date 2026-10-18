@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, ChevronRight, Bookmark } from "lucide-react";
 import { PageHeader } from "@/components/vademecum/PageHeader";
@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getLeiByTabela } from "@/data/leisCatalog";
 import { tipoToSlug, leiToSlug } from "@/lib/legislacaoSlugs";
+import { ARTIGOS_FAV_EVENT } from "@/lib/artigosFavoritos";
 
 type Favorito = {
   id: string;
@@ -19,16 +20,46 @@ const FavoritosPage = ({ onClose }: { onClose?: () => void }) => {
   const [favoritos, setFavoritos] = useState<Favorito[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
+  const loadData = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setFavoritos([]);
+        setLoading(false);
+        return;
+      }
       const { data } = await supabase
         .from("artigos_favoritos")
         .select("id, tabela_codigo, numero_artigo, created_at")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      setFavoritos((data || []) as any);
-      setLoading(false);
-    })();
+      setFavoritos((data || []) as unknown as Favorito[]);
+    } catch {}
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadData();
+
+    const onEvent = () => loadData();
+    window.addEventListener(ARTIGOS_FAV_EVENT, onEvent);
+    window.addEventListener("storage", onEvent);
+
+    const channel = supabase
+      .channel("pessoal_artigos_favoritos_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "artigos_favoritos" },
+        () => { loadData(); }
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener(ARTIGOS_FAV_EVENT, onEvent);
+      window.removeEventListener("storage", onEvent);
+      supabase.removeChannel(channel);
+    };
+  }, [loadData]);
 
   const abrir = (f: Favorito) => {
     const lei = getLeiByTabela(f.tabela_codigo);

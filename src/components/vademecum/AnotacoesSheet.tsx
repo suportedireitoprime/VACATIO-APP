@@ -205,7 +205,10 @@ const AnotacoesSheet = ({ open, onClose, tabelaNome, artigoNumero, artigoTexto, 
       onCountChange?.(next.length);
       return next;
     });
-    if (userId) invalidateCache(anotacoesKey(tabelaNome, artigoNumero, userId));
+    if (userId) {
+      invalidateCache(anotacoesKey(tabelaNome, artigoNumero, userId));
+      window.dispatchEvent(new CustomEvent('artigos:anotacoes:changed'));
+    }
     if (!sugerida) setComposerOpen(false);
   };
 
@@ -225,7 +228,7 @@ const AnotacoesSheet = ({ open, onClose, tabelaNome, artigoNumero, artigoTexto, 
         : [];
       const { error } = await supabase
         .from('artigos_grifos')
-        .update({ highlights: updated as any, updated_at: new Date().toISOString() })
+        .update({ highlights: updated as unknown as string[], updated_at: new Date().toISOString() })
         .eq('user_id', userId)
         .eq('tabela_codigo', tabelaNome)
         .eq('numero_artigo', artigoNumero);
@@ -243,7 +246,10 @@ const AnotacoesSheet = ({ open, onClose, tabelaNome, artigoNumero, artigoTexto, 
       onCountChange?.(next.length);
       return next;
     });
-    if (userId) invalidateCache(anotacoesKey(tabelaNome, artigoNumero, userId));
+    if (userId) {
+      invalidateCache(anotacoesKey(tabelaNome, artigoNumero, userId));
+      window.dispatchEvent(new CustomEvent('artigos:anotacoes:changed'));
+    }
     haptic.light();
   }, [userId, tabelaNome, artigoNumero, onCountChange]);
 
@@ -260,7 +266,7 @@ const AnotacoesSheet = ({ open, onClose, tabelaNome, artigoNumero, artigoTexto, 
       });
       if (!error && data?.reply) {
         const lines = data.reply.split('\n')
-          .map((l: string) => l.replace(/^\d+[\.\)]\s*/, '').replace(/^\*\*/, '').replace(/\*\*$/, '').replace(/^[-•]\s*/, '').trim())
+          .map((l: string) => l.replace(/^\d+[.)]\s*/, '').replace(/^\*\*/, '').replace(/\*\*$/, '').replace(/^[-•]\s*/, '').trim())
           .filter((l: string) => l.length > 10);
         setSugestoes(lines.slice(0, 6));
       }

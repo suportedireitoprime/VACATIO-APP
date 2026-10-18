@@ -80,21 +80,20 @@ export default function NovaAnotacaoSheet({ open, onClose, onSaved }: NovaAnotac
       if (sessionData?.session?.user?.id) {
         await supabase
           .from('artigos_anotacoes')
-          .upsert({
+          .insert({
             tabela_codigo: lei.tabela_nome,
             numero_artigo: artigoNumero,
             artigo_id: artigoId,
             anotacao: texto.trim(),
             user_id: sessionData.session.user.id
-          }, {
-            onConflict: 'tabela_codigo, numero_artigo, user_id'
           });
+        window.dispatchEvent(new CustomEvent('artigos:anotacoes:changed'));
       }
 
       toast.success('Anotação salva!');
       onSaved();
       handleClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('Erro ao salvar anotação');
       console.error(err);
     }

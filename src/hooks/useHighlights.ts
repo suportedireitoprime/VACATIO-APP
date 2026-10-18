@@ -1,16 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  type GrifoHighlight,
+  readLocalArtigoGrifos,
+  loadArtigoGrifosRemote,
+  saveArtigoGrifos,
+  ARTIGOS_GRIFOS_EVENT,
+} from '@/lib/artigosGrifos';
 
-export interface Highlight {
-  id: string;
-  lineIndex: number;
-  startOffset: number;
-  endOffset: number;
-  text: string;
-  color: string;
-  comment?: string;
-  tags?: string[];
-}
+export interface Highlight extends GrifoHighlight {}
 
 export const HIGHLIGHT_COLORS = [
   { name: 'Amarelo (Conceito)', value: 'rgba(250, 204, 21, 0.42)', css: 'bg-yellow-400/40' },
@@ -22,50 +20,135 @@ export const HIGHLIGHT_COLORS = [
   { name: 'Laranja (Dúvida)', value: 'rgba(251, 146, 60, 0.42)', css: 'bg-orange-400/40' },
 ];
 
-
-function storageKey(artigoId: string) {
-  return `highlights_${artigoId}`;
+export interface UseHighlightsOptions {
+  artigoId?: string | null;
+  tabelaNome?: string | null;
+  numeroArtigo?: string | null;
+  magicHighlights?: any[];
 }
 
-export function useHighlights(artigoId: string | null) {
-  const [highlights, setHighlights] = useState<Highlight[]>([]);
+export function useHighlights(optionsOrArtigoId: string | null | UseHighlightsOptions) {
+  const options: UseHighlightsOptions = typeof optionsOrArtigoId === 'string' || optionsOrArtigoId === null
+    ? { artigoId: optionsOrArtigoId }
+    : (optionsOrArtigoId || {});
+
+  const artigoId = options.artigoId || null;
+  const tabelaNome = options.tabelaNome || null;
+  const numeroArtigo = options.numeroArtigo || null;
+  const magicHighlightsRef = useRef<any[]>(options.magicHighlights || []);
+  magicHighlightsRef.current = options.magicHighlights || [];
+
+  const [highlights, setHighlights] = useState<Highlight[]>(() => {
+    const local = readLocalArtigoGrifos(tabelaNome, numeroArtigo, artigoId);
+    return local.filter((h) => h.origem !== 'ia');
+  });
+
   const [highlightMode, setHighlightMode] = useState(false);
   const [selectedColor, setSelectedColor] = useState(HIGHLIGHT_COLORS[0].value);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Load from localStorage
+  // 1. Carrega local de imediato e reidrata remoto do Supabase
   useEffect(() => {
-    if (!artigoId) return;
-    try {
-      const stored = localStorage.getItem(storageKey(artigoId));
-      if (stored) setHighlights(JSON.parse(stored));
-      else setHighlights([]);
-    } catch { setHighlights([]); }
-  }, [artigoId]);
+    let cancelled = false;
 
-  // Save to localStorage
-  const persist = useCallback((h: Highlight[]) => {
-    if (!artigoId) return;
-    localStorage.setItem(storageKey(artigoId), JSON.stringify(h));
-    // Sync to Supabase
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user) return;
-      supabase
-        .from('user_preferences')
-        .select('highlights')
-        .eq('user_id', session.user.id)
-        .single()
-        .then(({ data }) => {
-          const allHighlights = (data?.highlights as Record<string, any>) || {};
-          allHighlights[artigoId] = h;
-          supabase
-            .from('user_preferences')
-            .update({ highlights: allHighlights, updated_at: new Date().toISOString() })
-            .eq('user_id', session.user.id)
-            .then(() => {});
-        });
-    });
-  }, [artigoId]);
+    // Leitura local síncrona imediata
+    const local = readLocalArtigoGrifos(tabelaNome, numeroArtigo, artigoId);
+    const manualOnly = local.filter((h) => h.origem !== 'ia');
+    setHighlights(manualOnly);
+
+    // Reidratação remota do Supabase (artigos_grifos)
+    if (tabelaNome && numeroArtigo) {
+      loadArtigoGrifosRemote(tabelaNome, numeroArtigo).then((remote) => {
+        if (!cancelled && remote.length > 0) {
+          const remoteManual = remote.filter((h) => h.origem !== 'ia');
+          if (remoteManual.length > 0) {
+            setHighlights(remoteManual);
+          }
+        }
+      }).catch(() => {});
+    }
+
+    return () => { cancelled = true; };
+  }, [artigoId, tabelaNome, numeroArtigo]);
+
+  // 2. Escuta eventos de atualização de grifos
+  useEffect(() => {
+    if (!tabelaNome || !numeroArtigo) return;
+    const handleChanged = (e: any) => {
+      const detail = e?.detail;
+      if (detail && detail.tabela_codigo === tabelaNome && detail.numero_artigo === numeroArtigo) {
+        const local = readLocalArtigoGrifos(tabelaNome, numeroArtigo, artigoId);
+        setHighlights(local.filter((h) => h.origem !== 'ia'));
+      }
+    };
+    window.addEventListener(ARTIGOS_GRIFOS_EVENT, handleChanged);
+    return () => window.removeEventListener(ARTIGOS_GRIFOS_EVENT, handleChanged);
+  }, [tabelaNome, numeroArtigo, artigoId]);
+
+  // 3. Salva no Supabase (artigos_grifos) em tempo real + espelho local
+  const persist = useCallback((manualList: Highlight[]) => {
+    const formattedManual: Highlight[] = manualList.map((h) => ({
+      ...h,
+      origem: h.origem || 'manual',
+      createdAt: h.createdAt || Date.now(),
+    }));
+
+    // Se soubermos a tabela e o número, unificamos com os grifos mágicos atuais
+    if (tabelaNome && numeroArtigo) {
+      // Grifos mágicos existentes
+      const currentMagic = (magicHighlightsRef.current || []).map((g: any, i: number) => ({
+        id: g.id || `ia_${g.cor || 'amarelo'}_${i}`,
+        text: g.trechoExato || g.text || '',
+        trechoExato: g.trechoExato || g.text || '',
+        color: g.color || g.cor || 'rgba(234, 179, 8, 0.55)',
+        cor: g.color || g.cor || 'rgba(234, 179, 8, 0.55)',
+        corNome: g.corNome || g.cor || 'amarelo',
+        categoria: g.categoria || 'Grifo IA',
+        comment: g.comment || g.explicacao || '',
+        explicacao: g.explicacao || '',
+        hierarquia: g.hierarquia || '',
+        origem: 'ia' as const,
+        lineIndex: -1,
+        startOffset: 0,
+        endOffset: (g.trechoExato || g.text || '').length,
+        createdAt: Date.now() + i,
+      }));
+
+      const combined = [...formattedManual, ...currentMagic];
+
+      void saveArtigoGrifos({
+        tabela_codigo: tabelaNome,
+        numero_artigo: numeroArtigo,
+        highlights: combined,
+        legacyId: artigoId,
+      });
+    } else if (artigoId) {
+      try {
+        localStorage.setItem(`highlights_${artigoId}`, JSON.stringify(formattedManual));
+      } catch {}
+    }
+
+    // Compatibilidade legado com user_preferences
+    if (artigoId) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session?.user) return;
+        supabase
+          .from('user_preferences')
+          .select('highlights')
+          .eq('user_id', session.user.id)
+          .single()
+          .then(({ data }) => {
+            const allHighlights = (data?.highlights as Record<string, any>) || {};
+            allHighlights[artigoId] = formattedManual;
+            supabase
+              .from('user_preferences')
+              .update({ highlights: allHighlights, updated_at: new Date().toISOString() })
+              .eq('user_id', session.user.id)
+              .then(() => {});
+          });
+      }).catch(() => {});
+    }
+  }, [artigoId, tabelaNome, numeroArtigo]);
 
   const addHighlight = useCallback((): string | null => {
     const sel = window.getSelection();
@@ -88,7 +171,6 @@ export function useHighlights(artigoId: string | null) {
     if (!lineEl) { sel.removeAllRanges(); return null; }
 
     const lineIndex = parseInt(lineEl.dataset.lineIndex!, 10);
-    
     const fullText = lineEl.textContent || '';
     const preRange = document.createRange();
     preRange.selectNodeContents(lineEl);
@@ -109,10 +191,10 @@ export function useHighlights(artigoId: string | null) {
       endOffset,
       text,
       color: selectedColor,
+      origem: 'manual',
+      createdAt: Date.now(),
     };
 
-    // Remove any existing highlights on this line that overlap the new range
-    // (prevents duplicate/broken rendering when applying a new color over an existing one)
     const nonOverlapping = highlights.filter(h => {
       if (h.lineIndex !== lineIndex) return true;
       const overlaps = h.startOffset < endOffset && h.endOffset > startOffset;
@@ -135,6 +217,8 @@ export function useHighlights(artigoId: string | null) {
       endOffset,
       text,
       color: color || selectedColor,
+      origem: 'manual',
+      createdAt: Date.now(),
     };
     const nonOverlapping = highlights.filter(h => {
       if (h.lineIndex !== lineIndex) return true;

@@ -27,14 +27,24 @@ export default function AnotacoesPage({ onClose }: { onClose?: () => void }) {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const loadData = async () => {
-    const { data, error } = await supabase
-      .from("artigos_anotacoes")
-      .select("id, tabela_codigo, numero_artigo, anotacao, updated_at")
-      .order("updated_at", { ascending: false });
-    if (!error && data) {
-      setItems(data as any);
-      setCache(CK, data);
-    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        const cached = getCache<Anot[]>(CK);
+        if (cached) setItems(cached);
+        setLoading(false);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("artigos_anotacoes")
+        .select("id, tabela_codigo, numero_artigo, anotacao, updated_at")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false });
+      if (!error && data) {
+        setItems(data as unknown as Anot[]);
+        setCache(CK, data);
+      }
+    } catch {}
     setLoading(false);
   };
 
@@ -44,9 +54,26 @@ export default function AnotacoesPage({ onClose }: { onClose?: () => void }) {
     window.addEventListener("online", on);
     window.addEventListener("offline", off);
     loadData();
+
+    const onEvent = () => loadData();
+    window.addEventListener("artigos:anotacoes:changed", onEvent);
+    window.addEventListener("storage", onEvent);
+
+    const channel = supabase
+      .channel("pessoal_artigos_anotacoes_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "artigos_anotacoes" },
+        () => { loadData(); }
+      )
+      .subscribe();
+
     return () => {
       window.removeEventListener("online", on);
       window.removeEventListener("offline", off);
+      window.removeEventListener("artigos:anotacoes:changed", onEvent);
+      window.removeEventListener("storage", onEvent);
+      supabase.removeChannel(channel);
     };
   }, []);
 

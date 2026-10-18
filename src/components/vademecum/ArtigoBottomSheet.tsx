@@ -42,6 +42,7 @@ import { useIsDesktop } from '@/hooks/use-desktop';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useHighlights, type Highlight } from '@/hooks/useHighlights';
 import HighlightColorBar from './HighlightColorBar';
+import { readLocalArtigoGrifos, saveArtigoGrifos } from '@/lib/artigosGrifos';
 const GeracaoAnimacaoOverlay = lazy(() =>
   import('./GeracaoAnimacaoOverlay').then((m) => ({ default: m.GeracaoAnimacaoOverlay })),
 );
@@ -620,7 +621,7 @@ const ArtigoBottomSheet = ({
       const buildComment = (g: MagicGrifo) =>
         `${MAGIC_LABELS[g.cor] || 'Grifo IA'}: ${g.explicacao || ''}`.trim();
 
-      // artigos_grifos: substitui o snapshot com o array atual de N grifos.
+      // artigos_grifos: preserva os grifos manuais existentes e salva grifos mágicos
       const highlightsPayload = grifos.map((g, i) => ({
         id: `ia_${g.cor}_${i}`,
         text: g.trechoExato,
@@ -632,20 +633,23 @@ const ArtigoBottomSheet = ({
         comment: buildComment(g),
         explicacao: g.explicacao,
         hierarquia: g.hierarquia,
-        origem: 'ia',
+        origem: 'ia' as const,
+        lineIndex: -1,
+        startOffset: 0,
+        endOffset: g.trechoExato.length,
         createdAt: Date.now() + i,
       }));
-      await supabase.from('artigos_grifos').upsert(
-        {
-          user_id: user.id,
-          tabela_codigo: tabelaNome,
-          numero_artigo: artigo.numero,
-          artigo_id: artigoId,
-          highlights: highlightsPayload,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,tabela_codigo,numero_artigo' },
-      );
+
+      const existingLocal = readLocalArtigoGrifos(tabelaNome, artigo.numero, artigo.id);
+      const manualOnly = existingLocal.filter((h) => h.origem !== 'ia');
+      const combined = [...manualOnly, ...highlightsPayload];
+
+      await saveArtigoGrifos({
+        tabela_codigo: tabelaNome,
+        numero_artigo: artigo.numero,
+        highlights: combined,
+        legacyId: artigo.id,
+      });
 
       // artigos_anotacoes: N linhas com dedupe por texto exato.
       const { data: existing } = await supabase
@@ -669,6 +673,7 @@ const ArtigoBottomSheet = ({
       if (notasRows.length > 0) {
         const { error: notesInsertError } = await supabase.from('artigos_anotacoes').insert(notasRows);
         if (notesInsertError && notesInsertError.code !== '23505') throw notesInsertError;
+        window.dispatchEvent(new CustomEvent('artigos:anotacoes:changed'));
       }
       invalidateCache(anotacoesKey(tabelaNome, artigo.numero, user.id));
       setAnotacoesRefreshTick((t) => t + 1);
@@ -1152,7 +1157,12 @@ const ArtigoBottomSheet = ({
     updateHighlightTags,
     clearAll,
     getLineHighlights,
-  } = useHighlights(artigo?.id || null);
+  } = useHighlights({
+    artigoId: artigo?.id || null,
+    tabelaNome,
+    numeroArtigo: artigo?.numero || null,
+    magicHighlights,
+  });
   const [showEraseSheet, setShowEraseSheet] = useState(false);
   const [showVoiceSheet, setShowVoiceSheet] = useState(false);
   const [voiceGrifoActive, setVoiceGrifoActive] = useState(false);
@@ -1320,18 +1330,24 @@ const ArtigoBottomSheet = ({
         comment: `${MAGIC_LABELS[g.cor] || 'Grifo IA'}: ${g.explicacao || ''}`.trim(),
         explicacao: g.explicacao,
         hierarquia: g.hierarquia,
-        origem: 'ia',
+        origem: 'ia' as const,
+        lineIndex: -1,
+        startOffset: 0,
+        endOffset: g.trechoExato.length,
         createdAt: Date.now() + i,
       }));
-      const { error: highlightsError } = await supabase.from('artigos_grifos').upsert({
-        user_id: user.id,
+
+      const existingLocal = readLocalArtigoGrifos(tabelaNome, artigo.numero, artigo.id);
+      const manualOnly = existingLocal.filter((h) => h.origem !== 'ia');
+      const combined = [...manualOnly, ...payload];
+
+      await saveArtigoGrifos({
         tabela_codigo: tabelaNome,
         numero_artigo: artigo.numero,
-        artigo_id: artigoId,
-        highlights: payload,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,tabela_codigo,numero_artigo' });
-      if (highlightsError) throw highlightsError;
+        highlights: combined,
+        legacyId: artigo.id,
+      });
+
       const removedComments = removed.map((g) => `${MAGIC_LABELS[g.cor] || 'Grifo IA'}: ${g.explicacao || ''}`.trim());
       if (removedComments.length > 0) {
         const { error: notesError } = await supabase
@@ -1342,6 +1358,7 @@ const ArtigoBottomSheet = ({
           .eq('numero_artigo', artigo.numero)
           .in('anotacao', removedComments);
         if (notesError) throw notesError;
+        window.dispatchEvent(new CustomEvent('artigos:anotacoes:changed'));
       }
     } catch (error) {
       console.error('Erro ao sincronizar exclusão de grifos:', error);
@@ -1599,18 +1616,16 @@ PRECISÃO
                 createdAt: now + i,
               }));
 
-              // 1 linha por artigo com N highlights no array
-              await supabase.from('artigos_grifos').upsert(
-                {
-                  user_id: user.id,
-                  tabela_codigo: tabelaNome,
-                  numero_artigo: artigo.numero,
-                  artigo_id: artigoId,
-                  highlights: highlightsPayload,
-                  updated_at: new Date().toISOString(),
-                },
-                { onConflict: 'user_id,tabela_codigo,numero_artigo' },
-              );
+              const existingLocal = readLocalArtigoGrifos(tabelaNome, artigo.numero, artigo.id);
+              const manualOnly = existingLocal.filter((h) => h.origem !== 'ia');
+              const combined = [...manualOnly, ...highlightsPayload];
+
+              await saveArtigoGrifos({
+                tabela_codigo: tabelaNome,
+                numero_artigo: artigo.numero,
+                highlights: combined,
+                legacyId: artigo.id,
+              });
 
               // N linhas em anotações — uma por grifo — com dedupe por texto.
               const { data: existingNotas } = await supabase
@@ -1633,6 +1648,7 @@ PRECISÃO
               if (notasRows.length > 0) {
                 const { error: notesInsertError } = await supabase.from('artigos_anotacoes').insert(notasRows);
                 if (notesInsertError && notesInsertError.code !== '23505') throw notesInsertError;
+                window.dispatchEvent(new CustomEvent('artigos:anotacoes:changed'));
               }
               // Só agora as linhas existem no banco: invalida o cache do sheet de
               // anotações (senão ele abre com o snapshot antigo, zerado) e recarrega a contagem.
@@ -2544,7 +2560,19 @@ Regras:
                     import('@/lib/appEvents').then(({ appEvents }) =>
                       appEvents.favoritarArtigo({ tabela: tabelaNome, numero: artigo.numero, on: !isFavorito })
                     ).catch(() => {});
-                    onToggleFavorito?.();
+                    if (onToggleFavorito) {
+                      onToggleFavorito();
+                    } else if (tabelaNome && artigo?.numero) {
+                      const num = String(artigo.numero).replace(/^Art\.\s*/i, '').trim();
+                      const preview = String(artigo.caput || '').slice(0, 240);
+                      import('@/lib/artigosFavoritos').then(({ toggleArtigoFavorito }) => {
+                        toggleArtigoFavorito({
+                          tabela_codigo: tabelaNome,
+                          numero_artigo: num,
+                          conteudo_preview: preview || null,
+                        }).catch(() => {});
+                      });
+                    }
                   }}
                   whileTap={{ scale: 0.85 }}
                   className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${isFavorito ? 'bg-rose-500/15' : 'hover:bg-secondary active:bg-secondary'}`}

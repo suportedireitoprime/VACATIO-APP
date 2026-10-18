@@ -50,6 +50,7 @@ import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { Navigate } from 'react-router-dom';
 import { track } from '@/lib/analyticsEvents';
 import { toggleArtigoFavorito, listNumerosFavoritosByTabela, ARTIGOS_FAV_EVENT } from '@/lib/artigosFavoritos';
+import { ARTIGOS_GRIFOS_EVENT } from '@/lib/artigosGrifos';
 import { isFavorito as isLeiFavorita, toggleFavorito as toggleLeiFavorito, LEIS_FAVORITOS_EVENT } from '@/lib/leisFavoritos';
 
 const TIPO_CONFIG: Record<string, { label: string; icon: React.ElementType; bg: string }> = {
@@ -291,13 +292,13 @@ const CategoriaLegislacao = () => {
   useEffect(() => {
     if (!selectedTabelaNome) { setGrifadoNumeros(new Set()); setAnotadoNumeros(new Map()); return; }
     let cancelled = false;
-    (async () => {
+    const load = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setGrifadoNumeros(new Set()); setAnotadoNumeros(new Map()); return; }
         const [{ data: grifos }, { data: notas }] = await Promise.all([
           supabase.from('artigos_grifos').select('numero_artigo').eq('tabela_codigo', selectedTabelaNome).eq('user_id', user.id),
-          supabase.from('artigos_anotacoes').select('artigo_id, texto').eq('user_id', user.id).like('artigo_id', `${selectedTabelaNome}::%`),
+          supabase.from('artigos_anotacoes').select('artigo_id, anotacao').eq('user_id', user.id).like('artigo_id', `${selectedTabelaNome}::%`),
         ]);
         if (cancelled) return;
         setGrifadoNumeros(new Set((grifos || []).map((g: any) => String(g.numero_artigo))));
@@ -305,12 +306,21 @@ const CategoriaLegislacao = () => {
         const mapNotas = new Map<string, string>();
         (notas || []).forEach((n: any) => {
           const num = String(n.artigo_id).split('::')[1];
-          if (num) mapNotas.set(num, n.texto || '');
+          if (num) mapNotas.set(num, n.anotacao || '');
         });
         setAnotadoNumeros(mapNotas);
       } catch { /* silent */ }
-    })();
-    return () => { cancelled = true; };
+    };
+    load();
+    const handleGrifos = () => load();
+    const handleAnotacoes = () => load();
+    window.addEventListener(ARTIGOS_GRIFOS_EVENT, handleGrifos);
+    window.addEventListener('artigos:anotacoes:changed', handleAnotacoes);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(ARTIGOS_GRIFOS_EVENT, handleGrifos);
+      window.removeEventListener('artigos:anotacoes:changed', handleAnotacoes);
+    };
   }, [selectedTabelaNome]);
 
   // Hidrata os favoritos (Meus Artigos) do usuário para a lei selecionada.

@@ -1,13 +1,15 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Heart, Loader2, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/vademecum/PageHeader";
 import { motion } from "framer-motion";
 import { getLeiByTabela } from "@/data/leisCatalog";
 import { tipoToSlug, leiToSlug } from "@/lib/legislacaoSlugs";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { getCache } from "@/lib/pessoalCache";
 import { fetchPessoalArtigos, PESSOAL_KEYS } from "@/services/pessoalPrefetch";
+import { ARTIGOS_FAV_EVENT } from "@/lib/artigosFavoritos";
 
 type Fav = {
   id: string;
@@ -20,8 +22,9 @@ type Fav = {
 const ArtigosPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const initial = getCache<Fav[]>("artigos") ?? undefined;
-  const { data: favs = [], isLoading } = useQuery({
+  const { data: favs = [], isLoading, refetch } = useQuery({
     queryKey: PESSOAL_KEYS.artigos(user?.id ?? "anon"),
     queryFn: fetchPessoalArtigos,
     enabled: !!user?.id,
@@ -29,6 +32,19 @@ const ArtigosPage = () => {
     initialData: initial as Fav[] | undefined,
   });
   const loading = isLoading && !initial;
+
+  useEffect(() => {
+    const onFav = () => {
+      refetch();
+      if (user?.id) queryClient.invalidateQueries({ queryKey: PESSOAL_KEYS.artigos(user.id) });
+    };
+    window.addEventListener(ARTIGOS_FAV_EVENT, onFav);
+    window.addEventListener("storage", onFav);
+    return () => {
+      window.removeEventListener(ARTIGOS_FAV_EVENT, onFav);
+      window.removeEventListener("storage", onFav);
+    };
+  }, [refetch, queryClient, user?.id]);
 
 
   const abrir = (f: Fav) => {
