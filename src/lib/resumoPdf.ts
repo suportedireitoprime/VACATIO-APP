@@ -346,7 +346,25 @@ export async function gerarResumoPdf(resumo: ResumoLike) {
     .toLowerCase()
     .slice(0, 60);
 
-  await baixarBlob(doc.output("blob"), `${nome || "resumo"}.pdf`, {
+  const pdfBlob = doc.output("blob");
+  const fileName = `${nome || "resumo"}.pdf`;
+
+  // Sincroniza cópia na CDN Cloudflare R2 (pasta resumos/)
+  try {
+    const { uploadToR2 } = await import('@/lib/r2Storage');
+    const slugArea = (resumo.area || 'geral')
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .toLowerCase();
+    uploadToR2(`resumos/${slugArea}/${fileName}`, pdfBlob, 'application/pdf').catch((e) => {
+      console.warn('Falha no upload em background do resumo para o R2:', e);
+    });
+  } catch {
+    // Silencioso em caso de indisponibilidade
+  }
+
+  await baixarBlob(pdfBlob, fileName, {
     titulo: resumo.subtema || resumo.tema || "Resumo",
   });
 }

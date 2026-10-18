@@ -83,6 +83,18 @@ export async function exportMindMapPdf(
 
     const fileName = `mapa-mental-${artigo.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.pdf`;
     pdf.save(fileName);
+
+    // Salva cópia na nuvem Cloudflare R2 (pasta mapas/)
+    try {
+      const { uploadToR2 } = await import('@/lib/r2Storage');
+      const blob = pdf.output('blob');
+      uploadToR2(`mapas/${fileName}`, blob, 'application/pdf').catch((e) => {
+        console.warn('Falha no upload em background do mapa mental para o R2:', e);
+      });
+    } catch {
+      // Ignora erro opcional de background
+    }
+
     toast.success('PDF exportado!', { id: toastId });
   } catch (err) {
     console.error(err);

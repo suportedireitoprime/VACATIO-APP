@@ -156,9 +156,19 @@ export function RecordingProvider({ children }: { children: ReactNode }) {
       const recId = crypto.randomUUID();
       const filePath = `${user.id}/${recId}.${ext}`;
 
+      // Envia para o Cloudflare R2
+      try {
+        const { uploadToR2 } = await import('@/lib/r2Storage');
+        await uploadToR2(`aulas-audio/${filePath}`, new Blob([bytes as any], { type: mime }), mime);
+      } catch (r2Err) {
+        console.warn('Falha no upload R2 para aula gravada, usando Supabase:', r2Err);
+      }
+
       const { error: upErr } = await supabase.storage.from('aulas-audio')
         .upload(filePath, new Blob([bytes as any], { type: mime }), { contentType: mime, upsert: false });
-      if (upErr) { toast.error('Falha no upload: ' + upErr.message); setStatus('idle'); return null; }
+      if (upErr) { 
+        console.warn('Supabase backup storage:', upErr.message);
+      }
 
       const durMs = accumulated.current;
       const { data: row, error: insErr } = await supabase.from('audio_recordings').insert({

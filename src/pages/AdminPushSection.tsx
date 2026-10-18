@@ -219,6 +219,18 @@ export default function AdminPushSection() {
     try {
       const ext = file.name.split(".").pop() || "png";
       const path = `manual/${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.${ext}`;
+
+      // Upload prioritário para Cloudflare R2
+      try {
+        const { uploadToR2 } = await import('@/lib/r2Storage');
+        const res = await uploadToR2(`capas/push/${path}`, file, file.type);
+        setImageUrl(res.url);
+        toast.success("Imagem enviada para Cloudflare R2");
+        return;
+      } catch (r2Err) {
+        console.warn("Falha no upload R2, caindo para Supabase Storage:", r2Err);
+      }
+
       const up = await supabase.storage.from("push-covers").upload(path, file, { contentType: file.type, upsert: false });
       if (up.error) throw up.error;
       const signed = await supabase.storage.from("push-covers").createSignedUrl(path, 60 * 60 * 24 * 365);
