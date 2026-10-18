@@ -58,9 +58,9 @@ export const AudioActionShortcuts: React.FC<AudioActionShortcutsProps> = memo(
         id: 'trilhas',
         label: 'Trilhas',
         icon: Route,
-        color: '#34D399',
+        color: '#FACC15',
         badge: badgeTrilhas,
-        badgeColor: '#059669',
+        badgeColor: '#CA8A04',
         action: onTrilhas,
       },
     ];

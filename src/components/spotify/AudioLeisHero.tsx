@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Headphones, Sparkles, BookOpen, Volume2 } from 'lucide-react';
+import { ArrowLeft, Headphones } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AudioNavigationSwitcher } from '@/components/audio/AudioNavigationSwitcher';
@@ -215,16 +215,13 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
             </p>
           </div>
 
-          {/* Chips de Informações e Métricas */}
-          <div className="mt-3 flex items-center gap-1.5 flex-wrap">
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-black/40 text-white border border-white/20 font-bold text-[11px] sm:text-xs shadow-md backdrop-blur-md">
-              <Headphones className="w-3.5 h-3.5 text-purple-300" />
-              <span>{totalAudios > 0 ? `${totalAudios.toLocaleString('pt-BR')} áudios` : '9.684 áudios'}</span>
-            </span>
-
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-black/40 text-white border border-white/20 font-bold text-[11px] sm:text-xs shadow-md backdrop-blur-md">
-              <BookOpen className="w-3.5 h-3.5 text-purple-300" />
-              <span>{totalLeis > 0 ? `${totalLeis} legislações` : '31 legislações'}</span>
+          {/* Tag de Narrações Disponíveis com Animação de Reflexo */}
+          <div className="mt-3.5 flex items-center">
+            <span className="tag-narracoes-shine inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl bg-black/45 text-white border border-white/20 font-bold text-xs sm:text-[13px] shadow-lg backdrop-blur-md">
+              <Headphones className="w-4 h-4 text-purple-300 shrink-0" />
+              <span className="tracking-wide">
+                {totalAudios > 0 ? `${totalAudios.toLocaleString('pt-BR')} narrações` : '9.684 narrações'}
+              </span>
             </span>
           </div>
         </div>

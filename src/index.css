@@ -498,6 +498,29 @@ body {
   mix-blend-mode: screen;
 }
 
+/* Reflexo fluido e contínuo sobre a tag de narrações do painel Áudio Leis */
+.tag-narracoes-shine {
+  position: relative;
+  overflow: hidden;
+}
+.tag-narracoes-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.25) 42%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.25) 58%,
+    transparent 85%
+  );
+  transform: translateX(-140%) skewX(-18deg);
+  animation: aprender-icon-shine 3.2s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
 /* Reflexo horizontal (esquerda -> direita) sobre os ícones do painel amarelo da home */
 @keyframes hero-icon-reflect-h {
   0%   { transform: translateX(-120%); opacity: 0; }
