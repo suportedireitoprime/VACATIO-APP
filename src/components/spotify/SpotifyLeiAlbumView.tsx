@@ -153,14 +153,16 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
         const num = extrairNumeroArtigo(t.artigoNumero || t.numeroFormatado);
         return num >= cap.artigoInicio && num <= cap.artigoFim;
       });
+      const expectedArtigos = Math.max(1, cap.artigoFim - cap.artigoInicio + 1);
+      const comAudio = artigosDoCap.filter((t) => Boolean(t.audioUrl)).length;
       return {
         ...cap,
-        totalArtigos: artigosDoCap.length,
-        totalComAudio: artigosDoCap.filter((t) => Boolean(t.audioUrl)).length,
+        totalArtigos: artigosDoCap.length > 0 ? artigosDoCap.length : expectedArtigos,
+        totalComAudio: comAudio > 0 ? comAudio : (loading ? expectedArtigos : 0),
         tracks: artigosDoCap,
       };
     });
-  }, [capitulos, albumTracks]);
+  }, [capitulos, albumTracks, loading]);
 
   // Filtro de busca na tracklist geral
   const filteredTracks = useMemo(() => {
@@ -294,7 +296,9 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
               </button>
 
               <span className="text-[11px] font-bold text-white/90 bg-black/40 border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md">
-                {loading && chapterTracks.length === 0 ? 'Sincronizando...' : `${chapterTracks.length} áudios disponíveis`}
+                {loading && chapterTracks.length === 0
+                  ? 'Carregando áudios...'
+                  : `${chapterTracks.length} ${chapterTracks.length === 1 ? 'áudio disponível' : 'áudios disponíveis'}`}
               </span>
             </div>
 
@@ -354,7 +358,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
             <div className="py-16 text-center text-sm text-white/70 bg-black/30 border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-2">
               <Loader2 className="h-6 w-6 animate-spin text-white mb-1" />
               <p className="font-semibold text-white">Carregando narrações deste capítulo...</p>
-              <p className="text-xs text-white/60">Sincronizando áudios em alta qualidade</p>
+              <p className="text-xs text-white/60">Narrações prontas em alta qualidade</p>
             </div>
           ) : chapterFilteredTracks.length === 0 ? (
             <div className="py-16 text-center text-sm text-white/70 bg-black/30 border border-white/10 rounded-2xl p-6">
@@ -673,7 +677,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                         {cap.rotuloFaixa}
                       </p>
                       <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-white/15 text-white tabular-nums ml-auto border border-white/10">
-                        {loading && artigos.length === 0 ? 'Sincronizando...' : `${cap.totalComAudio} áudios`}
+                        {`${cap.totalComAudio} ${cap.totalComAudio === 1 ? 'áudio' : 'áudios'}`}
                       </span>
                     </div>
 

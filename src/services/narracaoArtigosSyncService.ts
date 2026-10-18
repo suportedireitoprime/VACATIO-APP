@@ -797,7 +797,16 @@ export async function fetchArtigosDaLeiComNarracao(leiId: string, leiSlug?: stri
       const urlStorage = storageAudiosMap.get(keyArtigo);
       const audioDbOk = isAudioUrlValida(a.narracao_url);
       // Apenas áudio oficial de narração (Cloudflare R2 / banco ou storage)
-      const audioUrlFinal = (audioDbOk ? a.narracao_url : null) || urlStorage || null;
+      let audioUrlFinal = (audioDbOk ? a.narracao_url : null) || urlStorage || null;
+
+      // Resolução direta no Cloudflare R2 para Código Civil (garante áudios mesmo se houver delay de banco)
+      if (!audioUrlFinal && (slug === 'cc' || leiId === '32ae6146-3fd4-42e7-8879-81413f0f41cc')) {
+        const numInt = Number(keyArtigo.replace(/\D/g, ''));
+        if (numInt >= 1 && numInt <= 2046) {
+          audioUrlFinal = getR2PublicUrl(`narracoes/codigos/cc/Art. ${String(numInt).padStart(4, '0')}.mp3`);
+        }
+      }
+
       const temAudioFinal = !!audioUrlFinal;
 
       return {
