@@ -90,9 +90,9 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
             {totalFavoritas > 0 && (
               <span
                 style={{ backgroundColor: themeBadgeBg }}
-                className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full text-[10px] font-semibold text-white flex items-center justify-center border-[1.5px] border-[#1C1C1E] shadow-md shadow-black/60 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-none tabular-nums pointer-events-none"
+                className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center border-[1.5px] border-[#1C1C1E] shadow-lg shadow-black/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] leading-none tabular-nums pointer-events-none"
               >
-                {totalFavoritas}
+                <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{totalFavoritas}</span>
               </span>
             )}
           </div>
@@ -131,9 +131,9 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
             {totalPlaylists > 0 && (
               <span
                 style={{ backgroundColor: themeBadgeBg }}
-                className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full text-[10px] font-semibold text-white flex items-center justify-center border-[1.5px] border-[#1C1C1E] shadow-md shadow-black/60 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-none tabular-nums pointer-events-none"
+                className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center border-[1.5px] border-[#1C1C1E] shadow-lg shadow-black/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] leading-none tabular-nums pointer-events-none"
               >
-                {totalPlaylists}
+                <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{totalPlaylists}</span>
               </span>
             )}
           </div>
@@ -215,9 +215,9 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
             {totalBaixadas > 0 && (
               <span
                 style={{ backgroundColor: themeBadgeBg }}
-                className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full text-[10px] font-semibold text-white flex items-center justify-center border-[1.5px] border-[#1C1C1E] shadow-md shadow-black/60 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-none tabular-nums pointer-events-none"
+                className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center border-[1.5px] border-[#1C1C1E] shadow-lg shadow-black/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] leading-none tabular-nums pointer-events-none"
               >
-                {totalBaixadas}
+                <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{totalBaixadas}</span>
               </span>
             )}
           </div>

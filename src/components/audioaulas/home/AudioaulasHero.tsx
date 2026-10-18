@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Headphones, BookOpen, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Headphones } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AudioNavigationSwitcher } from '@/components/audio/AudioNavigationSwitcher';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { AudioActionShortcuts } from '@/components/audio/AudioActionShortcuts';
 import { AudioEstatisticasModal } from '@/components/audio/AudioEstatisticasModal';
@@ -191,8 +190,8 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
             </div>
           </div>
 
-          {/* Barra Superior: Botão Voltar Circular Retrô + Switcher Cápsula Infinito à Direita */}
-          <header className="relative z-20 px-3 sm:px-6 lg:px-10 pt-3 sm:pt-4 flex items-center justify-between">
+          {/* Barra Superior: Botão Voltar Circular Retrô */}
+          <header className="relative z-20 px-3 sm:px-6 lg:px-10 pt-3 sm:pt-4 flex items-center justify-start">
             <button
               onClick={() => (areaAtual ? navigate('/audioaulas') : navigate('/'))}
               aria-label="Voltar"
@@ -200,13 +199,11 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
             >
               <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.4} />
             </button>
-
-            <AudioNavigationSwitcher active="aulas" infiniteRight />
           </header>
 
           {/* Conteúdo Principal do Painel Azul à Esquerda */}
           <div className="relative z-10 px-4 sm:px-6 lg:px-10 pt-4 sm:pt-5 pb-3 sm:pb-4 flex-1 flex flex-col justify-center max-w-[48%] sm:max-w-[44%] lg:max-w-[38%]">
-            <h1 className="font-serif italic text-white text-[22px] sm:text-[26px] leading-[1.05] font-semibold tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] whitespace-nowrap">
+            <h1 className="font-title italic text-white text-[24px] sm:text-[28px] leading-[1.05] font-semibold tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] whitespace-nowrap">
               {heroTitulo}
             </h1>
 
@@ -222,16 +219,15 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
               </p>
             </div>
 
-            {/* Chips de Informações e Métricas */}
-            <div className="mt-3 flex items-center gap-1.5 flex-wrap">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-black/40 text-white border border-white/20 font-bold text-[11px] sm:text-xs shadow-md backdrop-blur-md">
-                <Headphones className="w-3.5 h-3.5 text-sky-300" />
-                <span>{!loading ? `${totalAulas} aulas` : 'Carregando...'}</span>
-              </span>
-
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-black/40 text-white border border-white/20 font-bold text-[11px] sm:text-xs shadow-md backdrop-blur-md">
-                <GraduationCap className="w-3.5 h-3.5 text-sky-300" />
-                <span>{areaAtual ? areaAtual : totalAreas === 1 ? '1 área' : `${totalAreas} áreas`}</span>
+            {/* Tag de Narrações Disponíveis com Altura Confortável e Animação de Reflexo */}
+            <div className="mt-3.5 flex items-center">
+              <span className="tag-narracoes-shine inline-flex items-center gap-2 px-4 py-2.5 sm:px-4.5 sm:py-3 min-h-[42px] sm:min-h-[46px] rounded-xl sm:rounded-2xl bg-black/45 text-white border border-white/20 font-bold text-xs sm:text-[13px] shadow-lg backdrop-blur-md">
+                <Headphones className="w-4 h-4 text-sky-300 shrink-0" />
+                <span className="tracking-wide">
+                  {!loading && totalAulas > 0
+                    ? `${totalAulas.toLocaleString('pt-BR')} narrações`
+                    : '133 narrações'}
+                </span>
               </span>
             </div>
           </div>

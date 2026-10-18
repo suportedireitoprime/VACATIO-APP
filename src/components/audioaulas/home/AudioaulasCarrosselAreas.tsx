@@ -127,7 +127,7 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
                       {nomeFormatado}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="font-card text-[11px] sm:text-xs text-zinc-300/90 font-medium drop-shadow-sm">
+                      <span className="font-card text-[11px] sm:text-xs text-white/95 font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
                         {total} {total === 1 ? 'aula' : 'aulas'}
                       </span>
                       <span className="shrink-0 h-6 w-6 sm:h-7 sm:w-7 grid place-items-center rounded-full bg-white/15 text-white/90 backdrop-blur group-hover:bg-white/30 transition shadow-sm">

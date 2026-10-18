@@ -170,6 +170,83 @@ export const AudioaulasListaAulas = React.memo(function AudioaulasListaAulas({
                 ? 'Nada encontrado para sua busca.'
                 : 'Digite o nome de uma aula, tema ou área.'}
         </p>
+      ) : aba === 'favoritas' ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          {listaAba.map((aula) => {
+            const isThisPlaying = atualId === aula.id && tocando;
+            const isSelected = atualId === aula.id;
+            const isFav = favoritos.has(audioIdOf(aula));
+            const capa = capaDaArea(aula.area || '');
+
+            return (
+              <motion.div
+                key={aula.id}
+                whileHover={{ scale: 1.03, y: -3 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => handleTocarAula(aula)}
+                className={`group relative aspect-square rounded-2xl overflow-hidden border transition-all cursor-pointer shadow-lg select-none ${
+                  isSelected
+                    ? 'border-rose-500 shadow-rose-900/40 ring-2 ring-rose-500/40'
+                    : 'border-white/10 hover:border-white/25 hover:shadow-xl'
+                }`}
+              >
+                <CapaOtimizada
+                  src={capa}
+                  alt={aula.titulo}
+                  className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-black/15 pointer-events-none" />
+
+                {/* Botão Play Flutuante */}
+                <div
+                  className={`absolute top-2.5 right-2.5 z-10 transition-all duration-200 ${
+                    isThisPlaying
+                      ? 'opacity-100 scale-100'
+                      : 'opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100'
+                  }`}
+                >
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xl">
+                    {isThisPlaying ? (
+                      <Pause className="w-4 h-4 fill-current" />
+                    ) : (
+                      <Play className="w-4 h-4 fill-current ml-0.5" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Botão Desfavoritar */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    alternarFavorito(aula);
+                  }}
+                  className="absolute top-2.5 left-2.5 z-10 p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-rose-400 hover:text-white transition-transform active:scale-90"
+                  title="Remover dos favoritos"
+                >
+                  <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-rose-500 text-rose-500' : 'text-white/80'}`} />
+                </button>
+
+                {/* Informações da Aula dentro da Capa no rodapé com sombra */}
+                <div className="absolute inset-x-0 bottom-0 p-3 z-10 flex flex-col justify-end min-w-0">
+                  <p
+                    className={`text-[12px] sm:text-[13px] font-bold leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] transition-colors truncate ${
+                      isSelected ? 'text-rose-300' : 'text-white group-hover:text-rose-200'
+                    }`}
+                  >
+                    {aula.titulo}
+                  </p>
+                  <p
+                    title={aula.tema || aula.area}
+                    className="text-[10px] sm:text-[11px] text-zinc-300 font-medium leading-tight truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] mt-0.5"
+                  >
+                    {aula.tema || aula.area}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       ) : (
         <motion.div 
           className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-2 divide-y divide-white/[0.06] lg:grid lg:grid-cols-2 lg:divide-y-0 lg:gap-2 2xl:grid-cols-3"

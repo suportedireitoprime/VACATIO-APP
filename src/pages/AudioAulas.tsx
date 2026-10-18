@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Loader2, Flame, Clock, Headphones as HeadphonesIcon, Heart, Sparkles } from 'lucide-react';
+import { Loader2, Flame, Clock, Headphones as HeadphonesIcon, Heart, Sparkles, Play, Pause } from 'lucide-react';
 import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
 import { useIsDesktop } from '@/hooks/use-desktop';
 import ShapeGrid from '@/components/ui/ShapeGrid';
@@ -14,10 +14,13 @@ import { AudioaulasBuscaInput } from '@/components/audioaulas/home/AudioaulasBus
 import { AudioaulasPlayerModal } from '@/components/audioaulas/home/AudioaulasPlayerModal';
 import { AudioaulasCategoriasNav, type AudioaulasFiltroMenu } from '@/components/audioaulas/AudioaulasCategoriasNav';
 import { AudioaulasAulasRecentes } from '@/components/audioaulas/home/AudioaulasAulasRecentes';
+import { AudioaulasAulasFavoritas } from '@/components/audioaulas/home/AudioaulasAulasFavoritas';
 import { AudioAppBottomNav } from '@/components/audio/AudioAppBottomNav';
 import { AudioaulasPlaylistsView } from '@/components/audioaulas/home/AudioaulasPlaylistsView';
 import { AudioaulasAreaView } from '@/components/audioaulas/area/AudioaulasAreaView';
 import { audioIdOf } from '@/contexts/AudioaulasPlayerContext';
+import { capaDaArea } from '@/lib/audioaulasHelper';
+import { CapaOtimizada } from '@/components/audioaulas/home/CapaOtimizada';
 import { motion } from 'framer-motion';
 
 const Audioaulas = () => {
@@ -147,6 +150,17 @@ const Audioaulas = () => {
               />
             )}
 
+            {/* Aulas Favoritas em Carrossel 1:1 quando na visão Todos se houver favoritas */}
+            {state.aba === 'aulas' && filtroHome === 'todos' && aulasFavoritasFiltro.length > 0 && (
+              <AudioaulasAulasFavoritas
+                favoritas={aulasFavoritasFiltro}
+                atualId={state.atualId}
+                tocando={state.tocando}
+                onTocarAula={state.handleTocarAula}
+                alternarFavorito={state.alternarFavorito}
+              />
+            )}
+
             {/* Menu Superior: Alternância (Todos, Em alta, Recentes, Mais Ouvidas, Favoritas) */}
             <AudioaulasCategoriasNav
               filtroAtivo={filtroHome}
@@ -220,6 +234,90 @@ const Audioaulas = () => {
                   {filtroHome === 'favoritas'
                     ? 'Nenhuma aula favoritada ainda. Toque no coração de uma aula para salvá-la aqui.'
                     : 'Nenhuma aula disponível neste filtro.'}
+                </div>
+              ) : filtroHome === 'favoritas' || filtroHome === 'recentes' ? (
+                /* Cards em formato estrito 1:1 (aspect-square) para Favoritos e Recentes */
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                  {listaFiltradaHome.map((aula) => {
+                    const isThisPlaying = state.atualId === aula.id && state.tocando;
+                    const isSelected = state.atualId === aula.id;
+                    const isFav = state.favoritos.has(audioIdOf(aula));
+                    const capa = capaDaArea(aula.area || '');
+
+                    return (
+                      <motion.div
+                        key={aula.id}
+                        whileHover={{ scale: 1.03, y: -3 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => state.handleTocarAula(aula)}
+                        className={`group relative aspect-square rounded-2xl overflow-hidden border transition-all cursor-pointer shadow-lg select-none ${
+                          isSelected
+                            ? 'border-blue-500 shadow-blue-900/40 ring-2 ring-blue-500/40'
+                            : 'border-white/10 hover:border-white/25 hover:shadow-xl'
+                        }`}
+                      >
+                        <CapaOtimizada
+                          src={capa}
+                          alt={aula.titulo}
+                          className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-black/15 pointer-events-none" />
+
+                        {/* Botão Play Flutuante */}
+                        <div
+                          className={`absolute top-2.5 right-2.5 z-10 transition-all duration-200 ${
+                            isThisPlaying
+                              ? 'opacity-100 scale-100'
+                              : 'opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100'
+                          }`}
+                        >
+                          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xl">
+                            {isThisPlaying ? (
+                              <Pause className="w-4 h-4 fill-current" />
+                            ) : (
+                              <Play className="w-4 h-4 fill-current ml-0.5" />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Badge reproduzindo ou botão favoritar */}
+                        {isThisPlaying ? (
+                          <span className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded-md bg-blue-600 text-white text-[9px] font-black uppercase tracking-wider shadow-md animate-pulse">
+                            Ouvindo
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              state.alternarFavorito(aula);
+                            }}
+                            className="absolute top-2.5 left-2.5 z-10 p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-white hover:text-rose-400 transition-transform active:scale-90"
+                            title="Favoritar"
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-rose-500 text-rose-500' : 'text-white/80'}`} />
+                          </button>
+                        )}
+
+                        {/* Informações da Aula no rodapé com sombra */}
+                        <div className="absolute inset-x-0 bottom-0 p-3 z-10 flex flex-col justify-end min-w-0">
+                          <p
+                            className={`text-[12px] sm:text-[13px] font-bold leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] transition-colors truncate ${
+                              isSelected ? 'text-sky-300' : 'text-white group-hover:text-sky-200'
+                            }`}
+                          >
+                            {aula.titulo}
+                          </p>
+                          <p
+                            title={aula.tema || aula.area}
+                            className="text-[10px] sm:text-[11px] text-zinc-300 font-medium leading-tight truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] mt-0.5"
+                          >
+                            {aula.tema || aula.area}
+                          </p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               ) : (
                 <motion.div
@@ -337,7 +435,7 @@ const Audioaulas = () => {
             }
           }}
           totalFavoritas={state.favoritos.size}
-          totalPlaylists={state.areas.length}
+          totalPlaylists={0}
           totalBaixadas={state.baixadas.size}
           hidden={Boolean(areaAtual) || state.aberto}
           colorScheme="blue"
