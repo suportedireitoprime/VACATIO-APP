@@ -56,7 +56,14 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
       .eq('id', post.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled && data?.conteudo_md) setConteudo(data.conteudo_md as string);
+        if (!cancelled && data?.conteudo_md) {
+          setConteudo(data.conteudo_md as string);
+        } else if (!cancelled) {
+          import('@/data/blogPosts').then(({ BLOG_POSTS }) => {
+            const found = BLOG_POSTS.find((p) => p.id === post.id);
+            if (found?.conteudo_md && !cancelled) setConteudo(found.conteudo_md);
+          });
+        }
       });
     return () => { cancelled = true; };
   }, [post?.id, post?.conteudo_md]);

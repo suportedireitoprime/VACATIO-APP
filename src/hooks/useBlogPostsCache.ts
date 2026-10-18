@@ -6,11 +6,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { BlogPost, BlogTema } from '@/data/blogPosts';
-import { TEMAS } from '@/data/blogPosts';
+import { TEMAS, BLOG_POSTS } from '@/data/blogPosts';
 import { bundle } from '@/services/offlineBundle';
 
-const KEY = 'blog:posts:v2';
-const LEGACY_KEYS = ['blog:posts:v1'];
+const KEY = 'blog:posts:v3';
+const LEGACY_KEYS = ['blog:posts:v1', 'blog:posts:v2'];
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 h
 
 const LISTA_COLS =
@@ -22,27 +22,32 @@ type RawPost = {
   resumo: string;
   conteudo_md?: string;
   imagem_url: string;
-  categoria: string;
+  categoria?: string;
+  tema?: string;
   autor: string;
   tempo_leitura_min: number;
   data_publicacao: string;
-  created_at: string;
+  created_at?: string;
 };
 
 type Cached = { at: number; posts: BlogPost[] };
 
 function map(rows: RawPost[]): BlogPost[] {
-  return rows.map((p) => ({
-    id: p.id,
-    titulo: p.titulo,
-    resumo: p.resumo,
-    conteudo_md: p.conteudo_md ?? '',
-    imagem_url: p.imagem_url,
-    tema: (TEMAS.includes(p.categoria as BlogTema) ? p.categoria : 'Curiosidades') as BlogTema,
-    autor: p.autor,
-    tempo_leitura_min: p.tempo_leitura_min,
-    data_publicacao: p.data_publicacao,
-  }));
+  return rows.map((p) => {
+    const rawCategory = p.categoria || p.tema || 'Leis';
+    const tema = (TEMAS.includes(rawCategory as BlogTema) ? rawCategory : 'Leis') as BlogTema;
+    return {
+      id: p.id,
+      titulo: p.titulo,
+      resumo: p.resumo,
+      conteudo_md: p.conteudo_md ?? '',
+      imagem_url: p.imagem_url,
+      tema,
+      autor: p.autor,
+      tempo_leitura_min: p.tempo_leitura_min,
+      data_publicacao: p.data_publicacao,
+    };
+  });
 }
 
 function readCache(): BlogPost[] | null {
@@ -73,9 +78,9 @@ function writeCache(posts: BlogPost[]) {
 }
 
 export function useBlogPostsCache() {
-  const initial = useMemo(() => readCache(), []);
-  const [posts, setPosts] = useState<BlogPost[]>(initial ?? []);
-  const [loaded, setLoaded] = useState<boolean>(!!initial);
+  const initial = useMemo(() => readCache() ?? (BLOG_POSTS as BlogPost[]), []);
+  const [posts, setPosts] = useState<BlogPost[]>(initial);
+  const [loaded, setLoaded] = useState<boolean>(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -92,10 +97,11 @@ export function useBlogPostsCache() {
           .limit(60);
         rows = (data as RawPost[]) ?? null;
       } catch {}
-      // Fallback pro bundle nativo (Electron / sem rede)
+      // Fallback pro bundle nativo (Electron / sem rede) ou posts locais
       if (!rows || rows.length === 0) {
         const bundled = await bundle.blogPosts<RawPost>();
         if (bundled.length > 0) rows = bundled;
+        else rows = (BLOG_POSTS as unknown as RawPost[]) ?? null;
       }
       if (cancelled) return;
       if (rows && rows.length > 0) {
