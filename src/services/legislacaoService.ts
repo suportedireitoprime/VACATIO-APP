@@ -26,12 +26,41 @@ let _leiIndexPromise: Promise<Map<string, LeiRef>> | null = null;
 
 const STRUCTURAL_SUFFIX_RE = /(^|[.;:)])\s+(?=(?:PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\s+(?:[IVXLCDM]+|[0-9]+|[ÚU]NICO|PRELIMINAR)\b)[\s\S]*$/i;
 
+const LEGAL_LINE_START_RE = /^(?:Art(?:igo)?\s*\.|§|Parágrafo\b|[IVXLCDM]+\s*[-–—.)]|[a-z]\s*(?:\)|\s*[-–—.]\s+)|\d+\s*(?:\)|\s*[-–—.]\s+)|LIVRO\b|PARTE\b|TÍTULO\b|CAPÍTULO\b|SEÇÃO\b|SUBSEÇÃO\b)/i;
+const LEGAL_NOTE_ONLY_RE = /^[([]\s*(?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]|Vide|Vig[êe]ncia|Vigente|Regulamento|Revogad[oa]|Vetado|Promulga[çc][ãa]o|Produ[çc][ãa]o\s+de\s+efeitos?)\b/i;
+
+export function normalizeLegalLineBreaks(text: string): string {
+  if (!text) return '';
+  const raw = text.replace(/\r/g, '').split('\n').map(l => l.trim());
+  const merged: string[] = [];
+  for (const line of raw) {
+    if (!line) continue;
+    if (
+      merged.length === 0 ||
+      LEGAL_LINE_START_RE.test(line) ||
+      LEGAL_NOTE_ONLY_RE.test(line)
+    ) {
+      merged.push(line);
+    } else {
+      const prev = merged[merged.length - 1];
+      if (/[a-zA-ZÀ-ÿ][-–]$/.test(prev)) {
+        merged[merged.length - 1] = prev.replace(/[-–]$/, '') + line;
+      } else {
+        merged[merged.length - 1] = prev + ' ' + line;
+      }
+    }
+  }
+  return merged.join('\n');
+}
+
 function cleanArticleText(value?: string | null): string {
-  return (value || '')
-    .replace(/(\d)o\b/g, '$1º')
-    .replace(/°/g, 'º')
-    .replace(STRUCTURAL_SUFFIX_RE, '$1')
-    .trim();
+  return normalizeLegalLineBreaks(
+    (value || '')
+      .replace(/(\d)o\b/g, '$1º')
+      .replace(/°/g, 'º')
+      .replace(STRUCTURAL_SUFFIX_RE, '$1')
+      .trim()
+  );
 }
 
 async function getLegacyToVMIndex(forceRefresh = false): Promise<Map<string, LeiRef>> {
@@ -95,7 +124,7 @@ async function resolveLeiRef(tabelaNome: string): Promise<LeiRef | undefined> {
 async function fetchFromVadeMecum(leiId: string, offset: number, limit: number): Promise<ArtigoLei[]> {
   try {
     const res = await fetch(
-      `${supabaseUrl}/rest/v1/vade_mecum_artigos?lei_id=eq.${leiId}&select=id,numero,texto,ordem,epigrafe&order=ordem.asc&offset=${offset}&limit=${limit}`,
+      `${supabaseUrl}/rest/v1/vade_mecum_artigos?lei_id=eq.${leiId}&select=id,numero,texto,ordem,epigrafe,narracao_url&order=ordem.asc&offset=${offset}&limit=${limit}`,
       { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
     );
     if (!res.ok) {
@@ -118,6 +147,7 @@ async function fetchFromVadeMecum(leiId: string, offset: number, limit: number):
         titulo: r.epigrafe || undefined,
         capitulo: undefined,
         ordem: typeof r.ordem === 'number' ? r.ordem : undefined,
+        narracao_url: r.narracao_url || undefined,
       }))
       .filter((a: ArtigoLei) => a.caput.trim() !== '');
   } catch (e) {

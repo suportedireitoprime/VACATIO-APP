@@ -2,7 +2,7 @@ import { cloneElement, isValidElement, useState, useCallback, useRef, useEffect,
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronRight, ExternalLink, Volume2, VolumeX, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Layers, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2, Lock } from 'lucide-react';
-import { getNarracaoArtigo } from '@/services/narracaoArtigosSyncService';
+import { getNarracaoArtigo, getCachedNarracaoUrl, isAudioUrlValida } from '@/services/narracaoArtigosSyncService';
 const LembretesArtigoSheet = lazy(() => import('./LembretesArtigoSheet'));
 const BaixarArtigoSheet = lazy(() => import('./BaixarArtigoSheet'));
 // Sheets/overlays pesados são carregados sob demanda: o chunk só desce
@@ -136,14 +136,15 @@ function isLineRevogado(line: string): boolean {
 // Regex que identifica INÍCIO de uma unidade lógica de texto legal.
 // Se uma linha NÃO começa com um destes padrões, ela é continuação da anterior
 // (quebra de linha física herdada do HTML da Planalto — precisa ser mesclada).
-const LEGAL_LINE_START_RE = /^(?:Art(?:igo)?\s*\.|§|Parágrafo\b|[IVXLCDM]+\s*[-–—.)]|[a-z]\s*[)-–—.]|LIVRO\b|PARTE\b|TÍTULO\b|CAPÍTULO\b|SEÇÃO\b|SUBSEÇÃO\b)/i;
+const LEGAL_LINE_START_RE = /^(?:Art(?:igo)?\s*\.|§|Parágrafo\b|[IVXLCDM]+\s*[-–—.)]|[a-z]\s*(?:\)|\s*[-–—.]\s+)|\d+\s*(?:\)|\s*[-–—.]\s+)|LIVRO\b|PARTE\b|TÍTULO\b|CAPÍTULO\b|SEÇÃO\b|SUBSEÇÃO\b)/i;
 
 // Se a linha inteira for só uma nota entre parênteses ou colchetes (Redação/Vigência/Incluído/…),
 // mantém como linha separada — o parser de metadados espera assim.
 const LEGAL_NOTE_ONLY_RE = /^[([]\s*(?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Acrescid[oa]|Alterad[oa]|Vide|Vig[êe]ncia|Vigente|Regulamento|Revogad[oa]|Vetado|Promulga[çc][ãa]o|Produ[çc][ãa]o\s+de\s+efeitos?)\b/i;
 
 function normalizeLegalLineBreaks(text: string): string {
-  const raw = text.split('\n').map(l => l.trim());
+  if (!text) return '';
+  const raw = text.replace(/\r/g, '').split('\n').map(l => l.trim());
   const merged: string[] = [];
   for (const line of raw) {
     if (!line) continue;
@@ -156,8 +157,8 @@ function normalizeLegalLineBreaks(text: string): string {
     } else {
       // Continuação: mescla no fim da linha anterior com espaço
       const prev = merged[merged.length - 1];
-      // Evita espaço duplo se a anterior terminar com hífen de quebra
-      if (/[-–]$/.test(prev)) {
+      // Evita espaço duplo se a anterior terminar com hífen de separação silábica
+      if (/[a-zA-ZÀ-ÿ][-–]$/.test(prev)) {
         merged[merged.length - 1] = prev.replace(/[-–]$/, '') + line;
       } else {
         merged[merged.length - 1] = prev + ' ' + line;
@@ -696,8 +697,16 @@ const ArtigoBottomSheet = ({
     return () => { supabase.removeChannel(channel); };
   }, [tabelaNome, artigo?.numero]);
 
-  // Narration state
-  const [narracaoUrl, setNarracaoUrl] = useState<string | null>(null);
+  // Narration state - inicialização síncrona instantânea (0ms) sem atraso cinza
+  const [narracaoUrl, setNarracaoUrl] = useState<string | null>(() => {
+    return getCachedNarracaoUrl({
+      artigoId: artigo?.id,
+      tabelaNome,
+      leiSlug,
+      artigoNumero: artigo?.numero,
+      narracaoUrl: (artigo as any)?.narracao_url,
+    });
+  });
   const [narracaoWordTimings, setNarracaoWordTimings] = useState<Array<{ word: string; start: number; end: number }> | null>(null);
   const [narracaoLoading, setNarracaoLoading] = useState(false);
   const [narracaoStepIdx, setNarracaoStepIdx] = useState(0);
@@ -717,6 +726,15 @@ const ArtigoBottomSheet = ({
   const narrarActionInFlightRef = useRef(false);
   const narracaoAdoptedRef = useRef(false);
 
+  // URL efetiva calculada síncrona a cada ciclo de renderização
+  const effectiveNarracaoUrl = narracaoUrl || getCachedNarracaoUrl({
+    artigoId: artigo?.id,
+    tabelaNome,
+    leiSlug,
+    artigoNumero: artigo?.numero,
+    narracaoUrl: (artigo as any)?.narracao_url,
+  });
+
   // Floating mini-player integration
   const location = useLocation();
   const adoptNarracao = useNarracaoFlutuante((s) => s.adopt);
@@ -728,7 +746,15 @@ const ArtigoBottomSheet = ({
     // Se este artigo é o que está tocando no player flutuante, retoma o áudio.
     const reclaimed = artigo?.id ? reclaimNarracao(artigo.id) : null;
 
-    setNarracaoUrl(null);
+    const initialDirectUrl = getCachedNarracaoUrl({
+      artigoId: artigo?.id,
+      tabelaNome,
+      leiSlug,
+      artigoNumero: artigo?.numero,
+      narracaoUrl: (artigo as any)?.narracao_url,
+    });
+
+    setNarracaoUrl(initialDirectUrl);
     setNarracaoWordTimings(null);
     setNarracaoActiveWordIndex(-1);
     narracaoActiveIdxRef.current = -1;
@@ -768,7 +794,7 @@ const ArtigoBottomSheet = ({
           leiSlug,
           artigoNumero: artigo.numero,
           artigoId: artigo.id,
-          narracaoUrl: (artigo as any)?.narracao_url,
+          narracaoUrl: (artigo as any)?.narracao_url || initialDirectUrl,
         });
 
         if (cancelado) return;
@@ -780,7 +806,7 @@ const ArtigoBottomSheet = ({
             setNarracaoWordTimings(null);
           }
         } else {
-          setNarracaoUrl(null);
+          setNarracaoUrl(initialDirectUrl);
           setNarracaoWordTimings(null);
         }
       } catch (e) {
@@ -1032,8 +1058,9 @@ const ArtigoBottomSheet = ({
       return;
     }
 
-    if (narracaoUrl) {
-      const played = await playNarracao(narracaoUrl);
+    const urlToPlay = effectiveNarracaoUrl;
+    if (urlToPlay) {
+      const played = await playNarracao(urlToPlay);
       if (played) return;
     }
 
@@ -3533,13 +3560,13 @@ Regras:
                 onTouchStart={handleNarrarButtonPress}
                 onClick={handleNarrarButtonPress}
                 className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 min-h-[6.25rem] min-w-[5.75rem] touch-manipulation select-none"
-                aria-label={narracaoPlaying ? 'Pausar narração' : narracaoUrl ? 'Ouvir narração' : 'Narração indisponível'}
+                aria-label={narracaoPlaying ? 'Pausar narração' : effectiveNarracaoUrl ? 'Ouvir narração' : 'Narração indisponível'}
               >
                 <span
                   className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center shadow-lg ring-4 ring-card transition-all duration-300 ${
                     narracaoPlaying
                       ? 'bg-primary shadow-primary/40 scale-105'
-                      : narracaoUrl
+                      : effectiveNarracaoUrl
                       ? 'bg-primary shadow-primary/30 hover:bg-primary/90 cursor-pointer active:scale-95'
                       : 'bg-zinc-800 text-zinc-500 shadow-none opacity-60 ring-zinc-800/80 cursor-not-allowed'
                   }`}
@@ -3566,7 +3593,7 @@ Regras:
                   )}
                   {narracaoPlaying ? (
                     <Pause className="w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground relative z-20" />
-                  ) : narracaoUrl ? (
+                  ) : effectiveNarracaoUrl ? (
                     <Volume2 className="w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground relative z-20" />
                   ) : (
                     <VolumeX className="w-7 h-7 sm:w-8 sm:h-8 text-zinc-500 relative z-20" />
@@ -3574,10 +3601,10 @@ Regras:
                 </span>
                 <span
                   className={`font-body text-[11px] sm:text-[12px] font-semibold leading-tight ${
-                    narracaoPlaying || narracaoUrl ? 'text-primary' : 'text-zinc-500'
+                    narracaoPlaying || effectiveNarracaoUrl ? 'text-primary' : 'text-zinc-500'
                   }`}
                 >
-                  {narracaoPlaying ? 'Pausar' : narracaoUrl ? 'Ouvir' : 'Sem áudio'}
+                  {narracaoPlaying ? 'Pausar' : effectiveNarracaoUrl ? 'Ouvir' : 'Sem áudio'}
                 </span>
               </button>
             )}
@@ -4208,21 +4235,21 @@ Regras:
             className={`group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md transition-all ${
               narracaoPlaying
                 ? 'bg-primary text-black scale-105'
-                : narracaoUrl
+                : effectiveNarracaoUrl
                 ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                 : 'bg-zinc-800 text-zinc-500 opacity-60 cursor-not-allowed'
             }`}
-            title={narracaoPlaying ? 'Pausar' : narracaoUrl ? 'Ouvir narração' : 'Sem áudio'}
+            title={narracaoPlaying ? 'Pausar' : effectiveNarracaoUrl ? 'Ouvir narração' : 'Sem áudio'}
           >
             {narracaoPlaying ? (
               <Pause className="w-5 h-5 shrink-0" />
-            ) : narracaoUrl ? (
+            ) : effectiveNarracaoUrl ? (
               <Volume2 className="w-5 h-5 shrink-0" />
             ) : (
               <VolumeX className="w-5 h-5 shrink-0 text-zinc-500" />
             )}
             <span className="font-display text-[13px] font-bold tracking-wider max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-1">
-              {narracaoPlaying ? 'Pausar' : narracaoUrl ? 'Ouvir' : 'Sem áudio'}
+              {narracaoPlaying ? 'Pausar' : effectiveNarracaoUrl ? 'Ouvir' : 'Sem áudio'}
             </span>
           </button>
           <button
@@ -4271,7 +4298,7 @@ Regras:
           style={{ left: selectionPill.x, top: selectionPill.y - 8 }}
         >
           <div className="flex items-center gap-1 rounded-full bg-[#1C1C1E] backdrop-blur-md border border-white/10 shadow-2xl shadow-black/50 px-1.5 py-1">
-            {narracaoUrl && (
+            {effectiveNarracaoUrl && (
               <>
                 <button
                   onClick={(e) => { handleNarrarButtonPress(e as any); }}

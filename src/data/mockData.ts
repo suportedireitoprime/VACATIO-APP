@@ -19,6 +19,7 @@ export interface ArtigoLei {
   titulo?: string;
   /** Sort order from DB. Values > 10000 indicate ADCT / Disposições Transitórias in CF88. */
   ordem?: number;
+  narracao_url?: string | null;
 }
 
 export interface Explicacao {

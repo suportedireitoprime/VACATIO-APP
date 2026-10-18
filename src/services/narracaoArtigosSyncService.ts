@@ -627,7 +627,37 @@ export function invalidateStorageAudiosCache(slug?: string): void {
 
 /**
  * Busca a URL de áudio pré-gravada de um artigo específico
- * Consulta em ordem: URL direta -> Storage (vademecum/{slug}) -> narracoes_artigos -> vade_mecum_artigos
+// In-memory cache de URLs de áudio para acesso instantâneo (0ms)
+const resolvedNarracoesCache = new Map<string, string>();
+
+/**
+ * Consulta síncrona instantânea ao cache de narração
+ */
+export function getCachedNarracaoUrl(params: {
+  artigoId?: string;
+  tabelaNome?: string;
+  leiSlug?: string;
+  artigoNumero?: string;
+  narracaoUrl?: string | null;
+}): string | null {
+  const { artigoId, tabelaNome, leiSlug, artigoNumero, narracaoUrl } = params;
+  if (isAudioUrlValida(narracaoUrl)) return narracaoUrl!.trim();
+  if (artigoId && resolvedNarracoesCache.has(artigoId)) {
+    return resolvedNarracoesCache.get(artigoId)!;
+  }
+  const key = normalizeArtigoKey(artigoNumero);
+  const slug = (leiSlug || tabelaNome || '').trim().toLowerCase();
+  if (slug && key) {
+    const compositeKey = `${slug}::${key}`;
+    if (resolvedNarracoesCache.has(compositeKey)) {
+      return resolvedNarracoesCache.get(compositeKey)!;
+    }
+  }
+  return null;
+}
+
+/**
+ * Busca a URL do áudio de narração do artigo (Instantânea com cache, DB ou Cloudflare R2)
  */
 export async function getNarracaoArtigo(params: {
   tabelaNome?: string;
@@ -640,58 +670,50 @@ export async function getNarracaoArtigo(params: {
 
   // 1. Se já fornecida URL válida
   if (isAudioUrlValida(narracaoUrl)) {
-    return { audioUrl: narracaoUrl.trim() };
+    const url = narracaoUrl!.trim();
+    if (artigoId) resolvedNarracoesCache.set(artigoId, url);
+    return { audioUrl: url };
+  }
+
+  // 2. Checar no cache em memória
+  const cached = getCachedNarracaoUrl(params);
+  if (cached) {
+    return { audioUrl: cached };
   }
 
   const key = normalizeArtigoKey(artigoNumero);
-  if (!key) return null;
+  const slug = (leiSlug || tabelaNome || '').trim().toLowerCase();
 
-  // 2. Levantar possíveis slugs da lei
-  const slugs = new Set<string>();
-  if (leiSlug) slugs.add(leiSlug.trim().toLowerCase());
-  if (tabelaNome) {
-    const raw = tabelaNome.trim();
-    const prefix = raw.toLowerCase().replace(/_.*$/, '');
-    if (prefix) slugs.add(prefix);
-    slugs.add(raw.toLowerCase());
-  }
+  // 3. Checar em vade_mecum_artigos diretamente pelo artigoId (tabela principal e mais rápida)
+  if (artigoId) {
+    try {
+      const { data: artRow } = await supabase
+        .from('vade_mecum_artigos')
+        .select('narracao_url')
+        .eq('id', artigoId)
+        .maybeSingle();
 
-  // 3. Checar no Supabase Storage (bucket 'narracoes')
-  for (const slug of slugs) {
-    if (!storageAudiosCache.has(slug)) {
-      try {
-        const { data: storageFiles } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`);
-        const map = new Map<string, string>();
-        if (storageFiles && storageFiles.length > 0) {
-          for (const file of storageFiles) {
-            if (!file.name || !/\.(mp3|wav|m4a|ogg)$/i.test(file.name)) continue;
-            const k = matchArtigoKeyFromFilename(file.name);
-            if (k) {
-              const { data: pubData } = supabase.storage
-                .from('narracoes')
-                .getPublicUrl(`vademecum/${slug}/${file.name}`);
-              if (pubData?.publicUrl) {
-                map.set(k, pubData.publicUrl);
-              }
-            }
-          }
-        }
-        storageAudiosCache.set(slug, map);
-      } catch (err) {
-        console.warn(`[getNarracaoArtigo] Erro ao listar Storage para ${slug}:`, err);
+      if (artRow?.narracao_url && isAudioUrlValida(artRow.narracao_url)) {
+        const url = artRow.narracao_url.trim();
+        resolvedNarracoesCache.set(artigoId, url);
+        if (slug && key) resolvedNarracoesCache.set(`${slug}::${key}`, url);
+        return { audioUrl: url };
       }
-    }
-
-    const map = storageAudiosCache.get(slug);
-    if (map && map.has(key)) {
-      return { audioUrl: map.get(key)! };
-    }
+    } catch {}
   }
 
   // 4. Checar no banco de dados (tabela 'narracoes_artigos')
   try {
+    const slugs = new Set<string>();
+    if (leiSlug) slugs.add(leiSlug.trim().toLowerCase());
+    if (tabelaNome) {
+      const raw = tabelaNome.trim();
+      const prefix = raw.toLowerCase().replace(/_.*$/, '');
+      if (prefix) slugs.add(prefix);
+      slugs.add(raw.toLowerCase());
+    }
     const candidateSlugs = Array.from(slugs);
-    if (candidateSlugs.length > 0) {
+    if (candidateSlugs.length > 0 && key) {
       const orFilter = candidateSlugs.map(s => `tabela_nome.eq.${s}`).join(',');
       const { data: rows } = await supabase
         .from('narracoes_artigos')
@@ -704,8 +726,11 @@ export async function getNarracaoArtigo(params: {
           if (r.audio_url && isAudioUrlValida(r.audio_url)) {
             const rKey = normalizeArtigoKey(r.artigo_numero);
             if (rKey === key) {
+              const url = r.audio_url.trim();
+              if (artigoId) resolvedNarracoesCache.set(artigoId, url);
+              if (slug) resolvedNarracoesCache.set(`${slug}::${key}`, url);
               return {
-                audioUrl: r.audio_url,
+                audioUrl: url,
                 wordTimings: Array.isArray(r.word_timings) ? (r.word_timings as Array<{ word: string; start: number; end: number }>) : undefined,
               };
             }
@@ -715,21 +740,6 @@ export async function getNarracaoArtigo(params: {
     }
   } catch (err) {
     console.warn('[getNarracaoArtigo] Erro ao buscar em narracoes_artigos:', err);
-  }
-
-  // 5. Checar em vade_mecum_artigos se tiver artigoId
-  if (artigoId) {
-    try {
-      const { data: artRow } = await supabase
-        .from('vade_mecum_artigos')
-        .select('narracao_url')
-        .eq('id', artigoId)
-        .maybeSingle();
-
-      if (artRow?.narracao_url && isAudioUrlValida(artRow.narracao_url)) {
-        return { audioUrl: artRow.narracao_url };
-      }
-    } catch {}
   }
 
   return null;
