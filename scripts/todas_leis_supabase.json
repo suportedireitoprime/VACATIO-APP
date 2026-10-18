@@ -1,0 +1,1040 @@
+[
+  {
+    "id": "d0670fcb-55e4-4ba4-a7c0-9c49eefdb176",
+    "slug": "lei-lgpd",
+    "nome": "Lei Geral de Proteção de Dados",
+    "categoria": "lei"
+  },
+  {
+    "id": "f29b5619-90c8-4796-aae5-ae743aad4e6d",
+    "slug": "lei-lavagem-dinheiro",
+    "nome": "Lei de Lavagem de Dinheiro",
+    "categoria": "lei"
+  },
+  {
+    "id": "8fb4e0c3-a8b7-45ab-84a6-4cd00c449add",
+    "slug": "lei-lep",
+    "nome": "Lei de Execução Penal",
+    "categoria": "lei"
+  },
+  {
+    "id": "fb743ff0-1fca-4d44-add6-a827086a785d",
+    "slug": "lei-desapropriacao",
+    "nome": "Lei de Desapropriação",
+    "categoria": "lei"
+  },
+  {
+    "id": "1a5efd87-45d7-4833-8df6-1390a54540c7",
+    "slug": "lei-drogas",
+    "nome": "Lei de Drogas",
+    "categoria": "lei"
+  },
+  {
+    "id": "38c25ef6-27b0-4f30-821b-529be95c6c39",
+    "slug": "lei-falencia",
+    "nome": "Lei de Recuperação e Falência",
+    "categoria": "lei"
+  },
+  {
+    "id": "1a553abe-80b7-41e2-8268-b13ca6a80153",
+    "slug": "lei-custeio",
+    "nome": "Lei de Custeio da Previdência Social",
+    "categoria": "lei"
+  },
+  {
+    "id": "3fb60dcd-393f-40a4-8c87-4e217efe3c4a",
+    "slug": "lei-habeas-data",
+    "nome": "Lei do Habeas Data",
+    "categoria": "lei"
+  },
+  {
+    "id": "6cbddea0-969e-4bfd-8361-64f6179804a8",
+    "slug": "lei-ficha-limpa",
+    "nome": "Lei da Ficha Limpa",
+    "categoria": "lei"
+  },
+  {
+    "id": "78c71bdd-61db-4dac-8121-70ea7911247f",
+    "slug": "lei-identificacao-criminal",
+    "nome": "Lei de Identificação Criminal",
+    "categoria": "lei"
+  },
+  {
+    "id": "aad15449-e49d-420d-9ad2-d60c577d070f",
+    "slug": "lei-antiterrorismo",
+    "nome": "Lei Antiterrorismo",
+    "categoria": "lei"
+  },
+  {
+    "id": "5f790e84-3284-44ea-86a3-b28328a662ab",
+    "slug": "lei-arbitragem",
+    "nome": "Lei da Arbitragem",
+    "categoria": "lei"
+  },
+  {
+    "id": "8a700ff2-8009-4709-8654-f5efb00b6588",
+    "slug": "lei-concessoes",
+    "nome": "Lei de Concessões",
+    "categoria": "lei"
+  },
+  {
+    "id": "7caafafd-bd9c-444f-8264-79db7ca9d8d0",
+    "slug": "lei-juizados-fazenda",
+    "nome": "Juizados Especiais da Fazenda Pública (Lei 12.153/2009)",
+    "categoria": "lei"
+  },
+  {
+    "id": "055f965b-a1aa-4773-9aba-8965603915e5",
+    "slug": "lei-inventario-extrajudicial",
+    "nome": "Inventário e Divórcio Extrajudicial (Lei 11.441/2007)",
+    "categoria": "lei"
+  },
+  {
+    "id": "a515e27e-7625-4f68-ac06-b0a97cb42647",
+    "slug": "lei-inquilinato",
+    "nome": "Lei do Inquilinato",
+    "categoria": "lei"
+  },
+  {
+    "id": "4a9ec5c6-9f0a-418d-b8aa-90b476b389d2",
+    "slug": "lei-juizados-especiais",
+    "nome": "Juizados Especiais Cíveis e Criminais",
+    "categoria": "lei"
+  },
+  {
+    "id": "ba11d42a-ce37-4a55-9288-fe11f1abc3ad",
+    "slug": "lei-improbidade",
+    "nome": "Lei de Improbidade Administrativa",
+    "categoria": "lei"
+  },
+  {
+    "id": "fe9c119e-a0a4-4091-b0c7-fd0f1ea77ab4",
+    "slug": "lei-crimes-responsabilidade",
+    "nome": "Crimes de Responsabilidade",
+    "categoria": "lei"
+  },
+  {
+    "id": "46618eef-5818-4372-b930-1719805a6e28",
+    "slug": "lei-crimes-financeiro",
+    "nome": "Crimes contra o Sistema Financeiro",
+    "categoria": "lei"
+  },
+  {
+    "id": "e7e146aa-71a9-4fa4-9a8f-025ea1d9cb21",
+    "slug": "lei-crimes-tributario",
+    "nome": "Crimes contra a Ordem Tributária",
+    "categoria": "lei"
+  },
+  {
+    "id": "d1dc9691-4202-4786-9514-66f51b863e30",
+    "slug": "lei-crimes-democraticos",
+    "nome": "Lei de Crimes Democráticos",
+    "categoria": "lei"
+  },
+  {
+    "id": "05eb1315-0179-4c64-8cce-bf43339fb473",
+    "slug": "lei-defensoria",
+    "nome": "Lei Orgânica da Defensoria Pública",
+    "categoria": "lei"
+  },
+  {
+    "id": "d4142835-88e4-4d37-aa0e-c1551ec5eac7",
+    "slug": "lei-crimes-ambientais",
+    "nome": "Lei de Crimes Ambientais",
+    "categoria": "lei"
+  },
+  {
+    "id": "0939692c-c1d7-439b-a19c-b2b9bff74407",
+    "slug": "lei-contravencoes",
+    "nome": "Lei das Contravenções Penais",
+    "categoria": "lei"
+  },
+  {
+    "id": "ff50c3b0-8d68-476a-a3c6-d0e5929e69c0",
+    "slug": "lei-adpf",
+    "nome": "Lei da ADPF (Lei 9.882/1999)",
+    "categoria": "lei"
+  },
+  {
+    "id": "5e2afdd0-d559-433d-9c1c-39a558ad7e67",
+    "slug": "lei-lrf",
+    "nome": "Lei de Responsabilidade Fiscal",
+    "categoria": "lei"
+  },
+  {
+    "id": "995589a0-b848-46d7-b5ae-065f12f6cc9a",
+    "slug": "lei-mandado-seguranca",
+    "nome": "Lei do Mandado de Segurança",
+    "categoria": "lei"
+  },
+  {
+    "id": "fc873a16-85fa-440f-939a-a723a13f9066",
+    "slug": "lei-marco-civil",
+    "nome": "Marco Civil da Internet",
+    "categoria": "lei"
+  },
+  {
+    "id": "0d7f283b-fdb8-4d98-93a7-b989a0a99f6f",
+    "slug": "lei-governo-digital",
+    "nome": "Lei do Governo Digital (Lei 14.129/2021)",
+    "categoria": "lei"
+  },
+  {
+    "id": "f78fb8c9-5605-4820-8f07-e14bd54261ec",
+    "slug": "lei-residuos-solidos",
+    "nome": "Política Nacional de Resíduos Sólidos (Lei 12.305/2010)",
+    "categoria": "lei"
+  },
+  {
+    "id": "051f3bab-80e5-4df8-9de0-8ad979683e39",
+    "slug": "lei-mata-atlantica",
+    "nome": "Lei da Mata Atlântica (Lei 11.428/2006)",
+    "categoria": "lei"
+  },
+  {
+    "id": "6a28c44d-0e85-4750-b90e-5f967343cc42",
+    "slug": "lei-partidos",
+    "nome": "Lei dos Partidos Políticos (Lei 9.096/1995)",
+    "categoria": "lei"
+  },
+  {
+    "id": "b85a3012-300e-4a74-83a7-6bf1757d991f",
+    "slug": "lei-superendividamento",
+    "nome": "Superendividamento (Lei 14.181/2021)",
+    "categoria": "lei"
+  },
+  {
+    "id": "8245e331-87b8-4400-b0a7-7e423011e63f",
+    "slug": "lei-eleicoes",
+    "nome": "Lei das Eleições (Lei 9.504/1997)",
+    "categoria": "lei"
+  },
+  {
+    "id": "95163ae9-5ab5-4477-83dc-9d26c8c61515",
+    "slug": "decreto-ecommerce",
+    "nome": "Decreto do E-commerce (Decreto 7.962/2013)",
+    "categoria": "lei"
+  },
+  {
+    "id": "8fafed62-a75c-4012-a1af-cac5117707c3",
+    "slug": "lei-greve",
+    "nome": "Lei de Greve (Lei 7.783/1989)",
+    "categoria": "lei"
+  },
+  {
+    "id": "64597859-a76b-40c3-a8d5-d96a7303f216",
+    "slug": "lei-trabalho-rural",
+    "nome": "Trabalhador Rural (Lei 5.889/1973)",
+    "categoria": "lei"
+  },
+  {
+    "id": "55cb95dc-332a-4ce3-be9f-af781fd8ad62",
+    "slug": "lei-processos-originarios",
+    "nome": "Processos Originários STF e STJ (Lei 8.038/1990)",
+    "categoria": "lei"
+  },
+  {
+    "id": "22a0de6e-7859-48e2-814b-202175c6d68d",
+    "slug": "lei-registros-publicos",
+    "nome": "Lei de Registros Públicos",
+    "categoria": "lei"
+  },
+  {
+    "id": "ba5f17e0-18a6-44b2-8204-a6e5f58cad5c",
+    "slug": "lei-sa",
+    "nome": "Lei das Sociedades Anônimas",
+    "categoria": "lei"
+  },
+  {
+    "id": "4a22e439-7139-4c95-a82a-da47c7479d71",
+    "slug": "lei-prisao-temporaria",
+    "nome": "Lei de Prisão Temporária",
+    "categoria": "lei"
+  },
+  {
+    "id": "31934f43-dff0-443c-b70d-adbd91fa92ee",
+    "slug": "lei-pacote-anticrime",
+    "nome": "Pacote Anticrime",
+    "categoria": "lei"
+  },
+  {
+    "id": "152e9c2b-3a0e-4e22-ac42-f3dd30a11a1b",
+    "slug": "lei-os",
+    "nome": "Lei das Organizações Sociais (Lei 9.637/1998)",
+    "categoria": "lei"
+  },
+  {
+    "id": "970255f1-16a2-4ad3-97a0-a85c1706c6ee",
+    "slug": "lei-meio-ambiente",
+    "nome": "Política Nacional do Meio Ambiente",
+    "categoria": "lei"
+  },
+  {
+    "id": "a8d177b5-0555-4c6d-adeb-d5e48efe3720",
+    "slug": "lei-mpu",
+    "nome": "Lei Orgânica do Ministério Público da União",
+    "categoria": "lei"
+  },
+  {
+    "id": "4608990e-7c3e-4b25-9836-37c8b93edc39",
+    "slug": "lc-iss",
+    "nome": "LC do ISS (LC 116/2003)",
+    "categoria": "lei"
+  },
+  {
+    "id": "b2efd5dc-4e62-4132-b3e8-81af156dfc7f",
+    "slug": "lc-simples-nacional",
+    "nome": "Simples Nacional (LC 123/2006)",
+    "categoria": "lei"
+  },
+  {
+    "id": "2530e2de-5c11-4d98-ac0d-837723004129",
+    "slug": "lei-lindb",
+    "nome": "Lei de Introdução às Normas do Direito Brasileiro",
+    "categoria": "lei"
+  },
+  {
+    "id": "ec67d668-b147-4a62-bd85-8f9fdbe43ef2",
+    "slug": "lei-processo-administrativo",
+    "nome": "Lei do Processo Administrativo",
+    "categoria": "lei"
+  },
+  {
+    "id": "36fe67a0-eb56-44a3-b110-4c476ee573e3",
+    "slug": "lei-ppp",
+    "nome": "Lei das PPPs",
+    "categoria": "lei"
+  },
+  {
+    "id": "37781980-370a-400e-a66d-1722eb2b9536",
+    "slug": "lalp",
+    "nome": "Lei de Alienação Parental",
+    "categoria": "lei"
+  },
+  {
+    "id": "90b2534f-c251-473c-8a42-cf7e2658fd2a",
+    "slug": "decreto-marco-civil",
+    "nome": "Regulamento do Marco Civil (Decreto 8.771/2016)",
+    "categoria": "lei"
+  },
+  {
+    "id": "9452fd99-fe26-4177-89e0-dd004449d0b3",
+    "slug": "lei-tortura",
+    "nome": "Lei de Tortura",
+    "categoria": "lei"
+  },
+  {
+    "id": "f5e5c531-b696-485e-93d2-80ebd808b1c1",
+    "slug": "lei-servidor",
+    "nome": "Estatuto do Servidor Público Federal",
+    "categoria": "lei"
+  },
+  {
+    "id": "cbeb25e3-97e0-4b29-aa54-578017708f6f",
+    "slug": "decreto-previdencia",
+    "nome": "Regulamento da Previdência Social (Decreto 3.048/1999)",
+    "categoria": "lei"
+  },
+  {
+    "id": "cd3f15e3-7311-435b-be5f-f31b07b27556",
+    "slug": "emus",
+    "nome": "Estatuto dos Museus",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "26ac71df-f46c-4307-925a-24483d3aa2af",
+    "slug": "lei-snuc",
+    "nome": "Sistema Nacional de Unidades de Conservação (Lei 9.985/2000)",
+    "categoria": "lei"
+  },
+  {
+    "id": "81be82a6-7b23-4354-ad8c-14093510f54a",
+    "slug": "lc-previdencia-publica",
+    "nome": "Previdência Complementar Pública (LC 108/2001)",
+    "categoria": "lei"
+  },
+  {
+    "id": "936d7886-d9c8-41b0-83d8-e9d3b7ff684c",
+    "slug": "ec-reforma-previdencia",
+    "nome": "Reforma da Previdência (EC 103/2019)",
+    "categoria": "lei"
+  },
+  {
+    "id": "6454d9c3-f524-46b7-9cd1-a286c7a75638",
+    "slug": "lei-recursos-hidricos",
+    "nome": "Política Nacional de Recursos Hídricos (Lei 9.433/1997)",
+    "categoria": "lei"
+  },
+  {
+    "id": "629f53f2-8541-4f84-8156-97ba3475c143",
+    "slug": "lalim",
+    "nome": "Lei de Alimentos",
+    "categoria": "lei"
+  },
+  {
+    "id": "275ac409-d8b1-4946-8cd3-4e53fe14896c",
+    "slug": "eme",
+    "nome": "Estatuto Nacional da Microempresa",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "dd4ff56f-81dc-4b41-8605-223a9fbe7883",
+    "slug": "lc-domestico",
+    "nome": "Empregado Doméstico (LC 150/2015)",
+    "categoria": "lei"
+  },
+  {
+    "id": "1fd6f1a7-352a-46a3-ab81-46fcd39d7f64",
+    "slug": "lei-trabalho-temporario",
+    "nome": "Trabalho Temporário (Lei 6.019/1974)",
+    "categoria": "lei"
+  },
+  {
+    "id": "cd50fe48-c5bd-4b1e-a216-a4859b72e94e",
+    "slug": "ctn",
+    "nome": "Código Tributário Nacional",
+    "categoria": "codigo"
+  },
+  {
+    "id": "1bdef217-ef48-4251-8d3e-98a2e03a42a4",
+    "slug": "lje",
+    "nome": "Lei dos Juizados Especiais",
+    "categoria": "lei"
+  },
+  {
+    "id": "b0c79b1e-3d6c-44c1-9a74-feb59eb3c7c1",
+    "slug": "lrac",
+    "nome": "Lei de Racismo",
+    "categoria": "lei"
+  },
+  {
+    "id": "b32a3b28-7b13-41f1-90d7-d171672d106e",
+    "slug": "lei-mediacao",
+    "nome": "Lei de Mediação",
+    "categoria": "lei"
+  },
+  {
+    "id": "5f548716-3768-4af0-9ea2-f36eab3b6c6d",
+    "slug": "lei-maria-penha",
+    "nome": "Lei Maria da Penha",
+    "categoria": "lei"
+  },
+  {
+    "id": "b236388d-8b45-4bc0-983f-dfbad56361d9",
+    "slug": "lei-licitacoes",
+    "nome": "Lei de Licitações e Contratos",
+    "categoria": "lei"
+  },
+  {
+    "id": "18951703-b124-4f0a-a96b-ec7c400a3174",
+    "slug": "lei-crimes-hediondos",
+    "nome": "Lei de Crimes Hediondos",
+    "categoria": "lei"
+  },
+  {
+    "id": "79fc057f-6be8-4cd7-843b-dd32adc8f65e",
+    "slug": "lsus",
+    "nome": "Lei do SUS",
+    "categoria": "lei"
+  },
+  {
+    "id": "617c2d2e-3927-41d3-9986-68f99f963c17",
+    "slug": "lc-kandir",
+    "nome": "Lei Kandir — ICMS (LC 87/1996)",
+    "categoria": "lei"
+  },
+  {
+    "id": "7456c9bb-b225-4821-b58d-1c3c34b4e734",
+    "slug": "lei-estatais",
+    "nome": "Lei das Estatais (Lei 13.303/2016)",
+    "categoria": "lei"
+  },
+  {
+    "id": "2c3c0a19-eeff-4ba1-b154-66a3106ef41e",
+    "slug": "lei-execucao-fiscal",
+    "nome": "Lei de Execução Fiscal (Lei 6.830/1980)",
+    "categoria": "lei"
+  },
+  {
+    "id": "32ae6146-3fd4-42e7-8879-81413f0f41cc",
+    "slug": "cc",
+    "nome": "Código Civil",
+    "categoria": "codigo"
+  },
+  {
+    "id": "251213c5-d502-4792-9f68-050be95357ee",
+    "slug": "cpc",
+    "nome": "Código de Processo Civil",
+    "categoria": "codigo"
+  },
+  {
+    "id": "032fd183-60bc-4d86-bd67-4c80f3c41de3",
+    "slug": "ce",
+    "nome": "Código Eleitoral",
+    "categoria": "codigo"
+  },
+  {
+    "id": "246e8691-ebe2-478d-991d-f3930635151a",
+    "slug": "cpp",
+    "nome": "Código de Processo Penal",
+    "categoria": "codigo"
+  },
+  {
+    "id": "71f6e7af-093f-4a7f-8976-287413b40722",
+    "slug": "clt",
+    "nome": "Consolidação das Leis do Trabalho",
+    "categoria": "codigo"
+  },
+  {
+    "id": "6a272efa-e7dd-4d91-a6af-6741fde98afd",
+    "slug": "cdc",
+    "nome": "Código de Defesa do Consumidor",
+    "categoria": "codigo"
+  },
+  {
+    "id": "aa2614f5-68b9-40bf-b8d0-2a534b115ab1",
+    "slug": "ca",
+    "nome": "Código de Águas",
+    "categoria": "codigo"
+  },
+  {
+    "id": "d775994e-5797-47ed-b729-f82a2d575fc8",
+    "slug": "cba",
+    "nome": "Código Brasileiro de Aeronáutica",
+    "categoria": "codigo"
+  },
+  {
+    "id": "c4478ab2-1fe4-413f-a9fb-ae63f84ad356",
+    "slug": "estatuto-roma",
+    "nome": "Estatuto de Roma do Tribunal Penal Internacional",
+    "categoria": "lei"
+  },
+  {
+    "id": "778a8c1b-bdbb-4dbb-9579-31f2d87f32cb",
+    "slug": "ldb",
+    "nome": "Lei de Diretrizes e Bases da Educação",
+    "categoria": "lei"
+  },
+  {
+    "id": "cf9e9292-4fe0-4b23-ae89-611edbb92503",
+    "slug": "cp",
+    "nome": "Código Penal",
+    "categoria": "codigo"
+  },
+  {
+    "id": "9d1fa209-b187-4d0c-ad3f-5657b5363ef8",
+    "slug": "lei-organizacoes-criminosas",
+    "nome": "Lei de Organizações Criminosas",
+    "categoria": "lei"
+  },
+  {
+    "id": "e2e4bc36-a369-4b3f-8947-86817e19449e",
+    "slug": "lei-interceptacao-telefonica",
+    "nome": "Lei de Interceptação Telefônica",
+    "categoria": "lei"
+  },
+  {
+    "id": "10e0344f-1e35-44fb-9c82-2114812b9b61",
+    "slug": "cbt",
+    "nome": "Código Brasileiro de Telecomunicações",
+    "categoria": "codigo"
+  },
+  {
+    "id": "d039c28b-32b7-44b1-a4a7-834e925b6441",
+    "slug": "lomp",
+    "nome": "Lei Orgânica do Ministério Público",
+    "categoria": "lei"
+  },
+  {
+    "id": "c4420598-56ab-4c8e-a0ed-7691d551cbde",
+    "slug": "lcade",
+    "nome": "Lei do CADE / Antitruste",
+    "categoria": "lei"
+  },
+  {
+    "id": "d9242e98-04fb-47e4-ba77-c9fe3f4880e7",
+    "slug": "lmls",
+    "nome": "Marco Legal das Startups",
+    "categoria": "lei"
+  },
+  {
+    "id": "01228743-6f49-47d0-ad87-02ffe2f9984a",
+    "slug": "lrt",
+    "nome": "Reforma Tributária",
+    "categoria": "lei"
+  },
+  {
+    "id": "d09f3c0b-61a3-4cb7-956b-d1bd6bb01b33",
+    "slug": "lei-legislacao-tributaria",
+    "nome": "Lei da Legislação Tributária",
+    "categoria": "lei"
+  },
+  {
+    "id": "6937d927-5090-4d41-bffa-16fcec0515a1",
+    "slug": "estatuto-idoso",
+    "nome": "Estatuto do Idoso",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "e6a915b2-20cb-42d9-9499-0bea514df1ec",
+    "slug": "estatuto-juventude",
+    "nome": "Estatuto da Juventude",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "4bbd03a3-6229-4b74-a772-14898f04c150",
+    "slug": "convencao-belem-para",
+    "nome": "Convenção Interamericana para Prevenir, Punir e Erradicar a Violência contra a Mulher (Convenção de Belém do Pará)",
+    "categoria": "lei"
+  },
+  {
+    "id": "812be765-93a9-4fe5-8e56-3757f39359b3",
+    "slug": "lda",
+    "nome": "Lei de Direitos Autorais",
+    "categoria": "lei"
+  },
+  {
+    "id": "62ad4491-a0af-4c96-8974-18a267dafd73",
+    "slug": "lci",
+    "nome": "Lei de Crimes Informáticos",
+    "categoria": "lei"
+  },
+  {
+    "id": "f3cf25af-34e5-4f8b-bcf0-48cdf2dfc4f6",
+    "slug": "lei-henry-borel",
+    "nome": "Lei Henry Borel (Lei 14.344/2022)",
+    "categoria": "lei"
+  },
+  {
+    "id": "2f0b7ba8-9cab-4b1f-9c8a-ec0876f01fba",
+    "slug": "lei-beneficios",
+    "nome": "Lei de Benefícios da Previdência Social",
+    "categoria": "lei"
+  },
+  {
+    "id": "041a1d0b-dd40-4008-be84-ad14b7eb2b53",
+    "slug": "convencao-viena-tratados",
+    "nome": "Convenção de Viena sobre o Direito dos Tratados",
+    "categoria": "lei"
+  },
+  {
+    "id": "699244c5-340a-4369-91b1-bd39c0e44045",
+    "slug": "ccom",
+    "nome": "Código Comercial",
+    "categoria": "codigo"
+  },
+  {
+    "id": "991296b1-02ad-4a72-8d05-f91d066ee86d",
+    "slug": "cdm",
+    "nome": "Código de Minas",
+    "categoria": "codigo"
+  },
+  {
+    "id": "ee02b8a2-3ba3-42f8-96d2-9fae55561127",
+    "slug": "cpm",
+    "nome": "Código Penal Militar",
+    "categoria": "codigo"
+  },
+  {
+    "id": "21db2d35-35bf-47ed-ba58-b8a106b37f87",
+    "slug": "cflorestal",
+    "nome": "Código Florestal",
+    "categoria": "codigo"
+  },
+  {
+    "id": "cba900af-e47e-43ae-a58c-fcec92e97243",
+    "slug": "ccaca",
+    "nome": "Código de Caça",
+    "categoria": "codigo"
+  },
+  {
+    "id": "cb8549da-0616-4780-9c50-294d126afaca",
+    "slug": "cpesca",
+    "nome": "Código de Pesca",
+    "categoria": "codigo"
+  },
+  {
+    "id": "8674863b-1d0b-4885-a599-f650c5340dce",
+    "slug": "cdus",
+    "nome": "Código de Defesa do Usuário",
+    "categoria": "codigo"
+  },
+  {
+    "id": "7d6ca5bb-a4fc-4177-91ef-57bd4fa073bc",
+    "slug": "estatuto-eca",
+    "nome": "Estatuto da Criança e do Adolescente",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "4153f9bc-9f1c-470c-b56f-5a40827be429",
+    "slug": "estatuto-igualdade-racial",
+    "nome": "Estatuto da Igualdade Racial",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "12cfcfeb-01a7-45d8-85fa-6d19afa2d17a",
+    "slug": "estatuto-cidade",
+    "nome": "Estatuto da Cidade",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "dd4c7ac8-f17a-4b31-99aa-5ab8ed0adcef",
+    "slug": "estatuto-torcedor",
+    "nome": "Estatuto do Torcedor",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "8359d481-b064-44e7-987b-cadec546619f",
+    "slug": "lmi",
+    "nome": "Lei do Mandado de Injunção",
+    "categoria": "lei"
+  },
+  {
+    "id": "63b36ce4-631b-4adb-955d-ae967b138def",
+    "slug": "lotcu",
+    "nome": "Lei Orgânica do TCU",
+    "categoria": "lei"
+  },
+  {
+    "id": "6496b828-42b4-4602-8abd-9978565b7cf4",
+    "slug": "lei-anticorrupcao",
+    "nome": "Lei Anticorrupção",
+    "categoria": "lei"
+  },
+  {
+    "id": "38539901-bdba-47c8-82ea-84605151c1dc",
+    "slug": "lpp",
+    "nome": "Lei dos Partidos Políticos",
+    "categoria": "lei"
+  },
+  {
+    "id": "5b8da7e4-ee83-474f-8a4c-aa54da2c5d82",
+    "slug": "lbio",
+    "nome": "Lei de Biossegurança",
+    "categoria": "lei"
+  },
+  {
+    "id": "95302463-25e3-4ed5-a3d3-03dc423ac2ba",
+    "slug": "loas",
+    "nome": "Lei Orgânica da Assistência Social",
+    "categoria": "lei"
+  },
+  {
+    "id": "a99a1029-80e2-4c73-ba6c-db7d316006d0",
+    "slug": "estatuto-cancer",
+    "nome": "Estatuto da Pessoa com Câncer",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "2ca423c0-a373-435e-a210-f74afc3da0d0",
+    "slug": "estatuto-desporto",
+    "nome": "Estatuto do Desporto",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "a563c538-8246-4984-aae5-ab26946c5eff",
+    "slug": "estatuto-mpe",
+    "nome": "Estatuto da Micro e Pequena Empresa",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "3fe03c1b-4928-438b-87f8-2cbad1fd5f32",
+    "slug": "lc-loman",
+    "nome": "Lei Orgânica da Magistratura Nacional (LC 35/79)",
+    "categoria": "lei"
+  },
+  {
+    "id": "ba4618cd-d29e-4c22-b62e-9d343e20d612",
+    "slug": "lei-acesso-informacao",
+    "nome": "Lei de Acesso à Informação",
+    "categoria": "lei"
+  },
+  {
+    "id": "8d564635-12d5-4c6d-bb15-5a766d5d2134",
+    "slug": "lele",
+    "nome": "Lei das Eleições",
+    "categoria": "lei"
+  },
+  {
+    "id": "7a2de450-631c-4a77-88a9-f14f2028b5b9",
+    "slug": "lle",
+    "nome": "Lei de Liberdade Econômica",
+    "categoria": "lei"
+  },
+  {
+    "id": "961a89bd-72ee-474b-aada-83b382190c5d",
+    "slug": "lpt",
+    "nome": "Lei de Proteção de Testemunhas",
+    "categoria": "lei"
+  },
+  {
+    "id": "0e73f9f8-5bef-4e0c-b89f-5dcd4512dae8",
+    "slug": "sp-constituicao-estadual-1-1989",
+    "nome": "Constituição Estadual nº 1/1989 - SP",
+    "categoria": "estadual_sp"
+  },
+  {
+    "id": "99d11682-1e36-4eb1-9bde-bf9723585045",
+    "slug": "lpsu",
+    "nome": "Lei de Parcelamento do Solo Urbano",
+    "categoria": "lei"
+  },
+  {
+    "id": "a1a26a8a-8675-4ce3-93f7-cb602c9969bf",
+    "slug": "sp-constituicao-estadual-x-y",
+    "nome": "Constituição Estadual  - SP",
+    "categoria": "estadual_sp"
+  },
+  {
+    "id": "42ec31fd-9175-46f9-9379-9ba4fe14a960",
+    "slug": "estatuto-indio",
+    "nome": "Estatuto do Índio",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "99a8402a-6f16-4c13-8379-9506f9c07769",
+    "slug": "decreto-etica",
+    "nome": "Código de Ética do Servidor Público",
+    "categoria": "lei"
+  },
+  {
+    "id": "5e98fdb5-9bbd-4029-aba3-876cc66655d2",
+    "slug": "estatuto-magisterio",
+    "nome": "Estatuto do Magistério Superior",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "c7692012-db9d-40d2-b918-3bc37a69e408",
+    "slug": "estatuto-migracao",
+    "nome": "Estatuto da Migração",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "d7a519eb-e1f7-4f80-8071-dbd929cb8abf",
+    "slug": "estatuto-militares",
+    "nome": "Estatuto dos Militares",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "9d3ffc41-d3c6-4bc9-915d-9b0632405d14",
+    "slug": "estatuto-refugiado",
+    "nome": "Estatuto do Refugiado",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "e96e10f3-fd24-407c-9fff-c57f04dcb0e0",
+    "slug": "estatuto-terra",
+    "nome": "Estatuto da Terra",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "eb6370e9-e37f-4f4a-868a-b9a3df95457c",
+    "slug": "lei-abuso-autoridade",
+    "nome": "Lei de Abuso de Autoridade",
+    "categoria": "lei"
+  },
+  {
+    "id": "20b1a534-545b-4147-b8e6-b557bc838bce",
+    "slug": "lei-acao-civil-publica",
+    "nome": "Lei da Ação Civil Pública",
+    "categoria": "lei"
+  },
+  {
+    "id": "4e8616a9-dcd3-4b16-b9c7-37fb8b49583c",
+    "slug": "lei-acao-popular",
+    "nome": "Lei da Ação Popular",
+    "categoria": "lei"
+  },
+  {
+    "id": "fb097204-bb61-4e6b-bd12-2c9c8c820aae",
+    "slug": "lei-escuta-protegida",
+    "nome": "Escuta Protegida (Lei 13.431/2017)",
+    "categoria": "lei"
+  },
+  {
+    "id": "f1a8e461-53fb-4dea-b1d8-c2d28a7136c1",
+    "slug": "lei-sinase",
+    "nome": "SINASE (Lei 12.594/2012)",
+    "categoria": "lei"
+  },
+  {
+    "id": "5548f669-53f9-46b1-9086-3bf8c10fd024",
+    "slug": "decreto-migracao",
+    "nome": "Regulamento da Lei de Migração (Decreto 9.199/2017)",
+    "categoria": "lei"
+  },
+  {
+    "id": "99cf4831-5773-4e0a-b29e-5b5176c8d0f4",
+    "slug": "cf",
+    "nome": "Constituição Federal",
+    "categoria": "codigo"
+  },
+  {
+    "id": "2986d542-bf86-4c70-b30f-8e16684db5ab",
+    "slug": "estatuto-oab",
+    "nome": "Estatuto da OAB",
+    "categoria": "oab"
+  },
+  {
+    "id": "585b5f1c-b006-47ec-aaa6-a9671e2baa5d",
+    "slug": "codigo-etica-oab-2015",
+    "nome": "Código de Ética e Disciplina da OAB (CED 2015)",
+    "categoria": "oab"
+  },
+  {
+    "id": "2281b379-34f3-4222-8ea3-49e53edcabe6",
+    "slug": "codigo-etica-oab-1995",
+    "nome": "Código de Ética e Disciplina da OAB de 1995 (Histórico)",
+    "categoria": "oab"
+  },
+  {
+    "id": "316e47c2-acee-47a6-a037-b5651b036441",
+    "slug": "regulamento-geral-oab",
+    "nome": "Regulamento Geral do Estatuto da Advocacia e da OAB",
+    "categoria": "oab"
+  },
+  {
+    "id": "2979e55a-fbe9-40f5-a44c-371fdadf7c2f",
+    "slug": "provimento-205-2021-oab",
+    "nome": "Provimento nº 205/2021 (Marketing Jurídico)",
+    "categoria": "oab"
+  },
+  {
+    "id": "474b7ea4-7732-42ff-9afa-377b26027e98",
+    "slug": "provimento-188-2018-oab",
+    "nome": "Provimento nº 188/2018 (Investigação Defensiva)",
+    "categoria": "oab"
+  },
+  {
+    "id": "009f454c-a94e-43e1-9454-037ee0be8b80",
+    "slug": "provimento-112-2006-oab",
+    "nome": "Provimento nº 112/2006 (Sociedades de Advogados)",
+    "categoria": "oab"
+  },
+  {
+    "id": "88e1d8df-c55b-4d0e-ab12-34d9b34a2e30",
+    "slug": "provimento-144-2011-oab",
+    "nome": "Provimento nº 144/2011 (Exame de Ordem Unificado)",
+    "categoria": "oab"
+  },
+  {
+    "id": "ab1ce1b0-d52f-4ed3-acd0-b8b86d82a2b2",
+    "slug": "resolucao-02-2015-oab",
+    "nome": "Resolução nº 02/2015 (Aprovação do CED)",
+    "categoria": "oab"
+  },
+  {
+    "id": "06c7e129-42ff-4fb1-b40a-bf6e88ac4de5",
+    "slug": "resolucao-01-2011-oab",
+    "nome": "Resolução nº 01/2011 (Regimento Interno do CFOAB)",
+    "categoria": "oab"
+  },
+  {
+    "id": "057e56d9-8d54-4dd8-acc2-a184829296c9",
+    "slug": "lei-crimes-transnacionais",
+    "nome": "Crimes Transnacionais",
+    "categoria": "lei"
+  },
+  {
+    "id": "2cce19f7-c5e7-4f2d-bd66-05b3f5d4e030",
+    "slug": "lei-feminicidio",
+    "nome": "Lei do Feminicídio",
+    "categoria": "lei"
+  },
+  {
+    "id": "c020b247-0f9f-4339-8aa7-497975aa8f4c",
+    "slug": "lei-juizados-federais",
+    "nome": "Juizados Especiais Federais (Lei 10.259/2001)",
+    "categoria": "lei"
+  },
+  {
+    "id": "56e89404-397c-4bda-a32b-7e157cb0f474",
+    "slug": "lei-pregao",
+    "nome": "Lei do Pregão",
+    "categoria": "lei"
+  },
+  {
+    "id": "8532cff7-5c5c-4b72-96d6-1c0afe14ce0d",
+    "slug": "lc-inelegibilidades",
+    "nome": "Lei das Inelegibilidades (LC 64/1990)",
+    "categoria": "lei"
+  },
+  {
+    "id": "4fe9039a-496a-4695-8042-c4ec010c9c4b",
+    "slug": "lei-oscip",
+    "nome": "Lei das OSCIP (Lei 9.790/1999)",
+    "categoria": "lei"
+  },
+  {
+    "id": "96a8236f-a738-49ec-a5d2-e2188441d078",
+    "slug": "ctb",
+    "nome": "Código de Trânsito Brasileiro",
+    "categoria": "codigo"
+  },
+  {
+    "id": "36e25959-2039-4af4-92bf-d9fa26a5140b",
+    "slug": "pidcp",
+    "nome": "Pacto Internacional sobre Direitos Civis e Políticos",
+    "categoria": "lei"
+  },
+  {
+    "id": "10d15c80-d3c3-4c4c-991f-a70cb97e9901",
+    "slug": "cppm",
+    "nome": "Código de Processo Penal Militar",
+    "categoria": "codigo"
+  },
+  {
+    "id": "c376439e-1ca8-4828-94ad-10a40a0faa4b",
+    "slug": "cpi",
+    "nome": "Código de Propriedade Industrial",
+    "categoria": "codigo"
+  },
+  {
+    "id": "6274cd3d-2cfc-49ab-bba6-90a5f9db10ea",
+    "slug": "estatuto-pessoa-deficiencia",
+    "nome": "Estatuto da Pessoa com Deficiência",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "e0b50d58-a9e0-48d3-85f1-b0e7befbd396",
+    "slug": "estatuto-desarmamento",
+    "nome": "Estatuto do Desarmamento",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "e85d8a32-d4de-4ada-819f-79c17830ff04",
+    "slug": "complementar",
+    "nome": "Lei da Previdência Complementar",
+    "categoria": "lei"
+  },
+  {
+    "id": "84602b35-1ba4-4731-89d8-0d5a1b5b138e",
+    "slug": "estatuto-metropole",
+    "nome": "Estatuto da Metrópole",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "9a4ffdad-51f0-4092-96bb-04e37bb9608f",
+    "slug": "estatuto-seguranca-privada",
+    "nome": "Estatuto da Segurança Privada",
+    "categoria": "estatuto"
+  },
+  {
+    "id": "f266e935-a041-4943-8e3b-2eb624f46d2d",
+    "slug": "lei-adi-adc",
+    "nome": "Lei da ADI e ADC",
+    "categoria": "lei"
+  },
+  {
+    "id": "6d638e85-3d42-49ab-8159-6c6293b9dca3",
+    "slug": "pacto-san-jose",
+    "nome": "Pacto de San José da Costa Rica (Decreto 678/1992)",
+    "categoria": "lei"
+  },
+  {
+    "id": "655f24c5-407f-40ae-8242-caa4b96285b4",
+    "slug": "cadh",
+    "nome": "Convenção Americana sobre Direitos Humanos (Pacto de San José da Costa Rica)",
+    "categoria": "lei"
+  }
+]

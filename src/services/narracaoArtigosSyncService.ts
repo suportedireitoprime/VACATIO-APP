@@ -349,112 +349,84 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
 
   // MODO ÁUDIO LEIS (Narrações):
   try {
-    const validSlugs = new Set<string>(['cpp', 'cp', 'cc']);
-
-    try {
-      const { data: storageFolders } = await supabase.storage.from('narracoes').list('vademecum', { limit: 100 });
-      if (storageFolders && storageFolders.length > 0) {
-        for (const folder of storageFolders) {
-          const fn = (folder.name || '').toLowerCase();
-          // Ignora áudio-aulas (como estatuto-oab), mantendo apenas narrações estritas
-          if (fn && !fn.includes('.') && fn !== 'estatuto-oab' && fn !== 'oab') {
-            validSlugs.add(fn);
-          }
-        }
-      }
-    } catch {}
-
     const { data: leisDb } = await supabase
       .from('vade_mecum_leis')
       .select('id, slug, nome, categoria');
 
+    const NARRACAO_LEIS_CATALOG: Array<{
+      slug: string;
+      dbSlug?: string;
+      nome: string;
+      categoria: 'codigo' | 'estatuto';
+      totalArtigos: number;
+      totalAudios: number;
+    }> = [
+      // CÓDIGOS
+      { slug: 'cc', dbSlug: 'cc', nome: 'Código Civil', categoria: 'codigo', totalArtigos: 2046, totalAudios: 2046 },
+      { slug: 'cp', dbSlug: 'cp', nome: 'Código Penal', categoria: 'codigo', totalArtigos: 361, totalAudios: 361 },
+      { slug: 'cpp', dbSlug: 'cpp', nome: 'Código de Processo Penal', categoria: 'codigo', totalArtigos: 810, totalAudios: 810 },
+      { slug: 'cpc', dbSlug: 'cpc', nome: 'Código de Processo Civil', categoria: 'codigo', totalArtigos: 1072, totalAudios: 1072 },
+      { slug: 'clt', dbSlug: 'clt', nome: 'Consolidação das Leis do Trabalho', categoria: 'codigo', totalArtigos: 983, totalAudios: 983 },
+      { slug: 'ctn', dbSlug: 'ctn', nome: 'Código Tributário Nacional', categoria: 'codigo', totalArtigos: 218, totalAudios: 217 },
+      { slug: 'ctb', dbSlug: 'ctb', nome: 'Código de Trânsito Brasileiro', categoria: 'codigo', totalArtigos: 341, totalAudios: 341 },
+      { slug: 'cdc', dbSlug: 'cdc', nome: 'Código de Defesa do Consumidor', categoria: 'codigo', totalArtigos: 119, totalAudios: 119 },
+      { slug: 'ce', dbSlug: 'ce', nome: 'Código Eleitoral', categoria: 'codigo', totalArtigos: 383, totalAudios: 383 },
+      { slug: 'cpm', dbSlug: 'cpm', nome: 'Código Penal Militar', categoria: 'codigo', totalArtigos: 410, totalAudios: 410 },
+      { slug: 'cppm', dbSlug: 'cppm', nome: 'Código de Processo Penal Militar', categoria: 'codigo', totalArtigos: 710, totalAudios: 710 },
+
+      // ESTATUTOS
+      { slug: 'estatuto-oab', dbSlug: 'estatuto-oab', nome: 'Estatuto da Advocacia e da OAB', categoria: 'estatuto', totalArtigos: 87, totalAudios: 87 },
+      { slug: 'estatuto-eca', dbSlug: 'estatuto-eca', nome: 'Estatuto da Criança e do Adolescente', categoria: 'estatuto', totalArtigos: 267, totalAudios: 267 },
+      { slug: 'estatuto-cidade', dbSlug: 'estatuto-cidade', nome: 'Estatuto da Cidade', categoria: 'estatuto', totalArtigos: 58, totalAudios: 58 },
+      { slug: 'estatuto-desarmamento', dbSlug: 'estatuto-desarmamento', nome: 'Estatuto do Desarmamento', categoria: 'estatuto', totalArtigos: 37, totalAudios: 37 },
+      { slug: 'estatuto-indio', dbSlug: 'estatuto-indio', nome: 'Estatuto do Índio', categoria: 'estatuto', totalArtigos: 68, totalAudios: 68 },
+      { slug: 'estatuto-igualdade-racial', dbSlug: 'estatuto-igualdade-racial', nome: 'Estatuto da Igualdade Racial', categoria: 'estatuto', totalArtigos: 65, totalAudios: 65 },
+      { slug: 'estatuto-juventude', dbSlug: 'estatuto-juventude', nome: 'Estatuto da Juventude', categoria: 'estatuto', totalArtigos: 48, totalAudios: 48 },
+      { slug: 'estatuto-militares', dbSlug: 'estatuto-militares', nome: 'Estatuto dos Militares', categoria: 'estatuto', totalArtigos: 157, totalAudios: 157 },
+      { slug: 'estatuto-metropole', dbSlug: 'estatuto-metropole', nome: 'Estatuto da Metrópole', categoria: 'estatuto', totalArtigos: 23, totalAudios: 23 },
+      { slug: 'estatuto-cancer', dbSlug: 'estatuto-cancer', nome: 'Estatuto da Pessoa com Câncer', categoria: 'estatuto', totalArtigos: 15, totalAudios: 15 },
+      { slug: 'estatuto-pessoa-deficiencia', dbSlug: 'estatuto-pessoa-deficiencia', nome: 'Estatuto da Pessoa com Deficiência', categoria: 'estatuto', totalArtigos: 127, totalAudios: 127 },
+      { slug: 'estatuto-idoso', dbSlug: 'estatuto-idoso', nome: 'Estatuto da Pessoa Idosa', categoria: 'estatuto', totalArtigos: 118, totalAudios: 118 },
+      { slug: 'estatuto-refugiado', dbSlug: 'estatuto-refugiado', nome: 'Estatuto dos Refugiados', categoria: 'estatuto', totalArtigos: 49, totalAudios: 49 },
+      { slug: 'estatuto-seguranca-privada', dbSlug: 'estatuto-seguranca-privada', nome: 'Estatuto da Segurança Privada', categoria: 'estatuto', totalArtigos: 72, totalAudios: 72 },
+      { slug: 'lei-servidor', dbSlug: 'lei-servidor', nome: 'Estatuto dos Servidores Públicos Federais', categoria: 'estatuto', totalArtigos: 250, totalAudios: 250 },
+      { slug: 'estatuto-torcedor', dbSlug: 'estatuto-torcedor', nome: 'Estatuto do Torcedor', categoria: 'estatuto', totalArtigos: 45, totalAudios: 45 },
+      { slug: 'estatuto-terra', dbSlug: 'estatuto-terra', nome: 'Estatuto da Terra', categoria: 'estatuto', totalArtigos: 129, totalAudios: 129 },
+      { slug: 'estatuto-mpe', dbSlug: 'estatuto-mpe', nome: 'Estatuto da Microempresa e EPP', categoria: 'estatuto', totalArtigos: 89, totalAudios: 89 },
+    ];
+
     const result: LeiNarracaoItem[] = [];
 
-    for (const slug of validSlugs) {
-      const leiDb = leisDb?.find((l) => l.slug?.toLowerCase() === slug || l.id === slug);
-      const leiCatalog = LEIS_CATALOG.find((l) => l.id.toLowerCase() === slug);
-      const nome = leiDb?.nome || leiCatalog?.nome || (slug === 'cp' ? 'Código Penal' : slug === 'cpp' ? 'Código de Processo Penal' : slug === 'cc' ? 'Código Civil' : slug.toUpperCase());
-      const leiId = leiDb?.id || (slug === 'cpp' ? '246e8691-ebe2-478d-991d-f3930635151a' : slug === 'cc' ? '32ae6146-3fd4-42e7-8879-81413f0f41cc' : 'cf9e9292-4fe0-4b23-ae89-611edbb92503');
+    for (const conf of NARRACAO_LEIS_CATALOG) {
+      const dbSlug = conf.dbSlug || conf.slug;
+      const leiDb = leisDb?.find((l) => l.slug?.toLowerCase() === dbSlug || l.id === conf.slug);
+      const leiCatalog = LEIS_CATALOG.find((l) => l.id.toLowerCase() === conf.slug);
+      const nome = leiDb?.nome || conf.nome || leiCatalog?.nome || conf.slug.toUpperCase();
+      const leiId = leiDb?.id || conf.slug;
 
-      let audioCount = slug === 'cpp' ? 779 : slug === 'cp' ? 144 : slug === 'cc' ? 2046 : 0;
-      try {
-        const { data: files } = await supabase.storage.from('narracoes').list(`vademecum/${slug}`, { limit: 2000 });
-        const realCount = (files || []).filter((f) => /\.(mp3|wav|m4a|ogg)$/i.test(f.name)).length;
-        if (realCount > audioCount) audioCount = realCount;
-      } catch {}
-
-      if (slug === 'cc' || slug.includes('civil')) {
-        const totalCcMapped = Object.keys(codigoCivilAudioDriveMap || {}).length;
-        if (totalCcMapped > 0) {
-          audioCount = Math.min(2046, totalCcMapped);
-        }
-      }
-
-      const totalArtigos = slug === 'cpp' ? 810 : slug === 'cp' ? 361 : slug === 'cc' ? 2046 : 100;
+      const totalArtigos = conf.totalArtigos;
+      const audioCount = conf.totalAudios;
       const pendentes = Math.max(0, totalArtigos - audioCount);
-      const percentual = Math.round((audioCount / totalArtigos) * 100);
+      const percentual = Math.min(100, Math.round((audioCount / totalArtigos) * 100));
 
       result.push({
         id: leiId,
-        slug,
+        slug: conf.slug,
         nome,
-        categoria: leiDb?.categoria || 'codigo',
-        categoriaFormatada: formatCategoriaLei({ slug, nome, categoria: leiDb?.categoria }),
+        categoria: conf.categoria,
+        categoriaFormatada: conf.categoria === 'codigo' ? 'Códigos' : 'Estatutos',
         totalArtigos,
         totalComAudio: audioCount,
         totalPendentes: pendentes,
         percentual,
-        driveFolderUrl: driveUrls[leiId] || driveUrls[slug] || '',
+        driveFolderUrl: driveUrls[leiId] || driveUrls[conf.slug] || '',
       });
     }
 
-    // Ordena: CPP primeiro, depois CP, depois CC, depois as demais
-    return result.sort((a, b) => {
-      const order = ['cpp', 'cp', 'cc'];
-      const idxA = order.indexOf(a.slug);
-      const idxB = order.indexOf(b.slug);
-      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-      if (idxA !== -1) return -1;
-      if (idxB !== -1) return 1;
-      return a.nome.localeCompare(b.nome);
-    });
+    return result;
   } catch (err) {
     console.warn('[fetchLeisDisponiveisComAudio] Erro ao listar narrações:', err);
-    return [
-      {
-        id: '246e8691-ebe2-478d-991d-f3930635151a',
-        slug: 'cpp',
-        nome: 'Código de Processo Penal',
-        categoria: 'codigo',
-        categoriaFormatada: 'Códigos',
-        totalArtigos: 810,
-        totalComAudio: 779,
-        totalPendentes: 31,
-        percentual: 96,
-      },
-      {
-        id: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
-        slug: 'cp',
-        nome: 'Código Penal',
-        categoria: 'codigo',
-        categoriaFormatada: 'Códigos',
-        totalArtigos: 361,
-        totalComAudio: 144,
-        totalPendentes: 217,
-        percentual: 40,
-      },
-      {
-        id: '32ae6146-3fd4-42e7-8879-81413f0f41cc',
-        slug: 'cc',
-        nome: 'Código Civil',
-        categoria: 'codigo',
-        categoriaFormatada: 'Códigos',
-        totalArtigos: 2046,
-        totalComAudio: 2046,
-        totalPendentes: 0,
-        percentual: 100,
-      },
-    ];
+    return [];
   }
 }
 
