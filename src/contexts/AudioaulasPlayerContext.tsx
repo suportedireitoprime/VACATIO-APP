@@ -7,6 +7,12 @@ import { notifyMediaPlay, subscribeMediaPlay } from '@/lib/mediaCoordinator';
 import { toast } from 'sonner';
 import { AUDIOAULAS_ACERVO_INICIAL } from '@/data/audioaulasAcervo';
 import { capaDaArea } from '@/lib/audioaulasHelper';
+import {
+  BGM_TRACKS,
+  lerBgmConfig,
+  salvarBgmConfig,
+  BGM_VOLUME_PADRAO,
+} from '@/lib/audioaulasBgm';
 
 export interface AulaAudio {
   id: number;
@@ -42,6 +48,14 @@ interface AudioaulasPlayerContextType {
   setVelocidade: (rate: number) => void;
   fechar: () => void;
   audioRef: React.RefObject<HTMLAudioElement>;
+  // Música de Fundo (Lo-Fi)
+  bgmAtivo: boolean;
+  bgmTrackId: string;
+  bgmVolume: number;
+  setBgmAtivo: (ativo: boolean) => void;
+  setBgmTrackId: (id: string) => void;
+  setBgmVolume: (vol: number) => void;
+  salvarBgmComoPadrao: () => void;
 }
 
 const FAV_KEY = 'aa_favoritos';
@@ -100,6 +114,14 @@ const fallbackAudioaulasContext: AudioaulasPlayerContextType = {
   setVelocidade: () => {},
   fechar: () => {},
   audioRef: fallbackAudioRef,
+  // Música de Fundo (Lo-Fi)
+  bgmAtivo: true,
+  bgmTrackId: 'noturno-chuva',
+  bgmVolume: BGM_VOLUME_PADRAO,
+  setBgmAtivo: () => {},
+  setBgmTrackId: () => {},
+  setBgmVolume: () => {},
+  salvarBgmComoPadrao: () => {},
 };
 
 const Ctx = createContext<AudioaulasPlayerContextType | undefined>(undefined);
@@ -122,6 +144,47 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
   const [historicoRecentes, setHistoricoRecentes] = useState<AulaAudio[]>(() => lerRecentes());
   const [filaCustom, setFilaCustom] = useState<AulaAudio[] | null>(null);
 
+  // Música de Fundo (Lo-Fi)
+  const [bgmConfig] = useState(() => lerBgmConfig());
+  const [bgmAtivo, setBgmAtivoState] = useState(bgmConfig.ativo);
+  const [bgmTrackId, setBgmTrackIdState] = useState(bgmConfig.trackId);
+  const [bgmVolume, setBgmVolumeState] = useState(bgmConfig.volume);
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const introAudioRef = useRef<HTMLAudioElement>(null);
+  const bgmAudioRef = useRef<HTMLAudioElement>(null);
+  const introTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isIntroPlayingRef = useRef<boolean>(false);
+  const pularRef = useRef<(dir: 1 | -1) => void>(() => {});
+
+  const setBgmAtivo = useCallback((ativo: boolean) => {
+    setBgmAtivoState(ativo);
+    salvarBgmConfig(ativo, bgmTrackId, bgmVolume);
+  }, [bgmTrackId, bgmVolume]);
+
+  const setBgmTrackId = useCallback((id: string) => {
+    setBgmTrackIdState(id);
+    salvarBgmConfig(bgmAtivo, id, bgmVolume);
+  }, [bgmAtivo, bgmVolume]);
+
+  const setBgmVolume = useCallback((vol: number) => {
+    const clamped = Math.max(0, Math.min(1, vol));
+    setBgmVolumeState(clamped);
+    if (bgmAudioRef.current) {
+      bgmAudioRef.current.volume = clamped;
+    }
+    salvarBgmConfig(bgmAtivo, bgmTrackId, clamped);
+  }, [bgmAtivo, bgmTrackId]);
+
+  const salvarBgmComoPadrao = useCallback(() => {
+    salvarBgmConfig(bgmAtivo, bgmTrackId, bgmVolume);
+    toast.success('Música de fundo salva como padrão!');
+  }, [bgmAtivo, bgmTrackId, bgmVolume]);
+
+  const currentBgmTrack = useMemo(() => {
+    return BGM_TRACKS.find((t) => t.id === bgmTrackId) || BGM_TRACKS[0];
+  }, [bgmTrackId]);
+
   const limparRecentes = useCallback(() => {
     setHistoricoRecentes([]);
     try {
@@ -130,12 +193,6 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
       /* ignore */
     }
   }, []);
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const introAudioRef = useRef<HTMLAudioElement>(null);
-  const introTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const isIntroPlayingRef = useRef<boolean>(false);
-  const pularRef = useRef<(dir: 1 | -1) => void>(() => {});
 
 
   // Carregamento e cache aquecido das aulas
@@ -263,10 +320,32 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
 
         const el = audioRef.current;
         if (el && !el.paused) el.pause();
+        if (bgmAudioRef.current) bgmAudioRef.current.pause();
         setTocando(false);
       }
     });
   }, []);
+
+  // Sincronização da Música de Fundo (Lo-Fi) com a reprodução da aula
+  useEffect(() => {
+    const bgm = bgmAudioRef.current;
+    if (!bgm) return;
+
+    bgm.volume = bgmVolume;
+
+    if (currentBgmTrack && (!bgm.src || !bgm.src.endsWith(currentBgmTrack.src))) {
+      bgm.src = currentBgmTrack.src;
+      bgm.load();
+    }
+
+    if (tocando && bgmAtivo && atualId !== null) {
+      bgm.play().catch((err) => {
+        console.warn('[AudioaulasPlayer] Autoplay de BGM:', err);
+      });
+    } else {
+      bgm.pause();
+    }
+  }, [tocando, bgmAtivo, bgmTrackId, bgmVolume, currentBgmTrack, atualId]);
 
   const tocar = useCallback(
     async (a: AulaAudio, customFila?: AulaAudio[]) => {
@@ -473,6 +552,10 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
       el.load();
       clearMediaSession();
     }
+    if (bgmAudioRef.current) {
+      bgmAudioRef.current.pause();
+      bgmAudioRef.current.currentTime = 0;
+    }
     setTocando(false);
     setAtualId(null);
     setTempo(0);
@@ -504,6 +587,14 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
     setVelocidade,
     fechar,
     audioRef,
+    // Música de Fundo (Lo-Fi)
+    bgmAtivo,
+    bgmTrackId,
+    bgmVolume,
+    setBgmAtivo,
+    setBgmTrackId,
+    setBgmVolume,
+    salvarBgmComoPadrao,
   };
 
   return (
@@ -548,6 +639,13 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
             clearMediaSession(audioRef.current);
           }
         }}
+      />
+      {/* Elemento de áudio da Música de Fundo (Lo-Fi) */}
+      <audio
+        ref={bgmAudioRef}
+        loop
+        preload="auto"
+        playsInline
       />
     </Ctx.Provider>
   );

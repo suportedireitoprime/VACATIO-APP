@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, ArrowRight, X } from 'lucide-react';
+import { Play, Pause, ArrowRight, X, Music } from 'lucide-react';
 import { useAudioaulasPlayer } from '@/contexts/AudioaulasPlayerContext';
+import { AudioaulasBgmModal } from '@/components/audioaulas/AudioaulasBgmModal';
 
 /**
  * Mini Player Flutuante de Áudio Aulas — Estilo Cápsula idêntico ao Narração do Artigo.
  * Permanece ativo e flutuando acima da barra de navegação em qualquer tela do aplicativo.
  */
 export default function GlobalAudioaulasMiniPlayer() {
-  const { atual, tocando, togglePlay, setAberto, aberto, fechar, tempo, dur } = useAudioaulasPlayer();
+  const { atual, tocando, togglePlay, setAberto, aberto, fechar, tempo, dur, bgmAtivo } = useAudioaulasPlayer();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [navHeight, setNavHeight] = useState(0);
+  const [bgmModalAberto, setBgmModalAberto] = useState(false);
 
   useEffect(() => {
     const medir = () => {
@@ -132,6 +134,20 @@ export default function GlobalAudioaulasMiniPlayer() {
               </p>
             </button>
 
+            {/* Botão de Música de Fundo (Lo-Fi) */}
+            <button
+              onClick={() => setBgmModalAberto(true)}
+              aria-label="Música de fundo Lo-Fi"
+              title="Música de Fundo (Lo-Fi)"
+              className={`flex-shrink-0 w-8 h-8 rounded-full transition flex items-center justify-center relative z-10 ${
+                bgmAtivo
+                  ? 'text-blue-400 bg-blue-500/20 border border-blue-500/30'
+                  : 'text-zinc-400 hover:bg-white/10'
+              }`}
+            >
+              <Music className="w-3.5 h-3.5" />
+            </button>
+
             {/* Botão Fechar (X) */}
             <button
               onClick={fechar}
@@ -157,6 +173,12 @@ export default function GlobalAudioaulasMiniPlayer() {
               </motion.span>
             </button>
           </div>
+
+          {/* Modal de Configurações de Música de Fundo (Lo-Fi) */}
+          <AudioaulasBgmModal
+            isOpen={bgmModalAberto}
+            onClose={() => setBgmModalAberto(false)}
+          />
         </motion.div>
       )}
     </AnimatePresence>

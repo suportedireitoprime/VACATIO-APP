@@ -161,7 +161,7 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                     Área do Direito
                   </span>
                 </div>
-                <h1 className="font-card text-lg sm:text-2xl font-extrabold text-white truncate tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+                <h1 className="font-title text-xl sm:text-2xl font-bold text-white truncate tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
                   {formatarTituloMateria(area)}
                 </h1>
               </div>

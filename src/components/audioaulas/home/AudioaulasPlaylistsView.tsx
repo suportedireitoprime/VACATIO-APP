@@ -44,8 +44,8 @@ export const AudioaulasPlaylistsView: React.FC<AudioaulasPlaylistsViewProps> = (
               onClick={() => onSelectArea(nomeArea)}
               className="group relative flex items-center gap-4 p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-white/20 hover:bg-white/[0.08] transition-all cursor-pointer shadow-lg overflow-hidden"
             >
-              <div className="relative w-14 sm:w-16 aspect-[3/4] shrink-0 rounded-xl overflow-hidden shadow-md border border-white/10 bg-zinc-900">
-                <CapaOtimizada src={capa} alt={nomeArea} className="w-full h-full object-cover" />
+              <div className="relative w-14 sm:w-16 aspect-[4/5] shrink-0 rounded-xl overflow-hidden shadow-md border border-white/10 bg-zinc-900">
+                <CapaOtimizada src={capa} alt={nomeArea} className="w-full h-full object-cover brightness-[1.03] contrast-[1.02]" />
                 <button
                   type="button"
                   onClick={(e) => {

@@ -249,13 +249,13 @@ export const AudioFavoritosModal: React.FC<AudioFavoritosModalProps> = ({
                               : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 hover:border-blue-500/40'
                           }`}
                         >
-                          {/* Miniatura da Capa 3:4 */}
-                          <div className="relative w-14 sm:w-16 aspect-[3/4] rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-md bg-zinc-950">
+                          {/* Miniatura da Capa 4:5 */}
+                          <div className="relative w-14 sm:w-16 aspect-[4/5] rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-md bg-zinc-950">
                             <CapaOtimizada
                               src={capa}
                               alt={aula.titulo}
                               animacaoEntrada={false}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 brightness-[1.03] contrast-[1.02]"
                             />
                             {isThisPlaying && (
                               <div className="absolute inset-0 bg-blue-600/60 backdrop-blur-[2px] flex items-center justify-center">

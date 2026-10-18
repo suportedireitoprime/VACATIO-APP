@@ -105,25 +105,26 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
                   haptic.selection();
                   navigate(`/audioaulas/${encodeURIComponent(nome)}`);
                 }}
-                className="group relative w-[160px] sm:w-[190px] md:w-[210px] shrink-0 aspect-[3/4] rounded-2xl overflow-hidden text-left transition-all duration-300 hover:shadow-2xl hover:shadow-black/60 border border-white/10 hover:border-white/20 focus-visible:outline-none snap-start bg-zinc-900"
+                className="group relative w-[160px] sm:w-[190px] md:w-[210px] shrink-0 aspect-[4/5] rounded-2xl overflow-hidden text-left transition-all duration-300 hover:shadow-2xl hover:shadow-black/60 border border-white/10 hover:border-white/20 focus-visible:outline-none snap-start bg-zinc-900"
               >
+                {/* Capa com cores originais brilhantes e reluzentes */}
                 <CapaOtimizada
                   src={capaDaArea(nome)}
                   alt={nome}
                   animacaoEntrada
-                  className="absolute inset-0 transition-transform duration-500 group-hover:scale-105 object-cover w-full h-full"
+                  className="absolute inset-0 transition-transform duration-500 group-hover:scale-105 object-cover w-full h-full brightness-[1.03] contrast-[1.02]"
                 />
-                {/* Gradiente escuro no rodapé para máxima legibilidade do título */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
+                {/* Degradê preto exclusivamente de baixo para cima para destacar o título */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 via-30% to-transparent to-60% pointer-events-none" />
                 <div className="absolute inset-0 p-3 sm:p-3.5 flex flex-col justify-between">
-                  {/* Ícone de fone elegante em vidro fosco neutro (sem iluminação/badge vermelho) */}
+                  {/* Ícone de fone elegante em vidro fosco neutro */}
                   <span className="self-start h-7 w-7 sm:h-8 sm:w-8 grid place-items-center rounded-lg bg-black/60 backdrop-blur-md border border-white/15 text-white/90 shadow-md">
                     <Headphones className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </span>
 
-                  {/* Informações da área organizadas com tipografia proporcional para não extrapolar a capa */}
+                  {/* Informações da área com tipografia elegante e ligeiramente maior */}
                   <div className="w-full space-y-1">
-                    <p className="font-card font-bold leading-tight text-white text-xs sm:text-sm md:text-base line-clamp-2 tracking-normal drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
+                    <p className="font-title font-bold leading-tight text-white text-[15px] sm:text-[17px] md:text-[18px] line-clamp-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] tracking-normal">
                       {nomeFormatado}
                     </p>
                     <div className="flex items-center justify-between">
@@ -238,13 +239,13 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
                             }}
                             className="w-full flex items-center gap-3.5 p-3 rounded-2xl hover:bg-white/[0.06] active:bg-white/10 transition text-left group"
                           >
-                            {/* Capa do lado esquerdo em proporção 3:4 */}
-                            <div className="relative w-12 sm:w-14 aspect-[3/4] rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-md bg-zinc-950">
+                            {/* Capa do lado esquerdo em proporção 4:5 idêntica a códigos e estatutos */}
+                            <div className="relative w-12 sm:w-14 aspect-[4/5] rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-md bg-zinc-950">
                               <CapaOtimizada
                                 src={capaDaArea(nome)}
                                 alt={nome}
                                 animacaoEntrada={false}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 brightness-[1.03] contrast-[1.02]"
                               />
                               <span className="absolute bottom-1 right-1 h-5 w-5 rounded-md bg-black/70 backdrop-blur grid place-items-center text-primary">
                                 <Headphones className="w-3 h-3" />
@@ -253,7 +254,7 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
 
                             {/* Informações da área */}
                             <div className="min-w-0 flex-1">
-                              <h4 className="font-card text-sm sm:text-base font-bold text-white group-hover:text-primary transition-colors">
+                              <h4 className="font-title text-sm sm:text-base font-bold text-white group-hover:text-primary transition-colors leading-snug">
                                 {nomeFormatado}
                               </h4>
                               <p className="font-card text-xs text-zinc-400 mt-0.5">

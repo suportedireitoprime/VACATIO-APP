@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Heart, RotateCcw, RotateCw, SkipBack, SkipForward, Play, Pause, Gauge, X } from 'lucide-react';
-import { type AulaAudio, audioIdOf } from '@/contexts/AudioaulasPlayerContext';
+import { ChevronDown, Heart, RotateCcw, RotateCw, SkipBack, SkipForward, Play, Pause, Gauge, X, Music } from 'lucide-react';
+import { type AulaAudio, audioIdOf, useAudioaulasPlayer } from '@/contexts/AudioaulasPlayerContext';
 import { BotaoDownloadAudio } from './BotaoDownloadAudio';
 import { capaDaArea, fmt, VELOCIDADES } from '@/lib/audioaulasHelper';
 import { CapaOtimizada } from './CapaOtimizada';
+import { AudioaulasBgmModal } from '@/components/audioaulas/AudioaulasBgmModal';
 
 interface AudioaulasPlayerModalProps {
   aberto: boolean;
@@ -42,6 +43,8 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
   setVelocidade
 }: AudioaulasPlayerModalProps) {
   const [expandirDesc, setExpandirDesc] = useState(false);
+  const [bgmModalAberto, setBgmModalAberto] = useState(false);
+  const { bgmAtivo, bgmVolume } = useAudioaulasPlayer();
 
   // Resetar o estado da descrição quando mudar a aula ou fechar o modal
   useEffect(() => {
@@ -104,7 +107,19 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
             <p className="text-[11px] uppercase tracking-widest font-semibold text-primary">Em Reprodução</p>
             <p className="text-sm font-bold text-white truncate max-w-[70vw] sm:max-w-md mx-auto">{atual.area}</p>
           </div>
-          <div className="h-11 w-11" />
+          <button
+            type="button"
+            onClick={() => setBgmModalAberto(true)}
+            aria-label="Configurar música de fundo"
+            title="Música de Fundo (Lo-Fi)"
+            className={`h-11 w-11 grid place-items-center rounded-full transition active:scale-95 ${
+              bgmAtivo
+                ? 'bg-blue-600/30 text-blue-400 border border-blue-500/40 shadow-lg shadow-blue-900/30'
+                : 'hover:bg-white/10 text-zinc-400 hover:text-white'
+            }`}
+          >
+            <Music className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Conteúdo Principal do Player: flexível, responsivo e adaptado para qualquer altura de tela */}
@@ -230,7 +245,23 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
               ))}
             </div>
 
-            <BotaoDownloadAudio aula={atual} grande />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setBgmModalAberto(true)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition active:scale-95 ${
+                  bgmAtivo
+                    ? 'bg-blue-600/20 border-blue-500/40 text-blue-300 shadow-md shadow-blue-900/30'
+                    : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
+                }`}
+                title="Configurar música de fundo"
+              >
+                <Music className="w-3.5 h-3.5" />
+                <span>{bgmAtivo ? `Lo-Fi ${Math.round(bgmVolume * 100)}%` : 'Lo-Fi Off'}</span>
+              </button>
+
+              <BotaoDownloadAudio aula={atual} grande />
+            </div>
           </div>
         </div>
 
@@ -254,6 +285,12 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
             {atual.descricao}
           </div>
         </div>
+
+        {/* Modal de Configurações de Música de Fundo (Lo-Fi) */}
+        <AudioaulasBgmModal
+          isOpen={bgmModalAberto}
+          onClose={() => setBgmModalAberto(false)}
+        />
       </div>
     </>
   );
