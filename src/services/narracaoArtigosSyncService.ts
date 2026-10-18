@@ -918,8 +918,8 @@ export function invalidateStorageAudiosCache(slug?: string): void {
 }
 
 /**
- * Busca a URL de áudio pré-gravada de um artigo específico
-// In-memory cache de URLs de áudio para acesso instantâneo (0ms)
+ * In-memory cache de URLs de áudio para acesso instantâneo (0ms)
+ */
 const resolvedNarracoesCache = new Map<string, string>();
 
 /**
