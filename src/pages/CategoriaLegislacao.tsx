@@ -21,6 +21,7 @@ import ArtigoCard from '@/components/vademecum/ArtigoCard';
 import { cascadeContainer } from '@/components/vademecum/staggerVariants';
 import ArtigoBottomSheet, { EDITORIAL_NOTE_REGEX, EDITORIAL_NOTE_TEST_REGEX } from '@/components/vademecum/ArtigoBottomSheet';
 import { matchArtigoKeyFromFilename } from '@/services/narracaoArtigosSyncService';
+import { getR2PublicUrl, convertSupabaseUrlToR2 } from '@/lib/r2Storage';
 import GrafoOverlay from '@/components/vademecum/GrafoOverlay';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import OcrScanner from '@/components/vademecum/OcrScanner';
@@ -376,7 +377,9 @@ const CategoriaLegislacao = () => {
         if (cancelled) return;
         const map: Record<string, string> = {};
         (Array.isArray(rows) ? rows : []).forEach((row: any) => {
-          if (row?.artigo_numero && row?.audio_url) map[row.artigo_numero] = row.audio_url;
+          if (row?.artigo_numero && row?.audio_url) {
+            map[row.artigo_numero] = convertSupabaseUrlToR2(row.audio_url);
+          }
         });
 
         if (Array.isArray(storageFiles)) {
@@ -384,14 +387,11 @@ const CategoriaLegislacao = () => {
             if (!f.name) continue;
             const k = matchArtigoKeyFromFilename(f.name);
             if (k) {
-              const { data: pubData } = supabase.storage
-                .from('narracoes')
-                .getPublicUrl(`vademecum/${slug}/${f.name}`);
-              if (pubData?.publicUrl) {
-                map[k] = pubData.publicUrl;
-                map[`Art. ${k}`] = pubData.publicUrl;
-                map[`Art. ${k}º`] = pubData.publicUrl;
-              }
+              // Servir diretamente via CDN ultrarrápida da Cloudflare R2 (custo zero de banda)
+              const urlR2 = getR2PublicUrl(`narracoes/vademecum/${slug}/${f.name}`);
+              map[k] = urlR2;
+              map[`Art. ${k}`] = urlR2;
+              map[`Art. ${k}º`] = urlR2;
             }
           }
         }

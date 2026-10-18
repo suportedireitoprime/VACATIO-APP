@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { getAllAudioAulasConfigs } from '@/services/audioAulasService';
 import codigoCivilAudioDriveMap from '@/data/codigoCivilAudioDriveMap.json';
+import { getR2PublicUrl, uploadToR2 } from '@/lib/r2Storage';
 
 
 
@@ -503,12 +504,9 @@ export async function fetchArtigosDaLeiComNarracao(leiId: string, leiSlug?: stri
           if (!file.name || !/\.(mp3|wav|m4a|ogg)$/i.test(file.name)) continue;
           const key = matchArtigoKeyFromFilename(file.name);
           if (key) {
-            const { data: pubData } = supabase.storage
-              .from('narracoes')
-              .getPublicUrl(`vademecum/${slug}/${file.name}`);
-            if (pubData?.publicUrl) {
-              storageAudiosMap.set(key, pubData.publicUrl);
-            }
+            // Servir diretamente via CDN do Cloudflare R2
+            const r2Url = getR2PublicUrl(`narracoes/vademecum/${slug}/${file.name}`);
+            storageAudiosMap.set(key, r2Url);
           }
         }
       }
@@ -520,12 +518,8 @@ export async function fetchArtigosDaLeiComNarracao(leiId: string, leiSlug?: stri
           if (!file.name || !/\.(mp3|wav|m4a|ogg)$/i.test(file.name)) continue;
           const key = matchArtigoKeyFromFilename(file.name);
           if (key && !storageAudiosMap.has(key)) {
-            const { data: pubData } = supabase.storage
-              .from('narracao-artigos')
-              .getPublicUrl(`${slug}/${file.name}`);
-            if (pubData?.publicUrl) {
-              storageAudiosMap.set(key, pubData.publicUrl);
-            }
+            const r2Url = getR2PublicUrl(`narracao-artigos/${slug}/${file.name}`);
+            storageAudiosMap.set(key, r2Url);
           }
         }
       }
@@ -582,27 +576,32 @@ export async function vincularAudioAoArtigo(params: {
     const numLimpo = normalizeArtigoKey(artigoNumero);
     const storagePath = `vademecum/${leiSlug || 'lei'}/art_${numLimpo}_${Date.now()}.${ext}`;
 
-    // 1. Upload para o bucket 'narracoes'
-    const { error: uploadError } = await supabase.storage
-      .from('narracoes')
-      .upload(storagePath, fileBlob, {
-        contentType: ext === 'wav' ? 'audio/wav' : 'audio/mpeg',
-        upsert: true,
-      });
+    // 1. Upload padrão para o Cloudflare R2 (com fallback para Supabase Storage)
+    let audioUrl = '';
+    try {
+      const { url } = await uploadToR2(`narracoes/${storagePath}`, fileBlob, ext === 'wav' ? 'audio/wav' : 'audio/mpeg');
+      audioUrl = url;
+    } catch (r2Err) {
+      console.warn('[vincularAudio] R2 upload falhou, tentando Supabase Storage:', r2Err);
+      const { error: uploadError } = await supabase.storage
+        .from('narracoes')
+        .upload(storagePath, fileBlob, {
+          contentType: ext === 'wav' ? 'audio/wav' : 'audio/mpeg',
+          upsert: true,
+        });
 
-    if (uploadError) {
-      console.error('[vincularAudio] Erro no upload:', uploadError);
-      return { success: false, error: uploadError.message };
+      if (uploadError) {
+        console.error('[vincularAudio] Erro no upload:', uploadError);
+        return { success: false, error: uploadError.message };
+      }
+
+      const { data: pubData } = supabase.storage
+        .from('narracoes')
+        .getPublicUrl(storagePath);
+      audioUrl = pubData.publicUrl;
     }
 
-    // 2. Obter URL pública permanente
-    const { data: pubData } = supabase.storage
-      .from('narracoes')
-      .getPublicUrl(storagePath);
-
-    const audioUrl = pubData.publicUrl;
-
-    // 3. Atualizar tabela vade_mecum_artigos
+    // 2. Atualizar tabela vade_mecum_artigos
     const { error: updateArtigoError } = await supabase
       .from('vade_mecum_artigos')
       .update({ narracao_url: audioUrl })
