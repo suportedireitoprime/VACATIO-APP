@@ -136,7 +136,10 @@ const Audioaulas = () => {
               totalAulas={state.aulas.length}
               totalAreas={state.areas.length}
               totalFavoritas={state.favoritos.size}
-              onFavoritos={() => state.setAba('favoritas')}
+              aulasFavoritas={aulasFavoritasFiltro}
+              onTocarAula={state.handleTocarAula}
+              onAlternarFavoritoAula={state.alternarFavorito}
+              aulas={state.aulas}
             />
 
             {/* Últimas Aulas Ouvidas: antes do menu de alternância quando na visão Todos */}

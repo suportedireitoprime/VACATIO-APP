@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X,
+  ArrowLeft,
   Clock,
   Flame,
   Headphones,
@@ -13,9 +14,11 @@ import {
   Sparkles,
   Target,
   BookOpen,
+  BarChart3,
 } from 'lucide-react';
 import { getAudioStats, type TrackPlayStat } from '@/services/audioStatsService';
 import { useSpotifyAudioStore, type SpotifyTrack } from '@/stores/useSpotifyAudioStore';
+import ShapeGrid from '@/components/ui/ShapeGrid';
 import { haptic } from '@/lib/nativeHaptics';
 
 interface AudioEstatisticasModalProps {
@@ -58,9 +61,9 @@ export const AudioEstatisticasModal: React.FC<AudioEstatisticasModalProps> = ({
     haptic.light();
     const trackMock: SpotifyTrack = {
       id: item.id,
-      tipo: item.tipo,
-      leiId: item.id.split('::')[0] || 'cf',
-      leiSlug: item.id.split('::')[0] || 'constituicao-federal',
+      tipo: 'lei',
+      leiId: item.leiSlug,
+      leiSlug: item.leiSlug,
       leiNome: item.leiNome,
       artigoNumero: item.artigoNumero || item.titulo,
       numeroFormatado: item.artigoNumero || item.titulo,
@@ -80,263 +83,232 @@ export const AudioEstatisticasModal: React.FC<AudioEstatisticasModalProps> = ({
     onClose();
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 select-none">
-        {/* Backdrop escuro com blur */}
+      <div className="fixed inset-0 z-[100] flex flex-col bg-[#070b14] select-none text-white">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-black/80 backdrop-blur-md"
-        />
-
-        {/* Painel Modal */}
-        <motion.div
-          initial={{ y: '100%', opacity: 0.8 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: '100%', opacity: 0.8 }}
-          transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-          className="relative w-full max-w-2xl bg-zinc-950 border border-white/10 rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col z-10"
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+          className="flex-1 flex flex-col min-h-0 relative overflow-hidden bg-[#070b14]"
         >
-          {/* Header com degradê luxuoso no tema */}
-          <div
-            className={`p-5 sm:p-6 pb-4 border-b border-white/10 relative overflow-hidden ${
-              isPurple
-                ? 'bg-gradient-to-r from-purple-950/70 via-zinc-900 to-black'
-                : 'bg-gradient-to-r from-blue-950/70 via-zinc-900 to-black'
-            }`}
-          >
-            <div className="flex items-center justify-between relative z-10">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-11 h-11 rounded-2xl flex items-center justify-center border shadow-lg ${
-                    isPurple
-                      ? 'bg-purple-600/20 border-purple-500/40 text-purple-400'
-                      : 'bg-blue-600/20 border-blue-500/40 text-blue-400'
-                  }`}
-                >
-                  <Sparkles className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                    Estatísticas de Estudo
-                  </h2>
-                  <p className="text-xs text-zinc-400 font-medium">
-                    Seu ritmo de fixação e tempo dedicado à legislação em áudio.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Fechar"
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition flex items-center justify-center text-white border border-white/10"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+          {/* Fundo com ShapeGrid animado */}
+          <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
+            <ShapeGrid
+              speed={0.4}
+              squareSize={42}
+              direction="diagonal"
+              borderColor="rgba(255, 255, 255, 0.04)"
+              hoverFillColor={isPurple ? 'rgba(168, 85, 247, 0.15)' : 'rgba(59, 130, 246, 0.15)'}
+              shape="square"
+              hoverTrailAmount={5}
+            />
           </div>
 
-          {/* Conteúdo Rolável */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 scrollbar-none">
-            {/* Cards Grandes de Métricas Principais */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-              {/* Tempo Total */}
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-zinc-400 mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider">Tempo Total</span>
-                  <Clock className={`w-4 h-4 ${isPurple ? 'text-purple-400' : 'text-blue-400'}`} />
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-white tabular-nums">
-                    {totalMinutos} <span className="text-xs font-semibold text-zinc-400">min</span>
+          {/* Topbar com Glassmorphism e Safe Area */}
+          <header
+            className={`relative z-20 shrink-0 px-4 sm:px-6 pb-3.5 border-b border-white/[0.08] backdrop-blur-xl shadow-lg ${
+              isPurple
+                ? 'bg-gradient-to-r from-purple-950/70 via-[#0a0715]/95 to-black'
+                : 'bg-gradient-to-r from-blue-950/70 via-[#070d1a]/95 to-black'
+            }`}
+            style={{ paddingTop: 'max(0.75rem, var(--sai-top, env(safe-area-inset-top, 0px)))' }}
+          >
+            <div className="max-w-[1200px] mx-auto flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic.selection();
+                    onClose();
+                  }}
+                  aria-label="Voltar"
+                  className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/[0.06] hover:bg-white/[0.12] active:scale-95 border border-white/10 flex items-center justify-center text-white transition shrink-0 shadow-md backdrop-blur-md cursor-pointer"
+                >
+                  <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.4} />
+                </button>
+
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${
+                        isPurple ? 'bg-purple-400' : 'bg-blue-400'
+                      }`}
+                    />
+                    <span
+                      className={`font-card text-[11px] font-bold uppercase tracking-wider ${
+                        isPurple ? 'text-purple-300' : 'text-blue-300'
+                      }`}
+                    >
+                      Métricas & Desempenho
+                    </span>
                   </div>
-                  <div className="text-[11px] text-zinc-400 mt-0.5">≈ {totalHoras}h ouvidas</div>
+                  <h1 className="font-card text-lg sm:text-2xl font-extrabold text-white truncate tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+                    Estatísticas de Estudo
+                  </h1>
                 </div>
               </div>
 
-              {/* Streak / Dias Seguidos */}
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-zinc-400 mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider">Sequência</span>
-                  <Flame className="w-4 h-4 text-orange-400" />
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-white tabular-nums">
-                    {stats.diasConsecutivos} <span className="text-xs font-semibold text-zinc-400">dias</span>
-                  </div>
-                  <div className="text-[11px] text-orange-400 font-semibold mt-0.5">🔥 Ritmo ativo!</div>
-                </div>
-              </div>
-
-              {/* Minutos Hoje */}
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-zinc-400 mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider">Hoje</span>
-                  <Target className={`w-4 h-4 ${isPurple ? 'text-purple-400' : 'text-blue-400'}`} />
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-white tabular-nums">
-                    {stats.minutosHoje} <span className="text-xs font-semibold text-zinc-400">min</span>
-                  </div>
-                  <div className="text-[11px] text-zinc-400 mt-0.5">Meta: {stats.metaDiariaMinutos} min</div>
-                </div>
-              </div>
-
-              {/* Economia com Velocidade */}
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-zinc-400 mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider">Economia</span>
-                  <Zap className="w-4 h-4 text-amber-400" />
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-white tabular-nums">
-                    {Math.round(totalMinutos * 0.35)} <span className="text-xs font-semibold text-zinc-400">min</span>
-                  </div>
-                  <div className="text-[11px] text-amber-400 font-medium mt-0.5">Ouvindo a 1.5x</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Barra de Progresso da Meta Diária */}
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Target className={`w-4 h-4 ${isPurple ? 'text-purple-400' : 'text-blue-400'}`} />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">
-                    Meta Diária de Fixação
-                  </span>
-                </div>
-                <span className="text-xs font-bold text-zinc-300 tabular-nums">
-                  {stats.minutosHoje} de {stats.metaDiariaMinutos} min ({metaProgresso}%)
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-xs font-semibold text-zinc-300 shadow-sm backdrop-blur-md font-card">
+                  <BarChart3 className={`w-3.5 h-3.5 ${isPurple ? 'text-purple-400' : 'text-sky-400'}`} />
+                  <span>{totalHoras}h dedicadas</span>
                 </span>
               </div>
-              <div className="w-full h-3 rounded-full bg-white/10 overflow-hidden relative">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    isPurple
-                      ? 'bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-400'
-                      : 'bg-gradient-to-r from-blue-600 via-blue-500 to-sky-400'
-                  }`}
-                  style={{ width: `${metaProgresso}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-zinc-400 mt-2">
-                💡 Ouvir 30 minutos diários de legislação acelera em até 3x a memorização dos artigos para provas e concursos.
-              </p>
             </div>
+          </header>
 
-            {/* Top Artigos / Aulas Mais Escutados */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <Headphones className={`w-4 h-4 ${isPurple ? 'text-purple-400' : 'text-blue-400'}`} />
-                  <span>Artigos Mais Escutados Por Você</span>
-                </h3>
-                <span className="text-[11px] text-zinc-400">Ranking pessoal</span>
-              </div>
-
-              {topTracks.length === 0 ? (
-                <div className="p-6 text-center rounded-2xl bg-white/[0.02] border border-white/5 text-zinc-400 text-sm">
-                  Comece a ouvir suas leis favoritas para ver suas métricas rankeadas aqui.
+          {/* Conteúdo Principal Rolável */}
+          <div
+            className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 py-4 overscroll-contain"
+            style={{ paddingBottom: 'calc(2.5rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
+          >
+            <div className="max-w-[1200px] mx-auto space-y-4">
+              {/* Cards de Métricas Principais */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                {/* Tempo Total */}
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col justify-between backdrop-blur-md">
+                  <div className="flex items-center justify-between text-zinc-400 mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Tempo Total</span>
+                    <Clock className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-black text-white">{totalHoras}h</div>
+                    <div className="text-[11px] text-zinc-400 mt-0.5">{totalMinutos} min ouvidos</div>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {topTracks.map((item, index) => {
-                    const minTrack = Math.round(item.totalSegundos / 60);
-                    return (
+
+                {/* Meta Diária */}
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col justify-between backdrop-blur-md">
+                  <div className="flex items-center justify-between text-zinc-400 mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Meta Hoje</span>
+                    <Target className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-black text-white">
+                      {stats.minutosHoje}
+                      <span className="text-xs font-medium text-zinc-400">/{stats.metaDiariaMinutos}m</span>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-1.5 mt-2 overflow-hidden">
                       <div
-                        key={item.id}
-                        onClick={() => handleTocarItem(item)}
-                        className="group flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-white/15 transition cursor-pointer active:scale-[0.99]"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          {/* Posição no ranking */}
-                          <div
-                            className={`w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
-                              index === 0
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                                : index === 1
-                                ? 'bg-zinc-400/20 text-zinc-300 border border-zinc-400/30'
-                                : index === 2
-                                ? 'bg-amber-800/20 text-amber-400 border border-amber-800/30'
-                                : 'bg-white/5 text-zinc-400'
-                            }`}
-                          >
-                            #{index + 1}
-                          </div>
-
-                          <div className="min-w-0">
-                            <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-purple-300 transition truncate">
-                              {item.titulo}
-                            </h4>
-                            <p className="text-[11px] text-zinc-400 truncate">
-                              {item.leiNome} • {item.reproducoes}x reproduzido
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 shrink-0 ml-2">
-                          <span
-                            className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border ${
-                              isPurple
-                                ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
-                                : 'bg-blue-500/10 text-blue-300 border-blue-500/30'
-                            }`}
-                          >
-                            {minTrack} min
-                          </span>
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition ${
-                              isPurple
-                                ? 'bg-purple-600 group-hover:bg-purple-500'
-                                : 'bg-blue-600 group-hover:bg-blue-500'
-                            }`}
-                          >
-                            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
+                        style={{ width: `${metaProgresso}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
 
-            {/* Conquistas de Áudio */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Award className="w-4 h-4 text-amber-400" />
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                  Marcos & Conquistas
-                </h3>
+                {/* Sequência (Streak) */}
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col justify-between backdrop-blur-md">
+                  <div className="flex items-center justify-between text-zinc-400 mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Ofensiva</span>
+                    <Flame className="w-4 h-4 text-orange-400" />
+                  </div>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-black text-orange-400 flex items-center gap-1">
+                      {stats.diasConsecutivos} <span className="text-sm font-bold text-white">dias</span>
+                    </div>
+                    <div className="text-[11px] text-zinc-400 mt-0.5">Constância diária</div>
+                  </div>
+                </div>
+
+                {/* Artigos Concluídos */}
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col justify-between backdrop-blur-md">
+                  <div className="flex items-center justify-between text-zinc-400 mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Fixados</span>
+                    <Headphones className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-black text-white">{stats.artigosOuvidosCount}</div>
+                    <div className="text-[11px] text-zinc-400 mt-0.5">Áudios reproduzidos</div>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-2.5">
-                  <span className="text-2xl">🥇</span>
-                  <div>
-                    <div className="text-xs font-bold text-white">Primeira Hora</div>
-                    <div className="text-[10px] text-amber-300 font-medium">Concluído (+50 XP)</div>
-                  </div>
+              {/* Top Conteúdos Mais Ouvidos */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                    <span>Mais Ouvidos por Você</span>
+                  </h3>
+                  <span className="text-xs text-zinc-500 font-medium">Repetições</span>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center gap-2.5">
-                  <span className="text-2xl">⚡</span>
-                  <div>
-                    <div className="text-xs font-bold text-white">Velocista</div>
-                    <div className="text-[10px] text-purple-300 font-medium">Ouvinte a 1.5x</div>
+                {topTracks.length === 0 ? (
+                  <div className="py-8 text-center text-zinc-500 text-xs">
+                    Suas faixas mais ouvidas aparecerão aqui conforme você avança nos estudos.
                   </div>
+                ) : (
+                  <div className="space-y-2">
+                    {topTracks.map((item, idx) => {
+                      const minutosItem = Math.max(1, Math.round(item.totalSegundos / 60));
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={() => handleTocarItem(item)}
+                          className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="w-6 text-center text-xs font-bold text-zinc-500 group-hover:text-white">
+                              {idx + 1}
+                            </span>
+                            <div className="min-w-0">
+                              <h4 className="text-xs sm:text-sm font-bold text-white truncate group-hover:text-purple-300 transition">
+                                {item.titulo}
+                              </h4>
+                              <p className="text-[11px] text-zinc-400 truncate">
+                                {item.leiNome} • {item.reproducoes}x reproduzido
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs font-semibold text-zinc-400">{minutosItem} min</span>
+                            <div className="w-7 h-7 rounded-full bg-white/10 group-hover:bg-purple-600 flex items-center justify-center text-white transition">
+                              <Play className="w-3 h-3 fill-current ml-0.5" />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Conquistas de Áudio */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Award className="w-4 h-4 text-amber-400" />
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                    Marcos & Conquistas
+                  </h3>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2.5 col-span-2 sm:col-span-1">
-                  <span className="text-2xl">🎯</span>
-                  <div>
-                    <div className="text-xs font-bold text-white">Foco Total</div>
-                    <div className="text-[10px] text-emerald-300 font-medium">Meta diária batida</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-2.5 backdrop-blur-md">
+                    <span className="text-2xl">🥇</span>
+                    <div>
+                      <div className="text-xs font-bold text-white">Primeira Hora</div>
+                      <div className="text-[10px] text-amber-300 font-medium">Concluído (+50 XP)</div>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center gap-2.5 backdrop-blur-md">
+                    <span className="text-2xl">⚡</span>
+                    <div>
+                      <div className="text-xs font-bold text-white">Velocista</div>
+                      <div className="text-[10px] text-purple-300 font-medium">Ouvinte a 1.5x</div>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2.5 col-span-2 sm:col-span-1 backdrop-blur-md">
+                    <span className="text-2xl">🎯</span>
+                    <div>
+                      <div className="text-xs font-bold text-white">Foco Total</div>
+                      <div className="text-[10px] text-emerald-300 font-medium">Meta diária batida</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -344,7 +316,8 @@ export const AudioEstatisticasModal: React.FC<AudioEstatisticasModalProps> = ({
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

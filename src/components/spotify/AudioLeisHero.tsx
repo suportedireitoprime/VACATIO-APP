@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { AudioActionShortcuts } from '@/components/audio/AudioActionShortcuts';
+import { AudioFavoritosModal } from '@/components/audio/AudioFavoritosModal';
 import { AudioEstatisticasModal } from '@/components/audio/AudioEstatisticasModal';
 import { AudioEmAltaModal } from '@/components/audio/AudioEmAltaModal';
 import { AudioTrilhasModal } from '@/components/audio/AudioTrilhasModal';
@@ -76,6 +77,7 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
   const { favoritos, setActiveTab } = useSpotifyAudioStore();
   const [cenarioIndex, setCenarioIndex] = useState(0);
 
+  const [favoritosOpen, setFavoritosOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [emAltaOpen, setEmAltaOpen] = useState(false);
   const [trilhasOpen, setTrilhasOpen] = useState(false);
@@ -236,7 +238,7 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
             colorScheme="purple"
             onFavoritos={() => {
               if (onFavoritos) onFavoritos();
-              else setActiveTab('favoritos');
+              else setFavoritosOpen(true);
             }}
             onEmAlta={() => {
               if (onEmAlta) onEmAlta();
@@ -255,7 +257,12 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
         </div>
       </div>
 
-      {/* Modais de Ações de Áudio */}
+      {/* Modais de Ações de Áudio em Tela Cheia Sobre o Menu de Rodapé */}
+      <AudioFavoritosModal
+        isOpen={favoritosOpen}
+        onClose={() => setFavoritosOpen(false)}
+        colorScheme="purple"
+      />
       <AudioEstatisticasModal
         isOpen={statsOpen}
         onClose={() => setStatsOpen(false)}

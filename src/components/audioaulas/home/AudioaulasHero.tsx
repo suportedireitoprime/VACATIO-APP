@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { AudioActionShortcuts } from '@/components/audio/AudioActionShortcuts';
+import { AudioFavoritosModal } from '@/components/audio/AudioFavoritosModal';
 import { AudioEstatisticasModal } from '@/components/audio/AudioEstatisticasModal';
 import { AudioEmAltaModal } from '@/components/audio/AudioEmAltaModal';
 import { AudioTrilhasModal } from '@/components/audio/AudioTrilhasModal';
+import { type AulaAudio } from '@/contexts/AudioaulasPlayerContext';
 
 import cenarioOnibus from '@/assets/audio-cenarios/cenario-onibus.webp';
 import cenarioAcademia from '@/assets/audio-cenarios/cenario-academia.webp';
@@ -21,6 +23,10 @@ interface AudioaulasHeroProps {
   totalAulas: number;
   totalAreas?: number;
   totalFavoritas?: number;
+  aulasFavoritas?: AulaAudio[];
+  onTocarAula?: (aula: AulaAudio, fila?: AulaAudio[]) => void;
+  onAlternarFavoritoAula?: (aula: AulaAudio) => void;
+  aulas?: AulaAudio[];
   onFavoritos?: () => void;
   onEmAlta?: () => void;
   onEstatistica?: () => void;
@@ -73,6 +79,10 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
     totalAulas,
     totalAreas = 12,
     totalFavoritas = 0,
+    aulasFavoritas = [],
+    onTocarAula,
+    onAlternarFavoritoAula,
+    aulas = [],
     onFavoritos,
     onEmAlta,
     onEstatistica,
@@ -81,6 +91,7 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
     const navigate = useNavigate();
     const [cenarioIndex, setCenarioIndex] = useState(0);
 
+    const [favoritosOpen, setFavoritosOpen] = useState(false);
     const [statsOpen, setStatsOpen] = useState(false);
     const [emAltaOpen, setEmAltaOpen] = useState(false);
     const [trilhasOpen, setTrilhasOpen] = useState(false);
@@ -245,6 +256,7 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
               colorScheme="blue"
               onFavoritos={() => {
                 if (onFavoritos) onFavoritos();
+                else setFavoritosOpen(true);
               }}
               onEmAlta={() => {
                 if (onEmAlta) onEmAlta();
@@ -264,6 +276,14 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
         </div>
 
         {/* Modais de Ações de Áudio com tema Azul */}
+        <AudioFavoritosModal
+          isOpen={favoritosOpen}
+          onClose={() => setFavoritosOpen(false)}
+          colorScheme="blue"
+          aulasFavoritas={aulasFavoritas}
+          onTocarAula={onTocarAula}
+          onAlternarFavoritoAula={onAlternarFavoritoAula}
+        />
         <AudioEstatisticasModal
           isOpen={statsOpen}
           onClose={() => setStatsOpen(false)}
@@ -273,6 +293,8 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
           isOpen={emAltaOpen}
           onClose={() => setEmAltaOpen(false)}
           colorScheme="blue"
+          aulas={aulas}
+          onTocarAula={onTocarAula}
         />
         <AudioTrilhasModal
           isOpen={trilhasOpen}
