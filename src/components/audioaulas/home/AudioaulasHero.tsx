@@ -225,8 +225,8 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
                 <Headphones className="w-4 h-4 text-sky-300 shrink-0" />
                 <span className="tracking-wide">
                   {!loading && totalAulas > 0
-                    ? `${totalAulas.toLocaleString('pt-BR')} narrações`
-                    : '133 narrações'}
+                    ? `${totalAulas.toLocaleString('pt-BR')} áudio aulas`
+                    : '133 áudio aulas'}
                 </span>
               </span>
             </div>

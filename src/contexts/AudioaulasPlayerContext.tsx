@@ -132,6 +132,9 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
   }, []);
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const introAudioRef = useRef<HTMLAudioElement>(null);
+  const introTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isIntroPlayingRef = useRef<boolean>(false);
   const pularRef = useRef<(dir: 1 | -1) => void>(() => {});
 
 
@@ -249,6 +252,15 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
   useEffect(() => {
     return subscribeMediaPlay((active) => {
       if (active !== 'audioaula') {
+        if (introTimerRef.current) {
+          clearTimeout(introTimerRef.current);
+          introTimerRef.current = null;
+        }
+        if (introAudioRef.current) {
+          introAudioRef.current.pause();
+        }
+        isIntroPlayingRef.current = false;
+
         const el = audioRef.current;
         if (el && !el.paused) el.pause();
         setTocando(false);
@@ -259,13 +271,29 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
   const tocar = useCallback(
     async (a: AulaAudio, customFila?: AulaAudio[]) => {
       const el = audioRef.current;
+      const intro = introAudioRef.current;
       if (!a.url_audio) return;
 
       if (customFila) {
         setFilaCustom(customFila);
       }
 
+      // Se clicou na mesma aula já em reprodução:
       if (atualId === a.id) {
+        // Se a vinheta ainda estiver tocando nos primeiros segundos:
+        if (isIntroPlayingRef.current && intro && !intro.ended) {
+          if (intro.paused) {
+            notifyMediaPlay('audioaula');
+            await intro.play().catch(() => {});
+            setTocando(true);
+          } else {
+            intro.pause();
+            setTocando(false);
+          }
+          return;
+        }
+
+        // Caso normal da aula já em andamento:
         if (el?.paused) {
           notifyMediaPlay('audioaula');
           await el.play().catch(() => {});
@@ -276,6 +304,19 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
         }
         return;
       }
+
+      // Início de uma nova aula:
+      // Cancela qualquer vinheta ou timer anterior
+      if (introTimerRef.current) {
+        clearTimeout(introTimerRef.current);
+        introTimerRef.current = null;
+      }
+      if (intro) {
+        intro.pause();
+        intro.currentTime = 0;
+        intro.volume = 1;
+      }
+      isIntroPlayingRef.current = false;
 
       setAtualId(a.id);
       setTempo(0);
@@ -293,10 +334,51 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
         if (el) {
           el.src = src;
           el.playbackRate = velocidade;
+          el.currentTime = 0;
+          el.load();
+        }
+
+        // Toca a vinheta de introdução exclusiva para Audioaulas
+        if (intro) {
+          isIntroPlayingRef.current = true;
+          intro.currentTime = 0;
+          intro.volume = 1;
+          notifyMediaPlay('audioaula');
+          setTocando(true);
+
+          try {
+            await intro.play();
+          } catch (err) {
+            console.warn('[AudioaulasPlayer] Autoplay bloqueado na vinheta, iniciando aula diretamente:', err);
+            isIntroPlayingRef.current = false;
+            if (el) {
+              await el.play();
+            }
+            return;
+          }
+
+          // A áudio aula vai disparar exatamente 1 segundo antes de terminar a vinheta
+          const introDur =
+            intro.duration && !isNaN(intro.duration) && intro.duration > 1 ? intro.duration : 9.35;
+          const delayMs = Math.max(0, (introDur - 1.0) * 1000);
+
+          introTimerRef.current = setTimeout(async () => {
+            try {
+              if (el && isIntroPlayingRef.current) {
+                notifyMediaPlay('audioaula');
+                await el.play();
+                // A vinheta termina seu último segundo por cima, dando a introdução perfeita
+                isIntroPlayingRef.current = false;
+              }
+            } catch (e) {
+              console.warn('[AudioaulasPlayer] Erro ao iniciar aula pós-vinheta:', e);
+            }
+          }, delayMs);
+        } else if (el) {
           notifyMediaPlay('audioaula');
           await el.play();
+          setTocando(true);
         }
-        setTocando(true);
       } catch (err) {
         console.error('[AudioaulasPlayer] Erro ao carregar/reproduzir áudio:', err);
         setTocando(false);
@@ -308,7 +390,22 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
 
   const togglePlay = useCallback(() => {
     const el = audioRef.current;
-    if (!el || !atual) return;
+    const intro = introAudioRef.current;
+    if (!atual) return;
+
+    if (isIntroPlayingRef.current && intro && !intro.ended) {
+      if (tocando) {
+        intro.pause();
+        setTocando(false);
+      } else {
+        notifyMediaPlay('audioaula');
+        intro.play().catch(() => {});
+        setTocando(true);
+      }
+      return;
+    }
+
+    if (!el) return;
     if (tocando) {
       el.pause();
       setTocando(false);
@@ -335,6 +432,18 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
   pularRef.current = pular;
 
   const seek = useCallback((v: number) => {
+    if (introTimerRef.current) {
+      clearTimeout(introTimerRef.current);
+      introTimerRef.current = null;
+    }
+    if (introAudioRef.current && isIntroPlayingRef.current) {
+      introAudioRef.current.pause();
+      introAudioRef.current.currentTime = 0;
+      isIntroPlayingRef.current = false;
+      if (audioRef.current && audioRef.current.paused) {
+        audioRef.current.play().catch(() => {});
+      }
+    }
     const el = audioRef.current;
     if (el) el.currentTime = v;
     setTempo(v);
@@ -347,6 +456,16 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
   }, []);
 
   const fechar = useCallback(() => {
+    if (introTimerRef.current) {
+      clearTimeout(introTimerRef.current);
+      introTimerRef.current = null;
+    }
+    if (introAudioRef.current) {
+      introAudioRef.current.pause();
+      introAudioRef.current.currentTime = 0;
+    }
+    isIntroPlayingRef.current = false;
+
     const el = audioRef.current;
     if (el) {
       el.pause();
@@ -387,11 +506,27 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
     audioRef,
   };
 
-
-
   return (
     <Ctx.Provider value={value}>
       {children}
+      {/* Elemento de áudio da Vinheta de Introdução (Exclusivo Áudio Aulas) */}
+      <audio
+        ref={introAudioRef}
+        src="/audio/intro-audioaulas.mp3"
+        preload="auto"
+        playsInline
+        onError={(e) => {
+          const target = e.currentTarget;
+          if (!target.src.includes('pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev')) {
+            target.src = 'https://pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev/narracoes/intros/intro-audioaulas.mp3';
+            target.load();
+          }
+        }}
+        onEnded={() => {
+          isIntroPlayingRef.current = false;
+        }}
+      />
+      {/* Elemento de áudio Principal da Aula */}
       <audio
         ref={audioRef}
         preload="auto"
