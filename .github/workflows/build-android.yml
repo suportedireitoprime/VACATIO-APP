@@ -68,7 +68,19 @@ jobs:
       - name: Build web app
         env:
           SKIP_PRECOMPRESS: "1"
-        run: bun run build
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://tlpxubeagmxapkysgobk.supabase.co' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRscHh1YmVhZ214YXBreXNnb2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTMzOTYsImV4cCI6MjEwNzA2OTM5Nn0.3qKySrhlG6Kw1ZQYEaK4cELtzG2JlIi_CNHH4FV2ELo' }}
+          VITE_SUPABASE_PROJECT_ID: "tlpxubeagmxapkysgobk"
+          VITE_BASE_URL: "/"
+        run: |
+          cat > .env <<EOF
+          VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+          VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+          VITE_SUPABASE_PROJECT_ID=${VITE_SUPABASE_PROJECT_ID}
+          VITE_BASE_URL=/
+          EOF
+          bun run build
+
 
       - name: Strip precompressed assets (safety net for native)
         run: |

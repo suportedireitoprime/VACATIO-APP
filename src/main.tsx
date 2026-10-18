@@ -39,7 +39,11 @@ if (Capacitor.isNativePlatform()) {
 }
 
 
-createRoot(document.getElementById("root")!).render(<App />);
+const rootElement = document.getElementById("root")!;
+createRoot(rootElement).render(<App />);
+if (typeof window !== "undefined") {
+  (window as any).__REACT_MOUNTED__ = true;
+}
 
 
 // Paint the native status bar with the app's Wine theme at boot.

@@ -13,9 +13,8 @@ const config: CapacitorConfig = {
   // `dist/` embutido (o workflow do GitHub Actions faz isso automaticamente).
   android: {
     // allowMixedContent removido — hardening. Todas as chamadas usam HTTPS.
-    // Debug do WebView desabilitado em release (evita inspeção via chrome://inspect
-    // por qualquer USB conectado no aparelho do usuário).
-    webContentsDebuggingEnabled: false,
+    // Debug da WebView habilitado para diagnóstico via chrome://inspect quando conectado via USB.
+    webContentsDebuggingEnabled: true,
     // 🔗 Deep Links / App Links — permite abrir o app direto de:
     //   - vacatio://lei/cf88/art-5
     //   - br.com.vacatio.app://qualquer-caminho
@@ -41,10 +40,10 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      // Zerado: usamos apenas o splash nativo do Android 12+ (estático),
-      // sem animação custom do plugin sobre ele.
-      launchShowDuration: 1500,
-      launchFadeOutDuration: 300,
+      // 0ms para o splash do plugin não bloquear ou congelar com tela preta.
+      // O Android 12+ exibe o splash do sistema operacional nativamente.
+      launchShowDuration: 0,
+      launchFadeOutDuration: 200,
       launchAutoHide: true,
       backgroundColor: '#ac1534',
       androidSplashResourceName: 'splash',
