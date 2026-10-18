@@ -475,6 +475,29 @@ body {
   mix-blend-mode: screen;
 }
 
+/* Reflexo contínuo e brilhante sobre o botão de gravação de áudio */
+.btn-mic-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-mic-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.4) 45%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.4) 55%,
+    transparent 80%
+  );
+  transform: translateX(-140%) skewX(-18deg);
+  animation: aprender-icon-shine 2.8s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
 /* Reflexo horizontal (esquerda -> direita) sobre os ícones do painel amarelo da home */
 @keyframes hero-icon-reflect-h {
   0%   { transform: translateX(-120%); opacity: 0; }

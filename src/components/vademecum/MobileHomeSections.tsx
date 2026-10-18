@@ -782,58 +782,74 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               <div className="flex items-center justify-center pt-1.5 pb-1">
                 <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
               </div>
-              <div className="flex items-center justify-between px-4 pb-3 pt-1">
-                <button
-                  onClick={() => setCategoryOpen(null)}
-                  aria-label="Fechar"
-                  className="w-10 h-10 min-h-[40px] min-w-[40px] rounded-full bg-secondary/70 flex items-center justify-center shrink-0 hover:bg-secondary active:scale-95 transition-all"
-                >
-                  <ChevronDown className="w-5 h-5 text-foreground" />
-                </button>
-                <div className="min-w-0 flex-1 px-3">
-                  <h3 className="font-card text-[17px] sm:text-[18px] text-foreground font-semibold leading-tight truncate tracking-[-0.01em]">
-                    {categoryOpen.label}
-                  </h3>
-                  <p className="text-muted-foreground text-[12px] font-body leading-tight mt-0.5 truncate">
-                    {categoryOpen.sublabel}
-                  </p>
-                </div>
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-secondary/70 flex items-center justify-center shrink-0">
+              <div className="flex items-center justify-between px-4 pb-3 pt-1 gap-3">
+                {/* Lado esquerdo: Ícone da categoria (sem fundo cinza) + Título e Subtítulo */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <CategorySheetIcon
-                    className="w-5 h-5 sm:w-6 sm:h-6"
+                    className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 drop-shadow-sm"
                     style={{ color: categoryOpen.color, filter: 'saturate(1.3) brightness(1.1)' }}
-                    strokeWidth={1.3}
+                    strokeWidth={1.5}
                   />
-                </div>
-              </div>
-              <div className="px-4 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex-1 flex items-center gap-2 rounded-2xl border border-border/60 bg-secondary/45 px-3 h-12">
-                    <Search className="w-4.5 h-4.5 text-muted-foreground shrink-0" />
-                    <input
-                      value={categorySearch}
-                      onChange={(event) => setCategorySearch(event.target.value)}
-                      placeholder={
-                        categoryOpen && 'leiIds' in categoryOpen
-                          ? 'Pesquisar nesta área'
-                          : 'Pesquisar nesta categoria'
-                      }
-                      className="min-w-0 flex-1 bg-transparent font-body text-[14px] text-foreground placeholder:text-muted-foreground outline-none"
-                    />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-card text-[18px] sm:text-[20px] text-foreground font-bold leading-tight truncate tracking-tight">
+                      {categoryOpen.label}
+                    </h3>
+                    <p className="text-muted-foreground text-[12px] sm:text-[13px] font-body leading-tight mt-0.5 truncate">
+                      {categoryOpen.sublabel}
+                    </p>
                   </div>
+                </div>
+
+                {/* Lado direito: Botão de abaixar a tela (ChevronDown), tamanho padrão Apple/Google */}
+                <button
+                  type="button"
+                  onClick={() => setCategoryOpen(null)}
+                  aria-label="Abaixar e fechar"
+                  className="w-11 h-11 sm:w-12 sm:h-12 min-h-[44px] min-w-[44px] rounded-full bg-secondary/80 hover:bg-secondary active:scale-95 flex items-center justify-center shrink-0 transition-all text-foreground shadow-sm cursor-pointer"
+                >
+                  <ChevronDown className="w-6 h-6 text-foreground" strokeWidth={2.2} />
+                </button>
+              </div>
+
+              <div className="px-4 pb-3">
+                <div className="w-full relative flex items-center gap-2.5 rounded-2xl border border-border/60 bg-secondary/45 pl-3.5 pr-1.5 h-12 transition-colors focus-within:border-primary/50 focus-within:bg-secondary/60">
+                  <Search className="w-4.5 h-4.5 text-muted-foreground shrink-0" />
+                  <input
+                    value={categorySearch}
+                    onChange={(event) => setCategorySearch(event.target.value)}
+                    placeholder={
+                      categoryOpen && 'leiIds' in categoryOpen
+                        ? 'Pesquisar nesta área'
+                        : 'Pesquisar nesta categoria'
+                    }
+                    className="min-w-0 flex-1 bg-transparent font-body text-[14px] text-foreground placeholder:text-muted-foreground outline-none"
+                  />
+                  {categorySearch && (
+                    <button
+                      type="button"
+                      onClick={() => setCategorySearch('')}
+                      aria-label="Limpar texto"
+                      className="p-1 rounded-full text-muted-foreground hover:text-foreground transition-colors mr-1 cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                  {/* Botão de Gravar Áudio / Busca por Voz dentro da barra com animação de reflexo */}
                   <button
                     type="button"
                     onClick={voiceSearch.toggle}
                     aria-label={voiceSearch.listening ? 'Parar gravação' : 'Pesquisar por voz'}
-                    className={`btn-attention-shine relative overflow-hidden shrink-0 w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-[0.95] transition ${
+                    className={`btn-mic-shine relative overflow-hidden shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-md active:scale-95 transition-all select-none cursor-pointer ${
                       voiceSearch.listening
                         ? 'bg-red-500 text-white animate-pulse shadow-red-500/40'
                         : 'bg-primary text-primary-foreground shadow-primary/30'
                     }`}
                   >
-                    {voiceSearch.listening
-                      ? <MicOff className="w-6 h-6 relative z-[2]" strokeWidth={2.5} />
-                      : <Mic className="w-6 h-6 relative z-[2]" strokeWidth={2.5} />}
+                    {voiceSearch.listening ? (
+                      <MicOff className="w-4.5 h-4.5 sm:w-5 sm:h-5 relative z-[2]" strokeWidth={2.2} />
+                    ) : (
+                      <Mic className="w-4.5 h-4.5 sm:w-5 sm:h-5 relative z-[2]" strokeWidth={2.2} />
+                    )}
                   </button>
                 </div>
               </div>

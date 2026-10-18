@@ -46,7 +46,7 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
         {/* Cabeçalho: Risquinho sutil antes do título à esquerda, Botão 'Ver todos' à direita */}
         <div className="flex items-center justify-between gap-4 mb-3">
           <div className="min-w-0 flex-1">
-            <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider flex items-center gap-2.5">
+            <h2 className="font-card text-lg sm:text-xl font-extrabold text-white flex items-center gap-2.5 tracking-normal">
               <span className="w-1.5 h-6 rounded-full bg-blue-500 shrink-0" />
               <span>Áreas do Direito</span>
             </h2>

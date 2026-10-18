@@ -292,7 +292,7 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
                   &bull; 11 Códigos completos
                 </span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5 tracking-tight uppercase">
+              <h3 className="font-card text-lg sm:text-xl font-extrabold text-white flex items-center gap-2.5 tracking-normal">
                 <span className="w-1.5 h-6 rounded-full bg-blue-500 shrink-0" />
                 <span>Códigos da Legislação</span>
               </h3>
@@ -346,7 +346,7 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
                   &bull; 20 Estatutos oficiais
                 </span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5 tracking-tight uppercase">
+              <h3 className="font-card text-lg sm:text-xl font-extrabold text-white flex items-center gap-2.5 tracking-normal">
                 <span className="w-1.5 h-6 rounded-full bg-purple-500 shrink-0" />
                 <span>Estatutos Oficiais</span>
               </h3>
@@ -400,7 +400,7 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
                   &bull; Constituição de 1988
                 </span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5 tracking-tight uppercase">
+              <h3 className="font-card text-lg sm:text-xl font-extrabold text-white flex items-center gap-2.5 tracking-normal">
                 <span className="w-1.5 h-6 rounded-full bg-emerald-500 shrink-0" />
                 <span>Constituição Federal</span>
               </h3>
@@ -453,7 +453,7 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
                   &bull; Leis ordinárias e complementares
                 </span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5 tracking-tight uppercase">
+              <h3 className="font-card text-lg sm:text-xl font-extrabold text-white flex items-center gap-2.5 tracking-normal">
                 <span className="w-1.5 h-6 rounded-full bg-amber-500 shrink-0" />
                 <span>Leis Especiais & Administrativo</span>
               </h3>
