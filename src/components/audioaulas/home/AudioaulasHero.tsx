@@ -231,7 +231,7 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
 
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-black/40 text-white border border-white/20 font-bold text-[11px] sm:text-xs shadow-md backdrop-blur-md">
                 <GraduationCap className="w-3.5 h-3.5 text-sky-300" />
-                <span>{areaAtual ? areaAtual : `${totalAreas} áreas`}</span>
+                <span>{areaAtual ? areaAtual : totalAreas === 1 ? '1 área' : `${totalAreas} áreas`}</span>
               </span>
             </div>
           </div>

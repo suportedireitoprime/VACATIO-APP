@@ -16,6 +16,7 @@ import { AudioaulasCategoriasNav, type AudioaulasFiltroMenu } from '@/components
 import { AudioaulasAulasRecentes } from '@/components/audioaulas/home/AudioaulasAulasRecentes';
 import { AudioAppBottomNav } from '@/components/audio/AudioAppBottomNav';
 import { AudioaulasPlaylistsView } from '@/components/audioaulas/home/AudioaulasPlaylistsView';
+import { AudioaulasAreaView } from '@/components/audioaulas/area/AudioaulasAreaView';
 import { audioIdOf } from '@/contexts/AudioaulasPlayerContext';
 import { motion } from 'framer-motion';
 
@@ -91,7 +92,7 @@ const Audioaulas = () => {
           : 'min-h-screen'
       }`}
       style={{
-        paddingBottom: isDesktop
+        paddingBottom: isDesktop || areaAtual
           ? undefined
           : 'calc(11rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
       }}
@@ -111,60 +112,60 @@ const Audioaulas = () => {
       <div className="relative z-10">
         {state.gateNodes}
 
-        <AudioaulasHero 
-          areaAtual={areaAtual}
-          loading={state.loading}
-          totalAulas={areaAtual ? state.daArea.length : state.aulas.length}
-          totalAreas={state.areas.length}
-          totalFavoritas={state.favoritos.size}
-          onFavoritos={() => state.setAba('favoritas')}
-        />
-
-        {/* Últimas Aulas Ouvidas: antes do menu de alternância quando na visão Todos */}
-        {!areaAtual && state.aba === 'aulas' && filtroHome === 'todos' && (
-          <AudioaulasAulasRecentes
-            recentes={state.historicoRecentes}
-            atualId={state.atualId}
-            tocando={state.tocando}
-            onTocarAula={state.handleTocarAula}
-            onLimpar={state.limparRecentes}
-          />
-        )}
-
-        {/* Menu Superior: Alternância (Todos, Em alta, Recentes, Mais Ouvidas, Favoritas) */}
-        <AudioaulasCategoriasNav
-          filtroAtivo={filtroHome}
-          onSelectFiltro={(filtro) => {
-            setFiltroHome(filtro);
-            state.setAba('aulas');
-            if (areaAtual) navigate('/audioaulas');
-          }}
-          areaAtual={areaAtual}
-          onVoltarParaTodos={() => {
-            setFiltroHome('todos');
-            navigate('/audioaulas');
-          }}
-        />
-
-        {state.loading ? (
-          <div className="py-20 grid place-items-center text-muted-foreground">
-            <Loader2 className="h-7 w-7 animate-spin text-primary" />
-          </div>
-        ) : areaAtual ? (
-          /* ───────── LISTA DA ÁREA ───────── */
-          <AudioaulasListaAulas
-            areaAtual={areaAtual}
-            aba={state.aba}
-            temasDaArea={state.temasDaArea}
-            listaAba={state.listaAba}
-            busca={state.busca}
+        {areaAtual ? (
+          /* ───────── TELA DA ÁREA (SEM A CAPA, SLIDE UP, CATEGORIAS/MATÉRIAS) ───────── */
+          <AudioaulasAreaView
+            area={areaAtual}
+            aulas={state.daArea}
+            temas={state.temasDaArea}
             atualId={state.atualId}
             tocando={state.tocando}
             favoritos={state.favoritos}
             alternarFavorito={state.alternarFavorito}
             handleTocarAula={state.handleTocarAula}
+            onVoltar={() => navigate('/audioaulas')}
           />
-        ) : state.aba === 'aulas' ? (
+        ) : (
+          <>
+            <AudioaulasHero 
+              areaAtual={null}
+              loading={state.loading}
+              totalAulas={state.aulas.length}
+              totalAreas={state.areas.length}
+              totalFavoritas={state.favoritos.size}
+              onFavoritos={() => state.setAba('favoritas')}
+            />
+
+            {/* Últimas Aulas Ouvidas: antes do menu de alternância quando na visão Todos */}
+            {state.aba === 'aulas' && filtroHome === 'todos' && (
+              <AudioaulasAulasRecentes
+                recentes={state.historicoRecentes}
+                atualId={state.atualId}
+                tocando={state.tocando}
+                onTocarAula={state.handleTocarAula}
+                onLimpar={state.limparRecentes}
+              />
+            )}
+
+            {/* Menu Superior: Alternância (Todos, Em alta, Recentes, Mais Ouvidas, Favoritas) */}
+            <AudioaulasCategoriasNav
+              filtroAtivo={filtroHome}
+              onSelectFiltro={(filtro) => {
+                setFiltroHome(filtro);
+                state.setAba('aulas');
+              }}
+              areaAtual={null}
+              onVoltarParaTodos={() => {
+                setFiltroHome('todos');
+                navigate('/audioaulas');
+              }}
+            />
+
+            {state.loading ? (
+              <div className="py-20 grid place-items-center text-muted-foreground">
+                <Loader2 className="h-7 w-7 animate-spin text-primary" />
+              </div>
+            ) : state.aba === 'aulas' ? (
           /* ───────── VISÃO PRINCIPAL DE AUDIOAULAS ───────── */
           filtroHome === 'todos' ? (
             <>
@@ -284,6 +285,8 @@ const Audioaulas = () => {
             />
           </>
         )}
+      </>
+    )}
 
         {/* Player Completo Expandido — Adaptado como Modal Centralizado em Desktop */}
         <AudioaulasPlayerModal
@@ -336,7 +339,7 @@ const Audioaulas = () => {
           totalFavoritas={state.favoritos.size}
           totalPlaylists={state.areas.length}
           totalBaixadas={state.baixadas.size}
-          hidden={state.aberto}
+          hidden={Boolean(areaAtual) || state.aberto}
           colorScheme="blue"
         />
       </div>
