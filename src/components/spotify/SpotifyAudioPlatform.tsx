@@ -14,7 +14,6 @@ import { SpotifyDownloadsTab } from './SpotifyDownloadsTab';
 import { SpotifyLeiAlbumView } from './SpotifyLeiAlbumView';
 import { AudioLeisHero } from './AudioLeisHero';
 import { fetchLeisDisponiveisComAudio } from '@/services/narracaoArtigosSyncService';
-import { AudioNavigationSwitcher } from '@/components/audio/AudioNavigationSwitcher';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 
 interface SpotifyAudioPlatformProps {

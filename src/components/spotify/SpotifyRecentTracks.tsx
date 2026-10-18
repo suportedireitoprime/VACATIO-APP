@@ -22,7 +22,7 @@ export const SpotifyRecentTracks: React.FC = () => {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+        <h3 className="font-title text-base sm:text-lg font-bold text-white flex items-center gap-2 tracking-tight">
           <History className="w-4 h-4 text-purple-400" />
           <span>Tocados Recentemente</span>
         </h3>

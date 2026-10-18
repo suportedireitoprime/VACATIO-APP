@@ -120,6 +120,7 @@ export default {
         body: ['"Barlow"', 'system-ui', 'sans-serif'],
         legal: ['"Barlow"', 'Georgia', 'serif'],
         card: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        title: ['"Playfair Display"', 'Georgia', 'serif'],
       },
       /* ==============================================================
        * Typography scale — Material Design 3 + Apple HIG convergence

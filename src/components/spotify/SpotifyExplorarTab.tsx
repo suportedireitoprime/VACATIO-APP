@@ -283,20 +283,16 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
         <section className="relative">
           <div className="flex items-center justify-between gap-4 mb-3.5">
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="h-5 px-2 rounded-md bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-sm">
-                  <Scale className="w-3 h-3" />
-                  Códigos
-                </span>
-                <span className="text-[11px] text-zinc-400 font-medium hidden sm:inline">
-                  &bull; 11 Códigos completos
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-title text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5 tracking-tight">
+                  <span className="w-1.5 h-5 rounded-full bg-blue-500 shrink-0" />
+                  <span>Códigos da Legislação</span>
+                </h3>
+                <span className="text-[11px] sm:text-xs text-zinc-400 font-medium hidden sm:inline">
+                  11 Códigos completos
                 </span>
               </div>
-              <h3 className="font-card text-lg sm:text-xl font-extrabold text-white flex items-center gap-2.5 tracking-normal">
-                <span className="w-1.5 h-6 rounded-full bg-blue-500 shrink-0" />
-                <span>Códigos da Legislação</span>
-              </h3>
-              <p className="text-xs text-zinc-400 mt-0.5 line-clamp-1">
+              <p className="text-xs text-zinc-400 mt-1 line-clamp-1">
                 Narrações oficiais completas artigo por artigo: CC, CPC, CP, CPP, CLT, CDC e mais.
               </p>
             </div>
@@ -337,20 +333,16 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
         <section className="relative pt-2">
           <div className="flex items-center justify-between gap-4 mb-3.5">
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="h-5 px-2 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-sm">
-                  <Shield className="w-3 h-3" />
-                  Estatutos
-                </span>
-                <span className="text-[11px] text-zinc-400 font-medium hidden sm:inline">
-                  &bull; 20 Estatutos oficiais
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-title text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5 tracking-tight">
+                  <span className="w-1.5 h-5 rounded-full bg-purple-500 shrink-0" />
+                  <span>Estatutos Oficiais</span>
+                </h3>
+                <span className="text-[11px] sm:text-xs text-zinc-400 font-medium hidden sm:inline">
+                  20 Estatutos oficiais
                 </span>
               </div>
-              <h3 className="font-card text-lg sm:text-xl font-extrabold text-white flex items-center gap-2.5 tracking-normal">
-                <span className="w-1.5 h-6 rounded-full bg-purple-500 shrink-0" />
-                <span>Estatutos Oficiais</span>
-              </h3>
-              <p className="text-xs text-zinc-400 mt-0.5 line-clamp-1">
+              <p className="text-xs text-zinc-400 mt-1 line-clamp-1">
                 Estatuto da OAB, ECA, Idoso, PCD, Servidores Públicos (Lei 8.112) e outros.
               </p>
             </div>
@@ -391,20 +383,16 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
         <section className="relative pt-2">
           <div className="flex items-center justify-between gap-4 mb-3.5">
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="h-5 px-2 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-sm">
-                  <Award className="w-3 h-3" />
-                  Carta Magna
-                </span>
-                <span className="text-[11px] text-zinc-400 font-medium hidden sm:inline">
-                  &bull; Constituição de 1988
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-title text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5 tracking-tight">
+                  <span className="w-1.5 h-5 rounded-full bg-emerald-500 shrink-0" />
+                  <span>Constituição Federal</span>
+                </h3>
+                <span className="text-[11px] sm:text-xs text-zinc-400 font-medium hidden sm:inline">
+                  Constituição de 1988
                 </span>
               </div>
-              <h3 className="font-card text-lg sm:text-xl font-extrabold text-white flex items-center gap-2.5 tracking-normal">
-                <span className="w-1.5 h-6 rounded-full bg-emerald-500 shrink-0" />
-                <span>Constituição Federal</span>
-              </h3>
-              <p className="text-xs text-zinc-400 mt-0.5 line-clamp-1">
+              <p className="text-xs text-zinc-400 mt-1 line-clamp-1">
                 Áudio oficial de todos os artigos da CF/88 e direitos fundamentais.
               </p>
             </div>
@@ -444,20 +432,16 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
         <section className="relative pt-2">
           <div className="flex items-center justify-between gap-4 mb-3.5">
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="h-5 px-2 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-sm">
-                  <BookMarked className="w-3 h-3" />
-                  Legislação Especial
-                </span>
-                <span className="text-[11px] text-zinc-400 font-medium hidden sm:inline">
-                  &bull; Leis ordinárias e complementares
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-title text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5 tracking-tight">
+                  <span className="w-1.5 h-5 rounded-full bg-amber-500 shrink-0" />
+                  <span>Leis Especiais & Administrativo</span>
+                </h3>
+                <span className="text-[11px] sm:text-xs text-zinc-400 font-medium hidden sm:inline">
+                  Leis ordinárias e complementares
                 </span>
               </div>
-              <h3 className="font-card text-lg sm:text-xl font-extrabold text-white flex items-center gap-2.5 tracking-normal">
-                <span className="w-1.5 h-6 rounded-full bg-amber-500 shrink-0" />
-                <span>Leis Especiais & Administrativo</span>
-              </h3>
-              <p className="text-xs text-zinc-400 mt-0.5 line-clamp-1">
+              <p className="text-xs text-zinc-400 mt-1 line-clamp-1">
                 Lei de Licitações (14.133), Improbidade, Maria da Penha, Drogas, LEP e mais.
               </p>
             </div>

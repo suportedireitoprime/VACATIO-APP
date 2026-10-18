@@ -90,7 +90,7 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
             {totalFavoritas > 0 && (
               <span
                 style={{ backgroundColor: themeBadgeBg }}
-                className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none"
+                className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full text-[10px] font-semibold text-white flex items-center justify-center border-[1.5px] border-[#1C1C1E] shadow-md shadow-black/60 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-none tabular-nums pointer-events-none"
               >
                 {totalFavoritas}
               </span>
@@ -131,7 +131,7 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
             {totalPlaylists > 0 && (
               <span
                 style={{ backgroundColor: themeBadgeBg }}
-                className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none"
+                className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full text-[10px] font-semibold text-white flex items-center justify-center border-[1.5px] border-[#1C1C1E] shadow-md shadow-black/60 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-none tabular-nums pointer-events-none"
               >
                 {totalPlaylists}
               </span>
@@ -215,7 +215,7 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
             {totalBaixadas > 0 && (
               <span
                 style={{ backgroundColor: themeBadgeBg }}
-                className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none"
+                className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full text-[10px] font-semibold text-white flex items-center justify-center border-[1.5px] border-[#1C1C1E] shadow-md shadow-black/60 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] leading-none tabular-nums pointer-events-none"
               >
                 {totalBaixadas}
               </span>
