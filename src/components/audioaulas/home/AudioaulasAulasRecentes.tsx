@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, History, Sparkles } from 'lucide-react';
+import { Play, Pause, History } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { type AulaAudio } from '@/contexts/AudioaulasPlayerContext';
 import { capaDaArea } from '@/lib/audioaulasHelper';
@@ -31,10 +31,6 @@ export const AudioaulasAulasRecentes: React.FC<AudioaulasAulasRecentesProps> = R
           <h3 className="font-title text-base sm:text-lg font-bold text-white flex items-center gap-2 tracking-tight">
             <History className="w-4 h-4 text-blue-400" />
             <span>Últimas Aulas Ouvidas</span>
-            <span className="text-[10px] uppercase font-bold tracking-widest text-blue-400/90 bg-blue-500/15 border border-blue-500/25 px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm">
-              <Sparkles className="w-2.5 h-2.5" />
-              Continuar
-            </span>
           </h3>
           <button
             onClick={onLimpar}

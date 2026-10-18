@@ -12,8 +12,6 @@ import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 import cenarioOnibus from '@/assets/audio-cenarios/cenario-onibus.webp';
 import cenarioAcademia from '@/assets/audio-cenarios/cenario-academia.webp';
 import cenarioCaminhada from '@/assets/audio-cenarios/cenario-caminhada.webp';
-import cenarioEstudo from '@/assets/audio-cenarios/cenario-estudo.webp';
-import cenarioFoco from '@/assets/audio-cenarios/cenario-foco.webp';
 
 interface AudioLeisHeroProps {
   totalAudios: number;
@@ -42,18 +40,6 @@ const CENARIOS = [
     imagem: cenarioCaminhada,
     tag: '🚶‍♀️ Caminhando',
     descricao: 'A legislação na sua rotina diária',
-  },
-  {
-    id: 'estudo',
-    imagem: cenarioEstudo,
-    tag: '📚 Na biblioteca',
-    descricao: 'Foco total com áudio oficial artigo por artigo',
-  },
-  {
-    id: 'foco',
-    imagem: cenarioFoco,
-    tag: '⚖️ Foco absoluto',
-    descricao: 'Fixação acelerada da letra da lei',
   },
 ];
 

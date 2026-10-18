@@ -8,8 +8,6 @@ import { AudioEstatisticasModal } from '@/components/audio/AudioEstatisticasModa
 import { AudioEmAltaModal } from '@/components/audio/AudioEmAltaModal';
 import { AudioTrilhasModal } from '@/components/audio/AudioTrilhasModal';
 
-import cenarioEstudo from '@/assets/audio-cenarios/cenario-estudo.webp';
-import cenarioFoco from '@/assets/audio-cenarios/cenario-foco.webp';
 import cenarioOnibus from '@/assets/audio-cenarios/cenario-onibus.webp';
 import cenarioAcademia from '@/assets/audio-cenarios/cenario-academia.webp';
 import cenarioCaminhada from '@/assets/audio-cenarios/cenario-caminhada.webp';
@@ -28,34 +26,22 @@ interface AudioaulasHeroProps {
 
 const CENARIOS_AULAS = [
   {
-    id: 'estudo',
-    imagem: cenarioEstudo,
-    tag: '📚 Na biblioteca',
-    descricao: 'Aulas didáticas focadas nos pontos mais cobrados',
-  },
-  {
-    id: 'foco',
-    imagem: cenarioFoco,
-    tag: '⚖️ Foco absoluto',
-    descricao: 'Doutrina simplificada e jurisprudência essencial',
-  },
-  {
     id: 'onibus',
     imagem: cenarioOnibus,
     tag: '🚌 No trajeto',
     descricao: 'Revisão ágil de cada matéria em qualquer lugar',
   },
   {
-    id: 'caminhada',
-    imagem: cenarioCaminhada,
-    tag: '🚶‍♀️ Caminhando',
-    descricao: 'Aprenda ouvindo e fixe os conceitos chaves',
-  },
-  {
     id: 'academia',
     imagem: cenarioAcademia,
     tag: '💪 Na academia',
     descricao: 'Seu preparo teórico em ritmo acelerado',
+  },
+  {
+    id: 'caminhada',
+    imagem: cenarioCaminhada,
+    tag: '🚶‍♀️ Caminhando',
+    descricao: 'Aprenda ouvindo e fixe os conceitos chaves',
   },
 ];
 
