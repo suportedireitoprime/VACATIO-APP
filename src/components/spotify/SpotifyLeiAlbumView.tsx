@@ -26,6 +26,10 @@ import { getLeiCover } from '@/lib/leiTheme';
 import { getCapitulosDaLei, extrairNumeroArtigo, type CapituloDef } from '@/lib/leiCapitulosHelper';
 import { SpotifyAudioTrilhaModal } from './SpotifyAudioTrilhaModal';
 
+// Cache em memória global para abertura 100% instantânea (0ms) entre navegações
+const ARTIGOS_CACHE = new Map<string, ArtigoNarracaoItem[]>();
+const AULAS_CONFIGS_CACHE = new Map<string, { audioLinks: Record<string, string>; driveFolderUrl: string }>();
+
 interface SpotifyLeiAlbumViewProps {
   leiId: string;
   leiNome: string;
@@ -58,11 +62,15 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     setExpanded,
   } = useSpotifyAudioStore();
 
-  const [artigos, setArtigos] = useState<ArtigoNarracaoItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = (leiSlug || leiId || '').toLowerCase().trim();
+  const cachedArtigos = ARTIGOS_CACHE.get(cacheKey) || [];
+  const cachedConfig = AULAS_CONFIGS_CACHE.get(cacheKey);
+
+  const [artigos, setArtigos] = useState<ArtigoNarracaoItem[]>(cachedArtigos);
+  const [loading, setLoading] = useState<boolean>(cachedArtigos.length === 0);
   const [search, setSearch] = useState('');
-  const [aulaLinks, setAulaLinks] = useState<Record<string, string>>({});
-  const [driveFolder, setDriveFolder] = useState<string>('');
+  const [aulaLinks, setAulaLinks] = useState<Record<string, string>>(cachedConfig?.audioLinks || {});
+  const [driveFolder, setDriveFolder] = useState<string>(cachedConfig?.driveFolderUrl || '');
 
   // Modo de exibição: 'capitulos' (estilo Mapas Mentais/Aulas Overlay) ou 'lista' (todos os artigos em lista corrida)
   const [modoVisualizacao, setModoVisualizacao] = useState<'capitulos' | 'lista'>('capitulos');
@@ -91,21 +99,30 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     return 'linear-gradient(180deg, hsl(270 70% 30%) 0%, hsl(275 75% 35%) 40%, hsl(265 72% 28%) 100%)';
   }, [leiSlug]);
 
-  // Carrega artigos da lei e links do Google Drive
+  // Carrega artigos da lei e links do Google Drive em segundo plano sem bloquear a interface
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
-      setLoading(true);
+      if (!ARTIGOS_CACHE.has(cacheKey)) {
+        setLoading(true);
+      }
       try {
         const data = await fetchArtigosDaLeiComNarracao(leiId, leiSlug);
+        ARTIGOS_CACHE.set(cacheKey, data);
         if (isMounted) setArtigos(data);
 
         // Se estiver em modo áudio-aulas, busca links específicos das aulas
         const configs = await getAllAudioAulasConfigs();
         const conf = configs[leiId] || configs[leiSlug];
-        if (conf && isMounted) {
-          setAulaLinks(conf.audioLinks || {});
-          setDriveFolder(conf.driveFolderUrl || '');
+        if (conf) {
+          AULAS_CONFIGS_CACHE.set(cacheKey, {
+            audioLinks: conf.audioLinks || {},
+            driveFolderUrl: conf.driveFolderUrl || '',
+          });
+          if (isMounted) {
+            setAulaLinks(conf.audioLinks || {});
+            setDriveFolder(conf.driveFolderUrl || '');
+          }
         }
       } catch (err) {
         console.warn('[SpotifyLeiAlbumView] Erro ao carregar artigos:', err);
@@ -117,7 +134,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [leiId, leiSlug]);
+  }, [leiId, leiSlug, cacheKey]);
 
   // Monta lista de todas as faixas da lei no formato SpotifyTrack (apenas as que têm áudio)
   const albumTracks: SpotifyTrack[] = useMemo(() => {
@@ -152,8 +169,8 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
 
   // Capítulos temáticos estruturados para esta legislação
   const capitulos = useMemo(() => {
-    return getCapitulosDaLei(leiSlug, artigos.length);
-  }, [leiSlug, artigos.length]);
+    return getCapitulosDaLei(leiSlug, artigos.length || totalArtigosInitial || (leiSlug === 'cc' ? 2046 : 0));
+  }, [leiSlug, artigos.length, totalArtigosInitial]);
 
   // Enriquecer capítulos com contagem de artigos e áudios disponíveis
   const capitulosComMetadados = useMemo(() => {
@@ -173,7 +190,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
 
   // Filtro de busca na tracklist geral
   const filteredTracks = useMemo(() => {
-    let base = albumTracks;
+    const base = albumTracks;
 
     if (!search.trim()) return base;
     const term = search.toLowerCase();
@@ -190,9 +207,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
   }, [albumTracks]);
 
   // Valores de contadores com fallback para evitar piscar 0 durante o carregamento inicial
-  const displayCapitulosCount = capitulosComMetadados.length > 0
-    ? capitulosComMetadados.length
-    : (leiSlug === 'cc' ? 69 : 20);
+  const displayCapitulosCount = capitulos.length;
 
   const displayAudiosCount = totalComAudio > 0
     ? totalComAudio
@@ -310,7 +325,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
               </button>
 
               <span className="text-[11px] font-bold text-white/90 bg-black/40 border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md">
-                {chapterTracks.length} áudios disponíveis
+                {loading && chapterTracks.length === 0 ? 'Sincronizando...' : `${chapterTracks.length} áudios disponíveis`}
               </span>
             </div>
 
@@ -366,7 +381,13 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
 
         {/* LISTA DE ARTIGOS DO CAPÍTULO */}
         <div className="px-4 py-3 space-y-2 max-w-4xl mx-auto w-full relative z-10">
-          {chapterFilteredTracks.length === 0 ? (
+          {loading && chapterTracks.length === 0 ? (
+            <div className="py-16 text-center text-sm text-white/70 bg-black/30 border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-white mb-1" />
+              <p className="font-semibold text-white">Carregando narrações deste capítulo...</p>
+              <p className="text-xs text-white/60">Sincronizando áudios em alta qualidade</p>
+            </div>
+          ) : chapterFilteredTracks.length === 0 ? (
             <div className="py-16 text-center text-sm text-white/70 bg-black/30 border border-white/10 rounded-2xl p-6">
               Nenhum artigo encontrado para a busca neste capítulo.
             </div>
@@ -646,20 +667,18 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
 
       {/* CORPO PRINCIPAL: LISTA DE CAPÍTULOS OU LISTA DE ARTIGOS */}
       <div className="px-4 py-2 space-y-3 max-w-4xl mx-auto w-full relative z-10">
-        {loading ? (
-          <div className="py-20 grid place-items-center text-white/70">
-            <Loader2 className="h-8 w-8 animate-spin text-white mb-2" />
-            <p className="text-xs font-medium">Carregando narrações do álbum...</p>
-          </div>
-        ) : modoVisualizacao === 'capitulos' && !search ? (
-          /* ───────── VISUALIZAÇÃO DOS CAPÍTULOS (ESTILO MAPASOVERLAY / AULASOVERLAY) ───────── */
+        {modoVisualizacao === 'capitulos' && !search ? (
+          /* ───────── VISUALIZAÇÃO DOS CAPÍTULOS (ESTILO MAPASOVERLAY / AULASOVERLAY - INSTANTÂNEA 0MS) ───────── */
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                 <BookOpen className="w-3.5 h-3.5 text-white/80" />
                 Selecione o Capítulo para Estudar
               </span>
-              <span className="text-[11px] text-white/60 font-medium">
+              <span className="text-[11px] text-white/60 font-medium flex items-center gap-1.5">
+                {loading && artigos.length === 0 && (
+                  <Loader2 className="w-3 h-3 animate-spin text-white/70" />
+                )}
                 {capitulosComMetadados.length} capítulos disponíveis
               </span>
             </div>
@@ -668,7 +687,9 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
               const capPct =
                 cap.totalArtigos > 0
                   ? Math.round((cap.totalComAudio / cap.totalArtigos) * 100)
-                  : 0;
+                  : (cap.totalComAudio > 0 ? 100 : 0);
+
+              const capCover = cap.capaUrl || coverUrl;
 
               return (
                 <button
@@ -678,9 +699,9 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                 >
                   {/* Ícone de Destaque com Gradiente e Capa */}
                   <div className="relative h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center border border-white/20 shadow-md">
-                    {cap.capaUrl ? (
+                    {capCover ? (
                       <img
-                        src={cap.capaUrl}
+                        src={capCover}
                         alt=""
                         className="w-full h-full object-cover object-right transition-transform group-hover:scale-110"
                       />
@@ -695,7 +716,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                         {cap.rotuloFaixa}
                       </p>
                       <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-white/15 text-white tabular-nums ml-auto border border-white/10">
-                        {cap.totalComAudio} áudios
+                        {loading && artigos.length === 0 ? 'Sincronizando...' : `${cap.totalComAudio} áudios`}
                       </span>
                     </div>
 
@@ -717,7 +738,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                     <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                       <div
                         className="h-full rounded-full bg-emerald-400 transition-all duration-500"
-                        style={{ width: `${Math.min(100, Math.max(10, capPct))}%` }}
+                        style={{ width: `${Math.min(100, Math.max(8, capPct))}%` }}
                       />
                     </div>
                   </div>
@@ -726,6 +747,12 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                 </button>
               );
             })}
+          </div>
+        ) : loading && artigos.length === 0 ? (
+          /* Só exibe spinner se o usuário estiver em 'Ver em Lista Todos' ou buscando antes de carregar os artigos */
+          <div className="py-20 grid place-items-center text-white/70">
+            <Loader2 className="h-8 w-8 animate-spin text-white mb-2" />
+            <p className="text-xs font-medium">Carregando narrações do álbum...</p>
           </div>
         ) : (
           /* ───────── LISTA GERAL DE ARTIGOS ───────── */
