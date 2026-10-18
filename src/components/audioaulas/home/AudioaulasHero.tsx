@@ -11,6 +11,9 @@ import { AudioTrilhasModal } from '@/components/audio/AudioTrilhasModal';
 import cenarioOnibus from '@/assets/audio-cenarios/cenario-onibus.webp';
 import cenarioAcademia from '@/assets/audio-cenarios/cenario-academia.webp';
 import cenarioCaminhada from '@/assets/audio-cenarios/cenario-caminhada.webp';
+import cenarioCafe from '@/assets/audio-cenarios/cenario-cafe.webp';
+import cenarioTransito from '@/assets/audio-cenarios/cenario-transito.webp';
+import cenarioDescanso from '@/assets/audio-cenarios/cenario-descanso.webp';
 
 interface AudioaulasHeroProps {
   areaAtual: string | null;
@@ -42,6 +45,24 @@ const CENARIOS_AULAS = [
     imagem: cenarioCaminhada,
     tag: '🚶‍♀️ Caminhando',
     descricao: 'Aprenda ouvindo e fixe os conceitos chaves',
+  },
+  {
+    id: 'cafe',
+    imagem: cenarioCafe,
+    tag: '☕ No café',
+    descricao: 'Aproveite momentos de pausa para revisar conceitos',
+  },
+  {
+    id: 'transito',
+    imagem: cenarioTransito,
+    tag: '🚗 No trânsito',
+    descricao: 'Converta horas paradas em produtividade nos estudos',
+  },
+  {
+    id: 'descanso',
+    imagem: cenarioDescanso,
+    tag: '🛋️ Em casa',
+    descricao: 'Estudo contínuo e confortável no seu próprio ritmo',
   },
 ];
 

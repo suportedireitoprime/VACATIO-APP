@@ -13,7 +13,6 @@ import {
   Volume2,
   ExternalLink,
   Sparkles,
-  BookMarked
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
@@ -118,12 +117,6 @@ export const AudioaulasSecaoLegislacao = React.memo(function AudioaulasSecaoLegi
     <div className="mx-auto w-full max-w-[1400px] px-4 space-y-10 mt-8 mb-6 lg:px-10 2xl:max-w-[1600px]">
       {/* ──────────────── DIVISOR E HEADER DA CATEGORIA LEGISLAÇÃO ──────────────── */}
       <div className="relative pt-6 border-t border-white/[0.08]">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="h-6 px-2.5 rounded-lg bg-primary/20 text-primary border border-primary/30 text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
-            <BookMarked className="w-3.5 h-3.5" />
-            Legislação
-          </span>
-        </div>
         <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wider flex items-center gap-2.5">
           <span className="w-1.5 h-7 rounded-full bg-primary shrink-0" />
           <span>Legislação & Vade Mecum</span>

@@ -38,7 +38,7 @@ export const AudioaulasAulasFavoritas: React.FC<AudioaulasAulasFavoritasProps> =
           </h3>
         </div>
 
-        <div className="flex items-center gap-3 overflow-x-auto pb-3 pt-1 scrollbar-none -mx-1 px-1">
+        <div className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x snap-mandatory -mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0">
           {favoritas.map((aula, idx) => {
             const isThisPlaying = atualId === aula.id && tocando;
             const isSelected = atualId === aula.id;
@@ -50,7 +50,7 @@ export const AudioaulasAulasFavoritas: React.FC<AudioaulasAulasFavoritasProps> =
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => onTocarAula(aula)}
-                className={`group relative flex-shrink-0 w-36 sm:w-44 aspect-square rounded-2xl overflow-hidden border transition-all cursor-pointer shadow-lg select-none ${
+                className={`group relative flex-shrink-0 w-[152px] sm:w-44 aspect-square rounded-2xl overflow-hidden border transition-all cursor-pointer shadow-lg select-none snap-start ${
                   isSelected
                     ? 'border-rose-500 shadow-rose-900/40 ring-2 ring-rose-500/40'
                     : 'border-white/10 hover:border-white/25 hover:shadow-xl'
@@ -103,9 +103,10 @@ export const AudioaulasAulasFavoritas: React.FC<AudioaulasAulasFavoritasProps> =
                 ) : null}
 
                 {/* Informações da Aula dentro da Capa no rodapé com sombra */}
-                <div className="absolute inset-x-0 bottom-0 p-3 z-10 flex flex-col justify-end min-w-0">
+                <div className="absolute inset-x-0 bottom-0 p-3 pt-6 z-10 flex flex-col justify-end min-w-0 bg-gradient-to-t from-black/95 via-black/75 to-transparent">
                   <p
-                    className={`text-[12px] sm:text-[13px] font-bold leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] transition-colors truncate ${
+                    title={aula.titulo}
+                    className={`text-[12px] sm:text-[13px] font-bold leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] transition-colors line-clamp-2 min-h-[2.4em] flex items-end ${
                       isSelected ? 'text-rose-300' : 'text-white group-hover:text-rose-200'
                     }`}
                   >
@@ -113,7 +114,7 @@ export const AudioaulasAulasFavoritas: React.FC<AudioaulasAulasFavoritasProps> =
                   </p>
                   <p
                     title={aula.tema || aula.area}
-                    className="text-[10px] sm:text-[11px] text-zinc-300 font-medium leading-tight truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] mt-0.5"
+                    className="text-[10px] sm:text-[11px] text-zinc-300 font-medium leading-tight truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] mt-1"
                   >
                     {aula.tema || aula.area}
                   </p>
@@ -121,6 +122,8 @@ export const AudioaulasAulasFavoritas: React.FC<AudioaulasAulasFavoritasProps> =
               </motion.div>
             );
           })}
+          {/* Espaçador final para respiro no scroll horizontal */}
+          <div className="w-1 sm:w-2 shrink-0 pointer-events-none" aria-hidden="true" />
         </div>
       </section>
     );
