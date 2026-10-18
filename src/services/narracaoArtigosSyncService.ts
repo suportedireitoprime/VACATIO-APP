@@ -287,9 +287,356 @@ export async function fetchLeisComMetricasNarracao(): Promise<LeiNarracaoItem[]>
 }
 
 /**
- * Busca de forma instantânea e ultra-otimizada APENAS as leis que possuem áudio gravado.
- * Se não tiver áudio, não é exibida na tela (conforme diretriz do usuário).
+ * Catálogo Canônico Oficial de Legislação com Narração em Áudio.
+ * 31 legislações completas (11 Códigos + 20 Estatutos) totalizando 9.684 áudios gravados.
  */
+export const CATALOGO_OFICIAL_AUDIO_LEIS: LeiNarracaoItem[] = [
+  // 11 CÓDIGOS (7.773 áudios gravados)
+  {
+    id: '32ae6146-3fd4-42e7-8879-81413f0f41cc',
+    slug: 'cc',
+    nome: 'Código Civil',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 2093,
+    totalComAudio: 2093,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
+    slug: 'cp',
+    nome: 'Código Penal',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 432,
+    totalComAudio: 432,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '246e8691-ebe2-478d-991d-f3930635151a',
+    slug: 'cpp',
+    nome: 'Código de Processo Penal',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 847,
+    totalComAudio: 847,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '251213c5-d502-4792-9f68-050be95357ee',
+    slug: 'cpc',
+    nome: 'Código de Processo Civil',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 1072,
+    totalComAudio: 1072,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '71f6e7af-093f-4a7f-8976-287413b40722',
+    slug: 'clt',
+    nome: 'Consolidação das Leis do Trabalho',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 1045,
+    totalComAudio: 1045,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'cd50fe48-c5bd-4b1e-a216-a4859b72e94e',
+    slug: 'ctn',
+    nome: 'Código Tributário Nacional',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 244,
+    totalComAudio: 244,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '96a8236f-a738-49ec-a5d2-e2188441d078',
+    slug: 'ctb',
+    nome: 'Código de Trânsito Brasileiro',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 391,
+    totalComAudio: 391,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '6a272efa-e7dd-4d91-a6af-6741fde98afd',
+    slug: 'cdc',
+    nome: 'Código de Defesa do Consumidor',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 130,
+    totalComAudio: 130,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '032fd183-60bc-4d86-bd67-4c80f3c41de3',
+    slug: 'ce',
+    nome: 'Código Eleitoral',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 389,
+    totalComAudio: 389,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'ee02b8a2-3ba3-42f8-96d2-9fae55561127',
+    slug: 'cpm',
+    nome: 'Código Penal Militar',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 411,
+    totalComAudio: 411,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '10d15c80-d3c3-4c4c-991f-a70cb97e9901',
+    slug: 'cppm',
+    nome: 'Código de Processo Penal Militar',
+    categoria: 'codigo',
+    categoriaFormatada: 'Códigos',
+    totalArtigos: 719,
+    totalComAudio: 719,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+
+  // 20 ESTATUTOS (1.911 áudios gravados)
+  {
+    id: '2986d542-bf86-4c70-b30f-8e16684db5ab',
+    slug: 'estatuto-oab',
+    nome: 'Estatuto da Advocacia e da OAB',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 96,
+    totalComAudio: 96,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '7d6ca5bb-a4fc-4177-91ef-57bd4fa073bc',
+    slug: 'estatuto-eca',
+    nome: 'ECA - Estatuto da Criança e do Adolescente',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 328,
+    totalComAudio: 328,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '12cfcfeb-01a7-45d8-85fa-6d19afa2d17a',
+    slug: 'estatuto-cidade',
+    nome: 'Estatuto da Cidade',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 62,
+    totalComAudio: 62,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'e0b50d58-a9e0-48d3-85f1-b0e7befbd396',
+    slug: 'estatuto-desarmamento',
+    nome: 'Estatuto do Desarmamento',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 40,
+    totalComAudio: 40,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '42ec31fd-9175-46f9-9379-9ba4fe14a960',
+    slug: 'estatuto-indio',
+    nome: 'Estatuto do Índio',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 68,
+    totalComAudio: 68,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '4153f9bc-9f1c-470c-b56f-5a40827be429',
+    slug: 'estatuto-igualdade-racial',
+    nome: 'Estatuto da Igualdade Racial',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 65,
+    totalComAudio: 65,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'e6a915b2-20cb-42d9-9499-0bea514df1ec',
+    slug: 'estatuto-juventude',
+    nome: 'Estatuto da Juventude',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 48,
+    totalComAudio: 48,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'd7a519eb-e1f7-4f80-8071-dbd929cb8abf',
+    slug: 'estatuto-militares',
+    nome: 'Estatuto dos Militares',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 166,
+    totalComAudio: 166,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '84602b35-1ba4-4731-89d8-0d5a1b5b138e',
+    slug: 'estatuto-metropole',
+    nome: 'Estatuto da Metrópole',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 27,
+    totalComAudio: 27,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'a99a1029-80e2-4c73-ba6c-db7d316006d0',
+    slug: 'estatuto-cancer',
+    nome: 'Estatuto da Pessoa com Câncer',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 15,
+    totalComAudio: 15,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '6274cd3d-2cfc-49ab-bba6-90a5f9db10ea',
+    slug: 'estatuto-pessoa-deficiencia',
+    nome: 'Estatuto da Pessoa com Deficiência',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 129,
+    totalComAudio: 129,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '6937d927-5090-4d41-bffa-16fcec0515a1',
+    slug: 'estatuto-idoso',
+    nome: 'Estatuto da Pessoa Idosa',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 118,
+    totalComAudio: 118,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '9d3ffc41-d3c6-4bc9-915d-9b0632405d14',
+    slug: 'estatuto-refugiado',
+    nome: 'Estatuto dos Refugiados',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 49,
+    totalComAudio: 49,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: '9a4ffdad-51f0-4092-96bb-04e37bb9608f',
+    slug: 'estatuto-seguranca-privada',
+    nome: 'Estatuto da Segurança Privada',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 72,
+    totalComAudio: 72,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'f5e5c531-b696-485e-93d2-80ebd808b1c1',
+    slug: 'lei-servidor',
+    nome: 'Estatuto dos Servidores Públicos Federais',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 263,
+    totalComAudio: 263,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'dd4c7ac8-f17a-4b31-99aa-5ab8ed0adcef',
+    slug: 'estatuto-torcedor',
+    nome: 'Estatuto do Torcedor',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 59,
+    totalComAudio: 59,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'e96e10f3-fd24-407c-9fff-c57f04dcb0e0',
+    slug: 'estatuto-terra',
+    nome: 'Estatuto da Terra',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 129,
+    totalComAudio: 129,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'a563c538-8246-4984-aae5-ab26946c5eff',
+    slug: 'estatuto-mpe',
+    nome: 'Estatuto da Microempresa e EPP',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 132,
+    totalComAudio: 132,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'eggm',
+    slug: 'eggm',
+    nome: 'Estatuto Geral das Guardas Municipais',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 23,
+    totalComAudio: 23,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+  {
+    id: 'emot',
+    slug: 'emot',
+    nome: 'Estatuto do Motorista',
+    categoria: 'estatuto',
+    categoriaFormatada: 'Estatutos',
+    totalArtigos: 22,
+    totalComAudio: 22,
+    totalPendentes: 0,
+    percentual: 100,
+  },
+];
+
 export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'leis'): Promise<LeiNarracaoItem[]> {
   const driveUrls = getSavedDriveUrls();
 
@@ -308,7 +655,6 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
         })
         .map(([k]) => k);
 
-      // Se ainda não houver nenhuma aula gravada nas configurações, exibe o Código Penal como destaque inicial
       if (validKeys.length === 0) {
         validKeys.push('cp');
       }
@@ -353,80 +699,26 @@ export async function fetchLeisDisponiveisComAudio(mode: 'leis' | 'aulas' = 'lei
       .from('vade_mecum_leis')
       .select('id, slug, nome, categoria');
 
-    const NARRACAO_LEIS_CATALOG: Array<{
-      slug: string;
-      dbSlug?: string;
-      nome: string;
-      categoria: 'codigo' | 'estatuto';
-      totalArtigos: number;
-      totalAudios: number;
-    }> = [
-      // CÓDIGOS
-      { slug: 'cc', dbSlug: 'cc', nome: 'Código Civil', categoria: 'codigo', totalArtigos: 2046, totalAudios: 2046 },
-      { slug: 'cp', dbSlug: 'cp', nome: 'Código Penal', categoria: 'codigo', totalArtigos: 361, totalAudios: 361 },
-      { slug: 'cpp', dbSlug: 'cpp', nome: 'Código de Processo Penal', categoria: 'codigo', totalArtigos: 810, totalAudios: 810 },
-      { slug: 'cpc', dbSlug: 'cpc', nome: 'Código de Processo Civil', categoria: 'codigo', totalArtigos: 1072, totalAudios: 1072 },
-      { slug: 'clt', dbSlug: 'clt', nome: 'Consolidação das Leis do Trabalho', categoria: 'codigo', totalArtigos: 983, totalAudios: 983 },
-      { slug: 'ctn', dbSlug: 'ctn', nome: 'Código Tributário Nacional', categoria: 'codigo', totalArtigos: 218, totalAudios: 217 },
-      { slug: 'ctb', dbSlug: 'ctb', nome: 'Código de Trânsito Brasileiro', categoria: 'codigo', totalArtigos: 341, totalAudios: 341 },
-      { slug: 'cdc', dbSlug: 'cdc', nome: 'Código de Defesa do Consumidor', categoria: 'codigo', totalArtigos: 119, totalAudios: 119 },
-      { slug: 'ce', dbSlug: 'ce', nome: 'Código Eleitoral', categoria: 'codigo', totalArtigos: 383, totalAudios: 383 },
-      { slug: 'cpm', dbSlug: 'cpm', nome: 'Código Penal Militar', categoria: 'codigo', totalArtigos: 410, totalAudios: 410 },
-      { slug: 'cppm', dbSlug: 'cppm', nome: 'Código de Processo Penal Militar', categoria: 'codigo', totalArtigos: 710, totalAudios: 710 },
+    const result: LeiNarracaoItem[] = CATALOGO_OFICIAL_AUDIO_LEIS.map((conf) => {
+      const dbSlug = conf.slug.toLowerCase();
+      const leiDb = leisDb?.find(
+        (l) => (l.slug && l.slug.toLowerCase() === dbSlug) || l.id === conf.id || l.id === conf.slug
+      );
+      const leiId = leiDb?.id || conf.id;
+      const nome = leiDb?.nome || conf.nome;
 
-      // ESTATUTOS
-      { slug: 'estatuto-oab', dbSlug: 'estatuto-oab', nome: 'Estatuto da Advocacia e da OAB', categoria: 'estatuto', totalArtigos: 87, totalAudios: 87 },
-      { slug: 'estatuto-eca', dbSlug: 'estatuto-eca', nome: 'Estatuto da Criança e do Adolescente', categoria: 'estatuto', totalArtigos: 267, totalAudios: 267 },
-      { slug: 'estatuto-cidade', dbSlug: 'estatuto-cidade', nome: 'Estatuto da Cidade', categoria: 'estatuto', totalArtigos: 58, totalAudios: 58 },
-      { slug: 'estatuto-desarmamento', dbSlug: 'estatuto-desarmamento', nome: 'Estatuto do Desarmamento', categoria: 'estatuto', totalArtigos: 37, totalAudios: 37 },
-      { slug: 'estatuto-indio', dbSlug: 'estatuto-indio', nome: 'Estatuto do Índio', categoria: 'estatuto', totalArtigos: 68, totalAudios: 68 },
-      { slug: 'estatuto-igualdade-racial', dbSlug: 'estatuto-igualdade-racial', nome: 'Estatuto da Igualdade Racial', categoria: 'estatuto', totalArtigos: 65, totalAudios: 65 },
-      { slug: 'estatuto-juventude', dbSlug: 'estatuto-juventude', nome: 'Estatuto da Juventude', categoria: 'estatuto', totalArtigos: 48, totalAudios: 48 },
-      { slug: 'estatuto-militares', dbSlug: 'estatuto-militares', nome: 'Estatuto dos Militares', categoria: 'estatuto', totalArtigos: 157, totalAudios: 157 },
-      { slug: 'estatuto-metropole', dbSlug: 'estatuto-metropole', nome: 'Estatuto da Metrópole', categoria: 'estatuto', totalArtigos: 23, totalAudios: 23 },
-      { slug: 'estatuto-cancer', dbSlug: 'estatuto-cancer', nome: 'Estatuto da Pessoa com Câncer', categoria: 'estatuto', totalArtigos: 15, totalAudios: 15 },
-      { slug: 'estatuto-pessoa-deficiencia', dbSlug: 'estatuto-pessoa-deficiencia', nome: 'Estatuto da Pessoa com Deficiência', categoria: 'estatuto', totalArtigos: 127, totalAudios: 127 },
-      { slug: 'estatuto-idoso', dbSlug: 'estatuto-idoso', nome: 'Estatuto da Pessoa Idosa', categoria: 'estatuto', totalArtigos: 118, totalAudios: 118 },
-      { slug: 'estatuto-refugiado', dbSlug: 'estatuto-refugiado', nome: 'Estatuto dos Refugiados', categoria: 'estatuto', totalArtigos: 49, totalAudios: 49 },
-      { slug: 'estatuto-seguranca-privada', dbSlug: 'estatuto-seguranca-privada', nome: 'Estatuto da Segurança Privada', categoria: 'estatuto', totalArtigos: 72, totalAudios: 72 },
-      { slug: 'lei-servidor', dbSlug: 'lei-servidor', nome: 'Estatuto dos Servidores Públicos Federais', categoria: 'estatuto', totalArtigos: 250, totalAudios: 250 },
-      { slug: 'estatuto-torcedor', dbSlug: 'estatuto-torcedor', nome: 'Estatuto do Torcedor', categoria: 'estatuto', totalArtigos: 45, totalAudios: 45 },
-      { slug: 'estatuto-terra', dbSlug: 'estatuto-terra', nome: 'Estatuto da Terra', categoria: 'estatuto', totalArtigos: 129, totalAudios: 129 },
-      { slug: 'estatuto-mpe', dbSlug: 'estatuto-mpe', nome: 'Estatuto da Microempresa e EPP', categoria: 'estatuto', totalArtigos: 89, totalAudios: 89 },
-    ];
-
-    const result: LeiNarracaoItem[] = [];
-
-    for (const conf of NARRACAO_LEIS_CATALOG) {
-      const dbSlug = conf.dbSlug || conf.slug;
-      const leiDb = leisDb?.find((l) => l.slug?.toLowerCase() === dbSlug || l.id === conf.slug);
-      const leiCatalog = LEIS_CATALOG.find((l) => l.id.toLowerCase() === conf.slug);
-      const nome = leiDb?.nome || conf.nome || leiCatalog?.nome || conf.slug.toUpperCase();
-      const leiId = leiDb?.id || conf.slug;
-
-      const totalArtigos = conf.totalArtigos;
-      const audioCount = conf.totalAudios;
-      const pendentes = Math.max(0, totalArtigos - audioCount);
-      const percentual = Math.min(100, Math.round((audioCount / totalArtigos) * 100));
-
-      result.push({
+      return {
+        ...conf,
         id: leiId,
-        slug: conf.slug,
         nome,
-        categoria: conf.categoria,
-        categoriaFormatada: conf.categoria === 'codigo' ? 'Códigos' : 'Estatutos',
-        totalArtigos,
-        totalComAudio: audioCount,
-        totalPendentes: pendentes,
-        percentual,
         driveFolderUrl: driveUrls[leiId] || driveUrls[conf.slug] || '',
-      });
-    }
+      };
+    });
 
     return result;
   } catch (err) {
-    console.warn('[fetchLeisDisponiveisComAudio] Erro ao listar narrações:', err);
-    return [];
+    console.warn('[fetchLeisDisponiveisComAudio] Erro ao sincronizar catálogo de leis, usando catálogo canônico:', err);
+    return CATALOGO_OFICIAL_AUDIO_LEIS;
   }
 }
 

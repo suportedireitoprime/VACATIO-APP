@@ -47,23 +47,47 @@ const COVER_MAP: Record<string, string> = {
   cc:   COVERS.cc,
   cpc:  COVERS.cpc,
   cpp:  COVERS.cpp,
+  cppm: COVERS.cpp,
   clt:  COVERS.clt,
   cdc:  COVERS.cdc,
   ctn:  COVERS.ctn,
+  ctb:  COVERS.default,
   ce:   COVERS.ce,
-  // Estatutos temáticos
-  eca:  COVERS.eca,
-  ei:   COVERS.ei,
-  epd:  COVERS.epd,
-  eir:  COVERS.eir,
-  ec:   COVERS.ec,
-  ed:   COVERS.ed,
-  eoab: COVERS.eoab,
+  // Estatutos temáticos (slugs oficiais e aliases)
+  eca:                           COVERS.eca,
+  'estatuto-eca':                COVERS.eca,
+  ei:                            COVERS.ei,
+  'estatuto-idoso':              COVERS.ei,
+  epd:                           COVERS.epd,
+  'estatuto-pessoa-deficiencia': COVERS.epd,
+  eir:                           COVERS.eir,
+  'estatuto-igualdade-racial':   COVERS.eir,
+  ec:                            COVERS.ec,
+  'estatuto-cidade':             COVERS.ec,
+  ed:                            COVERS.ed,
+  'estatuto-desarmamento':       COVERS.ed,
+  eoab:                          COVERS.eoab,
+  'estatuto-oab':                COVERS.eoab,
+  'estatuto-militares':          COVERS.cp,
+  'estatuto-indio':              COVERS.eir,
+  'estatuto-juventude':          COVERS.eca,
+  'estatuto-metropole':          COVERS.ec,
+  'estatuto-cancer':             COVERS.epd,
+  'estatuto-refugiado':          COVERS.eir,
+  'estatuto-seguranca-privada':  COVERS.ed,
+  'lei-servidor':                COVERS.eoab,
+  'estatuto-torcedor':           COVERS.ce,
+  'estatuto-terra':              COVERS.ec,
+  'estatuto-mpe':                COVERS.cdc,
+  eggm:                          COVERS.ed,
+  emot:                          COVERS.default,
 };
 
 
 export function getLeiCover(id?: string | null, _tipo?: string | null): string {
-  if (id && COVER_MAP[id]) return COVER_MAP[id];
+  if (!id) return COVERS.default;
+  const key = id.toLowerCase().trim();
+  if (COVER_MAP[key]) return COVER_MAP[key];
   return COVERS.default;
 }
 

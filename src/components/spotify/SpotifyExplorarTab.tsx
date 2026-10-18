@@ -2,13 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Play, Headphones, BookOpen, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
-import { fetchLeisDisponiveisComAudio, type LeiNarracaoItem } from '@/services/narracaoArtigosSyncService';
+import {
+  fetchLeisDisponiveisComAudio,
+  CATALOGO_OFICIAL_AUDIO_LEIS,
+  type LeiNarracaoItem,
+} from '@/services/narracaoArtigosSyncService';
 import { getLeiCover, getLeiColor } from '@/lib/leiTheme';
 import { SpotifyRecentTracks } from './SpotifyRecentTracks';
-
-interface SpotifyExplorarTabProps {
-  onSelectLei: (lei: { id: string; nome: string; slug: string; categoria?: string }) => void;
-}
 
 export type CategoryFilter = 'todos' | 'constituicao' | 'codigos' | 'estatutos' | 'especiais';
 
@@ -18,48 +18,13 @@ interface SpotifyExplorarTabProps {
   onSelectCategory?: (cat: CategoryFilter) => void;
 }
 
-const DEFAULT_LEIS_INITIAL: LeiNarracaoItem[] = [
-  {
-    id: '246e8691-ebe2-478d-991d-f3930635151a',
-    slug: 'cpp',
-    nome: 'Código de Processo Penal',
-    categoria: 'codigo',
-    categoriaFormatada: 'Códigos',
-    totalArtigos: 810,
-    totalComAudio: 779,
-    totalPendentes: 31,
-    percentual: 96,
-  },
-  {
-    id: 'cf9e9292-4fe0-4b23-ae89-611edbb92503',
-    slug: 'cp',
-    nome: 'Código Penal',
-    categoria: 'codigo',
-    categoriaFormatada: 'Códigos',
-    totalArtigos: 361,
-    totalComAudio: 144,
-    totalPendentes: 217,
-    percentual: 40,
-  },
-  {
-    id: '32ae6146-3fd4-42e7-8879-81413f0f41cc',
-    slug: 'cc',
-    nome: 'Código Civil',
-    categoria: 'codigo',
-    categoriaFormatada: 'Códigos',
-    totalArtigos: 2046,
-    totalComAudio: 2046,
-    totalPendentes: 0,
-    percentual: 100,
-  },
-];
-
 export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
   onSelectLei,
   activeCategory = 'todos',
 }) => {
   const { audioMode } = useSpotifyAudioStore();
-  const [leis, setLeis] = useState<LeiNarracaoItem[]>(DEFAULT_LEIS_INITIAL);
+  // Inicialização 100% instantânea (0ms) com o catálogo oficial completo de 31 legislações
+  const [leis, setLeis] = useState<LeiNarracaoItem[]>(CATALOGO_OFICIAL_AUDIO_LEIS);
 
   useEffect(() => {
     let isMounted = true;
@@ -79,24 +44,36 @@ export const SpotifyExplorarTab: React.FC<SpotifyExplorarTabProps> = ({
     };
   }, [audioMode]);
 
-  // Filtragem por Categoria
+  // Filtragem por Categoria resiliente e à prova de falhas
   const filteredLeis = useMemo(() => {
     return leis.filter((lei) => {
+      if (!lei) return false;
+      const cat = (lei.categoria || '').toLowerCase();
+      const catFmt = (lei.categoriaFormatada || '').toLowerCase();
+      const slug = (lei.slug || '').toLowerCase();
+      const nome = (lei.nome || '').toLowerCase();
+
       if (activeCategory === 'todos') return true;
-      if (activeCategory === 'codigos') return lei.categoriaFormatada === 'Códigos';
-      if (activeCategory === 'estatutos') return lei.categoriaFormatada === 'Estatutos';
-      if (activeCategory === 'constituicao')
+      if (activeCategory === 'codigos') {
+        return cat === 'codigo' || catFmt.includes('código') || catFmt.includes('codigo') || nome.includes('código');
+      }
+      if (activeCategory === 'estatutos') {
         return (
-          lei.categoriaFormatada === 'Constituição' ||
-          lei.slug === 'cf' ||
-          /constitui/i.test(lei.nome)
+          cat === 'estatuto' ||
+          catFmt.includes('estatuto') ||
+          nome.includes('estatuto') ||
+          slug.startsWith('estatuto-') ||
+          slug === 'lei-servidor' ||
+          slug === 'eggm' ||
+          slug === 'emot'
         );
-      if (activeCategory === 'especiais')
-        return (
-          lei.categoriaFormatada === 'Leis Ordinárias' ||
-          lei.categoria === 'lei-especial' ||
-          lei.categoriaFormatada === 'Geral'
-        );
+      }
+      if (activeCategory === 'constituicao') {
+        return slug === 'cf' || slug === 'cf88' || catFmt.includes('constitui') || nome.includes('constitui');
+      }
+      if (activeCategory === 'especiais') {
+        return cat === 'lei-especial' || catFmt.includes('ordinária') || catFmt.includes('geral');
+      }
       return true;
     });
   }, [leis, activeCategory]);
