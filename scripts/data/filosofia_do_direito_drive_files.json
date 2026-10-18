@@ -1,0 +1,639 @@
+[
+  {
+    "subpasta": "01. Filosofia do Direito",
+    "subpastaId": "12rGUEHIAbjJtNvkvecX5_WfERDpP8vFL",
+    "totalArquivos": 15,
+    "arquivos": [
+      {
+        "id": "1nHccICxPMNcq6DvSxSOLqulJnFu9mSCb",
+        "name": "01. Começando pelo Começo.mp3"
+      },
+      {
+        "id": "1l4F8EECwnvyyUq0DIWkuug83xqAQHwpb",
+        "name": "02. Escolas da Filosofia e a História.mp3"
+      },
+      {
+        "id": "1iEXnGOix1Uu06lI_SlXIPhwMk7yfgowY",
+        "name": "03. Escolas da Filosofia e seus Pensadores.mp3"
+      },
+      {
+        "id": "19414unk4be3poh_xg-qLkobg0zkiv9si",
+        "name": "04. Filosofia Antiga (Clássica) - Sócrates e Platão.mp3"
+      },
+      {
+        "id": "1nxWrIA2nubwwBup76WffoVaIw52dbSuJ",
+        "name": "05. Filosofia Antiga (Clássica) - Aristóteles.mp3"
+      },
+      {
+        "id": "1i6f0FqoQk3o97fqtIu6a9osLIVjM_0PW",
+        "name": "06. Filosofia Medieval - Santo Agostinho e São Tomás de Aquino.mp3"
+      },
+      {
+        "id": "1pSz6Lzt6qc9MO8823SD7LxdOPynoTpSc",
+        "name": "07. Contratualistas - Hobbes, Locke e Rousseau.mp3"
+      },
+      {
+        "id": "1-rCL9M8p4JwDN1Bd9ymPXKw9h8-fQuIi",
+        "name": "08. Utilitarismo - Bentham e Stuart Mill.mp3"
+      },
+      {
+        "id": "1oPtqfGuX9v5SxWSWjnSOiplzIgkS4F0X",
+        "name": "09. Immanuel Kant e a Moral Categórica.mp3"
+      },
+      {
+        "id": "1JZkmN-RM2_2BAoj-Nht6qPKf_qWXGfIc",
+        "name": "10. Evolução do Positivismo - Savigny, Exegese, Puchta e Ihering.mp3"
+      },
+      {
+        "id": "1iAKhPEmATXZEPyI92ofWe4JS_gb4bihN",
+        "name": "11. Positivismo - John Austin e HLA Hart.mp3"
+      },
+      {
+        "id": "1fRHLR0O-f2HYvB3qTIVpJKhKlMd9lQYp",
+        "name": "12. Positivismo - Hans Kelsen.mp3"
+      },
+      {
+        "id": "1EguTTMfFs0jx6zllMr5314aogPnbbHP2",
+        "name": "13. Bobbio e a Teoria do Ordenamento Jurídico.mp3"
+      },
+      {
+        "id": "1LG6WHs9qTYGIZWeeqEJzZhBzvWihZ53c",
+        "name": "14. Direito e Justiça - John Rawls.mp3"
+      },
+      {
+        "id": "16x37UEGpJlovO1Chm5aYKMAXTx3c7mmM",
+        "name": "15. Ronald Dworkin.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "02. Teoria da Norma Jurídica",
+    "subpastaId": "1xX1RhkOTUAw1UE7W5-COMw8NaIvkBrFn",
+    "totalArquivos": 21,
+    "arquivos": [
+      {
+        "id": "1-u2fg9D1pqDhhx-Ec7QLRu0Ny6TU0ZIY",
+        "name": "01. Considerações Iniciais.mp3"
+      },
+      {
+        "id": "1Cn6Gk8sTiB5fmmCrRefP1_ff5GdDQwMA",
+        "name": "02. Do Nascimento da Norma Jurídica.mp3"
+      },
+      {
+        "id": "1Uw3liehwviG1t-XMiIFwT1V6LmhvSMdh",
+        "name": "03. Teoria Normativa.mp3"
+      },
+      {
+        "id": "1dMtsjFbXEn0pNB_YU6c8_y31lBYYWuUM",
+        "name": "04. Teoria Institucionalista.mp3"
+      },
+      {
+        "id": "1XzQIG_hI1bLd51ITeD5iENn4qX_tUkJl",
+        "name": "05. Teoria da Relação Jurídica.mp3"
+      },
+      {
+        "id": "1XZudxJbutczBB-3S76lGIXFTLcI-l-km",
+        "name": "06. Considerações Finais sobre as Três Teorias.mp3"
+      },
+      {
+        "id": "1B1vAYGW56iFDV5W64F3I8WLVxPwMxVRQ",
+        "name": "07. Da Estrutura da Norma Jurídica.mp3"
+      },
+      {
+        "id": "1Dhl4MA90EJWa2DXlyy8oAZ0YjzAeQcsG",
+        "name": "08. Plano Normativo da Justiça.mp3"
+      },
+      {
+        "id": "1lg8t-BXSp_BzdoLisy9gg9usxi2t1Bzn",
+        "name": "09. Plano Normativo da Validade.mp3"
+      },
+      {
+        "id": "1R4wsIJL1lw5YOAYPQ6xprJxC5rmVBGZ5",
+        "name": "10. Plano Normativo da Eficácia.mp3"
+      },
+      {
+        "id": "1FzQ5FPQevsHI7iBW1dt1Htzt5mdiylxz",
+        "name": "11. Independência entre os Planos.mp3"
+      },
+      {
+        "id": "18RXDChJkw4SidGEOGZFG27-Frp_biyvs",
+        "name": "12. Modelo Normativo Jusnaturalista.mp3"
+      },
+      {
+        "id": "1YXKhnQPwBzCgzHH18dtYfES7QeAbVR7Q",
+        "name": "13. Modelo Normativo Positivista.mp3"
+      },
+      {
+        "id": "1NMwEH3VPc6R9UsvDvlL7cvVRfI97o3gp",
+        "name": "14. Modelo Normativo Neoconstitucionalista.mp3"
+      },
+      {
+        "id": "1MBbZNgHWgRB9Mv5jKIGyg_5IOj6X8_yS",
+        "name": "15. Modelo Normativo Realista.mp3"
+      },
+      {
+        "id": "1RX5qe6X1E3MtyCqdjazyxUMvuUrX40b9",
+        "name": "16. Da Linguagem da Norma Jurídica.mp3"
+      },
+      {
+        "id": "1-kYegF-s1i1npL6Qr3L_IVscM63fk0W3",
+        "name": "17. Proposições.mp3"
+      },
+      {
+        "id": "1IR2Mqyj5uzGN4GM9ArO6Bj-ujcFElX1y",
+        "name": "18. Comandos.mp3"
+      },
+      {
+        "id": "1ybXkBgip54jtSW178NBF0qQftEmbkBFE",
+        "name": "19. Conselhos.mp3"
+      },
+      {
+        "id": "1-bj4c5UyHPr5Tsq3r_BYZRPImuiPzfVt",
+        "name": "20. Pedidos.mp3"
+      },
+      {
+        "id": "14Q9NtEXvcOluB8C42vd606Nc0D5BvsLd",
+        "name": "21. Classificação das Normas Jurídicas.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "03. História do Direito",
+    "subpastaId": "18gGc_leTaTEgcP3UhDy64eEq08oaHfk8",
+    "totalArquivos": 6,
+    "arquivos": [
+      {
+        "id": "15Rrn9RMfysieuyreIuzSnl7PQkgm6JsQ",
+        "name": "01. Surgimento do Direito.mp3"
+      },
+      {
+        "id": "1UiGUzEcX68f-u7PLE_u7ncrUloaEOuPc",
+        "name": "02. Direito na Grécia.mp3"
+      },
+      {
+        "id": "1KTwS_q2KAEfj0rew8Y_VCy_2CE7zrPY2",
+        "name": "03. Direito Romano.mp3"
+      },
+      {
+        "id": "1KnDzwbp_LivYuvzdwmqvt5tWpMzPiajX",
+        "name": "04. Direito na Idade Média.mp3"
+      },
+      {
+        "id": "1T6GAuEO83ARVadoEZX-tJlEVgFYmyjI1",
+        "name": "05. Direito na Idade Moderna.mp3"
+      },
+      {
+        "id": "1F_rlrY0AVPDageiYgHJ86jvnwzpOcLx8",
+        "name": "06. Direito na Idade Contemporânea.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "04. Filosofia do Direito na Antiguidade",
+    "subpastaId": "1rbSSNOBjgP_-A2_33J3DjQSqjofzpJLe",
+    "totalArquivos": 3,
+    "arquivos": [
+      {
+        "id": "16R1oxlLg9dQrkc15r6vpC6pnldHv-MHh",
+        "name": "01. Introdução.mp3"
+      },
+      {
+        "id": "1bmjaFnElcqHD89XGJWE8tUy521581-KG",
+        "name": "02. Filosofia do Direito na Antiguidade.mp3"
+      },
+      {
+        "id": "10kmUawmqcGvStiwQ8OsXV9qyzMp5z5MB",
+        "name": "03. O Pensamento Jurídico Clássico: a Doutrina Clássica do Direito Natural.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "05. Filosofia do Direito na Modernidade",
+    "subpastaId": "1j1okySTsAsMxfWOn0EGtgDA87ouR6CIr",
+    "totalArquivos": 11,
+    "arquivos": [
+      {
+        "id": "1-hQH4V99VdJylM4Zk9DE_kJrncescJ_J",
+        "name": "01. O Início da Modernidade no Século XIII.mp3"
+      },
+      {
+        "id": "1k-0fWau1EoHbtRiLOb685_mdRVAt7OC9",
+        "name": "02. Influência do Franciscanismo no Direito Moderno.mp3"
+      },
+      {
+        "id": "1LPisfkXh87kMuVJF3gDmG6DAIVns7izo",
+        "name": "03. Guilherme de Ockham.mp3"
+      },
+      {
+        "id": "13TgUXIhEkcN15-YzMidnCNr1-HeuHDYr",
+        "name": "04. Lutero e o Direito.mp3"
+      },
+      {
+        "id": "1HxDLPR_xYYgoWAPc3X3yyi-MLZbvIwD6",
+        "name": "05. Calvino e o Direito.mp3"
+      },
+      {
+        "id": "1ehsEL_xow1y24og_UsI2OgJIbsguQWeT",
+        "name": "06. Reforma Católica: Vitória e Suarez.mp3"
+      },
+      {
+        "id": "1gFa3HkC9sokHVY-lRqHCLOUx2jwE6xqW",
+        "name": "07. Maquiavel.mp3"
+      },
+      {
+        "id": "1j_K0LYKF06YCwI36yVW8S8KA5tYPNoOT",
+        "name": "08. Althusius e Hugo Grócio.mp3"
+      },
+      {
+        "id": "1466uVE9VebMzQTU8OmDXpvw0MoWAFxHx",
+        "name": "09. Thomas Hobbes.mp3"
+      },
+      {
+        "id": "1CBeeRkVfxkIZooBwjy5QXpY1hj04093l",
+        "name": "10. Spinoza e John Locke.mp3"
+      },
+      {
+        "id": "13V90PMvugqA5rqTTrUwLj1_a34nRyj4R",
+        "name": "11. Rousseau.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "06. Hans Kelsen",
+    "subpastaId": "1sxpgodfd2fUz734Jzy-S6Wv10n-FjXh2",
+    "totalArquivos": 4,
+    "arquivos": [
+      {
+        "id": "19zJKh9ythU8V-7ZdZlRVWTcLOWaRdYib",
+        "name": "01. As Influências de Hans Kelsen.mp3"
+      },
+      {
+        "id": "1pZSc0ZXeikwSaXd4HTOebs01j5tTlPtz",
+        "name": "02. Interpretação Jurídica.mp3"
+      },
+      {
+        "id": "19WAHlWFA8cTSUoktJUt3KaKtpiNVJipM",
+        "name": "03. O Que é a Justiça?.mp3"
+      },
+      {
+        "id": "1zWhq-BqqGmUJ0SUI0cDboQBQFjEHAh6I",
+        "name": "04. Críticas a Kelsen.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "07. Introdução à Hermenêutica Jurídica",
+    "subpastaId": "1U2wiXFcMXcvQluZ2pT6wBxZzjcSpibY6",
+    "totalArquivos": 4,
+    "arquivos": [
+      {
+        "id": "1zsFg0i7jTZRqHUzV-0sCU6ZThDjZR22i",
+        "name": "01. Introdução, Conceito e Objeto de Estudo.mp3"
+      },
+      {
+        "id": "1y5ftzjZm32JiSfjrBoznTCVVIFCtlvFs",
+        "name": "02. Hermenêutica x Interpretação e Quem Utiliza a Hermenêutica Jurídica.mp3"
+      },
+      {
+        "id": "1iq8e3uVaWGHDPCMlscKr4w1Zr0_odqmO",
+        "name": "03. Lei x Caso Abstrato e Raciocínio Jurídico (Evolução).mp3"
+      },
+      {
+        "id": "1n5Nm38jtr6Uv5zKbTtyCQGVQrVS_pTDh",
+        "name": "04. Hermenêutica Jurídica, Retórica e Jurisprudência.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "08. Hermenêutica e Métodos Interpretativos",
+    "subpastaId": "1Y24fAcBDqdOi-99aKHMysGAxsXKJ-6jI",
+    "totalArquivos": 5,
+    "arquivos": [
+      {
+        "id": "1tj32J3zsS-ZekvYEOxWOrBZdYVrFWBxa",
+        "name": "01. Hermenêutica.mp3"
+      },
+      {
+        "id": "1KEQZ1YfjH_OLbgcGoDQXdZWHyZceMIj_",
+        "name": "02. Quanto às Fontes: Autêntica, Doutrinária e Judicial.mp3"
+      },
+      {
+        "id": "1x4QdSY6VH9kj7i4IS2pnHwjoLI05G8Ze",
+        "name": "03. Interpretação Quanto aos Meios.mp3"
+      },
+      {
+        "id": "1tzFs3d_UvhNV1XXFZhlVcleqPFpixt_5",
+        "name": "04. Quanto ao Resultado: Restritiva, Extensiva e Declarativa.mp3"
+      },
+      {
+        "id": "1xyvCc7sm_8mmowqnThj8fMolL9dpqgnF",
+        "name": "05. Analogia.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "09. Introdução ao Estudo do Direito",
+    "subpastaId": "1FdAo2V7yWVaWE63dda-x61GV75a1s8Uj",
+    "totalArquivos": 12,
+    "arquivos": [
+      {
+        "id": "1jyRZV8DjoNli0Y4_RecUsz_FMgDKI3Ax",
+        "name": "01. Direito: Origem, Significado e Funções.mp3"
+      },
+      {
+        "id": "1uYFYrN0sy_OszyILXoqjhMD_42ddYUxD",
+        "name": "02. Perfil Histórico I e II.mp3"
+      },
+      {
+        "id": "1hmLi90gX2gb9BWmpOdSveZTJO5RU3466",
+        "name": "03. Perfil Histórico III.mp3"
+      },
+      {
+        "id": "13WuPQxxlFiOihEtjOpH1x-ILXYsdiaHz",
+        "name": "04. Ciência do Direito: Dogmática e Tecnologia.mp3"
+      },
+      {
+        "id": "18FOf5N6lG0TIbKlMpGFKlRxD3GmY2TOA",
+        "name": "05. Teoria da Norma: as Dicotomias.mp3"
+      },
+      {
+        "id": "10pxOHQP1u3aVkYjaLlYkotM41E08ecHn",
+        "name": "06. Teoria da Norma: Relações e Ordenamento Jurídico.mp3"
+      },
+      {
+        "id": "1Rp8MAK5-GO5jq0A1Z0KiKDTaRwoMDHKe",
+        "name": "07. Teoria da Norma: Consistência e Completude.mp3"
+      },
+      {
+        "id": "1ltGXHgNLlETicJCjD6iWksyYBbD21lXs",
+        "name": "08. Fontes do Direito.mp3"
+      },
+      {
+        "id": "1dpz63QCREbGXAYgsr8Z9ZWPztPcr5w9o",
+        "name": "09. Teoria da Interpretação.mp3"
+      },
+      {
+        "id": "1CY21fekdrXVLfbq2ZflMVbV73o-kUOXQ",
+        "name": "10. Tipos de Interpretação.mp3"
+      },
+      {
+        "id": "1IVr2_CSvRern_nKLXySmLUbH8hWLP5B1",
+        "name": "11. Teoria da Argumentação: Decisão Jurídica.mp3"
+      },
+      {
+        "id": "169HMVViGJaYF3MB6SBdePgg8JCkc503T",
+        "name": "12. Teoria da Argumentação: Raciocínio Jurídico e Argumentos Jurídicos.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "10. LINDB",
+    "subpastaId": "1dpNO-pvqs8zk_XL-YrhimOM9yCYxVLBQ",
+    "totalArquivos": 5,
+    "arquivos": [
+      {
+        "id": "17UpiKEf46s8WwbPXjrGwIw8gNmhnHNHY",
+        "name": "01. Introdução à LINDB.mp3"
+      },
+      {
+        "id": "1ZKIWRtQcFXmHIDJutxUBGm67L2981WV7",
+        "name": "02. Integração das Normas Jurídicas.mp3"
+      },
+      {
+        "id": "1K-zIcBm7dvX7CXHsMPRUBQOTZrKXh2oN",
+        "name": "03. Conflito das Leis no Tempo.mp3"
+      },
+      {
+        "id": "1AeR6GShBJRTKLbtWzNR4vydfYEuB5PyD",
+        "name": "04. Conflito das Leis no Espaço.mp3"
+      },
+      {
+        "id": "1zll_xpfMiISmh89Sh_fqJgEXYEn2TQlr",
+        "name": "05. Inovações da Lei 13.655/2018.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "11. Ciência Política",
+    "subpastaId": "11RXxgDtV9Nb1BaeitNJkI4DXwGmnGzF3",
+    "totalArquivos": 9,
+    "arquivos": [
+      {
+        "id": "13-pbljvnWSQvEBr7cF3k-qt0Vy3cjdX_",
+        "name": "01. Significado e Objeto de Estudo.mp3"
+      },
+      {
+        "id": "1cI5R5jnPUmzlhtu7MKWjkH_RWKoPeMa9",
+        "name": "02. Origem e Elementos da Sociedade.mp3"
+      },
+      {
+        "id": "1awZdv3GH1TDsVr5JbWpYjjkAiiX0xywW",
+        "name": "03. Evolução e Elementos Constitutivos do Estado.mp3"
+      },
+      {
+        "id": "1225R-xebDvj10ErdYnzPfH9GduEvQiHS",
+        "name": "04. Organização do Poder no Estado Brasileiro.mp3"
+      },
+      {
+        "id": "1QTrIuXGAxUgx0YKYC_IovDxreWtV_GI-",
+        "name": "05. Formas de Estado.mp3"
+      },
+      {
+        "id": "1JFJ-me25KOvNRzbxpnts4pYtyQrMVRft",
+        "name": "06. Formas de Governo.mp3"
+      },
+      {
+        "id": "131mx_jcW43jXCagaJXEvnAA9VzANRftZ",
+        "name": "07. Sistemas de Governo.mp3"
+      },
+      {
+        "id": "1h8J2kJJrNxWDo3pEcwn3sDoa9JcKDyJw",
+        "name": "08. Democracia.mp3"
+      },
+      {
+        "id": "1_d5FB1N7KTWZcxoBjiToUkOg9V0opri_",
+        "name": "09. Representação, Partidos Políticos e Sufrágio.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "12. A Formação do Capitalismo",
+    "subpastaId": "1-oWm5fVixJ16A91nFTv5bqJiuy2x_NeW",
+    "totalArquivos": 4,
+    "arquivos": [
+      {
+        "id": "1XjzM7uaZBb-n1srOSzPGlaF2jwDF4JQj",
+        "name": "01. Excedentes Agrícolas.mp3"
+      },
+      {
+        "id": "1kWaBfLzAos2XyjRghz13bpZjcwyJHQg-",
+        "name": "02. Formação do Capitalismo e Modo Capitalista de Produção.mp3"
+      },
+      {
+        "id": "1gHKHt6T2pUrqhLyQK1J_UHqE2bacpjCE",
+        "name": "03. Divisão Social do Trabalho.mp3"
+      },
+      {
+        "id": "1Ypx6IkjISE2BWGgv6KBdbZA8dR-Vg-mv",
+        "name": "04. Formas de Apropriação do Excedente em Sociedades Complexas.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "13. Pragmatismo Jurídico",
+    "subpastaId": "1rruhnHZ-Vc_7v7RSWbJwNnz8TfEU3j7v",
+    "totalArquivos": 9,
+    "arquivos": [
+      {
+        "id": "10_zsHWksUV-rC3JmZG5W61-W8tWTrKsb",
+        "name": "01. Considerações Iniciais.mp3"
+      },
+      {
+        "id": "1IhXfdtUdGnD6_QweqFFiWE9Xti8tewCg",
+        "name": "02. Conceito.mp3"
+      },
+      {
+        "id": "1Hs5vf_f0xWmal4FMtE1NK-ep4D2UIG2x",
+        "name": "03. Contextualismo.mp3"
+      },
+      {
+        "id": "12EGp4EtZVzXz1eA4w-AfGcLZ8k7avgAf",
+        "name": "04. Antifundacionismo.mp3"
+      },
+      {
+        "id": "1Pz_MMK18V7HV_8kiEjdDDbaJEJRc-TTM",
+        "name": "05. Consequencialismo.mp3"
+      },
+      {
+        "id": "1PbkA8ujsU3T7t04bl5NhnW4GmRDuzj62",
+        "name": "06. Alternativismo.mp3"
+      },
+      {
+        "id": "1udOv15XJrO2ecd-t_yytlWiTrYtXUQbI",
+        "name": "07. Crítica.mp3"
+      },
+      {
+        "id": "1Z0E8lByg9Ay-NQ6ZPVe5qI9lCsCzxptm",
+        "name": "08. Pragmatismo e LINDB.mp3"
+      },
+      {
+        "id": "1vVZP1wnrut7JVe_DwhBQsjVnugc3blJJ",
+        "name": "09. Revisão.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "14. Direito Romano",
+    "subpastaId": "1zzrGOU_8teC9d6FnmllbQQCrRBSrqhHn",
+    "totalArquivos": 17,
+    "arquivos": [
+      {
+        "id": "1lTKk2coCQwdGl_ZC53_uIrXvGbwv_jsA",
+        "name": "01. Introdução.mp3"
+      },
+      {
+        "id": "1IcUdvqXPj9MtWuqY0pULLnksCFHVYcfS",
+        "name": "02. Fontes do Direito Romano.mp3"
+      },
+      {
+        "id": "1Lk4g_6vwRtwlLgad6ytmYHhCv0cO_IOv",
+        "name": "03. Sujeitos de Direito e Capacidade Jurídica.mp3"
+      },
+      {
+        "id": "1IPLtpgyOeAIsF_XUvZlogkJ4kJHS8fgX",
+        "name": "04. Objetos de Direito.mp3"
+      },
+      {
+        "id": "161kKx2m5cFv_v2Jmu9_IHQSny28OQxYw",
+        "name": "05. Negócio Jurídico - Conceito e Classificações.mp3"
+      },
+      {
+        "id": "1nEJbUV6bOOaHpqH1eyINdBu_5eCUfoL5",
+        "name": "06. Negócio Jurídico - Elementos Essenciais e Acidentais.mp3"
+      },
+      {
+        "id": "1RWr9EH38p3e-Ra2WQS9Cco3gbofVZpX2",
+        "name": "07. Direitos Reais - Introdução e Posse.mp3"
+      },
+      {
+        "id": "1zv-UlxsYw_V8XwQBRcNo2xUEISauXfaa",
+        "name": "08. Direitos Reais - a Propriedade.mp3"
+      },
+      {
+        "id": "18s-EW1jX8y7KP-sJFMS6_i1nmg5O3kpj",
+        "name": "09. Direitos Reais - a Propriedade - Modos de Aquisição.mp3"
+      },
+      {
+        "id": "1ZKVUp69fPkhRSUfYZ-Fe1GfwTou_hUbN",
+        "name": "10. Direitos Reais - Direitos Reais sobre a Coisa Alheia.mp3"
+      },
+      {
+        "id": "1Eo5dzjp9HhByQJvnYKgZMtGsCPOGePg4",
+        "name": "11. Direito das Obrigações - Contratos Reais e Literais.mp3"
+      },
+      {
+        "id": "1KPGYXrWD9jwXXKXaUcSrzzk5A3g4zy1d",
+        "name": "12. Direito das Obrigações - Delitos Privados.mp3"
+      },
+      {
+        "id": "15FhG-Vy-0lM6Rujzzwkw95snaarW1Q-p",
+        "name": "13. Direito das Obrigações - Quase-Contratos e Quase-Delitos.mp3"
+      },
+      {
+        "id": "1WiLZjRo67eUCuJqVAM8Cn42obrelLzsb",
+        "name": "14. Direito das Obrigações - Garantia, Transmissão e Extinção das Obrigações.mp3"
+      },
+      {
+        "id": "1FL5dgygrba2W4nOLKCZlm3ckJdsQnkvL",
+        "name": "15. Direito das Obrigações - Inadimplemento das Obrigações.mp3"
+      },
+      {
+        "id": "1vltxxxyGcD1SguZbYRwwLR8JGoTiuNR5",
+        "name": "16. Direito de Família.mp3"
+      },
+      {
+        "id": "1WSXiVe4CQfP9X8m11fiblqtmxi9bsE51",
+        "name": "17. Direito das Sucessões.mp3"
+      }
+    ]
+  },
+  {
+    "subpasta": "15. Direito, Psicologia e Neurociência",
+    "subpastaId": "1xkNJm4WOEKQINc7s8XAUMs2WQkifOgXI",
+    "totalArquivos": 8,
+    "arquivos": [
+      {
+        "id": "1hLwoE1_SnOlb9Nks0GcHOxQAGE5N-SB4",
+        "name": "01. Introdução.mp3"
+      },
+      {
+        "id": "1c3QILhivYAP_R8ZGNLZ9H4Cb9LQm6ShU",
+        "name": "02. Por que Estudar Direito, Psicologia e Neurociência?.mp3"
+      },
+      {
+        "id": "1UpCa9vs5sO7y3EA8E16urbvduYBRxbQ3",
+        "name": "03. Vieses e Heurísticas.mp3"
+      },
+      {
+        "id": "11LxAVnvCWrOiR0HoqL7uXRXU7hEJC_Oz",
+        "name": "04. A Racionalidade Limitada.mp3"
+      },
+      {
+        "id": "1PJFlwjPY8VHID4ds-XPcrdmVAYdH3NvI",
+        "name": "05. Cérebro Adolescente.mp3"
+      },
+      {
+        "id": "1-bCqR6LMMojXBSu9VJPNmlKCjXb2o30Q",
+        "name": "06. Falsas Memórias.mp3"
+      },
+      {
+        "id": "1FSwy16nW2Dq6sn1Cwp6Y6aF65EzIP6GU",
+        "name": "07. Julgamento por Estereótipos.mp3"
+      },
+      {
+        "id": "1A-nizkbao7zbjqcv8XF6Sml-yLMb6Tzk",
+        "name": "08. Psicopatia.mp3"
+      }
+    ]
+  }
+]

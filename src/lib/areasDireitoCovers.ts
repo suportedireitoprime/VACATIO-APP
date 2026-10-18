@@ -98,6 +98,7 @@ const MAP: Record<string, AreaCover> = {
   'pratica profissional': { cover: pratica, tint: 'hsla(20, 72%, 18%, 0.92)' },
   'revisao oab': { cover: revisaoOab, tint: 'hsla(27, 74%, 22%, 0.92)' },
   'teoria e filosofia do direito': { cover: teoria, tint: 'hsla(229, 26%, 26%, 0.92)' },
+  'filosofia do direito': { cover: teoria, tint: 'hsla(229, 26%, 26%, 0.92)' },
 };
 
 const norm = (s: string) =>
