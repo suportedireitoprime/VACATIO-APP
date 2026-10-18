@@ -111,7 +111,12 @@ export const AudioaulasCategoriasNav: React.FC<AudioaulasCategoriasNavProps> = (
               {isAtivo && (
                 <motion.span
                   layoutId="audioaulas-cat-active-pill"
-                  className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-600 shadow-md shadow-blue-900/40"
+                  className="absolute inset-0 rounded-2xl"
+                  style={{
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
+                    boxShadow: '0 4px 18px rgba(37, 99, 235, 0.55)',
+                    border: '1px solid rgba(147, 197, 253, 0.4)',
+                  }}
                   transition={{ type: 'spring', damping: 26, stiffness: 320 }}
                 />
               )}

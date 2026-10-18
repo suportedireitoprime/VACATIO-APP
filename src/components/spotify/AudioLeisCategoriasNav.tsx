@@ -70,7 +70,12 @@ export const AudioLeisCategoriasNav: React.FC<AudioLeisCategoriasNavProps> = ({
               {isAtivo && (
                 <motion.span
                   layoutId="audio-leis-cat-active-pill"
-                  className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 shadow-md shadow-purple-900/40"
+                  className="absolute inset-0 rounded-2xl"
+                  style={{
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)',
+                    boxShadow: '0 4px 18px rgba(124, 58, 237, 0.55)',
+                    border: '1px solid rgba(216, 180, 254, 0.4)',
+                  }}
                   transition={{ type: 'spring', damping: 26, stiffness: 320 }}
                 />
               )}

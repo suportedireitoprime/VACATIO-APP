@@ -187,7 +187,7 @@ const Audioaulas = () => {
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider flex items-center gap-2.5">
-                    <span className="w-1.5 h-6 rounded-full bg-primary shrink-0" />
+                    <span className="w-1.5 h-6 rounded-full bg-blue-500 shrink-0" />
                     {filtroHome === 'em_alta' && <Flame className="w-5 h-5 text-amber-500" />}
                     {filtroHome === 'recentes' && <Clock className="w-5 h-5 text-blue-400" />}
                     {filtroHome === 'mais_ouvidas' && <HeadphonesIcon className="w-5 h-5 text-purple-400" />}

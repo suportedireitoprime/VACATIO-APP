@@ -36,11 +36,17 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
 }) => {
   const isPurple = colorScheme === 'purple';
 
-  const themeTextActive = isPurple ? 'text-purple-400' : 'text-blue-400';
-  const themeBadgeBg = isPurple ? 'bg-purple-600' : 'bg-blue-600';
-  const themeFabBg = isPurple
-    ? 'bg-gradient-to-tr from-purple-700 via-purple-600 to-indigo-500 shadow-[0_8px_30px_rgba(147,51,234,0.5)] ring-purple-400/30'
-    : 'bg-gradient-to-tr from-blue-700 via-blue-600 to-sky-500 shadow-[0_8px_30px_rgba(37,99,235,0.5)] ring-blue-400/30';
+  const themeColor = isPurple ? '#c084fc' : '#60a5fa';
+  const themeBadgeBg = isPurple ? '#9333ea' : '#2563eb';
+  const themeFabGradient = isPurple
+    ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)'
+    : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)';
+  const themeFabShadow = isPurple
+    ? '0 8px 32px rgba(124, 58, 237, 0.7), 0 2px 12px rgba(109, 40, 217, 0.5)'
+    : '0 8px 32px rgba(37, 99, 235, 0.7), 0 2px 12px rgba(29, 78, 216, 0.5)';
+  const themeFabBorder = isPurple
+    ? '1.5px solid rgba(216, 180, 254, 0.4)'
+    : '1.5px solid rgba(147, 197, 253, 0.4)';
 
   const content = (
     <nav
@@ -75,20 +81,25 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           <div className="relative inline-flex items-center justify-center">
             <Heart
               className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-                ativo === 'favoritos' ? `scale-110 drop-shadow-md ${themeTextActive}` : 'drop-shadow-sm'
+                ativo === 'favoritos' ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'
               }`}
+              style={{ color: ativo === 'favoritos' ? themeColor : undefined }}
               strokeWidth={1.5}
               fill={ativo === 'favoritos' ? 'currentColor' : 'none'}
             />
             {totalFavoritas > 0 && (
-              <span className={`absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black ${themeBadgeBg} text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none`}>
+              <span
+                style={{ backgroundColor: themeBadgeBg }}
+                className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none"
+              >
                 {totalFavoritas}
               </span>
             )}
           </div>
           <span
+            style={{ color: ativo === 'favoritos' ? themeColor : undefined }}
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
-              ativo === 'favoritos' ? `font-semibold ${themeTextActive}` : ''
+              ativo === 'favoritos' ? 'font-semibold' : ''
             }`}
           >
             Favoritos
@@ -112,26 +123,31 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           <div className="relative inline-flex items-center justify-center">
             <ListMusic
               className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-                ativo === 'playlists' ? `scale-110 drop-shadow-md ${themeTextActive}` : 'drop-shadow-sm'
+                ativo === 'playlists' ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'
               }`}
+              style={{ color: ativo === 'playlists' ? themeColor : undefined }}
               strokeWidth={1.5}
             />
             {totalPlaylists > 0 && (
-              <span className={`absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black ${themeBadgeBg} text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none`}>
+              <span
+                style={{ backgroundColor: themeBadgeBg }}
+                className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none"
+              >
                 {totalPlaylists}
               </span>
             )}
           </div>
           <span
+            style={{ color: ativo === 'playlists' ? themeColor : undefined }}
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
-              ativo === 'playlists' ? `font-semibold ${themeTextActive}` : ''
+              ativo === 'playlists' ? 'font-semibold' : ''
             }`}
           >
             Playlist
           </span>
         </button>
 
-        {/* 3. Pesquisar (FAB centralizado em relevo idêntico ao início do app) */}
+        {/* 3. Pesquisar (FAB centralizado em relevo vibrante) */}
         <button
           type="button"
           onPointerDown={(e) => {
@@ -150,14 +166,19 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           aria-label="Pesquisar"
         >
           <span
-            className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden ${themeFabBg} ring-1 ring-black/5 transition-transform fab-search-shine active:scale-95 ${
-              ativo === 'pesquisar' ? 'scale-105 ring-2 ring-white/50' : ''
+            style={{
+              background: themeFabGradient,
+              boxShadow: themeFabShadow,
+              border: themeFabBorder,
+            }}
+            className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden transition-transform fab-search-shine active:scale-95 ${
+              ativo === 'pesquisar' ? 'scale-105 ring-2 ring-white/60' : ''
             }`}
           >
             <Search
-              className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 text-white drop-shadow-sm"
+              className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 text-white drop-shadow-md"
               aria-hidden="true"
-              strokeWidth={1.5}
+              strokeWidth={2}
             />
           </span>
           <span
@@ -186,19 +207,24 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           <div className="relative inline-flex items-center justify-center">
             <ArrowDownToLine
               className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-                ativo === 'baixados' ? `scale-110 drop-shadow-md ${themeTextActive}` : 'drop-shadow-sm'
+                ativo === 'baixados' ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'
               }`}
+              style={{ color: ativo === 'baixados' ? themeColor : undefined }}
               strokeWidth={1.5}
             />
             {totalBaixadas > 0 && (
-              <span className={`absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black ${themeBadgeBg} text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none`}>
+              <span
+                style={{ backgroundColor: themeBadgeBg }}
+                className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none"
+              >
                 {totalBaixadas}
               </span>
             )}
           </div>
           <span
+            style={{ color: ativo === 'baixados' ? themeColor : undefined }}
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
-              ativo === 'baixados' ? `font-semibold ${themeTextActive}` : ''
+              ativo === 'baixados' ? 'font-semibold' : ''
             }`}
           >
             Baixados
@@ -221,13 +247,15 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
         >
           <Compass
             className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-              ativo === 'explorar' ? `scale-110 drop-shadow-md ${themeTextActive}` : 'drop-shadow-sm'
+              ativo === 'explorar' ? 'scale-110 drop-shadow-md' : 'drop-shadow-sm'
             }`}
+            style={{ color: ativo === 'explorar' ? themeColor : undefined }}
             strokeWidth={1.5}
           />
           <span
+            style={{ color: ativo === 'explorar' ? themeColor : undefined }}
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
-              ativo === 'explorar' ? `font-semibold ${themeTextActive}` : ''
+              ativo === 'explorar' ? 'font-semibold' : ''
             }`}
           >
             Explorar
