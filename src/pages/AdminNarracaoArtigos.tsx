@@ -172,13 +172,7 @@ export default function AdminNarracaoArtigos() {
       return;
     }
 
-    const pastaPadrao =
-      leiSelecionada.driveFolderUrl ||
-      (leiSelecionada.slug === 'cp'
-        ? 'https://drive.google.com/drive/folders/1lwO3rzWUCFvmbGllwLvQQtX4eSXXXYQW'
-        : leiSelecionada.slug === 'cpp'
-        ? 'https://drive.google.com/drive/folders/1VFY7Ic2dv9hGzVX8aZboLijh0kaKlMF4'
-        : '');
+    const pastaPadrao = leiSelecionada.driveFolderUrl || '';
 
     setDriveUrl(pastaPadrao);
     setEditandoDriveUrl(!pastaPadrao);

@@ -1,7 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
-import { getAllAudioAulasConfigs } from '@/services/audioAulasService';
-import codigoCivilAudioDriveMap from '@/data/codigoCivilAudioDriveMap.json';
 import { getR2PublicUrl, uploadToR2 } from '@/lib/r2Storage';
 
 
@@ -534,14 +532,8 @@ export async function fetchArtigosDaLeiComNarracao(leiId: string, leiSlug?: stri
       const keyArtigo = normalizeArtigoKey(a.numero);
       const urlStorage = storageAudiosMap.get(keyArtigo);
       const audioDbOk = isAudioUrlValida(a.narracao_url);
-      const cleanNum = a.numero ? a.numero.replace(/\D/g, '') : '';
-      const driveAudioUrl = (slug === 'cc' || slug.includes('civil'))
-        ? ((codigoCivilAudioDriveMap as Record<string, string>)[keyArtigo] ||
-           (codigoCivilAudioDriveMap as Record<string, string>)[cleanNum])
-        : null;
-
-      // Prioriza áudio verificado no Storage novo; se não houver no storage, usa URL do Drive ou URL válida do banco
-      const audioUrlFinal = urlStorage || driveAudioUrl || (audioDbOk ? a.narracao_url : null);
+      // Apenas áudio oficial de narração (Cloudflare R2 / banco ou storage)
+      const audioUrlFinal = (audioDbOk ? a.narracao_url : null) || urlStorage || null;
       const temAudioFinal = !!audioUrlFinal;
 
       return {

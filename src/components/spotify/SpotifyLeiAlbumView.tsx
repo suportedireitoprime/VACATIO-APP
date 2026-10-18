@@ -21,14 +21,12 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useSpotifyAudioStore, type SpotifyTrack } from '@/stores/useSpotifyAudioStore';
 import { fetchArtigosDaLeiComNarracao, type ArtigoNarracaoItem } from '@/services/narracaoArtigosSyncService';
-import { getAllAudioAulasConfigs, formatDriveStreamUrl } from '@/services/audioAulasService';
 import { getLeiCover } from '@/lib/leiTheme';
 import { getCapitulosDaLei, extrairNumeroArtigo, type CapituloDef } from '@/lib/leiCapitulosHelper';
 import { SpotifyAudioTrilhaModal } from './SpotifyAudioTrilhaModal';
 
 // Cache em memória global para abertura 100% instantânea (0ms) entre navegações
 const ARTIGOS_CACHE = new Map<string, ArtigoNarracaoItem[]>();
-const AULAS_CONFIGS_CACHE = new Map<string, { audioLinks: Record<string, string>; driveFolderUrl: string }>();
 
 interface SpotifyLeiAlbumViewProps {
   leiId: string;
@@ -64,13 +62,10 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
 
   const cacheKey = (leiSlug || leiId || '').toLowerCase().trim();
   const cachedArtigos = ARTIGOS_CACHE.get(cacheKey) || [];
-  const cachedConfig = AULAS_CONFIGS_CACHE.get(cacheKey);
 
   const [artigos, setArtigos] = useState<ArtigoNarracaoItem[]>(cachedArtigos);
   const [loading, setLoading] = useState<boolean>(cachedArtigos.length === 0);
   const [search, setSearch] = useState('');
-  const [aulaLinks, setAulaLinks] = useState<Record<string, string>>(cachedConfig?.audioLinks || {});
-  const [driveFolder, setDriveFolder] = useState<string>(cachedConfig?.driveFolderUrl || '');
 
   // Modo de exibição: 'capitulos' (estilo Mapas Mentais/Aulas Overlay) ou 'lista' (todos os artigos em lista corrida)
   const [modoVisualizacao, setModoVisualizacao] = useState<'capitulos' | 'lista'>('capitulos');
@@ -99,7 +94,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     return 'linear-gradient(180deg, hsl(270 70% 30%) 0%, hsl(275 75% 35%) 40%, hsl(265 72% 28%) 100%)';
   }, [leiSlug]);
 
-  // Carrega artigos da lei e links do Google Drive em segundo plano sem bloquear a interface
+  // Carrega artigos da lei e narrações em segundo plano sem bloquear a interface
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
@@ -110,20 +105,6 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
         const data = await fetchArtigosDaLeiComNarracao(leiId, leiSlug);
         ARTIGOS_CACHE.set(cacheKey, data);
         if (isMounted) setArtigos(data);
-
-        // Se estiver em modo áudio-aulas, busca links específicos das aulas
-        const configs = await getAllAudioAulasConfigs();
-        const conf = configs[leiId] || configs[leiSlug];
-        if (conf) {
-          AULAS_CONFIGS_CACHE.set(cacheKey, {
-            audioLinks: conf.audioLinks || {},
-            driveFolderUrl: conf.driveFolderUrl || '',
-          });
-          if (isMounted) {
-            setAulaLinks(conf.audioLinks || {});
-            setDriveFolder(conf.driveFolderUrl || '');
-          }
-        }
       } catch (err) {
         console.warn('[SpotifyLeiAlbumView] Erro ao carregar artigos:', err);
       } finally {
@@ -136,28 +117,22 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     };
   }, [leiId, leiSlug, cacheKey]);
 
-  // Monta lista de todas as faixas da lei no formato SpotifyTrack (apenas as que têm áudio)
+  // Monta lista de todas as faixas de narração da lei (apenas as que têm áudio oficial)
   const albumTracks: SpotifyTrack[] = useMemo(() => {
     return artigos
       .map((art, index) => {
-        let finalAudioUrl = '';
-        if (audioMode === 'aulas') {
-          const rawLink = aulaLinks[art.numeroFormatado] || aulaLinks[art.numero] || '';
-          finalAudioUrl = formatDriveStreamUrl(rawLink) || rawLink;
-        } else {
-          finalAudioUrl = art.narracao_url || '';
-        }
+        const finalAudioUrl = art.narracao_url || '';
 
         return {
           id: `${leiSlug}::${art.numero}`,
-          tipo: (audioMode === 'aulas' ? 'aula' : 'lei') as 'aula' | 'lei',
+          tipo: 'lei' as const,
           leiId,
           leiSlug,
           leiNome,
           artigoNumero: art.numero,
           numeroFormatado: art.numeroFormatado,
           titulo: `${art.numeroFormatado} • ${leiNome}`,
-          subtitulo: `${leiNome} • ${audioMode === 'aulas' ? 'Áudio-Aula' : 'Narração Oficial'}`,
+          subtitulo: `${leiNome} • Narração Oficial`,
           texto: art.texto,
           audioUrl: finalAudioUrl,
           coverUrl,
@@ -165,7 +140,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
         };
       })
       .filter((t) => Boolean(t.audioUrl && t.audioUrl.trim()));
-  }, [artigos, aulaLinks, audioMode, leiId, leiSlug, leiNome, coverUrl]);
+  }, [artigos, leiId, leiSlug, leiNome, coverUrl]);
 
   // Capítulos temáticos estruturados para esta legislação
   const capitulos = useMemo(() => {
@@ -206,12 +181,12 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     return albumTracks.filter((t) => Boolean(t.audioUrl && t.audioUrl.trim())).length;
   }, [albumTracks]);
 
-  // Valores de contadores com fallback para evitar piscar 0 durante o carregamento inicial
+  // Valores de contadores
   const displayCapitulosCount = capitulos.length;
 
   const displayAudiosCount = totalComAudio > 0
     ? totalComAudio
-    : (totalAudiosInitial || (leiSlug === 'cc' ? 264 : 0));
+    : (totalAudiosInitial || 0);
 
   const displayArtigosCount = artigos.length > 0
     ? artigos.length
@@ -221,7 +196,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
   const handlePlayAll = async () => {
     const comAudio = albumTracks.filter((t) => Boolean(t.audioUrl));
     if (comAudio.length === 0) {
-      toast.info('Áudios desta lei estão sendo preparados para gravação.');
+      toast.info('Narrações desta lei estão sendo preparadas para upload.');
       return;
     }
     await playTrack(comAudio[0], comAudio);
@@ -237,7 +212,7 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     });
 
     if (tracksDoCap.length === 0) {
-      toast.info(`Nenhum áudio disponível no momento para ${cap.titulo}.`);
+      toast.info(`Nenhum áudio de narração disponível no momento para ${cap.titulo}.`);
       return;
     }
 
@@ -246,15 +221,10 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
     toast.success(`Reproduzindo capítulo: ${cap.titulo}`);
   };
 
-  // Tocar track selecionada e abrir interface completa do player (igual Áudio Aulas)
+  // Tocar track selecionada e abrir interface completa do player
   const handleTrackClick = async (track: SpotifyTrack, customQueue?: SpotifyTrack[]) => {
     if (!track.audioUrl) {
-      if (driveFolder) {
-        window.open(driveFolder, '_blank');
-        toast.info('Abrindo pasta de áudios no Google Drive...');
-      } else {
-        toast.info(`Áudio do ${track.numeroFormatado} em gravação.`);
-      }
+      toast.info(`Narração do ${track.numeroFormatado} em gravação oficial.`);
       return;
     }
 
