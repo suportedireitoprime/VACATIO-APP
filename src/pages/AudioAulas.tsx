@@ -14,7 +14,6 @@ import { AudioaulasBuscaInput } from '@/components/audioaulas/home/AudioaulasBus
 import { AudioaulasPlayerModal } from '@/components/audioaulas/home/AudioaulasPlayerModal';
 import { AudioaulasCategoriasNav, type AudioaulasFiltroMenu } from '@/components/audioaulas/AudioaulasCategoriasNav';
 import { AudioaulasAulasRecentes } from '@/components/audioaulas/home/AudioaulasAulasRecentes';
-import { AudioaulasAulasFavoritas } from '@/components/audioaulas/home/AudioaulasAulasFavoritas';
 import { AudioAppBottomNav } from '@/components/audio/AudioAppBottomNav';
 import { AudioaulasPlaylistsView } from '@/components/audioaulas/home/AudioaulasPlaylistsView';
 import { AudioaulasAreaView } from '@/components/audioaulas/area/AudioaulasAreaView';
@@ -150,17 +149,6 @@ const Audioaulas = () => {
                 tocando={state.tocando}
                 onTocarAula={state.handleTocarAula}
                 onLimpar={state.limparRecentes}
-              />
-            )}
-
-            {/* Aulas Favoritas em Carrossel 1:1 quando na visão Todos se houver favoritas */}
-            {state.aba === 'aulas' && filtroHome === 'todos' && aulasFavoritasFiltro.length > 0 && (
-              <AudioaulasAulasFavoritas
-                favoritas={aulasFavoritasFiltro}
-                atualId={state.atualId}
-                tocando={state.tocando}
-                onTocarAula={state.handleTocarAula}
-                alternarFavorito={state.alternarFavorito}
               />
             )}
 

@@ -28,13 +28,17 @@ export const AudioaulasAulasRecentes: React.FC<AudioaulasAulasRecentesProps> = R
     return (
       <section className="mx-auto w-full max-w-[1400px] px-4 mt-2 mb-6 lg:px-10 2xl:max-w-[1600px] space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-title text-base sm:text-lg font-bold text-white flex items-center gap-2 tracking-tight">
-            <History className="w-4 h-4 text-blue-400" />
-            <span>Últimas Aulas Ouvidas</span>
-          </h3>
+          <div className="flex items-center gap-2.5">
+            <span className="w-1.5 h-5 rounded-full bg-blue-500 shrink-0" />
+            <h3 className="font-card text-base sm:text-lg font-bold text-white tracking-normal flex items-center gap-2">
+              <History className="w-4 h-4 text-blue-400" />
+              <span>Últimas Aulas Ouvidas</span>
+            </h3>
+          </div>
           <button
+            type="button"
             onClick={onLimpar}
-            className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+            className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer border border-white/5 font-medium"
           >
             Limpar
           </button>
