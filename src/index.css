@@ -418,6 +418,21 @@ body {
   50%      { transform: scaleY(1); }
 }
 
+/* Destaque animado da narração do Vade Mecum (fundo amarelo vibrante, pulsante e suave) */
+@keyframes narracao-active-pulse {
+  0%, 100% {
+    background-color: rgba(250, 204, 21, 0.16);
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.22);
+  }
+  50% {
+    background-color: rgba(250, 204, 21, 0.28);
+    box-shadow: 0 0 28px rgba(250, 204, 21, 0.38);
+  }
+}
+.animate-narracao-active {
+  animation: narracao-active-pulse 2.2s ease-in-out infinite;
+}
+
 /* Reflexo rápido horizontal (deitado) em cascata: um ícone por vez,
    o brilho desliza da esquerda para a direita passando de um ícone
    para o outro com delays curtos. */

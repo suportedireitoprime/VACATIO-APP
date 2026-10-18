@@ -713,6 +713,10 @@ const ArtigoBottomSheet = ({
   const [narracaoPlaying, setNarracaoPlaying] = useState(false);
   // Índice da palavra ativa — só re-renderiza o texto quando MUDA (não a 60fps)
   const [narracaoActiveWordIndex, setNarracaoActiveWordIndex] = useState(-1);
+  // Índice da linha/seção ativa na narração (Caput, Inciso I, Inciso II...)
+  const [narracaoActiveLineIndex, setNarracaoActiveLineIndex] = useState<number>(-1);
+  const narracaoActiveLineIdxRef = useRef<number>(-1);
+  const narracaoLineRangesRef = useRef<Array<{ lineIndex: number; start: number; end: number; startPct?: number; endPct?: number }>>([]);
   const narracaoAudioRef = useRef<HTMLAudioElement | null>(null);
   const narracaoAnimRef = useRef<number | null>(null);
   // Refs imperativos para UI contínua (barra de progresso, tempo, anel) sem re-render
@@ -758,6 +762,8 @@ const ArtigoBottomSheet = ({
     setNarracaoWordTimings(null);
     setNarracaoActiveWordIndex(-1);
     narracaoActiveIdxRef.current = -1;
+    setNarracaoActiveLineIndex(-1);
+    narracaoActiveLineIdxRef.current = -1;
 
     if (narracaoAdoptedRef.current) {
       // Áudio foi transferido para o player flutuante: não tocar/pausar aqui.
@@ -771,6 +777,8 @@ const ArtigoBottomSheet = ({
         setNarracaoPlaying(false);
         setNarracaoActiveWordIndex(-1);
         narracaoActiveIdxRef.current = -1;
+        setNarracaoActiveLineIndex(-1);
+        narracaoActiveLineIdxRef.current = -1;
         narracaoAudioRef.current = null;
         clearMediaSession();
       };
@@ -875,6 +883,39 @@ const ArtigoBottomSheet = ({
         }
       }
 
+      // Linha/seção ativa na narração (Caput, Incisos, etc.)
+      const ranges = narracaoLineRangesRef.current;
+      if (ranges && ranges.length > 0) {
+        let activeLine = -1;
+        if (dur > 0 && typeof ranges[0].startPct === 'number') {
+          for (let i = 0; i < ranges.length; i++) {
+            const r = ranges[i];
+            const startSec = (r.startPct ?? 0) * dur;
+            const endSec = (r.endPct ?? 1) * dur;
+            if (t >= startSec && (t < endSec || i === ranges.length - 1)) {
+              activeLine = r.lineIndex;
+              break;
+            }
+          }
+        } else {
+          for (let i = 0; i < ranges.length; i++) {
+            if (t >= ranges[i].start && (t < ranges[i].end || i === ranges.length - 1)) {
+              activeLine = ranges[i].lineIndex;
+              break;
+            }
+          }
+        }
+
+        if (activeLine === -1 && t >= 0 && ranges.length > 0) {
+          activeLine = ranges[0].lineIndex;
+        }
+
+        if (activeLine !== narracaoActiveLineIdxRef.current) {
+          narracaoActiveLineIdxRef.current = activeLine;
+          setNarracaoActiveLineIndex(activeLine);
+        }
+      }
+
       if (!audio.paused && !audio.ended) {
         narracaoAnimRef.current = requestAnimationFrame(update);
       }
@@ -904,6 +945,8 @@ const ArtigoBottomSheet = ({
       setNarracaoPlaying(false);
       setNarracaoActiveWordIndex(-1);
       narracaoActiveIdxRef.current = -1;
+      setNarracaoActiveLineIndex(-1);
+      narracaoActiveLineIdxRef.current = -1;
       if (narracaoProgressFillRef.current) narracaoProgressFillRef.current.style.width = '0%';
       if (narracaoRingRef.current) narracaoRingRef.current.style.strokeDashoffset = `${RING_CIRCUMFERENCE}`;
       if (narracaoTimeRef.current) narracaoTimeRef.current.textContent = '0:00';
@@ -2138,6 +2181,35 @@ Regras:
   // Atualiza o ref usado pelo RAF direto no render (seguro — ref não dispara re-render)
   narracaoTimingsRef.current = effectiveTimings ?? null;
 
+  // Prepara os intervalos de tempo de cada linha para sincronização do destaque animado (amarelo)
+  const computedLineRanges = useMemo(() => {
+    if (!displayLines.length) return [];
+    
+    // 1. Se temos timings exatos de palavras
+    if (effectiveTimings && effectiveTimings.length > 0) {
+      return displayLines.map((_, lineIdx) => {
+        const startWordIdx = lineWordStartIndexes[lineIdx] ?? 0;
+        const nextWordIdx = lineWordStartIndexes[lineIdx + 1] ?? effectiveTimings.length;
+        const lineTimings = effectiveTimings.slice(startWordIdx, nextWordIdx);
+        const start = lineTimings[0]?.start ?? (lineIdx === 0 ? 0 : 9999);
+        const end = lineTimings[lineTimings.length - 1]?.end ?? start;
+        return { lineIndex: lineIdx, start, end };
+      });
+    }
+
+    // 2. Se não temos timings por palavra, distribuímos proporcionalmente pela contagem de palavras
+    const totalWords = renderedLineTexts.reduce((acc, t) => acc + (getWordTokens(t).length || 1), 0) || 1;
+    let accumWords = 0;
+    return displayLines.map((_, lineIdx) => {
+      const wordsInLine = getWordTokens(renderedLineTexts[lineIdx] || '').length || 1;
+      const startPct = accumWords / totalWords;
+      accumWords += wordsInLine;
+      const endPct = accumWords / totalWords;
+      return { lineIndex: lineIdx, startPct, endPct, start: 0, end: 0 };
+    });
+  }, [displayLines, effectiveTimings, lineWordStartIndexes, renderedLineTexts]);
+
+  narracaoLineRangesRef.current = computedLineRanges;
 
   const activeRenderedWordIndex = articleTimingStartIndex >= 0 && activeNarracaoWordIndex >= articleTimingStartIndex
     ? activeNarracaoWordIndex - articleTimingStartIndex
@@ -2377,12 +2449,16 @@ Regras:
       );
     }
 
+    const isCurrentNarratingLine = narracaoPlaying && narracaoActiveLineIndex === lineIndex;
+
     const extra =
       classified.type === 'inciso' ? 'mt-2.5 pl-4 border-l-2 border-primary/30' :
       classified.type === 'alinea' ? 'mt-1.5 pl-8' :
       classified.type === 'paragrafo' ? 'mt-3.5' : '';
 
-    const highlightBg = isModifiedLine
+    const highlightBg = isCurrentNarratingLine
+      ? 'animate-narracao-active border-l-4 border-yellow-400 text-yellow-50 rounded-r-xl py-2.5 px-3 -mx-2.5 ring-1 ring-yellow-400/40 transition-all duration-500 ease-out'
+      : isModifiedLine
       ? 'bg-violet-500/20 border-l-3 border-violet-400 pl-3 rounded-r-lg'
       : !modificationInfo && showRedacao && EDITORIAL_NOTE_TEST_REGEX.test(line)
         ? 'bg-yellow-400/5 border-l-2 border-yellow-400/40 pl-2 rounded-r'
@@ -2762,27 +2838,47 @@ Regras:
 
 
               {/* Menu de alternância (Chips para alínea, caput, etc.) */}
-              {navChips.length > 1 && !narracaoPlaying && (
+              {navChips.length > 1 && (
                 <div className="mb-4 -mx-5 px-5">
                   <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {navChips.map((chip, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          const el = containerRef.current?.querySelector(`[data-line-index="${chip.index}"]`);
-                          if (el) {
-                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            el.classList.add('bg-red-500/20', 'transition-colors', 'duration-500', 'rounded-md', 'px-2');
-                            setTimeout(() => {
-                              el.classList.remove('bg-red-500/20');
-                            }, 1200);
-                          }
-                        }}
-                        className="shrink-0 rounded-full px-3 py-1.5 text-[12px] font-bold bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                      >
-                        {chip.chip}
-                      </button>
-                    ))}
+                    {navChips.map((chip, idx) => {
+                      const isChipActive = narracaoPlaying && (
+                        narracaoActiveLineIndex === chip.index ||
+                        (narracaoActiveLineIndex >= chip.index && (idx === navChips.length - 1 || narracaoActiveLineIndex < navChips[idx + 1].index))
+                      );
+
+                      return (
+                        <button
+                          key={idx}
+                          data-chip-active={isChipActive}
+                          onClick={() => {
+                            const el = containerRef.current?.querySelector(`[data-line-index="${chip.index}"]`);
+                            if (el) {
+                              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              el.classList.add('animate-narracao-active', 'border-l-4', 'border-yellow-400', 'ring-2', 'ring-yellow-400/40', 'rounded-xl', 'px-2');
+                              setTimeout(() => {
+                                el.classList.remove('animate-narracao-active', 'border-l-4', 'border-yellow-400', 'ring-2', 'ring-yellow-400/40', 'px-2');
+                              }, 1400);
+                            }
+                            if (narracaoPlaying && narracaoAudioRef.current && computedLineRanges[chip.index]) {
+                              const r = computedLineRanges[chip.index] as any;
+                              const dur = narracaoAudioRef.current.duration || 0;
+                              const targetT = typeof r.startPct === 'number' && dur > 0 ? r.startPct * dur : r.start;
+                              if (Number.isFinite(targetT)) {
+                                narracaoAudioRef.current.currentTime = targetT;
+                              }
+                            }
+                          }}
+                          className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold transition-all duration-300 ${
+                            isChipActive
+                              ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/30 scale-105 ring-2 ring-yellow-400/60'
+                              : 'bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary'
+                          }`}
+                        >
+                          {chip.chip}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
