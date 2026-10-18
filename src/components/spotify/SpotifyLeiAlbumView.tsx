@@ -7,7 +7,6 @@ import {
   Check,
   Search,
   Headphones,
-  FolderOpen,
   X,
   Loader2,
   LayoutGrid,
@@ -511,18 +510,6 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
                 <Route className="w-4 h-4 text-emerald-400" />
                 <span>Trilhas</span>
               </button>
-
-              {driveFolder && (
-                <a
-                  href={driveFolder}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Google Drive"
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white shadow-md active:scale-95 transition-all hover:bg-black/50"
-                >
-                  <FolderOpen className="w-4 h-4 text-sky-300" />
-                </a>
-              )}
             </div>
           </div>
 
