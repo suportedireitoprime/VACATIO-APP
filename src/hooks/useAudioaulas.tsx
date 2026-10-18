@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useGatedFeature } from '@/hooks/useGatedFeature';
 import { useAudioaulasPlayer, audioIdOf, type AulaAudio } from '@/contexts/AudioaulasPlayerContext';
 import { estaBaixado, assinarAudioOffline } from '@/lib/nativo/audioOffline';
-import { normalizar } from '@/lib/audioaulasHelper';
+import { normalizar, AUDIOAULAS_CATALOGO_AREAS } from '@/lib/audioaulasHelper';
 import { type AudioaulasTab } from '@/components/audioaulas/AudioaulasBottomNav';
 
 export function useAudioaulas(areaAtual: string | null) {
@@ -79,17 +79,50 @@ export function useAudioaulas(areaAtual: string | null) {
 
   const areas = useMemo(() => {
     const map = new Map<string, number>();
-    for (const a of aulas) {
-      const nome = a.area || 'Geral';
-      map.set(nome, (map.get(nome) ?? 0) + 1);
+
+    // Inicializa com todas as 22 áreas do catálogo para que todas apareçam com suas capas
+    for (const item of AUDIOAULAS_CATALOGO_AREAS) {
+      map.set(item.nome, 0);
     }
-    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0], 'pt-BR'));
+
+    // Contabiliza as aulas existentes
+    for (const a of aulas) {
+      const areaAula = a.area || 'Geral';
+      const correspondente = AUDIOAULAS_CATALOGO_AREAS.find((item) => {
+        const nCat = normalizar(item.nome);
+        const nAula = normalizar(areaAula);
+        if (nCat === nAula) return true;
+        if (nCat.includes('filosofia') && nAula.includes('filosofia')) return true;
+        if (nCat.includes('processual civil') && nAula.includes('processo civil')) return true;
+        if (nCat.includes('processual penal') && nAula.includes('processo penal')) return true;
+        if (nCat.includes('processual do trabalho') && nAula.includes('processo do trabalho')) return true;
+        return false;
+      })?.nome || areaAula;
+
+      map.set(correspondente, (map.get(correspondente) ?? 0) + 1);
+    }
+
+    // Áreas com aulas primeiro (maior para menor), seguidas das áreas em breve na ordem alfabética
+    return Array.from(map.entries()).sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      return a[0].localeCompare(b[0], 'pt-BR');
+    });
   }, [aulas]);
 
-  const daArea = useMemo(
-    () => (areaAtual ? aulas.filter((a) => (a.area || 'Geral') === areaAtual) : []),
-    [aulas, areaAtual],
-  );
+  const daArea = useMemo(() => {
+    if (!areaAtual) return [];
+    const normAlvo = normalizar(areaAtual);
+    return aulas.filter((a) => {
+      const normAula = normalizar(a.area || 'Geral');
+      if (normAula === normAlvo) return true;
+      if (normAlvo.includes('filosofia') && normAula.includes('filosofia')) return true;
+      if (normAlvo.includes('penal especial') && normAula.includes('penal especial')) return true;
+      if (normAlvo.includes('processual penal') && (normAula.includes('processo penal') || normAula.includes('processual penal'))) return true;
+      if (normAlvo.includes('processual civil') && (normAula.includes('processo civil') || normAula.includes('processual civil'))) return true;
+      if (normAlvo.includes('processual do trabalho') && (normAula.includes('processo do trabalho') || normAula.includes('processual do trabalho'))) return true;
+      return false;
+    });
+  }, [aulas, areaAtual]);
 
   const temasDaArea = useMemo(() => {
     const map = new Map<string, AulaAudio[]>();

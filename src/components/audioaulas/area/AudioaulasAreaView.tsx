@@ -16,6 +16,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { type AulaAudio, audioIdOf } from '@/contexts/AudioaulasPlayerContext';
 import { BotaoDownloadAudio } from '@/components/audioaulas/home/BotaoDownloadAudio';
+import { capaDaArea } from '@/lib/audioaulasHelper';
+import { CapaOtimizada } from '@/components/audioaulas/home/CapaOtimizada';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 import { haptic } from '@/lib/nativeHaptics';
 
@@ -216,7 +218,31 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
               </span>
             </div>
 
-            {temasFiltrados.length === 0 ? (
+            {aulas.length === 0 ? (
+              <div className="py-12 px-4 flex flex-col items-center text-center font-card max-w-md mx-auto">
+                <div className="w-40 sm:w-48 aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/15 mb-5 relative group">
+                  <CapaOtimizada
+                    src={capaDaArea(area)}
+                    alt={area}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <span className="absolute bottom-2.5 left-2.5 right-2.5 px-3 py-1.5 rounded-xl bg-black/60 backdrop-blur-md border border-white/15 text-xs font-bold text-white text-center">
+                    Área do Direito
+                  </span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-extrabold text-white mb-2">
+                  {formatarTituloMateria(area)}
+                </h3>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-bold mb-3">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Acervo em gravação
+                </span>
+                <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                  As audioaulas desta área estão sendo preparadas e gravadas por professores especialistas. Em breve estarão disponíveis para você ouvir!
+                </p>
+              </div>
+            ) : temasFiltrados.length === 0 ? (
               <div className="py-16 text-center text-sm text-zinc-400 bg-white/[0.02] border border-white/5 rounded-2xl p-6 font-card">
                 Nenhuma matéria encontrada com o termo pesquisado.
               </div>

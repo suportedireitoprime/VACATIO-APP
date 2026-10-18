@@ -105,13 +105,13 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
                   haptic.selection();
                   navigate(`/audioaulas/${encodeURIComponent(nome)}`);
                 }}
-                className="group relative w-[170px] sm:w-[200px] md:w-[220px] shrink-0 aspect-square rounded-2xl overflow-hidden text-left transition-all duration-300 hover:shadow-2xl hover:shadow-black/60 border border-white/10 hover:border-white/20 focus-visible:outline-none snap-start bg-zinc-900"
+                className="group relative w-[160px] sm:w-[190px] md:w-[210px] shrink-0 aspect-[3/4] rounded-2xl overflow-hidden text-left transition-all duration-300 hover:shadow-2xl hover:shadow-black/60 border border-white/10 hover:border-white/20 focus-visible:outline-none snap-start bg-zinc-900"
               >
                 <CapaOtimizada
                   src={capaDaArea(nome)}
                   alt={nome}
                   animacaoEntrada
-                  className="absolute inset-0 transition-transform duration-500 group-hover:scale-105 object-cover"
+                  className="absolute inset-0 transition-transform duration-500 group-hover:scale-105 object-cover w-full h-full"
                 />
                 {/* Gradiente escuro no rodapé para máxima legibilidade do título */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
@@ -123,12 +123,12 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
 
                   {/* Informações da área organizadas com tipografia proporcional para não extrapolar a capa */}
                   <div className="w-full space-y-1">
-                    <p className="font-card font-bold leading-tight text-white text-xs sm:text-sm md:text-base line-clamp-1 tracking-normal drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
+                    <p className="font-card font-bold leading-tight text-white text-xs sm:text-sm md:text-base line-clamp-2 tracking-normal drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
                       {nomeFormatado}
                     </p>
                     <div className="flex items-center justify-between">
                       <span className="font-card text-[11px] sm:text-xs text-white/95 font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
-                        {total} {total === 1 ? 'aula' : 'aulas'}
+                        {total > 0 ? `${total} ${total === 1 ? 'aula' : 'aulas'}` : 'Em breve'}
                       </span>
                       <span className="shrink-0 h-6 w-6 sm:h-7 sm:w-7 grid place-items-center rounded-full bg-white/15 text-white/90 backdrop-blur group-hover:bg-white/30 transition shadow-sm">
                         <ChevronRight className="h-3.5 w-3.5" />
@@ -238,8 +238,8 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
                             }}
                             className="w-full flex items-center gap-3.5 p-3 rounded-2xl hover:bg-white/[0.06] active:bg-white/10 transition text-left group"
                           >
-                            {/* Capa do lado esquerdo */}
-                            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-md bg-zinc-950">
+                            {/* Capa do lado esquerdo em proporção 3:4 */}
+                            <div className="relative w-12 sm:w-14 aspect-[3/4] rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-md bg-zinc-950">
                               <CapaOtimizada
                                 src={capaDaArea(nome)}
                                 alt={nome}
@@ -260,7 +260,7 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
                                 {nome}
                               </p>
                               <span className="font-card inline-block mt-1 text-[11px] font-semibold text-primary/90 bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
-                                {total} aulas
+                                {total > 0 ? `${total} ${total === 1 ? 'aula' : 'aulas'}` : 'Em breve'}
                               </span>
                             </div>
 
