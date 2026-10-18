@@ -23,7 +23,7 @@ export const AudioaulasHero = React.memo(function AudioaulasHero({
   const capaImg = areaAtual ? capaDaArea(areaAtual) : CAPA_HUB;
 
   return (
-    <div className="relative px-4 pt-[calc(2rem+var(--sai-top))] pb-6 overflow-visible sm:px-6 lg:px-10 lg:pt-[calc(3rem+var(--sai-top))] lg:pb-10">
+    <div className="relative px-4 pt-[calc(1.5rem+var(--sai-top,env(safe-area-inset-top,0px)))] pb-6 overflow-visible sm:px-6 lg:px-10 lg:pt-[calc(2.5rem+var(--sai-top,env(safe-area-inset-top,0px)))] lg:pb-10">
       <div className="mx-auto w-full max-w-[1400px] 2xl:max-w-[1600px] relative z-10">
         <div className="flex items-center justify-between mb-6 -mr-4 sm:-mr-6 lg:-mr-10">
           <button

@@ -168,7 +168,12 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
             />
 
             {/* Conteúdo Principal de Acordo com a Aba do Menu */}
-            <main className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pb-40">
+            <main
+              className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10"
+              style={{
+                paddingBottom: 'calc(11rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
+              }}
+            >
               {/* Menu Superior: Rolagem infinita (Todos, Constituição, Códigos...) */}
               {activeTab === 'explorar' && (
                 <AudioLeisCategoriasNav

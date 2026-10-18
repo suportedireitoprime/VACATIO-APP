@@ -84,7 +84,18 @@ const Audioaulas = () => {
   }, [searchParams, aulas, loading, handleTocarAula, setSearchParams]);
 
   const content = (
-    <div className={`w-full bg-zinc-950 text-foreground relative ${isDesktop ? 'rounded-2xl pb-16 min-h-[700px] border border-white/5 overflow-hidden' : 'min-h-screen pb-40'}`}>
+    <div
+      className={`w-full bg-zinc-950 text-foreground relative ${
+        isDesktop
+          ? 'rounded-2xl pb-16 min-h-[700px] border border-white/5 overflow-hidden'
+          : 'min-h-screen'
+      }`}
+      style={{
+        paddingBottom: isDesktop
+          ? undefined
+          : 'calc(11rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
+      }}
+    >
       <div className="absolute inset-0 z-0 opacity-60">
         <ShapeGrid 
           speed={0.5} 

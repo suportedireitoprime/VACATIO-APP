@@ -70,10 +70,11 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
     <div className="relative mb-6">
       {/* Shell principal com bordas arredondadas idêntico ao painel da Home */}
       <div
-        className="relative overflow-hidden rounded-b-[2rem] pt-[var(--sai-top)] flex flex-col z-20 shadow-2xl min-h-[380px] sm:min-h-[420px] lg:min-h-[460px]"
+        className="relative overflow-hidden rounded-b-[2rem] flex flex-col z-20 shadow-2xl min-h-[380px] sm:min-h-[420px] lg:min-h-[460px]"
         style={{
           transform: 'translateZ(0)',
           backgroundColor: '#120824',
+          paddingTop: 'var(--sai-top, env(safe-area-inset-top, 0px))',
         }}
       >
         {/* Blindagem de overscroll superior contra vazamento do fundo */}

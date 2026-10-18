@@ -108,7 +108,7 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
         </div>
 
         {/* Conteúdo Principal do Player: flexível, responsivo e adaptado para qualquer altura de tela */}
-        <div className="mx-auto w-full max-w-xl flex-1 flex flex-col justify-between px-6 pt-1 pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+2rem)] lg:pb-8">
+        <div className="mx-auto w-full max-w-xl flex-1 flex flex-col justify-between px-6 pt-1 pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+2.5rem)] lg:pb-8">
           {/* Seção da Capa com botão de Favorito */}
           <div className="relative flex items-center justify-center my-auto py-2">
             <div className="h-44 w-44 sm:h-56 sm:w-56 max-h-[30vh] aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-zinc-900 shrink-0">

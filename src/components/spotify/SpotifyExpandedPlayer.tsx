@@ -125,9 +125,15 @@ export const SpotifyExpandedPlayer: React.FC = () => {
 
   const playerNode = (
     <>
-      <div className="fixed inset-0 z-[120] bg-gradient-to-b from-zinc-900 via-slate-950 to-black text-white flex flex-col justify-between overflow-y-auto overscroll-contain px-5 py-6 sm:px-8 sm:py-8 backdrop-blur-2xl animate-in fade-in slide-in-from-bottom duration-300">
+      <div
+        className="fixed inset-0 z-[120] bg-gradient-to-b from-zinc-900 via-slate-950 to-black text-white flex flex-col justify-between overflow-y-auto overscroll-contain px-5 sm:px-8 backdrop-blur-2xl animate-in fade-in slide-in-from-bottom duration-300"
+        style={{
+          paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 0.75rem)',
+          paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 2.5rem)',
+        }}
+      >
         {/* Header Superior */}
-        <div className="flex items-center justify-between w-full max-w-lg mx-auto">
+        <div className="flex items-center justify-between w-full max-w-lg mx-auto shrink-0">
           <button
             type="button"
             onClick={() => setExpanded(false)}
@@ -202,7 +208,7 @@ export const SpotifyExpandedPlayer: React.FC = () => {
           ) : (
             /* Visual Oficial da Capa */
             <div className="w-full flex flex-col items-center">
-              <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-zinc-900 mb-6 group">
+              <div className="relative w-48 h-48 sm:w-60 sm:h-60 max-h-[28vh] aspect-square rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-zinc-900 mb-3 sm:mb-5 group shrink-0">
                 <img
                   src={currentTrack.coverUrl}
                   alt={currentTrack.leiNome}
@@ -217,7 +223,7 @@ export const SpotifyExpandedPlayer: React.FC = () => {
               {/* Título e Ações de Favorito/Playlist */}
               <div className="w-full flex items-center justify-between gap-4 px-2">
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-lg sm:text-xl font-extrabold text-white truncate leading-tight">
+                  <h1 className="text-base sm:text-lg lg:text-xl font-extrabold text-white truncate leading-tight">
                     {currentTrack.titulo}
                   </h1>
                   <p className="text-xs sm:text-sm text-zinc-400 truncate mt-1">
@@ -254,7 +260,7 @@ export const SpotifyExpandedPlayer: React.FC = () => {
 
               {/* Caput do Artigo / Texto */}
               {currentTrack.texto && (
-                <div className="w-full mt-3 px-2 max-h-20 overflow-y-auto rounded-xl bg-white/5 p-2.5 border border-white/5 text-left">
+                <div className="w-full mt-2 sm:mt-3 px-2 max-h-16 sm:max-h-20 overflow-y-auto rounded-xl bg-white/5 p-2 sm:p-2.5 border border-white/5 text-left">
                   <p className="text-[11px] leading-relaxed text-zinc-300 line-clamp-3">
                     {currentTrack.texto}
                   </p>
@@ -265,7 +271,7 @@ export const SpotifyExpandedPlayer: React.FC = () => {
         </div>
 
         {/* Controles de Reprodução */}
-        <div className="w-full max-w-md mx-auto space-y-4">
+        <div className="w-full max-w-md mx-auto space-y-3 sm:space-y-4 shrink-0 pb-1">
           {/* Barra de Progresso Interativa */}
           <div className="space-y-1.5 px-2">
             <div className="relative group flex items-center">

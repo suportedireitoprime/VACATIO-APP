@@ -42,8 +42,8 @@ export const SpotifyMiniPlayer: React.FC = () => {
       className="fixed left-0 right-0 z-[80] px-3 max-w-md mx-auto sm:max-w-xl md:max-w-2xl transition-all duration-300"
       style={{
         bottom: navHeight
-          ? `${navHeight + 18}px`
-          : `calc(6.5rem + env(safe-area-inset-bottom, 0px))`,
+          ? `${navHeight + 14}px`
+          : `calc(6.5rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))`,
       }}
     >
       <div
