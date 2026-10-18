@@ -42,13 +42,24 @@ async function listFolders() {
   // Exemplos de URLs públicas
   const cdn = (getEnv('VITE_R2_PUBLIC_URL') || '').replace(/\/+$/, '');
   console.log('\n--- EXEMPLOS DE URLS PÚBLICAS NA CDN ---');
-  console.log(`Capas:       ${cdn}/capas/lei-cover-clt.webp`);
-  console.log(`Capas Área:  ${cdn}/capas/areas/direito-penal.webp`);
-  console.log(`Assets:      ${cdn}/assets/hero-figures/1-justice.webp`);
-  console.log(`Intros:      ${cdn}/intros/intro-v1.mp4`);
-  console.log(`Resumos PDF: ${cdn}/resumos/c-digo-civil/artigo-1.pdf`);
-  console.log(`Mapas PDF:   ${cdn}/mapas/personalidade-e-capacidade-civil.pdf`);
-  console.log(`Narrações:   ${cdn}/narracoes/vademecum/cp/art-121.mp3`);
+  // Exemplos de chaves reais em CP
+  const cpCmd = new ListObjectsV2Command({
+    Bucket: bucket,
+    Prefix: 'narracoes/vademecum/cp/',
+    MaxKeys: 5,
+  });
+  const cpRes = await r2.send(cpCmd);
+  console.log('\nAmostra de arquivos em narracoes/vademecum/cp:');
+  console.log((cpRes.Contents || []).map(c => c.Key));
+
+  const cpNewCmd = new ListObjectsV2Command({
+    Bucket: bucket,
+    Prefix: 'narracoes/codigos/codigo-penal/',
+    MaxKeys: 5,
+  });
+  const cpNewRes = await r2.send(cpNewCmd);
+  console.log('\nAmostra de arquivos em narracoes/codigos/codigo-penal:');
+  console.log((cpNewRes.Contents || []).map(c => c.Key));
 }
 
 listFolders().catch(console.error);

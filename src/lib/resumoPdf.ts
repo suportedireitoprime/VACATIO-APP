@@ -357,9 +357,8 @@ export async function gerarResumoPdf(resumo: ResumoLike) {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9]+/g, "-")
       .toLowerCase();
-    uploadToR2(`resumos/${slugArea}/${fileName}`, pdfBlob, 'application/pdf').catch((e) => {
-      console.warn('Falha no upload em background do resumo para o R2:', e);
-    });
+    uploadToR2(`resumos/areas/${slugArea}/${fileName}`, pdfBlob, 'application/pdf').catch(() => {});
+    uploadToR2(`resumos/${slugArea}/${fileName}`, pdfBlob, 'application/pdf').catch(() => {});
   } catch {
     // Silencioso em caso de indisponibilidade
   }

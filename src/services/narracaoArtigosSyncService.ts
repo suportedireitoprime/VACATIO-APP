@@ -581,6 +581,18 @@ export async function vincularAudioAoArtigo(params: {
     try {
       const { url } = await uploadToR2(`narracoes/${storagePath}`, fileBlob, ext === 'wav' ? 'audio/wav' : 'audio/mpeg');
       audioUrl = url;
+
+      // Salva também na pasta categorizada (codigos, estatutos, constituicao)
+      try {
+        const cat = (leiSlug || '').includes('codigo') || ['cp','cc','cpp','cpc','clt','ctn','cdc','ctb','ce','cpm','cppm'].includes(leiSlug || '')
+          ? 'codigos'
+          : (leiSlug || '').includes('estatuto') || ['eoab','eca','ei','epd','eir','ec','ed'].includes(leiSlug || '')
+          ? 'estatutos'
+          : (leiSlug || '').includes('constitu') || leiSlug === 'cf88'
+          ? 'constituicao'
+          : 'codigos';
+        await uploadToR2(`narracoes/${cat}/${leiSlug || 'lei'}/art_${numLimpo}_${Date.now()}.${ext}`, fileBlob, ext === 'wav' ? 'audio/wav' : 'audio/mpeg');
+      } catch {}
     } catch (r2Err) {
       console.warn('[vincularAudio] R2 upload falhou, tentando Supabase Storage:', r2Err);
       const { error: uploadError } = await supabase.storage

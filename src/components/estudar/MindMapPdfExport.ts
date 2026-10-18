@@ -84,13 +84,26 @@ export async function exportMindMapPdf(
     const fileName = `mapa-mental-${artigo.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.pdf`;
     pdf.save(fileName);
 
-    // Salva cópia na nuvem Cloudflare R2 (pasta mapas/)
+    // Salva cópia na nuvem Cloudflare R2 (pasta mapas/ e mapas/{categoria}/{lei}/)
     try {
       const { uploadToR2 } = await import('@/lib/r2Storage');
       const blob = pdf.output('blob');
-      uploadToR2(`mapas/${fileName}`, blob, 'application/pdf').catch((e) => {
-        console.warn('Falha no upload em background do mapa mental para o R2:', e);
-      });
+      const cleanLei = (leiNome || '').toLowerCase();
+      const cat = cleanLei.includes('código') || cleanLei.includes('codigo') || cleanLei.includes('clt')
+        ? 'codigos'
+        : cleanLei.includes('estatuto')
+        ? 'estatutos'
+        : cleanLei.includes('constitui')
+        ? 'constituicao'
+        : 'leis-especiais';
+      const slugLei = (leiNome || 'geral')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '-')
+        .toLowerCase();
+
+      uploadToR2(`mapas/${cat}/${slugLei}/${fileName}`, blob, 'application/pdf').catch(() => {});
+      uploadToR2(`mapas/${fileName}`, blob, 'application/pdf').catch(() => {});
     } catch {
       // Ignora erro opcional de background
     }
