@@ -714,6 +714,7 @@ function AnimatedRoutes() {
           <Route path="/audioaulas" element={<ProtectedRoute><PageTransition><AudioAulas /></PageTransition></ProtectedRoute>} />
           <Route path="/audioaulas/:area" element={<ProtectedRoute><PageTransition><AudioAulas /></PageTransition></ProtectedRoute>} />
           <Route path="/audio-leis" element={<ProtectedRoute><PageTransition><AudioLeisPage /></PageTransition></ProtectedRoute>} />
+          <Route path="/audioleis" element={<ProtectedRoute><PageTransition><AudioLeisPage /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-narracao-artigos" element={<ProtectedRoute><PageTransition><AdminNarracaoArtigos /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-feedbacks" element={<ProtectedRoute><PageTransition><AdminFeedbacks /></PageTransition></ProtectedRoute>} />
 

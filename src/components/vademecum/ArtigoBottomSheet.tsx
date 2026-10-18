@@ -2182,7 +2182,8 @@ Regras:
   narracaoTimingsRef.current = effectiveTimings ?? null;
 
   // Prepara os intervalos de tempo de cada linha para sincronização do destaque animado (amarelo)
-  const computedLineRanges = useMemo(() => {
+  // Sem useMemo aqui porque este trecho está após o early-return de if (!artigo)
+  const computedLineRanges = (() => {
     if (!displayLines.length) return [];
     
     // 1. Se temos timings exatos de palavras
@@ -2207,7 +2208,7 @@ Regras:
       const endPct = accumWords / totalWords;
       return { lineIndex: lineIdx, startPct, endPct, start: 0, end: 0 };
     });
-  }, [displayLines, effectiveTimings, lineWordStartIndexes, renderedLineTexts]);
+  })();
 
   narracaoLineRangesRef.current = computedLineRanges;
 
