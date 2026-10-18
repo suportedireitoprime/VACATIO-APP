@@ -71,6 +71,8 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
     nome: string;
     slug: string;
     categoria?: string;
+    totalArtigos?: number;
+    totalComAudio?: number;
   } | null>(null);
 
   const [totalStats, setTotalStats] = React.useState({ totalAudios: 9684, totalLeis: 31 });
@@ -91,7 +93,14 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
     };
   }, []);
 
-  const handleSelectLei = (lei: { id: string; nome: string; slug: string; categoria?: string }) => {
+  const handleSelectLei = (lei: {
+    id: string;
+    nome: string;
+    slug: string;
+    categoria?: string;
+    totalArtigos?: number;
+    totalComAudio?: number;
+  }) => {
     setSelectedLeiData(lei);
     setSelectedLeiId(lei.id);
   };
@@ -229,6 +238,7 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
         totalPlaylists={playlists.length}
         totalBaixadas={downloadedTrackIds.length}
         hidden={isExpanded || !!selectedLeiData}
+        colorScheme="purple"
       />
 
       {/* Mini-Player Fixo Flutuante */}

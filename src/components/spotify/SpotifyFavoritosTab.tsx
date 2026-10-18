@@ -15,9 +15,9 @@ export const SpotifyFavoritosTab: React.FC = () => {
   return (
     <div className="space-y-5">
       {/* Header de Favoritos */}
-      <div className="p-6 rounded-3xl bg-gradient-to-br from-rose-950/40 via-zinc-900 to-black border border-rose-500/20 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-950/40 via-zinc-900 to-black border border-purple-500/20 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-rose-400 block">
+          <span className="text-[10px] uppercase font-bold tracking-widest text-purple-400 block">
             SUA COLEÇÃO PESSOAL
           </span>
           <h2 className="text-xl sm:text-2xl font-extrabold text-white">
@@ -60,7 +60,7 @@ export const SpotifyFavoritosTab: React.FC = () => {
                 onClick={() => playTrack(track, favoritos)}
                 className={`p-3 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-colors border ${
                   isCurrent
-                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                    ? 'bg-purple-500/15 border-purple-500/30 text-purple-200'
                     : 'bg-zinc-900/40 hover:bg-zinc-800/60 border-white/5 text-zinc-300'
                 }`}
               >
@@ -86,10 +86,10 @@ export const SpotifyFavoritosTab: React.FC = () => {
                       toggleFavorito(track);
                       toast.info('Removido dos favoritos.');
                     }}
-                    className="p-1.5 text-rose-500 hover:text-zinc-400 transition-colors"
+                    className="p-1.5 text-purple-400 hover:text-zinc-400 transition-colors"
                     title="Desfavoritar"
                   >
-                    <Heart className="w-4 h-4 fill-rose-500" />
+                    <Heart className="w-4 h-4 fill-purple-400" />
                   </button>
                 </div>
               </div>

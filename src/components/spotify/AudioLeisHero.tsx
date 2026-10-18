@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AudioNavigationSwitcher } from '@/components/audio/AudioNavigationSwitcher';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
+import { AudioActionShortcuts } from '@/components/audio/AudioActionShortcuts';
+import { AudioEstatisticasModal } from '@/components/audio/AudioEstatisticasModal';
+import { AudioEmAltaModal } from '@/components/audio/AudioEmAltaModal';
+import { AudioTrilhasModal } from '@/components/audio/AudioTrilhasModal';
+import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 
 import cenarioOnibus from '@/assets/audio-cenarios/cenario-onibus.webp';
 import cenarioAcademia from '@/assets/audio-cenarios/cenario-academia.webp';
@@ -14,6 +19,10 @@ import cenarioFoco from '@/assets/audio-cenarios/cenario-foco.webp';
 interface AudioLeisHeroProps {
   totalAudios: number;
   totalLeis: number;
+  onFavoritos?: () => void;
+  onEmAlta?: () => void;
+  onEstatistica?: () => void;
+  onTrilhas?: () => void;
 }
 
 const CENARIOS = [
@@ -52,9 +61,18 @@ const CENARIOS = [
 export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function AudioLeisHero({
   totalAudios,
   totalLeis,
+  onFavoritos,
+  onEmAlta,
+  onEstatistica,
+  onTrilhas,
 }) {
   const navigate = useNavigate();
+  const { favoritos, setActiveTab } = useSpotifyAudioStore();
   const [cenarioIndex, setCenarioIndex] = useState(0);
+
+  const [statsOpen, setStatsOpen] = useState(false);
+  const [emAltaOpen, setEmAltaOpen] = useState(false);
+  const [trilhasOpen, setTrilhasOpen] = useState(false);
 
   // Rotação suave automática das capas a cada 5 segundos
   useEffect(() => {
@@ -180,7 +198,7 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
         </header>
 
         {/* Conteúdo Principal do Painel Roxo à Esquerda — Mesma Tipografia e Proporção da Home */}
-        <div className="relative z-10 px-4 sm:px-6 lg:px-10 pt-4 sm:pt-5 pb-6 sm:pb-7 flex-1 flex flex-col justify-center max-w-[48%] sm:max-w-[44%] lg:max-w-[38%]">
+        <div className="relative z-10 px-4 sm:px-6 lg:px-10 pt-4 sm:pt-5 pb-3 sm:pb-4 flex-1 flex flex-col justify-center max-w-[48%] sm:max-w-[44%] lg:max-w-[38%]">
           <h1 className="font-serif italic text-white text-[22px] sm:text-[26px] leading-[1.05] font-semibold tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] whitespace-nowrap">
             Áudio Leis
           </h1>
@@ -210,7 +228,48 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
             </span>
           </div>
         </div>
+
+        {/* Atalhos Rápidos no Painel Hero: Favoritos, Em alta, Estatística, Trilhas */}
+        <div className="relative z-10 px-3 sm:px-6 lg:px-10 pb-3 pt-1">
+          <AudioActionShortcuts
+            colorScheme="purple"
+            onFavoritos={() => {
+              if (onFavoritos) onFavoritos();
+              else setActiveTab('favoritos');
+            }}
+            onEmAlta={() => {
+              if (onEmAlta) onEmAlta();
+              else setEmAltaOpen(true);
+            }}
+            onEstatistica={() => {
+              if (onEstatistica) onEstatistica();
+              else setStatsOpen(true);
+            }}
+            onTrilhas={() => {
+              if (onTrilhas) onTrilhas();
+              else setTrilhasOpen(true);
+            }}
+            badgeFavoritos={favoritos.length}
+          />
+        </div>
       </div>
+
+      {/* Modais de Ações de Áudio */}
+      <AudioEstatisticasModal
+        isOpen={statsOpen}
+        onClose={() => setStatsOpen(false)}
+        colorScheme="purple"
+      />
+      <AudioEmAltaModal
+        isOpen={emAltaOpen}
+        onClose={() => setEmAltaOpen(false)}
+        colorScheme="purple"
+      />
+      <AudioTrilhasModal
+        isOpen={trilhasOpen}
+        onClose={() => setTrilhasOpen(false)}
+        colorScheme="purple"
+      />
     </div>
   );
 });

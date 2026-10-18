@@ -1,75 +1,284 @@
-import React from 'react';
-import { ArrowLeft, Headphones } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Headphones, BookOpen, GraduationCap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { CAPA_HUB, capaDaArea } from '@/lib/audioaulasHelper';
-import { CapaOtimizada } from './CapaOtimizada';
-import CassetteAnimation from './CassetteAnimation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AudioNavigationSwitcher } from '@/components/audio/AudioNavigationSwitcher';
+import HeroMotifs from '@/components/vademecum/HeroMotifs';
+import { AudioActionShortcuts } from '@/components/audio/AudioActionShortcuts';
+import { AudioEstatisticasModal } from '@/components/audio/AudioEstatisticasModal';
+import { AudioEmAltaModal } from '@/components/audio/AudioEmAltaModal';
+import { AudioTrilhasModal } from '@/components/audio/AudioTrilhasModal';
+
+import cenarioEstudo from '@/assets/audio-cenarios/cenario-estudo.webp';
+import cenarioFoco from '@/assets/audio-cenarios/cenario-foco.webp';
+import cenarioOnibus from '@/assets/audio-cenarios/cenario-onibus.webp';
+import cenarioAcademia from '@/assets/audio-cenarios/cenario-academia.webp';
+import cenarioCaminhada from '@/assets/audio-cenarios/cenario-caminhada.webp';
 
 interface AudioaulasHeroProps {
   areaAtual: string | null;
   loading: boolean;
   totalAulas: number;
+  totalAreas?: number;
+  totalFavoritas?: number;
+  onFavoritos?: () => void;
+  onEmAlta?: () => void;
+  onEstatistica?: () => void;
+  onTrilhas?: () => void;
 }
 
-export const AudioaulasHero = React.memo(function AudioaulasHero({
-  areaAtual,
-  loading,
-  totalAulas
-}: AudioaulasHeroProps) {
-  const navigate = useNavigate();
-  const heroTitulo = areaAtual ?? 'Audioaulas';
-  const heroSub = areaAtual ? 'Aulas em áudio para ouvir e revisar.' : 'Aprenda ouvindo, por área do Direito.';
-  const capaImg = areaAtual ? capaDaArea(areaAtual) : CAPA_HUB;
+const CENARIOS_AULAS = [
+  {
+    id: 'estudo',
+    imagem: cenarioEstudo,
+    tag: '📚 Na biblioteca',
+    descricao: 'Aulas didáticas focadas nos pontos mais cobrados',
+  },
+  {
+    id: 'foco',
+    imagem: cenarioFoco,
+    tag: '⚖️ Foco absoluto',
+    descricao: 'Doutrina simplificada e jurisprudência essencial',
+  },
+  {
+    id: 'onibus',
+    imagem: cenarioOnibus,
+    tag: '🚌 No trajeto',
+    descricao: 'Revisão ágil de cada matéria em qualquer lugar',
+  },
+  {
+    id: 'caminhada',
+    imagem: cenarioCaminhada,
+    tag: '🚶‍♀️ Caminhando',
+    descricao: 'Aprenda ouvindo e fixe os conceitos chaves',
+  },
+  {
+    id: 'academia',
+    imagem: cenarioAcademia,
+    tag: '💪 Na academia',
+    descricao: 'Seu preparo teórico em ritmo acelerado',
+  },
+];
 
-  return (
-    <div className="relative px-4 pt-[calc(1.5rem+var(--sai-top,env(safe-area-inset-top,0px)))] pb-6 overflow-visible sm:px-6 lg:px-10 lg:pt-[calc(2.5rem+var(--sai-top,env(safe-area-inset-top,0px)))] lg:pb-10">
-      <div className="mx-auto w-full max-w-[1400px] 2xl:max-w-[1600px] relative z-10">
-        <div className="flex items-center justify-between mb-6 -mr-4 sm:-mr-6 lg:-mr-10">
-          <button
-            onClick={() => (areaAtual ? navigate('/audioaulas') : navigate('/'))}
-            aria-label="Voltar"
-            className="w-12 h-12 sm:w-[52px] sm:h-[52px] rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition shrink-0 active:opacity-70"
-          >
-            <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.4} />
-          </button>
+export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
+  function AudioaulasHero({
+    areaAtual,
+    loading,
+    totalAulas,
+    totalAreas = 12,
+    totalFavoritas = 0,
+    onFavoritos,
+    onEmAlta,
+    onEstatistica,
+    onTrilhas,
+  }) {
+    const navigate = useNavigate();
+    const [cenarioIndex, setCenarioIndex] = useState(0);
 
-          <AudioNavigationSwitcher active="aulas" infiniteRight />
-        </div>
+    const [statsOpen, setStatsOpen] = useState(false);
+    const [emAltaOpen, setEmAltaOpen] = useState(false);
+    const [trilhasOpen, setTrilhasOpen] = useState(false);
 
-        <div className="flex items-center gap-4 lg:gap-8">
-          <span className="relative h-24 w-24 sm:h-32 sm:w-32 lg:h-44 lg:w-44 shrink-0 rounded-2xl overflow-hidden shadow-2xl shadow-black/70 border border-white/10 bg-[#1c1c1c]">
-            {!areaAtual ? (
-              <CassetteAnimation />
-            ) : (
-              <CapaOtimizada
-                src={capaImg}
-                alt=""
-                animacaoEntrada
+    // Rotação suave automática das capas a cada 5 segundos
+    useEffect(() => {
+      const timer = setInterval(() => {
+        setCenarioIndex((prev) => (prev + 1) % CENARIOS_AULAS.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }, []);
+
+    const cenarioAtual = CENARIOS_AULAS[cenarioIndex];
+    const heroTitulo = areaAtual ?? 'Áudio Aulas';
+    const heroSub = areaAtual ? `ÁREA: ${areaAtual.toUpperCase()}` : 'DOUTRINA EM ÁUDIO';
+
+    return (
+      <div className="relative mb-6">
+        {/* Shell principal com bordas arredondadas idêntico ao painel da Home */}
+        <div
+          className="relative overflow-hidden rounded-b-[2rem] flex flex-col z-20 shadow-xl"
+          style={{
+            transform: 'translateZ(0)',
+            backgroundColor: '#070f1e',
+            paddingTop: 'var(--sai-top, env(safe-area-inset-top, 0px))',
+          }}
+        >
+          {/* Blindagem de overscroll superior contra vazamento do fundo */}
+          <div
+            className="pointer-events-none absolute -top-[1200px] left-0 right-0 h-[1200px] z-0"
+            style={{ backgroundColor: '#070f1e' }}
+            aria-hidden="true"
+          />
+
+          {/* Imagem de Capa do Painel do Início (Lado Direito) com Transição Suave */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={cenarioAtual.id}
+                src={cenarioAtual.imagem}
+                alt={cenarioAtual.tag}
+                initial={{ opacity: 0, scale: 1.06 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.7, ease: 'easeInOut' }}
+                className="absolute top-0 bottom-0 right-0 h-full w-[65%] sm:w-[62%] lg:w-[58%] object-cover object-center select-none"
               />
-            )}
-          </span>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-widest uppercase leading-none text-white drop-shadow-md">
+            </AnimatePresence>
+
+            {/* Degradê lateral para fundir a imagem à direita no shell escuro */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#070f1e]/85 via-transparent to-transparent sm:hidden" />
+            <div className="absolute inset-0 hidden sm:block bg-gradient-to-r from-[#070f1e]/60 via-transparent to-transparent" />
+
+            {/* Badge do Cenário Atual flutuando no canto inferior direito */}
+            <div className="absolute bottom-3 right-3 z-10 hidden sm:flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-white shadow-xl">
+              <span className="text-xs font-bold">{cenarioAtual.tag}</span>
+              <span className="w-1 h-1 rounded-full bg-white/40" />
+              <span className="text-[11px] text-zinc-300 font-medium">{cenarioAtual.descricao}</span>
+            </div>
+
+            {/* Indicadores de bolinha para alternar cenários */}
+            <div className="absolute bottom-3 left-auto right-3 sm:right-3 sm:bottom-10 z-20 flex items-center gap-1.5 pointer-events-auto">
+              {CENARIOS_AULAS.map((cen, idx) => (
+                <button
+                  key={cen.id}
+                  onClick={() => setCenarioIndex(idx)}
+                  aria-label={`Ver cenário ${cen.tag}`}
+                  className={`transition-all duration-300 rounded-full cursor-pointer ${
+                    idx === cenarioIndex
+                      ? 'w-5 h-1.5 bg-sky-400 shadow-md shadow-sky-500/50'
+                      : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/80'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Overlay Azul com gradiente e corte diagonal idêntico ao painel da Home */}
+          <div
+            className="absolute inset-0 z-[1] pointer-events-none"
+            style={{
+              filter: 'drop-shadow(25px 0 25px rgba(0,0,0,0.85)) drop-shadow(8px 0 10px rgba(0,0,0,0.95))',
+            }}
+          >
+            <div
+              className="absolute inset-0 overflow-hidden"
+              style={{
+                clipPath: 'polygon(0 0, 49% 0, 37% 100%, 0% 100%)',
+              }}
+            >
+              {/* Gradiente Azul Luxuoso correspondente ao Ícone de Áudio Aulas */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'linear-gradient(135deg, #2563eb 0%, #1d4ed8 45%, #1e40af 85%, #0f172a 100%)',
+                }}
+              />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(147,197,253,0.35),transparent_65%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.6),transparent_70%)]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+              {/* Motifs jurídicos clássicos */}
+              <HeroMotifs />
+
+              {/* Grid Pattern Background */}
+              <div
+                className="absolute inset-0 opacity-15"
+                style={{
+                  backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px)',
+                  backgroundSize: '24px 24px',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Barra Superior: Botão Voltar Circular Retrô + Switcher Cápsula Infinito à Direita */}
+          <header className="relative z-20 px-3 sm:px-6 lg:px-10 pt-3 sm:pt-4 flex items-center justify-between">
+            <button
+              onClick={() => (areaAtual ? navigate('/audioaulas') : navigate('/'))}
+              aria-label="Voltar"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1C1C1E]/80 border border-white/10 flex items-center justify-center text-white backdrop-blur-md hover:bg-[#2C2C2E] transition shrink-0 active:scale-95 shadow-lg"
+            >
+              <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.4} />
+            </button>
+
+            <AudioNavigationSwitcher active="aulas" infiniteRight />
+          </header>
+
+          {/* Conteúdo Principal do Painel Azul à Esquerda */}
+          <div className="relative z-10 px-4 sm:px-6 lg:px-10 pt-4 sm:pt-5 pb-3 sm:pb-4 flex-1 flex flex-col justify-center max-w-[48%] sm:max-w-[44%] lg:max-w-[38%]">
+            <h1 className="font-serif italic text-white text-[22px] sm:text-[26px] leading-[1.05] font-semibold tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] whitespace-nowrap">
               {heroTitulo}
             </h1>
-            <p className="text-xs sm:text-sm lg:text-base text-zinc-300 mt-2 font-medium line-clamp-1">{heroSub}</p>
-            {!loading && (
-              <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 text-zinc-200 border border-white/15 font-bold text-xs sm:text-sm shadow-sm">
-                  <Headphones className="w-3.5 h-3.5 text-zinc-300" />
-                  {totalAulas} aulas
-                </span>
-                {areaAtual && (
-                  <span className="text-xs text-zinc-400 font-medium">
-                    em {areaAtual}
-                  </span>
-                )}
-              </div>
-            )}
+
+            <p className="font-body text-sky-200/90 text-[9px] sm:text-[10px] font-bold tracking-[0.25em] uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mt-1">
+              {heroSub}
+            </p>
+
+            {/* Lema com divisor vertical idêntico ao da Home */}
+            <div className="mt-2 flex items-center text-left gap-2">
+              <div className="w-[2px] h-6 bg-white/40 rounded-full shrink-0" />
+              <p className="font-serif italic text-white/80 text-[11px] sm:text-[12px] leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+                Aulas didáticas<br />por área do Direito.
+              </p>
+            </div>
+
+            {/* Chips de Informações e Métricas */}
+            <div className="mt-3 flex items-center gap-1.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-black/40 text-white border border-white/20 font-bold text-[11px] sm:text-xs shadow-md backdrop-blur-md">
+                <Headphones className="w-3.5 h-3.5 text-sky-300" />
+                <span>{!loading ? `${totalAulas} aulas` : 'Carregando...'}</span>
+              </span>
+
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-black/40 text-white border border-white/20 font-bold text-[11px] sm:text-xs shadow-md backdrop-blur-md">
+                <GraduationCap className="w-3.5 h-3.5 text-sky-300" />
+                <span>{areaAtual ? areaAtual : `${totalAreas} áreas`}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Atalhos Rápidos no Painel Hero: Favoritos, Em alta, Estatística, Trilhas */}
+          <div className="relative z-10 px-3 sm:px-6 lg:px-10 pb-3 pt-1">
+            <AudioActionShortcuts
+              colorScheme="blue"
+              onFavoritos={() => {
+                if (onFavoritos) onFavoritos();
+              }}
+              onEmAlta={() => {
+                if (onEmAlta) onEmAlta();
+                else setEmAltaOpen(true);
+              }}
+              onEstatistica={() => {
+                if (onEstatistica) onEstatistica();
+                else setStatsOpen(true);
+              }}
+              onTrilhas={() => {
+                if (onTrilhas) onTrilhas();
+                else setTrilhasOpen(true);
+              }}
+              badgeFavoritos={totalFavoritas}
+            />
           </div>
         </div>
+
+        {/* Modais de Ações de Áudio com tema Azul */}
+        <AudioEstatisticasModal
+          isOpen={statsOpen}
+          onClose={() => setStatsOpen(false)}
+          colorScheme="blue"
+        />
+        <AudioEmAltaModal
+          isOpen={emAltaOpen}
+          onClose={() => setEmAltaOpen(false)}
+          colorScheme="blue"
+        />
+        <AudioTrilhasModal
+          isOpen={trilhasOpen}
+          onClose={() => setTrilhasOpen(false)}
+          colorScheme="blue"
+        />
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
+
+export default AudioaulasHero;

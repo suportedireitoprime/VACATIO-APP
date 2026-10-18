@@ -115,6 +115,9 @@ const Audioaulas = () => {
           areaAtual={areaAtual}
           loading={state.loading}
           totalAulas={areaAtual ? state.daArea.length : state.aulas.length}
+          totalAreas={state.areas.length}
+          totalFavoritas={state.favoritos.size}
+          onFavoritos={() => state.setAba('favoritas')}
         />
 
         {/* Últimas Aulas Ouvidas: antes do menu de alternância quando na visão Todos */}
@@ -334,6 +337,7 @@ const Audioaulas = () => {
           totalPlaylists={state.areas.length}
           totalBaixadas={state.baixadas.size}
           hidden={state.aberto}
+          colorScheme="blue"
         />
       </div>
     </div>

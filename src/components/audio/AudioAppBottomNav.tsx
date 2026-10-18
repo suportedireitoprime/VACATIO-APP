@@ -12,6 +12,7 @@ interface AudioAppBottomNavProps {
   totalPlaylists?: number;
   totalBaixadas?: number;
   hidden?: boolean;
+  colorScheme?: 'purple' | 'blue';
 }
 
 /**
@@ -20,7 +21,7 @@ interface AudioAppBottomNavProps {
  * contendo as 5 funções solicitadas:
  * 1. Favoritos
  * 2. Playlist
- * 3. Pesquisar (Botão central vermelho FAB elevado em relevo)
+ * 3. Pesquisar (Botão central FAB elevado com cor do tema: Roxo para Leis, Azul para Aulas)
  * 4. Baixados
  * 5. Explorar
  */
@@ -31,7 +32,16 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
   totalPlaylists = 0,
   totalBaixadas = 0,
   hidden = false,
+  colorScheme = 'purple',
 }) => {
+  const isPurple = colorScheme === 'purple';
+
+  const themeTextActive = isPurple ? 'text-purple-400' : 'text-blue-400';
+  const themeBadgeBg = isPurple ? 'bg-purple-600' : 'bg-blue-600';
+  const themeFabBg = isPurple
+    ? 'bg-gradient-to-tr from-purple-700 via-purple-600 to-indigo-500 shadow-[0_8px_30px_rgba(147,51,234,0.5)] ring-purple-400/30'
+    : 'bg-gradient-to-tr from-blue-700 via-blue-600 to-sky-500 shadow-[0_8px_30px_rgba(37,99,235,0.5)] ring-blue-400/30';
+
   const content = (
     <nav
       aria-label="Navegação de Áudio"
@@ -65,20 +75,20 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           <div className="relative inline-flex items-center justify-center">
             <Heart
               className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-                ativo === 'favoritos' ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+                ativo === 'favoritos' ? `scale-110 drop-shadow-md ${themeTextActive}` : 'drop-shadow-sm'
               }`}
               strokeWidth={1.5}
               fill={ativo === 'favoritos' ? 'currentColor' : 'none'}
             />
             {totalFavoritas > 0 && (
-              <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black bg-primary text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none">
+              <span className={`absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black ${themeBadgeBg} text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none`}>
                 {totalFavoritas}
               </span>
             )}
           </div>
           <span
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
-              ativo === 'favoritos' ? 'font-semibold text-primary' : ''
+              ativo === 'favoritos' ? `font-semibold ${themeTextActive}` : ''
             }`}
           >
             Favoritos
@@ -102,19 +112,19 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           <div className="relative inline-flex items-center justify-center">
             <ListMusic
               className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-                ativo === 'playlists' ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+                ativo === 'playlists' ? `scale-110 drop-shadow-md ${themeTextActive}` : 'drop-shadow-sm'
               }`}
               strokeWidth={1.5}
             />
             {totalPlaylists > 0 && (
-              <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black bg-primary text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none">
+              <span className={`absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black ${themeBadgeBg} text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none`}>
                 {totalPlaylists}
               </span>
             )}
           </div>
           <span
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
-              ativo === 'playlists' ? 'font-semibold text-primary' : ''
+              ativo === 'playlists' ? `font-semibold ${themeTextActive}` : ''
             }`}
           >
             Playlist
@@ -140,12 +150,12 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           aria-label="Pesquisar"
         >
           <span
-            className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden bg-primary shadow-[0_8px_30px_rgba(0,0,0,0.6)] ring-1 ring-black/5 transition-transform fab-search-shine active:scale-95 ${
+            className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden ${themeFabBg} ring-1 ring-black/5 transition-transform fab-search-shine active:scale-95 ${
               ativo === 'pesquisar' ? 'scale-105 ring-2 ring-white/50' : ''
             }`}
           >
             <Search
-              className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground drop-shadow-sm"
+              className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 text-white drop-shadow-sm"
               aria-hidden="true"
               strokeWidth={1.5}
             />
@@ -176,19 +186,19 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
           <div className="relative inline-flex items-center justify-center">
             <ArrowDownToLine
               className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-                ativo === 'baixados' ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+                ativo === 'baixados' ? `scale-110 drop-shadow-md ${themeTextActive}` : 'drop-shadow-sm'
               }`}
               strokeWidth={1.5}
             />
             {totalBaixadas > 0 && (
-              <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black bg-primary text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none">
+              <span className={`absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black ${themeBadgeBg} text-white flex items-center justify-center border-2 border-[#1C1C1E] shadow-sm leading-none tabular-nums pointer-events-none`}>
                 {totalBaixadas}
               </span>
             )}
           </div>
           <span
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
-              ativo === 'baixados' ? 'font-semibold text-primary' : ''
+              ativo === 'baixados' ? `font-semibold ${themeTextActive}` : ''
             }`}
           >
             Baixados
@@ -211,13 +221,13 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
         >
           <Compass
             className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform ${
-              ativo === 'explorar' ? 'scale-110 drop-shadow-md text-primary' : 'drop-shadow-sm'
+              ativo === 'explorar' ? `scale-110 drop-shadow-md ${themeTextActive}` : 'drop-shadow-sm'
             }`}
             strokeWidth={1.5}
           />
           <span
             className={`font-body text-[11px] sm:text-[12px] leading-tight text-center drop-shadow-sm ${
-              ativo === 'explorar' ? 'font-semibold text-primary' : ''
+              ativo === 'explorar' ? `font-semibold ${themeTextActive}` : ''
             }`}
           >
             Explorar

@@ -23,9 +23,9 @@ export const SpotifyRecentTracks: React.FC = () => {
     <section className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <History className="w-4 h-4 text-primary" />
+          <History className="w-4 h-4 text-purple-400" />
           <span>Tocados Recentemente</span>
-          <span className="text-[10px] uppercase font-bold tracking-widest text-primary/80 bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+          <span className="text-[10px] uppercase font-bold tracking-widest text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
             <Sparkles className="w-2.5 h-2.5" />
             Rápido
           </span>
@@ -51,7 +51,7 @@ export const SpotifyRecentTracks: React.FC = () => {
               onClick={() => handleCardClick(track)}
               className={`group relative flex-shrink-0 w-36 sm:w-40 rounded-2xl p-2.5 border transition-all cursor-pointer backdrop-blur-md ${
                 isSelected
-                  ? 'bg-primary/15 border-primary/40 shadow-lg shadow-primary/20'
+                  ? 'bg-purple-950/30 border-purple-500/50 shadow-lg shadow-purple-900/30'
                   : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 hover:border-white/20'
               }`}
             >
@@ -73,7 +73,7 @@ export const SpotifyRecentTracks: React.FC = () => {
                       : 'opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100'
                   }`}
                 >
-                  <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xl">
+                  <div className="w-9 h-9 rounded-full bg-purple-600 text-white flex items-center justify-center shadow-xl">
                     {isThisPlaying ? (
                       <Pause className="w-4 h-4 fill-current" />
                     ) : (
@@ -84,7 +84,7 @@ export const SpotifyRecentTracks: React.FC = () => {
 
                 {/* Badge de reproduzindo agora */}
                 {isThisPlaying && (
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-wider shadow-md animate-pulse">
+                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-black uppercase tracking-wider shadow-md animate-pulse">
                     Ouvindo
                   </span>
                 )}
@@ -94,7 +94,7 @@ export const SpotifyRecentTracks: React.FC = () => {
               <div className="space-y-0.5 min-w-0">
                 <p
                   className={`text-xs font-bold truncate leading-tight transition-colors ${
-                    isSelected ? 'text-primary' : 'text-white group-hover:text-primary'
+                    isSelected ? 'text-purple-300' : 'text-white group-hover:text-purple-300'
                   }`}
                 >
                   {track.numeroFormatado || track.artigoNumero}

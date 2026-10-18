@@ -63,14 +63,14 @@ export const AudioLeisCategoriasNav: React.FC<AudioLeisCategoriasNavProps> = ({
               }}
               className={`relative px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 border cursor-pointer select-none ${
                 isAtivo
-                  ? 'text-white border-primary/40 shadow-lg shadow-primary/20 scale-[1.02]'
+                  ? 'text-white border-purple-500/40 shadow-lg shadow-purple-600/30 scale-[1.02]'
                   : 'bg-white/[0.04] text-zinc-300 border-white/10 hover:bg-white/10 hover:text-white'
               }`}
             >
               {isAtivo && (
                 <motion.span
                   layoutId="audio-leis-cat-active-pill"
-                  className="absolute inset-0 rounded-2xl bg-primary"
+                  className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 shadow-md shadow-purple-900/40"
                   transition={{ type: 'spring', damping: 26, stiffness: 320 }}
                 />
               )}
