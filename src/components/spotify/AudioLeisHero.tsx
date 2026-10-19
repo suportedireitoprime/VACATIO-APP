@@ -199,14 +199,17 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
           </div>
         </div>
 
-        {/* Barra Superior: Botão Voltar Circular Retrô e Botão Pesquisar */}
-        <header className="relative z-20 px-3 sm:px-6 lg:px-10 pt-3 sm:pt-4 flex items-center justify-between">
+        {/* Barra Superior Padronizada: Botão Voltar e Botão Pesquisar */}
+        <header className="relative z-20 px-4 sm:px-6 lg:px-10 pt-3.5 pb-2 flex items-center justify-between">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => {
+              haptic.light();
+              navigate('/');
+            }}
             aria-label="Voltar para a página inicial"
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1C1C1E]/80 border border-white/10 flex items-center justify-center text-white backdrop-blur-md hover:bg-[#2C2C2E] transition shrink-0 active:scale-95 shadow-lg cursor-pointer"
+            className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0 cursor-pointer"
           >
-            <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.4} />
+            <ArrowLeft className="w-6 h-6 text-white drop-shadow" strokeWidth={2.2} />
           </button>
 
           {onBuscar && (
@@ -217,9 +220,9 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
                 onBuscar();
               }}
               aria-label="Pesquisar áudio leis"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1C1C1E]/80 border border-white/10 flex items-center justify-center text-white backdrop-blur-md hover:bg-[#2C2C2E] transition shrink-0 active:scale-95 shadow-lg cursor-pointer"
+              className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0 cursor-pointer"
             >
-              <Search className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+              <Search className="w-6 h-6 text-white drop-shadow" strokeWidth={2.2} />
             </button>
           )}
         </header>

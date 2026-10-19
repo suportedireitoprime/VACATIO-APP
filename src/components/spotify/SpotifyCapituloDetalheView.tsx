@@ -13,6 +13,7 @@ import {
 import { toast } from 'sonner';
 import { useSpotifyAudioStore, type SpotifyTrack } from '@/stores/useSpotifyAudioStore';
 import { type CapituloDef } from '@/lib/leiCapitulosHelper';
+import { haptic } from '@/lib/nativeHaptics';
 
 interface SpotifyCapituloDetalheViewProps {
   capitulo: CapituloDef;
@@ -69,14 +70,21 @@ export const SpotifyCapituloDetalheView: React.FC<SpotifyCapituloDetalheViewProp
         <div className="relative p-5 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+16px)] max-w-4xl mx-auto w-full">
           {/* Linha Superior: Botão Voltar aos Capítulos + Badge de Áudios */}
           <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={onVoltar}
-              aria-label="Voltar aos Capítulos"
-              className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white shadow-md active:scale-95 transition-all hover:bg-black/50 text-xs font-bold cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4 drop-shadow-md" />
-              <span>Voltar aos Capítulos</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  haptic.light();
+                  onVoltar();
+                }}
+                aria-label="Voltar aos Capítulos"
+                className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0 cursor-pointer"
+              >
+                <ArrowLeft className="w-6 h-6 text-white drop-shadow" strokeWidth={2.2} />
+              </button>
+              <span className="text-xs font-bold text-white/90 hidden sm:inline-block">
+                Voltar aos Capítulos
+              </span>
+            </div>
 
             <span className="text-[11px] font-bold text-white/90 bg-black/40 border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md">
               {loading && chapterTracks.length === 0

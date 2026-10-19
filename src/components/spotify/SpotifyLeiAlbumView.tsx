@@ -307,11 +307,14 @@ export const SpotifyLeiAlbumView: React.FC<SpotifyLeiAlbumViewProps> = ({
           {/* Barra Superior: Botão Voltar + Botão Trilhas */}
           <div className="flex items-center justify-between mb-6">
             <button
-              onClick={onBack}
+              onClick={() => {
+                haptic.light();
+                onBack();
+              }}
               aria-label="Voltar"
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white shadow-md active:scale-95 transition-all hover:bg-black/50"
+              className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0 cursor-pointer"
             >
-              <ArrowLeft className="w-5 h-5 drop-shadow-md" />
+              <ArrowLeft className="w-6 h-6 text-white drop-shadow" strokeWidth={2.2} />
             </button>
 
             {/* Botão de Ação Rápida no Topo: Trilhas */}

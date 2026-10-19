@@ -173,11 +173,14 @@ export const AudioTrilhasModal: React.FC<AudioTrilhasModalProps> = ({
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={onClose}
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition flex items-center justify-center text-white border border-white/10 shrink-0"
+                onClick={() => {
+                  haptic.light();
+                  onClose();
+                }}
+                className="w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none shrink-0 cursor-pointer"
                 aria-label="Voltar"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-6 h-6 text-white drop-shadow" strokeWidth={2.2} />
               </button>
 
               <div className="flex items-center gap-3 min-w-0">
