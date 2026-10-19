@@ -70,7 +70,7 @@ export default function GlobalAudioaulasMiniPlayer() {
               : `calc(9.5rem + var(--sai-bottom))`,
           }}
         >
-          <div className="pointer-events-auto mx-auto max-w-md md:w-96 rounded-full border border-white/15 bg-[#0f0f0f]/95 backdrop-blur-md shadow-2xl shadow-black/80 flex items-center gap-2 pl-1.5 pr-1.5 py-1.5 relative overflow-hidden transition-all hover:scale-[1.02]">
+          <div className="pointer-events-auto mx-auto max-w-md md:w-[410px] min-h-[58px] sm:min-h-[64px] rounded-full border border-white/15 bg-[#0f0f0f]/95 backdrop-blur-md shadow-2xl shadow-black/80 flex items-center gap-2.5 pl-2 pr-2.5 py-2 sm:py-2.5 relative overflow-hidden transition-all hover:scale-[1.01] active:scale-[0.99]">
             {/* Efeito de brilho/reflexo passando */}
             <motion.div
               aria-hidden
@@ -82,7 +82,7 @@ export default function GlobalAudioaulasMiniPlayer() {
 
             {/* Barra de progresso vibrante na parte inferior da cápsula */}
             <div
-              className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-primary via-emerald-400 to-amber-400 transition-[width] duration-200"
+              className="absolute inset-x-0 bottom-0 h-1 sm:h-1.5 bg-gradient-to-r from-primary via-emerald-400 to-amber-400 transition-[width] duration-200"
               style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
             />
 
@@ -90,17 +90,17 @@ export default function GlobalAudioaulasMiniPlayer() {
             <button
               onClick={togglePlay}
               aria-label={tocando ? 'Pausar' : 'Continuar'}
-              className="flex-shrink-0 w-10 h-10 rounded-full bg-primary hover:bg-primary/90 active:opacity-70 transition flex items-center justify-center relative z-10 shadow-md shadow-black/40"
+              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-primary hover:bg-primary/90 active:scale-95 transition flex items-center justify-center relative z-10 shadow-lg shadow-black/40"
             >
               {tocando ? (
-                <Pause className="w-4 h-4 text-primary-foreground" fill="currentColor" />
+                <Pause className="w-5 h-5 text-primary-foreground" fill="currentColor" />
               ) : (
-                <Play className="w-4 h-4 text-primary-foreground ml-0.5" fill="currentColor" />
+                <Play className="w-5 h-5 text-primary-foreground ml-0.5" fill="currentColor" />
               )}
             </button>
 
             {/* Equalizador animado quando tocando */}
-            <div className="flex items-end gap-[2px] h-5 flex-shrink-0 pl-0.5 relative z-10" aria-hidden>
+            <div className="flex items-end gap-[2.5px] h-6 flex-shrink-0 pl-0.5 relative z-10" aria-hidden>
               {eqBars.map((i) => (
                 <motion.span
                   key={i}
@@ -108,7 +108,7 @@ export default function GlobalAudioaulasMiniPlayer() {
                   initial={{ height: 4 }}
                   animate={
                     tocando
-                      ? { height: [4, 14, 7, 16, 5, 12, 4] }
+                      ? { height: [5, 18, 8, 20, 6, 14, 5] }
                       : { height: 4 }
                   }
                   transition={
@@ -123,13 +123,13 @@ export default function GlobalAudioaulasMiniPlayer() {
             {/* Texto da Aula (Título e Área/Tema) */}
             <button
               onClick={handleReopen}
-              className="flex-1 min-w-0 text-left px-1 relative z-10"
+              className="flex-1 min-w-0 text-left px-1.5 relative z-10 flex flex-col justify-center"
               aria-label="Abrir aula"
             >
-              <p className="text-[12px] font-semibold text-white truncate leading-tight">
+              <p className="text-[13px] sm:text-[14px] font-semibold text-white truncate leading-snug">
                 {atual.titulo}
               </p>
-              <p className="text-[10.5px] text-white/60 truncate leading-tight">
+              <p className="text-[11px] sm:text-[12px] text-white/70 truncate leading-snug mt-0.5">
                 {atual.area} {atual.tema ? `• ${atual.tema}` : ''}
               </p>
             </button>
@@ -139,22 +139,22 @@ export default function GlobalAudioaulasMiniPlayer() {
               onClick={() => setBgmModalAberto(true)}
               aria-label="Música de fundo Lo-Fi"
               title="Música de Fundo (Lo-Fi)"
-              className={`flex-shrink-0 w-8 h-8 rounded-full transition flex items-center justify-center relative z-10 ${
+              className={`flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full transition flex items-center justify-center relative z-10 ${
                 bgmAtivo
                   ? 'text-blue-400 bg-blue-500/20 border border-blue-500/30'
-                  : 'text-zinc-400 hover:bg-white/10'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/10'
               }`}
             >
-              <Music className="w-3.5 h-3.5" />
+              <Music className="w-4 h-4" />
             </button>
 
             {/* Botão Fechar (X) */}
             <button
               onClick={fechar}
               aria-label="Fechar player"
-              className="flex-shrink-0 w-9 h-9 rounded-full hover:bg-white/10 active:opacity-70 transition flex items-center justify-center relative z-10"
+              className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95 transition flex items-center justify-center relative z-10"
             >
-              <X className="w-4 h-4 text-white/70" />
+              <X className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </button>
 
             {/* Seta com cabinho animada para a direita que redireciona para a aula */}
@@ -162,11 +162,11 @@ export default function GlobalAudioaulasMiniPlayer() {
               onClick={handleReopen}
               aria-label="Ir para áudio aula"
               title="Abrir aula completa"
-              className="flex-shrink-0 w-9 h-9 rounded-full hover:bg-white/10 active:opacity-70 transition flex items-center justify-center relative z-10 overflow-hidden"
+              className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition flex items-center justify-center relative z-10 overflow-hidden"
             >
               <motion.span
                 className="inline-flex"
-                animate={{ x: [0, 4, 0] }}
+                animate={{ x: [0, 3, 0] }}
                 transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
               >
                 <ArrowRight className="w-5 h-5 text-white/90" strokeWidth={2.4} />

@@ -56,7 +56,7 @@ const NarracaoMiniPlayer = () => {
             bottom: `calc(9.5rem + var(--sai-bottom,var(--sai-bottom)))`,
           }}
         >
-          <div className="pointer-events-auto mx-auto max-w-md rounded-full border border-white/10 bg-background/95 backdrop-blur-md shadow-2xl shadow-black/60 flex items-center gap-2 pl-1.5 pr-1.5 py-1.5 relative overflow-hidden">
+          <div className="pointer-events-auto mx-auto max-w-md min-h-[58px] sm:min-h-[64px] rounded-full border border-white/10 bg-background/95 backdrop-blur-md shadow-2xl shadow-black/60 flex items-center gap-2.5 pl-2 pr-2.5 py-2 sm:py-2.5 relative overflow-hidden transition-all hover:scale-[1.01] active:scale-[0.99]">
             {/* Reflexo passando */}
             <motion.div
               aria-hidden
@@ -68,24 +68,24 @@ const NarracaoMiniPlayer = () => {
 
             {/* Barra de progresso interna sutil */}
             <div
-              className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-primary/80 to-amber-400/80 transition-[width] duration-200"
+              className="absolute inset-x-0 bottom-0 h-1 sm:h-1.5 bg-gradient-to-r from-primary/80 to-amber-400/80 transition-[width] duration-200"
               style={{ width: `${Math.round(progress * 100)}%` }}
             />
 
             <button
               onClick={toggle}
               aria-label={isPlaying ? 'Pausar' : 'Continuar'}
-              className="flex-shrink-0 w-10 h-10 rounded-full bg-primary hover:bg-primary/90 active:scale-95 transition flex items-center justify-center relative z-10"
+              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-primary hover:bg-primary/90 active:scale-95 transition flex items-center justify-center relative z-10 shadow-lg shadow-black/40"
             >
               {isPlaying ? (
-                <Pause className="w-4 h-4 text-primary-foreground" fill="currentColor" />
+                <Pause className="w-5 h-5 text-primary-foreground" fill="currentColor" />
               ) : (
-                <Play className="w-4 h-4 text-primary-foreground ml-0.5" fill="currentColor" />
+                <Play className="w-5 h-5 text-primary-foreground ml-0.5" fill="currentColor" />
               )}
             </button>
 
             {/* Equalizer indicando áudio tocando */}
-            <div className="flex items-end gap-[2px] h-5 flex-shrink-0 pl-0.5 relative z-10" aria-hidden>
+            <div className="flex items-end gap-[2.5px] h-6 flex-shrink-0 pl-0.5 relative z-10" aria-hidden>
               {eqBars.map((i) => (
                 <motion.span
                   key={i}
@@ -93,7 +93,7 @@ const NarracaoMiniPlayer = () => {
                   initial={{ height: 4 }}
                   animate={
                     isPlaying
-                      ? { height: [4, 14, 7, 16, 5, 12, 4] }
+                      ? { height: [5, 18, 8, 20, 6, 14, 5] }
                       : { height: 4 }
                   }
                   transition={
@@ -107,13 +107,13 @@ const NarracaoMiniPlayer = () => {
 
             <button
               onClick={handleReopen}
-              className="flex-1 min-w-0 text-left px-1 relative z-10"
+              className="flex-1 min-w-0 text-left px-1.5 relative z-10 flex flex-col justify-center"
               aria-label="Voltar ao artigo"
             >
-              <p className="text-[12px] font-semibold text-white truncate leading-tight">
+              <p className="text-[13px] sm:text-[14px] font-semibold text-white truncate leading-snug">
                 {/^\d/.test(artigo.numero) ? `Art. ${artigo.numero}` : artigo.numero}
               </p>
-              <p className="text-[10.5px] text-white/60 truncate leading-tight">
+              <p className="text-[11px] sm:text-[12px] text-white/60 truncate leading-snug mt-0.5">
                 {leiNome || tabelaNome || 'Narrando'}
               </p>
             </button>
@@ -122,16 +122,16 @@ const NarracaoMiniPlayer = () => {
             <button
               onClick={close}
               aria-label="Fechar player"
-              className="flex-shrink-0 w-9 h-9 rounded-full hover:bg-white/10 active:scale-95 transition flex items-center justify-center relative z-10"
+              className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 active:scale-95 transition flex items-center justify-center relative z-10"
             >
-              <X className="w-4 h-4 text-white/70" />
+              <X className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </button>
 
             {/* Seta com cabinho, animando pro lado direito */}
             <button
               onClick={handleReopen}
               aria-label="Abrir artigo"
-              className="flex-shrink-0 w-9 h-9 rounded-full hover:bg-white/10 active:scale-95 transition flex items-center justify-center relative z-10 overflow-hidden"
+              className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition flex items-center justify-center relative z-10 overflow-hidden"
             >
               <motion.span
                 className="inline-flex"
