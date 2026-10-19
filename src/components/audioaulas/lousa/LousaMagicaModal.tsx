@@ -62,6 +62,9 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
   const velocidadeRef = useRef<number>(velocidade);
   velocidadeRef.current = velocidade;
 
+  // Controle de pressão do giz — acumula micro-variações entre letras
+  const gizPressaoRef = useRef<number>(0.7);
+
   // Estados de interface
   const [somHabilitado, setSomHabilitado] = useState<boolean>(() => lousaAudio.isEnabled());
   const [emTelaCheia, setEmTelaCheia] = useState<boolean>(false);
@@ -114,8 +117,15 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       const cb = el._onDone;
       el._onDone = null;
       el.classList.remove('has-giz');
-      el.textContent = el._full || '';
+
+      // Reconstrói o texto final sem spans individuais de letra
+      const fullText = el._full || '';
+      el.textContent = '';
       el.classList.remove('typing');
+
+      // Cria as letras com textura final consolidada
+      const textNode = document.createTextNode(fullText);
+      el.appendChild(textNode);
       lousaTypingElRef.current = null;
 
       if (lzGizElRef.current) {
@@ -125,7 +135,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           lzGizElRef.current.classList.add('is-lifting');
           setTimeout(() => {
             lzGizElRef.current?.remove();
-          }, 230);
+          }, 280);
         }
       }
 
@@ -137,21 +147,50 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     }
   }, []);
 
-  // Cria faísca sutil de pó de giz no ponto exato de contato da ponta
-  const emitirPoGiz = useCallback((el: HTMLElement) => {
+  // Emite micro-partículas de pó de giz realistas com trajetórias físicas
+  const emitirPoGiz = useCallback((el: HTMLElement, intensidade: number = 1) => {
     try {
-      const puff = document.createElement('span');
-      puff.className = 'lz-chalk-dust-spark';
-      puff.style.left = `${Math.random() * 4 - 2}px`;
-      puff.style.bottom = `${Math.random() * 4}px`;
-      el.appendChild(puff);
-      setTimeout(() => puff.remove(), 450);
+      const count = Math.ceil(1 + Math.random() * 2 * intensidade);
+      for (let p = 0; p < count; p++) {
+        const puff = document.createElement('span');
+        puff.className = 'lz-chalk-dust-spark';
+        // Trajetória com física: ângulo aleatório, velocidade proporcional à pressão
+        const angle = -30 - Math.random() * 120; // dispersão de -30° a -150° (para cima)
+        const dist = 3 + Math.random() * 8 * intensidade;
+        const dx = Math.cos(angle * Math.PI / 180) * dist;
+        const dy = Math.sin(angle * Math.PI / 180) * dist;
+        const size = 1.5 + Math.random() * 2.5;
+        puff.style.setProperty('--dx', `${dx}px`);
+        puff.style.setProperty('--dy', `${dy}px`);
+        puff.style.width = `${size}px`;
+        puff.style.height = `${size}px`;
+        puff.style.left = `${Math.random() * 6 - 3}px`;
+        puff.style.bottom = `${Math.random() * 4}px`;
+        puff.style.animationDuration = `${0.3 + Math.random() * 0.35}s`;
+        el.appendChild(puff);
+        setTimeout(() => puff.remove(), 700);
+      }
     } catch {
       // safe
     }
   }, []);
 
-  // Digita letra por letra com efeito de giz 3D inclinado, traçado manual e som procedural
+  // Emite uma trilha de resíduo de giz no ponto de contato (linha branca sutil)
+  const emitirResiduoGiz = useCallback((el: HTMLElement) => {
+    try {
+      const trail = document.createElement('span');
+      trail.className = 'lz-chalk-trail';
+      trail.style.width = `${4 + Math.random() * 12}px`;
+      trail.style.left = `${Math.random() * 3 - 1}px`;
+      trail.style.bottom = '-2px';
+      el.appendChild(trail);
+      setTimeout(() => trail.remove(), 2500);
+    } catch {
+      // safe
+    }
+  }, []);
+
+  // Digita letra por letra com pressão variável, textura de giz e jitter orgânico da mão
   const lousaType = useCallback((el: HTMLElement, full: string, isCapitulo: boolean, onDone?: (instant: boolean) => void) => {
     lousaFinishTyping(true);
     (el as any)._full = full;
@@ -166,6 +205,9 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     }
     el.classList.add('lz-ativo');
 
+    // Reseta pressão para o início da palavra
+    gizPressaoRef.current = 0.55 + Math.random() * 0.25;
+
     if (!lzGizElRef.current) {
       const g = document.createElement('span');
       g.className = 'lz-giz-3d';
@@ -173,6 +215,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
         <span class="lz-giz-contato"></span>
         <span class="lz-giz-ponta"></span>
         <span class="lz-giz-corpo"></span>
+        <span class="lz-giz-sombra-contato"></span>
       `;
       g.setAttribute('aria-hidden', 'true');
       lzGizElRef.current = g;
@@ -188,29 +231,100 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       giz.classList.remove('is-yellow');
     }
 
-    let k = 0;
+    // Container para as letras individuais com pressão
+    const letrasContainer = document.createElement('span');
+    letrasContainer.className = 'lz-letras-container';
     el.textContent = '';
+    el.appendChild(letrasContainer);
     el.appendChild(giz);
-    const intervalMs = Math.max(14, Math.round(26 / (velocidadeRef.current || 1)));
+
+    let k = 0;
+    let ultimoEspaco = false;
+    const intervalMs = Math.max(14, Math.round(28 / (velocidadeRef.current || 1)));
 
     lousaTypeTORef.current = setInterval(() => {
       k++;
-      const sub = full.slice(0, k);
-      const nextChar = full[k - 1];
+      const ch = full[k - 1];
+      if (!ch) {
+        lousaFinishTyping(false);
+        return;
+      }
 
-      el.textContent = sub;
+      const isEspaco = ch === ' ';
+
+      // Simular variação de pressão natural da mão
+      // Pressão aumenta no meio das palavras e diminui nos extremos
+      if (isEspaco) {
+        gizPressaoRef.current = 0.45 + Math.random() * 0.2; // levanta levemente entre palavras
+        ultimoEspaco = true;
+      } else {
+        if (ultimoEspaco) {
+          // Início de nova palavra: pressão mais leve
+          gizPressaoRef.current = 0.5 + Math.random() * 0.15;
+          ultimoEspaco = false;
+        } else {
+          // Meio da palavra: pressão vai crescendo organicamente
+          gizPressaoRef.current = Math.min(1, gizPressaoRef.current + (Math.random() * 0.08 - 0.02));
+        }
+      }
+
+      // Cria span individual para cada caractere com pressão variável
+      const letraSpan = document.createElement('span');
+      letraSpan.className = 'lz-letra';
+      letraSpan.textContent = ch;
+
+      if (!isEspaco) {
+        const pressao = gizPressaoRef.current;
+        // Opacidade proporcional à pressão (mais forte = mais opaco/grosso)
+        const opacidade = 0.55 + pressao * 0.45;
+        // Leve variação de escala vertical simulando espessura do traço
+        const escalaY = 0.92 + pressao * 0.1;
+        // Micro-rotação para jitter orgânico
+        const microRot = (Math.random() - 0.5) * 2.2;
+        // Micro-deslocamento vertical para irregularidade da linha
+        const microY = (Math.random() - 0.5) * 1.2;
+
+        letraSpan.style.opacity = String(opacidade);
+        letraSpan.style.transform = `scaleY(${escalaY}) rotate(${microRot}deg) translateY(${microY}px)`;
+
+        // Variação sutil de cor (giz nunca é perfeitamente uniforme)
+        if (!isCapitulo) {
+          const hueShift = Math.random() * 8 - 4; // ±4 graus
+          const lightShift = Math.random() * 6 - 3; // ±3%
+          letraSpan.style.filter = `hue-rotate(${hueShift}deg) brightness(${1 + lightShift / 100})`;
+        }
+      }
+
+      // Animação de fade-in da letra (aparece "sendo escrita")
+      letraSpan.style.animation = 'lzLetraIn 0.12s ease-out forwards';
+
+      letrasContainer.appendChild(letraSpan);
+
+      // Reposiciona o giz após as letras
+      if (giz.parentElement === el) {
+        el.removeChild(giz);
+      }
       el.appendChild(giz);
 
-      // Oscilação dinâmica de traçado manual da mão escrevendo
-      const osc = k % 6;
-      const angulos = ['-34deg', '-39deg', '-32deg', '-38deg', '-41deg', '-35deg'];
-      const yOffs = ['-1px', '1px', '-2px', '0px', '2px', '-1px'];
-      giz.style.transform = `rotate(${angulos[osc]}) translateY(${yOffs[osc]})`;
+      // Oscilação dinâmica natural da mão escrevendo — mais orgânica com jitter acumulado
+      const progress = k / full.length;
+      const baseAngle = -36;
+      const angleJitter = Math.sin(k * 0.7) * 3 + Math.cos(k * 1.1) * 2 + (Math.random() - 0.5) * 2;
+      const yJitter = Math.sin(k * 0.5) * 1.5 + (Math.random() - 0.5) * 1;
+      // Leve inclinação progressiva natural (a mão cansa)
+      const fatigue = progress * 2;
+      giz.style.transform = `rotate(${baseAngle + angleJitter + fatigue}deg) translateY(${yJitter}px)`;
 
-      // Efeito sonoro procedural suave a cada 3 caracteres
-      if (nextChar !== ' ' && k % 3 === 0) {
-        lousaAudio.playGizScratch(0.04);
-        emitirPoGiz(el);
+      // Efeito sonoro procedural com variação tonal baseada no caractere
+      if (!isEspaco && k % 2 === 0) {
+        const pitch = 0.8 + (ch.charCodeAt(0) % 20) * 0.03;
+        lousaAudio.playGizScratch(0.03 + gizPressaoRef.current * 0.03, pitch);
+        emitirPoGiz(el, gizPressaoRef.current);
+      }
+
+      // Resíduo de giz a cada ~8 caracteres
+      if (!isEspaco && k % 8 === 0) {
+        emitirResiduoGiz(el);
       }
 
       lousaScroll();
@@ -218,30 +332,50 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
         lousaFinishTyping(false);
       }
     }, intervalMs);
-  }, [emitirPoGiz, lousaFinishTyping, lousaScroll]);
+  }, [emitirPoGiz, emitirResiduoGiz, lousaFinishTyping, lousaScroll]);
 
-  // Revela subitens com marcador dourado de giz
+  // Revela subitens com marcador desenhado e aparição sequencial orgânica
   const lousaRevealItems = useCallback((box: HTMLElement, items: string[], instant: boolean) => {
     items.forEach((it, i) => {
       const d = document.createElement('div');
       d.className = 'lz-item';
+
+      // Marcador com efeito de "pontinho desenhado" em vez de apenas aparecer
       const mk = document.createElement('span');
       mk.className = 'lz-item-mark';
-      mk.textContent = '✦';
+      mk.innerHTML = '<span class="lz-item-dot"></span>';
+
       const tx = document.createElement('span');
       tx.className = 'lz-item-text';
-      tx.textContent = it;
-      d.appendChild(mk);
-      d.appendChild(tx);
+
       if (instant) {
+        tx.textContent = it;
         d.style.animation = 'none';
         d.style.opacity = '1';
+        mk.style.animation = 'none';
+        mk.style.opacity = '1';
       } else {
-        d.style.animationDelay = `${0.08 + i * 0.16}s`;
+        // Texto aparece letra por letra com delay cascata
+        const delay = 0.12 + i * 0.22;
+        d.style.animationDelay = `${delay}s`;
+        mk.style.animationDelay = `${delay - 0.05}s`;
+
+        // Texto se revela progressivamente dentro do item
+        tx.textContent = '';
+        const txtDelay = (delay + 0.1) * 1000;
         setTimeout(() => {
-          lousaAudio.playGizScratch(0.035);
-        }, (0.08 + i * 0.16) * 1000);
+          let ci = 0;
+          const typeItem = setInterval(() => {
+            ci++;
+            tx.textContent = it.slice(0, ci);
+            if (ci >= it.length) clearInterval(typeItem);
+          }, Math.max(10, 18 / (velocidadeRef.current || 1)));
+          lousaAudio.playGizScratch(0.025);
+        }, txtDelay);
       }
+
+      d.appendChild(mk);
+      d.appendChild(tx);
       box.appendChild(d);
     });
     lousaScroll();
@@ -336,11 +470,13 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     haptic.medium();
     setTimeout(() => haptic.light(), 800);
 
-    // Fade progressivo suave
+    // Fade progressivo suave com efeito de "borrar" o texto antes de sumir
     Array.from(body.querySelectorAll('.lz-titulo,.lz-ponto')).forEach((el: any, i) => {
-      el.style.transition = 'opacity .38s ease';
+      el.style.transition = 'opacity .38s ease, filter .4s ease, transform .3s ease';
       el.style.transitionDelay = `${Math.min(i * 0.04, 0.6)}s`;
       el.style.opacity = '0';
+      el.style.filter = 'blur(2px)';
+      el.style.transform = 'translateX(3px)';
     });
 
     // Camada de resíduo de giz (smudge) deixada pelo apagador
@@ -348,6 +484,16 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     smudge.id = 'lzSmudge';
     smudge.className = 'lz-chalk-smudge';
     container.appendChild(smudge);
+
+    // Marcas de passada do apagador (linhas horizontais suaves)
+    for (let s = 0; s < 4; s++) {
+      const streak = document.createElement('div');
+      streak.className = 'lz-eraser-streak';
+      streak.style.top = `${15 + s * 20}%`;
+      streak.style.animationDelay = `${0.2 + s * 0.3}s`;
+      container.appendChild(streak);
+      setTimeout(() => streak.remove(), 2200);
+    }
 
     // Apagador 3D com madeira maciça entalhada e feltro duplo de lã
     const ap = document.createElement('div');
@@ -364,15 +510,16 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     `;
     container.appendChild(ap);
 
-    // Partículas de nuvem de giz caindo durante a varredura
-    for (let p = 0; p < 6; p++) {
+    // Partículas de nuvem de giz caindo durante a varredura — mais realistas
+    for (let p = 0; p < 8; p++) {
       const dust = document.createElement('div');
       dust.className = 'lz-dust-cloud-particle';
-      dust.style.left = `${18 + p * 12}%`;
-      dust.style.top = `${20 + p * 8}%`;
-      dust.style.animationDelay = `${0.18 + p * 0.16}s`;
+      dust.style.left = `${12 + p * 10}%`;
+      dust.style.top = `${15 + p * 9}%`;
+      dust.style.animationDelay = `${0.12 + p * 0.14}s`;
+      dust.style.setProperty('--drift', `${(Math.random() - 0.5) * 20}px`);
       container.appendChild(dust);
-      setTimeout(() => dust.remove(), 1900);
+      setTimeout(() => dust.remove(), 2100);
     }
 
     requestAnimationFrame(() => requestAnimationFrame(() => ap.classList.add('sweep')));
@@ -501,7 +648,29 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       ref={modalWrapperRef}
       className="fixed inset-0 z-[130] bg-[#120d09] text-[#f7f2ea] flex flex-col overflow-hidden select-none animate-in fade-in duration-200"
     >
-      {/* Estilos calibrados: giz nítido sem brilho leitoso, giz amarelo no capítulo e post-its em escala de foco */}
+      {/* SVG Filter para textura granular realista de giz (feTurbulence) */}
+      <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
+        <defs>
+          <filter id="chalkGrain" x="-5%" y="-5%" width="110%" height="110%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" result="grain" />
+            <feDisplacementMap in="SourceGraphic" in2="grain" scale="1.2" xChannelSelector="R" yChannelSelector="G" result="rough" />
+            <feGaussianBlur in="rough" stdDeviation="0.25" result="softChalk" />
+            <feMerge>
+              <feMergeNode in="softChalk" />
+            </feMerge>
+          </filter>
+          <filter id="chalkGrainYellow" x="-5%" y="-5%" width="110%" height="110%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="2" result="grain" />
+            <feDisplacementMap in="SourceGraphic" in2="grain" scale="1.0" xChannelSelector="R" yChannelSelector="G" result="rough" />
+            <feGaussianBlur in="rough" stdDeviation="0.2" result="softChalk" />
+            <feMerge>
+              <feMergeNode in="softChalk" />
+            </feMerge>
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Estilos calibrados: giz com textura SVG turbulence, pressão variável e pó realista */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap');
 
@@ -509,17 +678,49 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           font-family: 'Kalam', 'Caveat', 'Segoe Print', cursive, sans-serif;
         }
 
-        /* Textura de ardósia nítida e escura com granulação refinada */
+        /* Textura de ardósia nítida e escura com granulação refinada de pedra real */
         .lz-chalkboard-texture {
           background-color: #1a2720;
           background-image: 
             radial-gradient(circle at 50% 35%, rgba(32, 48, 40, 0.95) 0%, rgba(18, 28, 22, 0.98) 100%),
-            repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.006) 3px, rgba(255,255,255,0.006) 6px);
-          box-shadow: inset 0 0 70px rgba(0,0,0,0.85);
+            repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.005) 3px, rgba(255,255,255,0.005) 6px),
+            repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(255,255,255,0.003) 5px, rgba(255,255,255,0.003) 10px);
+          box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
           position: relative;
         }
+        /* Micro-textura de arranhões na ardósia */
+        .lz-chalkboard-texture::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: 
+            repeating-linear-gradient(
+              -5deg,
+              transparent,
+              transparent 12px,
+              rgba(255,255,255,0.008) 12px,
+              rgba(255,255,255,0.008) 13px
+            );
+          pointer-events: none;
+          z-index: 1;
+        }
 
-        /* CAPÍTULO: GIZ AMARELO DOURADO ESCOLAR, NÍTIDO E SEM BORRÃO */
+        /* Container de letras individuais com pressão variável */
+        .lz-letras-container {
+          display: inline;
+        }
+        .lz-letra {
+          display: inline;
+          transition: none;
+        }
+        @keyframes lzLetraIn {
+          from { opacity: 0; transform: scale(0.85); }
+          to { opacity: var(--final-opacity, 1); transform: none; }
+        }
+
+        /* =============================================
+           CAPÍTULO: GIZ AMARELO DOURADO COM TEXTURA SVG
+           ============================================= */
         .lz-titulo {
           font-family: 'Kalam', 'Caveat', 'Segoe Print', cursive, sans-serif;
           font-size: clamp(21px, 3.2vw, 32px);
@@ -527,20 +728,25 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           color: #f7d070;
           line-height: 1.35;
           margin: 10px 0 18px;
-          text-shadow: 1px 1px 1px rgba(0,0,0,0.85);
-          border-bottom: 2px dashed rgba(247, 208, 112, 0.75);
+          text-shadow: 
+            1px 1px 1px rgba(0,0,0,0.85),
+            0 0 2px rgba(247, 208, 112, 0.15);
+          border-bottom: 2px dashed rgba(247, 208, 112, 0.55);
           padding-bottom: 6px;
-          display: inline-block;
+          display: block;
           cursor: pointer;
           position: relative;
           transition: transform 0.15s ease, color 0.15s ease;
+          filter: url(#chalkGrainYellow);
         }
         .lz-titulo:hover {
           transform: scale(1.015);
           color: #ffe28a;
         }
 
-        /* PONTOS DA AULA: GIZ BRANCO SUAVE, LIMPO E PERFEITAMENTE LEGÍVEL */
+        /* =============================================
+           PONTOS DA AULA: GIZ BRANCO COM TEXTURA SVG
+           ============================================= */
         .lz-ponto {
           font-family: 'Kalam', 'Caveat', 'Segoe Print', cursive, sans-serif;
           font-size: clamp(16px, 2.3vw, 22px);
@@ -553,6 +759,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           cursor: pointer;
           animation: lzIn 0.28s ease-out;
           transition: transform 0.15s ease, color 0.15s ease;
+          filter: url(#chalkGrain);
         }
         .lz-ponto:hover {
           transform: translateX(3px);
@@ -564,16 +771,17 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           left: 6px;
           color: #f7d070;
           font-weight: bold;
+          filter: url(#chalkGrainYellow);
         }
 
         /* PONTO ATIVO: Destaque sutil sem estourar o brilho */
         .lz-ativo {
           color: #ffffff !important;
-          text-shadow: 1px 1px 2px rgba(0,0,0,0.9), 0 0 1px rgba(255,255,255,0.6) !important;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.9), 0 0 1px rgba(255,255,255,0.5) !important;
         }
         .lz-titulo.lz-ativo {
           color: #fce18d !important;
-          text-shadow: 1px 1px 2px rgba(0,0,0,0.9), 0 0 1px rgba(252, 225, 141, 0.6) !important;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.9), 0 0 1px rgba(252, 225, 141, 0.5) !important;
         }
 
         /* Badge discreta de minutagem [02:15] */
@@ -589,6 +797,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           border-radius: 6px;
           vertical-align: middle;
           letter-spacing: 0.5px;
+          filter: none;
         }
         .lz-titulo:hover .lz-time-badge, .lz-ponto:hover .lz-time-badge {
           display: inline-block;
@@ -599,7 +808,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           to { opacity: 1; transform: none; }
         }
 
-        /* Subitens com Giz Amarelo Dourado */
+        /* Subitens com ponto desenhado e texto escrito progressivamente */
         .lz-item {
           display: flex;
           gap: 10px;
@@ -611,108 +820,185 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
           opacity: 0;
           animation: lzItemIn 0.35s ease-out forwards;
+          filter: url(#chalkGrainYellow);
         }
         @keyframes lzItemIn {
-          from { opacity: 0; transform: translateX(-8px); }
+          from { opacity: 0; transform: translateY(4px) scale(0.97); }
           to { opacity: 1; transform: none; }
         }
         .lz-item-mark {
-          color: #e2af42;
-          font-size: 0.85em;
           flex: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          animation: lzDotDraw 0.3s ease-out forwards;
+        }
+        @keyframes lzDotDraw {
+          0% { opacity: 0; transform: scale(0.2); }
+          60% { opacity: 1; transform: scale(1.3); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        /* Ponto circular desenhado (bullet) — simulando pressão de giz */
+        .lz-item-dot {
+          display: block;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 40% 40%, #ffe599, #d4a94e);
+          box-shadow: 0 0 3px rgba(247, 208, 112, 0.4);
         }
 
-        /* GIZ 3D REALISTA EM PERSPECTIVA DE ESCRITA MANUAL */
+        /* =============================================
+           GIZ 3D REALISTA COM SOMBRA DE CONTATO
+           ============================================= */
         .lz-giz-3d {
           display: inline-flex;
           align-items: flex-end;
           position: relative;
-          width: 42px;
-          height: 22px;
+          width: 44px;
+          height: 24px;
           margin-left: 3px;
           vertical-align: baseline;
           pointer-events: none;
           z-index: 15;
           transform-origin: 3px calc(100% - 2px);
           transform: rotate(-36deg);
-          transition: transform 0.05s ease-out, opacity 0.2s ease;
-          filter: drop-shadow(-2px 4px 5px rgba(0,0,0,0.7));
+          transition: transform 0.04s linear, opacity 0.2s ease;
+          filter: drop-shadow(-2px 4px 6px rgba(0,0,0,0.75));
         }
         /* Ponta chanfrada de giz (ponto de contato exato com a lousa) */
         .lz-giz-ponta {
           width: 10px;
           height: 10px;
           flex: none;
-          background: linear-gradient(135deg, #ffffff 40%, #ded7c1 100%);
+          background: linear-gradient(135deg, #ffffff 30%, #ded7c1 70%, #c8c0a8 100%);
           clip-path: polygon(0% 100%, 75% 0%, 100% 25%, 25% 100%);
         }
-        /* Corpo cilíndrico do bastão de giz estendido diagonalmente */
+        /* Corpo cilíndrico do bastão de giz com micro-textura de pó */
         .lz-giz-corpo {
-          width: 32px;
+          width: 34px;
           height: 10px;
           margin-left: -2px;
           margin-bottom: 2px;
           border-radius: 0 4px 4px 0;
-          background: linear-gradient(180deg, #ffffff 0%, #ede6d4 50%, #c4bea8 100%);
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.95), inset 0 -2px 3px rgba(0,0,0,0.3);
+          background: linear-gradient(
+            180deg, 
+            #ffffff 0%, 
+            #f0ebe0 25%,
+            #ede6d4 50%, 
+            #d8d0bc 75%,
+            #c4bea8 100%
+          );
+          box-shadow: 
+            inset 0 1px 1px rgba(255,255,255,0.95), 
+            inset 0 -2px 3px rgba(0,0,0,0.25),
+            0 0 1px rgba(255,255,255,0.3);
         }
         /* Ponto luminoso sutil de contato de pó na lousa */
         .lz-giz-contato {
           position: absolute;
           left: 0;
           bottom: 0;
-          width: 6px;
-          height: 6px;
+          width: 7px;
+          height: 7px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(255,255,255,0.85) 0%, transparent 75%);
+          background: radial-gradient(circle, rgba(255,255,255,0.75) 0%, transparent 70%);
           transform: translate(-30%, 30%);
+          pointer-events: none;
+          animation: lzContatoPulse 0.15s ease-in-out infinite alternate;
+        }
+        @keyframes lzContatoPulse {
+          from { opacity: 0.6; transform: translate(-30%, 30%) scale(0.9); }
+          to { opacity: 1; transform: translate(-30%, 30%) scale(1.1); }
+        }
+        /* Sombra suave de contato do giz na lousa */
+        .lz-giz-sombra-contato {
+          position: absolute;
+          left: -2px;
+          bottom: -3px;
+          width: 12px;
+          height: 5px;
+          border-radius: 50%;
+          background: radial-gradient(ellipse, rgba(0,0,0,0.35) 0%, transparent 70%);
           pointer-events: none;
         }
 
         /* GIZ AMARELO QUANDO FOR CAPÍTULO */
         .lz-giz-3d.is-yellow .lz-giz-ponta {
-          background: linear-gradient(135deg, #fff2aa 40%, #e6b83f 100%);
+          background: linear-gradient(135deg, #fff2aa 30%, #e6b83f 70%, #d4a02e 100%);
         }
         .lz-giz-3d.is-yellow .lz-giz-corpo {
-          background: linear-gradient(180deg, #fff2aa 0%, #f7cb5c 50%, #d49f2b 100%);
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(0,0,0,0.35);
+          background: linear-gradient(
+            180deg, 
+            #fff2aa 0%, 
+            #fce08a 25%,
+            #f7cb5c 50%, 
+            #e8b340 75%,
+            #d49f2b 100%
+          );
+          box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(0,0,0,0.3);
         }
         .lz-giz-3d.is-yellow .lz-giz-contato {
-          background: radial-gradient(circle, rgba(247,208,112,0.85) 0%, transparent 75%);
+          background: radial-gradient(circle, rgba(247,208,112,0.8) 0%, transparent 70%);
         }
 
         /* Animação suave de erguer a mão/giz ao terminar o ponto */
         .lz-giz-3d.is-lifting {
-          transform: rotate(-22deg) translateY(-14px) translateX(6px) !important;
+          transform: rotate(-20deg) translateY(-16px) translateX(8px) !important;
           opacity: 0 !important;
-          transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.22s ease !important;
+          transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.28s ease !important;
         }
 
-        /* Faísca sutil de pó de giz emitida na ponta */
+        /* =============================================
+           PARTÍCULAS DE PÓ DE GIZ COM FÍSICA REALISTA
+           ============================================= */
         .lz-chalk-dust-spark {
           position: absolute;
-          width: 3px;
-          height: 3px;
-          background: rgba(255,255,255,0.8);
+          background: rgba(255,255,255,0.75);
           border-radius: 50%;
           pointer-events: none;
-          animation: lzSpark 0.45s ease-out forwards;
+          animation: lzSparkPhysics var(--duration, 0.4s) ease-out forwards;
         }
-        @keyframes lzSpark {
-          0% { transform: scale(1) translate(0, 0); opacity: 0.8; }
-          100% { transform: scale(2.8) translate(6px, -8px); opacity: 0; }
+        @keyframes lzSparkPhysics {
+          0% { 
+            transform: translate(0, 0) scale(1); 
+            opacity: 0.85; 
+          }
+          40% {
+            opacity: 0.5;
+          }
+          100% { 
+            transform: translate(var(--dx, 6px), var(--dy, -8px)) scale(0.3); 
+            opacity: 0; 
+          }
         }
 
-        /* APAGADOR 3D EM MADEIRA NOBRE COM FELTRO DUPLO */
+        /* Trilha de resíduo de giz (marca de atrito) */
+        .lz-chalk-trail {
+          position: absolute;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+          pointer-events: none;
+          animation: lzTrailFade 2.2s ease-out forwards;
+        }
+        @keyframes lzTrailFade {
+          0% { opacity: 0.5; }
+          100% { opacity: 0; }
+        }
+
+        /* =============================================
+           APAGADOR 3D EM MADEIRA NOBRE COM FELTRO DUPLO
+           ============================================= */
         .lz-apagador-3d {
           position: absolute;
           top: -90px;
           left: 12%;
-          width: 94px;
+          width: 96px;
           z-index: 25;
           pointer-events: none;
           transform: rotate(-7deg);
-          filter: drop-shadow(4px 12px 14px rgba(0,0,0,0.7));
+          filter: drop-shadow(4px 12px 16px rgba(0,0,0,0.75));
         }
         .lz-apagador-3d .wood-handle {
           height: 28px;
@@ -768,20 +1054,37 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           100% { top: 110%;  left: 48%; transform: rotate(0deg); }
         }
 
+        /* Marcas de passada do apagador na lousa */
+        .lz-eraser-streak {
+          position: absolute;
+          left: 5%;
+          right: 5%;
+          height: 3px;
+          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 20%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.04) 80%, transparent 100%);
+          pointer-events: none;
+          opacity: 0;
+          animation: lzStreakReveal 1.8s ease-out forwards;
+        }
+        @keyframes lzStreakReveal {
+          0% { opacity: 0; transform: scaleX(0.3); }
+          30% { opacity: 0.7; transform: scaleX(1); }
+          100% { opacity: 0; transform: scaleX(1.05); }
+        }
+
         /* Partículas de pó de giz caindo durante a limpeza */
         .lz-dust-cloud-particle {
           position: absolute;
-          width: 26px;
-          height: 26px;
-          background: radial-gradient(circle, rgba(245,240,225,0.4) 0%, transparent 70%);
+          width: 22px;
+          height: 22px;
+          background: radial-gradient(circle, rgba(245,240,225,0.35) 0%, transparent 70%);
           border-radius: 50%;
           pointer-events: none;
-          animation: lzDustFall 1.8s ease-out forwards;
+          animation: lzDustFall 1.9s ease-out forwards;
         }
         @keyframes lzDustFall {
-          0% { opacity: 0; transform: scale(0.6) translateY(0); }
-          30% { opacity: 0.55; transform: scale(1.5) translateY(10px); }
-          100% { opacity: 0; transform: scale(2.2) translateY(40px); }
+          0% { opacity: 0; transform: scale(0.5) translate(0, 0); }
+          25% { opacity: 0.55; transform: scale(1.4) translate(var(--drift, 0px), 8px); }
+          100% { opacity: 0; transform: scale(2) translate(var(--drift, 0px), 45px); }
         }
 
         /* Smudge suave após apagamento */
@@ -789,12 +1092,12 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           position: absolute;
           inset: 0;
           pointer-events: none;
-          background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.06) 0%, transparent 80%);
-          animation: lzSmudgeFade 2s ease-out forwards;
+          background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 80%);
+          animation: lzSmudgeFade 2.2s ease-out forwards;
         }
         @keyframes lzSmudgeFade {
           0% { opacity: 0; }
-          40% { opacity: 0.7; }
+          35% { opacity: 0.8; }
           100% { opacity: 0; }
         }
 
@@ -831,6 +1134,12 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           position: relative;
           border-radius: 3px;
           transition: transform 0.2s ease, box-shadow 0.2s ease;
+          animation: lzPostitSlap 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes lzPostitSlap {
+          0% { transform: scale(0.7) rotate(-8deg); opacity: 0; }
+          60% { transform: scale(1.06) rotate(1deg); opacity: 1; }
+          100% { transform: scale(1) rotate(var(--rot, -1.8deg)); opacity: 1; }
         }
         .postit-card-ativo:hover {
           transform: scale(1.04) rotate(0deg) !important;
@@ -1008,7 +1317,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
                   </div>
                 )}
                 <span className="text-[10px] text-amber-200/40 font-mono tracking-wider hidden sm:inline">
-                  VACATIO · LOUSA V2
+                  VACATIO · LOUSA V3
                 </span>
               </div>
             </div>
@@ -1049,7 +1358,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
                         seek(p.t + 0.01);
                       }}
                       title={`Pular para a pergunta da aluna (${fmt(p.t)})`}
-                      style={{ transform: `rotate(${rotacao})` }}
+                      style={{ transform: `rotate(${rotacao})`, '--rot': rotacao } as React.CSSProperties}
                       className={`text-left p-3 pt-3.5 cursor-pointer ${
                         isMaisRecente ? 'postit-card-ativo' : 'postit-card-antigo'
                       }`}
