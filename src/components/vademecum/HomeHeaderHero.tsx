@@ -78,7 +78,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
     <>
       {/* Shell sólido, opaco e com blindagem contra culling e overscroll — amarelo ouro elegante */}
       <div
-        className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[2rem] pt-[var(--sai-top)] flex flex-col z-20 shadow-xl"
+        className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[2rem] pt-[var(--sai-top,0px)] flex flex-col z-20 shadow-xl"
         style={{
           transform: 'translateZ(0)',
           backgroundColor: '#1C1C1E',

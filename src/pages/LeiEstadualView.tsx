@@ -59,8 +59,11 @@ const LeiEstadualView = () => {
     : artigos;
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
+      {/* Blindagem de status bar superior para rolagem segura */}
+      <div className="fixed top-0 left-0 right-0 h-[var(--sai-top,0px)] bg-background/95 backdrop-blur-md z-40 pointer-events-none" aria-hidden="true" />
+
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto">
           <PageHeader
             title={lei?.nome_curto || lei?.nome || 'Lei estadual'}

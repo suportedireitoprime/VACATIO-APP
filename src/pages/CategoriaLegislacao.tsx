@@ -1142,8 +1142,8 @@ const CategoriaLegislacao = () => {
     // If a year is selected, show the list of laws
     if (selectedAno) {
       return (
-        <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
-          <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
+        <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
+          <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-[calc(var(--sai-top,0px)+1.5rem)] pb-6 sm:px-6 md:px-8`}>
             <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-4 mb-4">
                 <button
@@ -1229,8 +1229,8 @@ const CategoriaLegislacao = () => {
 
     // Year selection view
     return (
-      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
-        <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
+        <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-[calc(var(--sai-top,0px)+1.5rem)] pb-6 sm:px-6 md:px-8`}>
           <div className="max-w-5xl mx-auto">
             <div className="flex items-center gap-4 mb-4">
               <button
@@ -1296,8 +1296,8 @@ const CategoriaLegislacao = () => {
 
     if (selectedAnoDecreto) {
       return (
-        <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
-          <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
+        <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
+          <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-[calc(var(--sai-top,0px)+1.5rem)] pb-6 sm:px-6 md:px-8`}>
             <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-4 mb-4">
                 <button
@@ -1383,8 +1383,8 @@ const CategoriaLegislacao = () => {
 
     // Year selection view for decretos
     return (
-      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
-        <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
+        <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-[calc(var(--sai-top,0px)+1.5rem)] pb-6 sm:px-6 md:px-8`}>
           <div className="max-w-5xl mx-auto">
             <div className="flex items-center gap-4 mb-4">
               <button
@@ -1443,8 +1443,8 @@ const CategoriaLegislacao = () => {
     if (selectedTribunal) {
       const tribunalInfo = SUMULA_TRIBUNAIS.find(t => t.id === selectedTribunal);
       return (
-        <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
-          <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
+        <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
+          <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-[calc(var(--sai-top,0px)+1.5rem)] pb-6 sm:px-6 md:px-8`}>
             <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-4 mb-4">
                 <button
@@ -1561,8 +1561,8 @@ const CategoriaLegislacao = () => {
 
     // Tribunal selection view
     return (
-      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
-        <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-10 pb-6 sm:px-6 md:px-8`}>
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
+        <div className={`bg-gradient-to-br ${config?.bg || 'from-primary to-primary/80'} px-4 pt-[calc(var(--sai-top,0px)+1.5rem)] pb-6 sm:px-6 md:px-8`}>
           <div className="max-w-5xl mx-auto">
             <div className="flex items-center gap-4 mb-4">
               <button
@@ -2353,7 +2353,7 @@ const CategoriaLegislacao = () => {
         aria-label="Navegação principal"
         role="navigation"
         data-bottom-nav
-        className={`fixed bottom-0 left-0 right-0 z-[60] lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,var(--sai-bottom))] transition-all duration-300 ease-out`}
+        className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,0px)] transition-all duration-300 ease-out`}
       >
         <div
           aria-hidden="true"
@@ -2445,7 +2445,7 @@ const CategoriaLegislacao = () => {
                   <div className="w-10 h-1 rounded-full bg-white/20" />
                 </div>
               )}
-              <div className="flex-1 overflow-y-auto pb-[calc(1rem+var(--sai-bottom,var(--sai-bottom)))] overscroll-contain">
+              <div className="flex-1 overflow-y-auto pb-[calc(1rem+var(--sai-bottom,0px))] overscroll-contain">
                 {/* Header */}
                 <div className="flex items-center justify-between gap-3 px-4 md:px-6 py-3 border-b border-white/5 shrink-0 bg-background/95 backdrop-blur-sm sticky top-0 z-10 rounded-t-2xl">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -2659,7 +2659,7 @@ const CategoriaLegislacao = () => {
           const baseColor = getLeiColor(selectedLeiId, tipo);
           return (
             <div
-              className="relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 flex flex-col z-20 pt-[var(--sai-top,var(--sai-top))]"
+              className="relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 flex flex-col z-20 pt-[var(--sai-top,0px)]"
               style={{
                 transform: 'translateZ(0)',
                 backgroundColor: '#050505',
@@ -2735,7 +2735,7 @@ const CategoriaLegislacao = () => {
                 type="button"
                 onClick={goBack}
                 aria-label="Voltar"
-                className="absolute left-4 top-[calc(var(--sai-top,var(--sai-top))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
+                className="absolute left-[calc(1rem+var(--sai-left,0px))] top-[calc(var(--sai-top,0px)+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
               >
                 <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
               </button>
@@ -2760,7 +2760,7 @@ const CategoriaLegislacao = () => {
                       setLeiFavToggle((n) => n + 1);
                     }}
                     aria-label={fav ? 'Remover dos favoritos' : 'Favoritar lei'}
-                    className={`absolute left-[72px] top-[calc(var(--sai-top,var(--sai-top))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none ${fav ? 'bg-primary/20 border-primary/40' : 'bg-black/40 border-white/25'}`}
+                    className={`absolute left-[calc(4.5rem+var(--sai-left,0px))] top-[calc(var(--sai-top,0px)+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none ${fav ? 'bg-primary/20 border-primary/40' : 'bg-black/40 border-white/25'}`}
                   >
                     <Heart className={`w-6 h-6 drop-shadow ${fav ? 'text-primary fill-primary' : 'text-white'}`} />
                   </button>
@@ -2772,7 +2772,7 @@ const CategoriaLegislacao = () => {
                 type="button"
                 onClick={() => {}}
                 aria-label="Sobre a lei"
-                className="absolute right-4 top-[calc(var(--sai-top,var(--sai-top))+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
+                className="absolute right-[calc(1rem+var(--sai-right,0px))] top-[calc(var(--sai-top,0px)+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
               >
                 <Info className="w-6 h-6 text-white drop-shadow" />
               </button>
@@ -2872,7 +2872,10 @@ const CategoriaLegislacao = () => {
         </Dialog>
 
 
-        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-[calc(7rem+var(--sai-bottom))] space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-[1200px]' : 'max-w-5xl'}`} style={{ fontSize: `${fontSizeScale || 1}rem` }}>
+        {/* Status bar blur shield durante a rolagem dos artigos */}
+        <div className="fixed top-0 left-0 right-0 h-[var(--sai-top,0px)] bg-background/95 backdrop-blur-md z-30 pointer-events-none" aria-hidden="true" />
+
+        <div id="lei-conteudo" className={`mx-auto px-2 sm:px-4 md:px-6 pt-4 pb-[calc(7rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] space-y-4 scroll-mt-2 ${isDesktop ? 'max-w-[1200px]' : 'max-w-5xl'}`} style={{ fontSize: `${fontSizeScale || 1}rem` }}>
 
           {/* Mini-Sumário Flutuante removido */}
 
@@ -3084,9 +3087,9 @@ const CategoriaLegislacao = () => {
                 transition={{ duration: 0.18 }}
                 onClick={goBack}
                 aria-label="Voltar"
-                className="fixed left-4 top-[calc(var(--sai-top,var(--sai-top))+12px)] z-40 w-11 h-11 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
+                className="fixed left-[calc(1rem+var(--sai-left,0px))] top-[calc(var(--sai-top,0px)+12px)] z-40 w-12 h-12 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
               >
-                <ArrowLeft className="w-5 h-5 text-white" />
+                <ArrowLeft className="w-6 h-6 text-white" />
               </motion.button>
               <motion.button
                 key="up-glass"
@@ -3096,7 +3099,7 @@ const CategoriaLegislacao = () => {
                 transition={{ duration: 0.18 }}
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 aria-label="Voltar ao topo"
-                className="fixed bottom-24 right-4 z-40 w-12 h-12 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] text-white active:scale-95 transition"
+                className="fixed bottom-[calc(6.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] right-[calc(1rem+var(--sai-right,0px))] z-40 w-12 h-12 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] text-white active:scale-95 transition"
               >
                 <ArrowUp className="w-5 h-5" />
               </motion.button>

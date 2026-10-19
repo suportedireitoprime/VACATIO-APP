@@ -12,7 +12,7 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background px-6 text-center">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background px-6 text-center pt-[calc(var(--sai-top,0px)+1.5rem)] pb-[calc(var(--sai-bottom,0px)+1.5rem)]">
       {/* halo dourado sutil ao fundo */}
       <div
         aria-hidden

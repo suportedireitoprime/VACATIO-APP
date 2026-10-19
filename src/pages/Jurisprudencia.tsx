@@ -201,6 +201,12 @@ const Jurisprudencia = () => {
 
   return (
     <div className="min-h-dvh bg-background pb-[calc(6.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))]">
+      {/* Blindagem de status bar superior para rolagem segura */}
+      <div
+        className="pointer-events-none fixed top-0 left-0 right-0 h-[var(--sai-top,0px)] bg-background/95 backdrop-blur-md z-30"
+        aria-hidden="true"
+      />
+
       {/* Painel verde (mirror do painel amarelo do início) */}
       <div
         className="relative overflow-hidden rounded-b-[36px] border-b border-emerald-500/30 shadow-2xl shadow-black/50"
@@ -209,6 +215,13 @@ const Jurisprudencia = () => {
             'linear-gradient(150deg, hsl(164 45% 16%) 0%, hsl(158 52% 11%) 55%, hsl(150 45% 7%) 100%)',
         }}
       >
+        {/* Blindagem de overscroll superior contra vazamento do fundo */}
+        <div
+          className="pointer-events-none absolute -top-[1200px] left-0 right-0 h-[1200px] z-0"
+          style={{ backgroundColor: 'hsl(164 45% 16%)' }}
+          aria-hidden="true"
+        />
+
         {/* Ornamentos SVG (mesmo do painel amarelo), tingidos de verde */}
         <div className="absolute inset-0 opacity-70 pointer-events-none [filter:hue-rotate(95deg)_saturate(0.85)]">
           <HeroOrnaments />

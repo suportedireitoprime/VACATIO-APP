@@ -39,7 +39,7 @@ const BibliotecaBottomNav = ({ hidden = false }: { hidden?: boolean }) => {
       aria-label="Navegação da Biblioteca"
       role="navigation"
       data-bottom-nav
-      className={`fixed bottom-0 left-0 right-0 z-[100] border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-out ${
+      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,0px)] transition-all duration-300 ease-out ${
         hidden ? 'translate-y-[140%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'
       }`}
     >

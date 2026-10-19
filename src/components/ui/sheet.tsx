@@ -61,7 +61,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Con
         {children}
         <SheetPrimitive.Close
           aria-label="Fechar"
-          className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-secondary/80 opacity-90 ring-offset-background transition-opacity hover:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none sm:right-4 sm:top-4"
+          className="absolute right-[calc(0.75rem+var(--sai-right,0px))] top-[calc(0.75rem+var(--sai-top,0px))] flex h-11 w-11 items-center justify-center rounded-full bg-secondary/80 opacity-90 ring-offset-background transition-opacity hover:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none sm:right-4 sm:top-4"
         >
           <X className="h-6 w-6" strokeWidth={2} />
           <span className="sr-only">Fechar</span>
