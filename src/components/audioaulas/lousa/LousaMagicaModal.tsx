@@ -1572,6 +1572,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           </span>
         </div>
 
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Botão de Iluminação Cênica (Spotlight da Lousa - Item 5) */}
           <button
             type="button"
