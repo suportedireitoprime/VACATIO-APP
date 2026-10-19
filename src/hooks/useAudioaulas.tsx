@@ -188,6 +188,8 @@ export function useAudioaulas(areaAtual: string | null) {
     
     // Actions
     handleTocarAula,
+    tocar: handleTocarAula,
+    play: handleTocarAula,
     
     // Gating UI
     gateNodes: (

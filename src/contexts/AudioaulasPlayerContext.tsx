@@ -44,6 +44,7 @@ interface AudioaulasPlayerContextType {
   limparRecentes: () => void;
   setAberto: (v: boolean) => void;
   tocar: (a: AulaAudio, customFila?: AulaAudio[]) => Promise<void>;
+  play?: (a: AulaAudio, customFila?: AulaAudio[]) => Promise<void>;
   togglePlay: () => void;
   pular: (dir: 1 | -1) => void;
   seek: (v: number) => void;
@@ -110,6 +111,7 @@ const fallbackAudioaulasContext: AudioaulasPlayerContextType = {
   limparRecentes: () => {},
   setAberto: () => {},
   tocar: async () => {},
+  play: async () => {},
   togglePlay: () => {},
   pular: () => {},
   seek: () => {},
@@ -621,6 +623,7 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
     limparRecentes,
     setAberto,
     tocar,
+    play: tocar,
     togglePlay,
     pular,
     seek,

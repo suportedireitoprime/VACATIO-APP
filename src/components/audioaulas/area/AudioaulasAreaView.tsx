@@ -8,6 +8,8 @@ import {
   Sparkles,
   Layers,
   Volume2,
+  Play,
+  Pause,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type AulaAudio, audioIdOf, useAudioaulasPlayer } from '@/contexts/AudioaulasPlayerContext';
@@ -67,8 +69,8 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
   handleTocarAula,
   onVoltar,
 }) => {
-  // Acesso ao player para progresso ao vivo em tempo real
-  const { tempo, dur } = useAudioaulasPlayer();
+  // Acesso ao player para progresso ao vivo em tempo real e controle
+  const { tempo, dur, togglePlay } = useAudioaulasPlayer();
 
   // Progresso persistente gravado por aula e consolidado
   const { progressoMap } = useAudioaulasProgresso();
@@ -113,12 +115,21 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
     );
   }, [temas, materiaSelecionada, buscaAulas]);
 
-  // Tocar todas as aulas da matéria em ordem sequencial
+  // Verifica se alguma aula da matéria ativa está tocando atualmente
+  const isMateriaTocando = useMemo(() => {
+    if (!tocando || !atualId) return false;
+    return aulasDaMateriaAtiva.some((a) => a.id === atualId || audioIdOf(a) === String(atualId));
+  }, [tocando, atualId, aulasDaMateriaAtiva]);
+
+  // Tocar todas as aulas da matéria em ordem sequencial ou pausar se já tocando
   const handleTocarTodas = () => {
-    if (aulasDaMateriaAtiva.length > 0) {
-      haptic.impactMedium();
-      handleTocarAula(aulasDaMateriaAtiva[0], aulasDaMateriaAtiva);
+    if (aulasDaMateriaAtiva.length === 0) return;
+    haptic.impactMedium();
+    if (isMateriaTocando) {
+      togglePlay();
+      return;
     }
+    handleTocarAula(aulasDaMateriaAtiva[0], aulasDaMateriaAtiva);
   };
 
   return (
@@ -467,9 +478,17 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                   }}
                   className="flex items-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl active:scale-95 text-white font-card font-bold text-xs sm:text-sm transition shrink-0 cursor-pointer shadow-lg"
                 >
-                  <Play className="w-4 h-4 fill-white" />
-                  <span className="hidden sm:inline">Ouvir matéria completa</span>
-                  <span className="sm:hidden">Ouvir todas</span>
+                  {isMateriaTocando ? (
+                    <Pause className="w-4 h-4 fill-white" />
+                  ) : (
+                    <Play className="w-4 h-4 fill-white" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {isMateriaTocando ? 'Pausar matéria' : 'Ouvir matéria completa'}
+                  </span>
+                  <span className="sm:hidden">
+                    {isMateriaTocando ? 'Pausar' : 'Ouvir todas'}
+                  </span>
                 </button>
               </div>
 

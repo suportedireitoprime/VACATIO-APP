@@ -31,6 +31,7 @@ interface AudioaulasSecaoLegislacaoProps {
   tocando: boolean;
   favoritos: Set<string>;
   alternarFavorito: (a: AulaAudio) => void;
+  handleTocarAula: (a: AulaAudio, filaCustom?: AulaAudio[]) => void;
 }
 
 export const AudioaulasSecaoLegislacao: React.FC<AudioaulasSecaoLegislacaoProps> = React.memo(({
