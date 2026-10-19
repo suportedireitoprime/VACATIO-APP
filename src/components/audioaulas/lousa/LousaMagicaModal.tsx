@@ -107,7 +107,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     }
   }, []);
 
-  // Finaliza a digitação de giz ativa
+  // Finaliza a digitação de giz ativa com animação suave de erguer o giz
   const lousaFinishTyping = useCallback((instant: boolean) => {
     if (lousaTypingElRef.current) {
       const el = lousaTypingElRef.current as any;
@@ -117,6 +117,18 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       el.textContent = el._full || '';
       el.classList.remove('typing');
       lousaTypingElRef.current = null;
+
+      if (lzGizElRef.current) {
+        if (instant) {
+          lzGizElRef.current.remove();
+        } else {
+          lzGizElRef.current.classList.add('is-lifting');
+          setTimeout(() => {
+            lzGizElRef.current?.remove();
+          }, 230);
+        }
+      }
+
       if (cb) cb(!!instant);
     }
     if (lousaTypeTORef.current) {
@@ -125,21 +137,21 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     }
   }, []);
 
-  // Cria faísca sutil de pó de giz na ponta
+  // Cria faísca sutil de pó de giz no ponto exato de contato da ponta
   const emitirPoGiz = useCallback((el: HTMLElement) => {
     try {
       const puff = document.createElement('span');
       puff.className = 'lz-chalk-dust-spark';
-      puff.style.left = `${Math.random() * 6}px`;
-      puff.style.top = `${-3 + Math.random() * 6}px`;
+      puff.style.left = `${Math.random() * 4 - 2}px`;
+      puff.style.bottom = `${Math.random() * 4}px`;
       el.appendChild(puff);
-      setTimeout(() => puff.remove(), 500);
+      setTimeout(() => puff.remove(), 450);
     } catch {
       // safe
     }
   }, []);
 
-  // Digita letra por letra com efeito de toco de giz 3D oscilante e som procedural
+  // Digita letra por letra com efeito de giz 3D inclinado, traçado manual e som procedural
   const lousaType = useCallback((el: HTMLElement, full: string, isCapitulo: boolean, onDone?: (instant: boolean) => void) => {
     lousaFinishTyping(true);
     (el as any)._full = full;
@@ -158,41 +170,49 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       const g = document.createElement('span');
       g.className = 'lz-giz-3d';
       g.innerHTML = `
-        <span class="lz-giz-corpo"></span>
+        <span class="lz-giz-contato"></span>
         <span class="lz-giz-ponta"></span>
+        <span class="lz-giz-corpo"></span>
       `;
       g.setAttribute('aria-hidden', 'true');
       lzGizElRef.current = g;
     }
 
+    const giz = lzGizElRef.current;
+    giz.classList.remove('is-lifting');
+
     // Se for capítulo, usa giz amarelo! Caso contrário, giz branco
     if (isCapitulo) {
-      lzGizElRef.current.classList.add('is-yellow');
+      giz.classList.add('is-yellow');
     } else {
-      lzGizElRef.current.classList.remove('is-yellow');
+      giz.classList.remove('is-yellow');
     }
 
     let k = 0;
     el.textContent = '';
-    const intervalMs = Math.max(14, Math.round(30 / (velocidadeRef.current || 1)));
+    el.appendChild(giz);
+    const intervalMs = Math.max(14, Math.round(26 / (velocidadeRef.current || 1)));
 
     lousaTypeTORef.current = setInterval(() => {
       k++;
-      el.textContent = full.slice(0, k);
+      const sub = full.slice(0, k);
+      const nextChar = full[k - 1];
 
-      // Efeito sonoro procedural suave de giz a cada 3 caracteres
-      if (k % 3 === 0) {
+      el.textContent = sub;
+      el.appendChild(giz);
+
+      // Oscilação dinâmica de traçado manual da mão escrevendo
+      const osc = k % 6;
+      const angulos = ['-34deg', '-39deg', '-32deg', '-38deg', '-41deg', '-35deg'];
+      const yOffs = ['-1px', '1px', '-2px', '0px', '2px', '-1px'];
+      giz.style.transform = `rotate(${angulos[osc]}) translateY(${yOffs[osc]})`;
+
+      // Efeito sonoro procedural suave a cada 3 caracteres
+      if (nextChar !== ' ' && k % 3 === 0) {
         lousaAudio.playGizScratch(0.04);
         emitirPoGiz(el);
       }
 
-      if (lzGizElRef.current) {
-        el.appendChild(lzGizElRef.current);
-        const osc = (k % 4);
-        const angulos = ['-15deg', '-5deg', '-12deg', '-3deg'];
-        const yOffs = ['-2px', '1px', '-1px', '0px'];
-        lzGizElRef.current.style.transform = `rotate(${angulos[osc]}) translateY(${yOffs[osc]})`;
-      }
       lousaScroll();
       if (k >= full.length) {
         lousaFinishTyping(false);
@@ -602,41 +622,70 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           flex: none;
         }
 
-        /* GIZ 3D REALISTA (Alterna Branco ou Amarelo conforme o elemento) */
+        /* GIZ 3D REALISTA EM PERSPECTIVA DE ESCRITA MANUAL */
         .lz-giz-3d {
           display: inline-flex;
-          align-items: center;
-          vertical-align: middle;
-          margin-left: 8px;
+          align-items: flex-end;
           position: relative;
-          width: 32px;
-          height: 11px;
-          filter: drop-shadow(2px 3px 3px rgba(0,0,0,0.6));
-          transform-origin: left bottom;
-          transition: transform 0.05s ease-out;
+          width: 42px;
+          height: 22px;
+          margin-left: 3px;
+          vertical-align: baseline;
           pointer-events: none;
+          z-index: 15;
+          transform-origin: 3px calc(100% - 2px);
+          transform: rotate(-36deg);
+          transition: transform 0.05s ease-out, opacity 0.2s ease;
+          filter: drop-shadow(-2px 4px 5px rgba(0,0,0,0.7));
         }
-        .lz-giz-corpo {
-          width: 23px;
-          height: 9px;
-          border-radius: 3px 0 0 3px;
-          background: linear-gradient(180deg, #ffffff 0%, #ebe5d4 50%, #c4bea8 100%);
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -2px 2px rgba(0,0,0,0.25);
-        }
+        /* Ponta chanfrada de giz (ponto de contato exato com a lousa) */
         .lz-giz-ponta {
-          width: 9px;
-          height: 9px;
-          background: linear-gradient(135deg, #ffffff 30%, #ded7c1 100%);
-          clip-path: polygon(0 0, 100% 35%, 100% 65%, 0 100%);
+          width: 10px;
+          height: 10px;
+          flex: none;
+          background: linear-gradient(135deg, #ffffff 40%, #ded7c1 100%);
+          clip-path: polygon(0% 100%, 75% 0%, 100% 25%, 25% 100%);
+        }
+        /* Corpo cilíndrico do bastão de giz estendido diagonalmente */
+        .lz-giz-corpo {
+          width: 32px;
+          height: 10px;
+          margin-left: -2px;
+          margin-bottom: 2px;
+          border-radius: 0 4px 4px 0;
+          background: linear-gradient(180deg, #ffffff 0%, #ede6d4 50%, #c4bea8 100%);
+          box-shadow: inset 0 1px 1px rgba(255,255,255,0.95), inset 0 -2px 3px rgba(0,0,0,0.3);
+        }
+        /* Ponto luminoso sutil de contato de pó na lousa */
+        .lz-giz-contato {
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(255,255,255,0.85) 0%, transparent 75%);
+          transform: translate(-30%, 30%);
+          pointer-events: none;
         }
 
         /* GIZ AMARELO QUANDO FOR CAPÍTULO */
-        .lz-giz-3d.is-yellow .lz-giz-corpo {
-          background: linear-gradient(180deg, #fff1aa 0%, #f7cb5c 50%, #d49f2b 100%);
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.85), inset 0 -2px 2px rgba(0,0,0,0.3);
-        }
         .lz-giz-3d.is-yellow .lz-giz-ponta {
-          background: linear-gradient(135deg, #fff1aa 30%, #e6b83f 100%);
+          background: linear-gradient(135deg, #fff2aa 40%, #e6b83f 100%);
+        }
+        .lz-giz-3d.is-yellow .lz-giz-corpo {
+          background: linear-gradient(180deg, #fff2aa 0%, #f7cb5c 50%, #d49f2b 100%);
+          box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(0,0,0,0.35);
+        }
+        .lz-giz-3d.is-yellow .lz-giz-contato {
+          background: radial-gradient(circle, rgba(247,208,112,0.85) 0%, transparent 75%);
+        }
+
+        /* Animação suave de erguer a mão/giz ao terminar o ponto */
+        .lz-giz-3d.is-lifting {
+          transform: rotate(-22deg) translateY(-14px) translateX(6px) !important;
+          opacity: 0 !important;
+          transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.22s ease !important;
         }
 
         /* Faísca sutil de pó de giz emitida na ponta */
