@@ -31,21 +31,14 @@ export const AudioaulasLegislacaoDrawerDetalhes: React.FC<AudioaulasLegislacaoDr
   const navigate = useNavigate();
 
   return (
-    <AnimatePresence>
+    <>
       {itemSelecionado && (
         <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
             onClick={onFechar}
             className="fixed inset-0 z-[1400] bg-black/85 backdrop-blur-md"
           />
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+          <div
             className="fixed inset-0 sm:inset-y-6 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl z-[1401] flex flex-col bg-zinc-950 border-t sm:border border-white/10 sm:rounded-3xl shadow-2xl overflow-hidden"
           >
             {/* Pílula de arraste no mobile */}
@@ -177,9 +170,9 @@ export const AudioaulasLegislacaoDrawerDetalhes: React.FC<AudioaulasLegislacaoDr
                 </button>
               </div>
             </div>
-          </motion.div>
+          </div>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 };

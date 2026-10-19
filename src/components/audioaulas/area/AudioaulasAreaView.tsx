@@ -137,12 +137,7 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
       {/* ══════════════════════════════════════════════════════════════════
           TELA 1: LISTA DE MATÉRIAS DA ÁREA (COM COR BASEADA NA CAPA)
          ══════════════════════════════════════════════════════════════════ */}
-      <motion.div
-        key="area-materias-view"
-        initial={{ y: '100%', opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: '100%', opacity: 0 }}
-        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+      <div
         className="flex-1 flex flex-col min-h-0 bg-[#070b14] relative overflow-hidden"
       >
         {/* Fundo de Quadrados Animados com cor sutil da capa */}
@@ -408,19 +403,13 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* ══════════════════════════════════════════════════════════════════
           TELA 2: LISTA DE AULAS DA MATÉRIA (COM CORES DA CAPA E MESMA ALTURA)
          ══════════════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
         {materiaSelecionada && (
-          <motion.div
-            key="materia-aulas-view"
-            initial={{ y: '100%', opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '100%', opacity: 0 }}
-            transition={{ type: 'spring', damping: 28, stiffness: 290 }}
+          <div
             className="fixed inset-0 z-50 bg-[#070b14] text-white flex flex-col overflow-hidden"
           >
             {/* Fundo de Quadrados Animados com cor sutil da capa */}
@@ -593,9 +582,8 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                 )}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {/* Modal Interativo da Lousa Mágica (Carregado dinamicamente sob demanda) */}
       {Boolean(lousaModalAula) && (

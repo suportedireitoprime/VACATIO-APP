@@ -191,8 +191,9 @@ const AdminAprenderLeis = lazy(() => import("./pages/AdminAprenderLeis.tsx"));
 const AdminAprenderLeisLaboratorio = lazy(() => import("./pages/AdminAprenderLeisLaboratorio.tsx"));
 const AdminAprenderLeisCriar = lazy(() => import("./pages/AdminAprenderLeisCriar.tsx"));
 const AdminAudioAulas = lazy(() => import("./pages/AdminAudioAulas.tsx"));
-const AudioAulas = lazy(routePrefetch.audioaulas);
-const AudioLeisPage = lazy(routePrefetch.audioLeis);
+// AudioAulas e AudioLeisPage — eager para abrir sem Suspense fallback (0ms)
+import AudioAulas from "./pages/AudioAulas.tsx";
+import AudioLeisPage from "./pages/AudioLeisPage.tsx";
 const AdminNarracaoArtigos = lazy(() => import("./pages/AdminNarracaoArtigos.tsx"));
 const AdminRoboResumos = lazy(() => import("./pages/AdminRoboResumos.tsx"));
 const AdminPopularConteudo = lazy(() => import("./pages/AdminPopularConteudo.tsx"));

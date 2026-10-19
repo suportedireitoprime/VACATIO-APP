@@ -145,15 +145,9 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
       />
 
       <div className="relative z-10">
-        {/* Se uma lei específica estiver aberta em modo álbum — Abre de baixo para cima igual MapasOverlay */}
-        <AnimatePresence>
-          {selectedLeiData && (
-            <motion.div
-              key="lei-album-sheet"
-              initial={{ y: '100%', opacity: 1 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 1 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+        {/* Se uma lei específica estiver aberta em modo álbum — Abertura instantânea (0ms) */}
+        {selectedLeiData && (
+            <div
               className="fixed inset-0 z-[100] bg-zinc-950 flex flex-col overflow-hidden"
             >
               <SpotifyLeiAlbumView
@@ -165,9 +159,8 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
                 totalAudiosInitial={selectedLeiData.totalComAudio}
                 onBack={handleBackFromAlbum}
               />
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+        )}
 
         {!selectedLeiData && (
           activeTab === 'pesquisar' ? (

@@ -146,24 +146,17 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
       {/* Sheet Fullscreen "Ver todos" — Abre de baixo para cima cobrindo a tela toda por cima do rodapé */}
       {typeof document !== 'undefined' &&
         createPortal(
-          <AnimatePresence>
+          <>
             {modalAberto && (
               <>
                 {/* Backdrop escurecido cobrindo toda a janela */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                <div
                   onClick={() => setModalAberto(false)}
                   className="fixed inset-0 z-[1400] bg-black/85 backdrop-blur-md"
                 />
 
-                {/* Painel que sobe de baixo para cima cobrindo a tela toda */}
-                <motion.div
-                  initial={{ y: '100%' }}
-                  animate={{ y: 0 }}
-                  exit={{ y: '100%' }}
-                  transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+                {/* Painel instantâneo cobrindo a tela toda */}
+                <div
                   className="fixed inset-0 sm:inset-y-6 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl z-[1401] flex flex-col bg-zinc-950 border-t sm:border border-white/10 sm:rounded-3xl shadow-2xl overflow-hidden"
                 >
                   {/* Pílula superior para arraste no mobile */}
@@ -272,10 +265,10 @@ export const AudioaulasCarrosselAreas = React.memo(function AudioaulasCarrosselA
                       })
                     )}
                   </div>
-                </motion.div>
+                </div>
               </>
             )}
-          </AnimatePresence>,
+          </>,
           document.body
         )}
     </div>

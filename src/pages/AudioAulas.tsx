@@ -133,7 +133,7 @@ const Audioaulas = () => {
 
         {areaAtual ? (
           /* ───────── TELA DA ÁREA (SEM A CAPA, SLIDE UP, CATEGORIAS/MATÉRIAS) ───────── */
-          <React.Suspense fallback={<div className="py-20 grid place-items-center"><Loader2 className="h-7 w-7 animate-spin text-primary" /></div>}>
+          <React.Suspense fallback={null}>
             <AudioaulasAreaView
               area={areaAtual}
               aulas={state.daArea}
