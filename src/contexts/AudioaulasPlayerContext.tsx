@@ -13,6 +13,7 @@ import {
   salvarBgmConfig,
   BGM_VOLUME_PADRAO,
 } from '@/lib/audioaulasBgm';
+import { salvarProgressoAula, marcarAulaConcluida } from '@/lib/audioaulasProgresso';
 
 export interface AulaAudio {
   id: number;
@@ -156,6 +157,7 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
   const introTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isIntroPlayingRef = useRef<boolean>(false);
   const pularRef = useRef<(dir: 1 | -1) => void>(() => {});
+  const lastProgressSaveRef = useRef<number>(0);
 
   const setBgmAtivo = useCallback((ativo: boolean) => {
     setBgmAtivoState(ativo);
@@ -526,7 +528,10 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
     const el = audioRef.current;
     if (el) el.currentTime = v;
     setTempo(v);
-  }, []);
+    if (atualId !== null && dur > 0) {
+      salvarProgressoAula(atualId, v, dur);
+    }
+  }, [atualId, dur]);
 
   const setVelocidade = useCallback((rate: number) => {
     setVelocidadeState(rate);
@@ -622,10 +627,26 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
         ref={audioRef}
         preload="auto"
         playsInline
-        onTimeUpdate={(e) => setTempo(e.currentTarget.currentTime)}
+        onTimeUpdate={(e) => {
+          const t = e.currentTarget.currentTime;
+          const d = e.currentTarget.duration || 0;
+          setTempo(t);
+          if (atualId !== null && d > 0) {
+            const now = Date.now();
+            if (now - lastProgressSaveRef.current > 2500) {
+              lastProgressSaveRef.current = now;
+              salvarProgressoAula(atualId, t, d);
+            }
+          }
+        }}
         onLoadedMetadata={(e) => setDur(e.currentTarget.duration || 0)}
         onPlay={() => setTocando(true)}
-        onPause={() => setTocando(false)}
+        onPause={(e) => {
+          setTocando(false);
+          if (atualId !== null) {
+            salvarProgressoAula(atualId, e.currentTarget.currentTime, e.currentTarget.duration || 0);
+          }
+        }}
         onError={(e) => {
           console.error('[AudioaulasPlayer] Erro no elemento de áudio:', e);
           setTocando(false);
@@ -633,6 +654,9 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
         }}
         onEnded={() => {
           setTocando(false);
+          if (atualId !== null) {
+            marcarAulaConcluida(atualId);
+          }
           if (atualIdx >= 0 && fila[atualIdx + 1]) {
             void tocar(fila[atualIdx + 1]);
           } else {

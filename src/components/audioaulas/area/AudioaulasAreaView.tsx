@@ -12,14 +12,17 @@ import {
   Layers,
   Heart,
   Volume2,
+  CheckCircle2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { type AulaAudio, audioIdOf } from '@/contexts/AudioaulasPlayerContext';
+import { type AulaAudio, audioIdOf, useAudioaulasPlayer } from '@/contexts/AudioaulasPlayerContext';
 import { BotaoDownloadAudio } from '@/components/audioaulas/home/BotaoDownloadAudio';
 import { capaDaArea } from '@/lib/audioaulasHelper';
 import { CapaOtimizada } from '@/components/audioaulas/home/CapaOtimizada';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 import { haptic } from '@/lib/nativeHaptics';
+import { getAreaTheme } from '@/lib/audioaulasThemes';
+import { useAudioaulasProgresso, calcularProgressoMateria } from '@/lib/audioaulasProgresso';
 
 interface AudioaulasAreaViewProps {
   area: string;
@@ -67,6 +70,15 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
   handleTocarAula,
   onVoltar,
 }) => {
+  // Acesso ao player para progresso ao vivo em tempo real
+  const { tempo, dur } = useAudioaulasPlayer();
+
+  // Progresso persistente gravado por aula e consolidado
+  const { progressoMap } = useAudioaulasProgresso();
+
+  // Tema cromático predominante extraído da capa da área selecionada
+  const theme = useMemo(() => getAreaTheme(area), [area]);
+
   // Matéria/Categoria selecionada (se null, exibe lista de matérias)
   const [materiaSelecionada, setMateriaSelecionada] = useState<string | null>(null);
 
@@ -112,7 +124,7 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-[#070b14] text-white flex flex-col overflow-hidden select-none">
       {/* ══════════════════════════════════════════════════════════════════
-          TELA 1: LISTA DE MATÉRIAS DA ÁREA (COM SHAPEGRID E TIPOGRAFIA MODERNA)
+          TELA 1: LISTA DE MATÉRIAS DA ÁREA (COM COR BASEADA NA CAPA)
          ══════════════════════════════════════════════════════════════════ */}
       <motion.div
         key="area-materias-view"
@@ -122,20 +134,20 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         className="flex-1 flex flex-col min-h-0 bg-[#070b14] relative overflow-hidden"
       >
-        {/* Fundo de Quadrados Animados idêntico à Home (ShapeGrid) */}
+        {/* Fundo de Quadrados Animados com cor sutil da capa */}
         <div className="absolute inset-0 z-0 opacity-45 pointer-events-none">
           <ShapeGrid
             speed={0.5}
             squareSize={40}
             direction="diagonal"
             borderColor="rgba(255, 255, 255, 0.05)"
-            hoverFillColor="rgba(59, 130, 246, 0.15)"
+            hoverFillColor={theme.primaryAlpha25}
             shape="square"
             hoverTrailAmount={5}
           />
         </div>
 
-        {/* Topbar com Glassmorphism e Safe Area */}
+        {/* Topbar com Glassmorphism, Safe Area e Acentos da Capa */}
         <header
           className="relative z-20 shrink-0 px-4 sm:px-6 pb-3.5 border-b border-white/[0.08] bg-[#080d19]/90 backdrop-blur-xl shadow-lg"
           style={{ paddingTop: 'max(0.75rem, var(--sai-top, env(safe-area-inset-top, 0px)))' }}
@@ -156,8 +168,14 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
 
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 animate-pulse" />
-                  <span className="font-card text-[11px] font-bold uppercase tracking-wider text-blue-400">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0 animate-pulse"
+                    style={{ backgroundColor: theme.primary, boxShadow: `0 0 10px ${theme.primary}` }}
+                  />
+                  <span
+                    className="font-card text-[11px] font-bold uppercase tracking-wider"
+                    style={{ color: theme.primaryLight }}
+                  >
                     Área do Direito
                   </span>
                 </div>
@@ -167,29 +185,42 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
               </div>
             </div>
 
-            {/* Badges de Contagem com Efeito de Brilho */}
+            {/* Badges de Contagem com Acento da Capa */}
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-xs font-semibold text-zinc-300 shadow-sm backdrop-blur-md font-card">
-                <Layers className="w-3.5 h-3.5 text-blue-400" />
+                <Layers className="w-3.5 h-3.5" style={{ color: theme.primaryLight }} />
                 <span>{temas.length} matérias</span>
               </span>
-              <span className="tag-narracoes-shine inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-500/15 border border-blue-500/30 text-xs sm:text-[13px] font-bold text-blue-300 shadow-md backdrop-blur-md font-card">
-                <Headphones className="w-3.5 h-3.5 text-sky-400" />
+              <span
+                className="tag-narracoes-shine inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold shadow-md backdrop-blur-md font-card border"
+                style={{
+                  backgroundColor: theme.primaryAlpha15,
+                  borderColor: theme.primaryAlpha40,
+                  color: theme.primaryLight,
+                }}
+              >
+                <Headphones className="w-3.5 h-3.5 shrink-0" style={{ color: theme.primaryLight }} />
                 <span>{aulas.length} aulas</span>
               </span>
             </div>
           </div>
 
-          {/* Barra de Pesquisa Responsiva, Alta e Confortável */}
+          {/* Barra de Pesquisa Responsiva */}
           <div className="max-w-[1200px] mx-auto mt-3">
             <div className="relative flex items-center w-full">
-              <Search className="w-5 h-5 text-blue-400 absolute left-3.5 sm:left-4 pointer-events-none" />
+              <Search
+                className="w-5 h-5 absolute left-3.5 sm:left-4 pointer-events-none transition-colors"
+                style={{ color: buscaMaterias ? theme.primaryLight : 'rgba(255,255,255,0.45)' }}
+              />
               <input
                 type="text"
                 value={buscaMaterias}
                 onChange={(e) => setBuscaMaterias(e.target.value)}
                 placeholder={`Buscar matéria em ${formatarTituloMateria(area)}...`}
-                className="w-full h-12 sm:h-13 min-h-[48px] sm:min-h-[52px] pl-11 sm:pl-12 pr-11 py-3 text-sm sm:text-base font-card font-medium bg-white/[0.05] hover:bg-white/[0.08] focus:bg-white/[0.09] border border-white/12 focus:border-blue-500/60 rounded-2xl text-white placeholder-zinc-400 outline-none shadow-lg backdrop-blur-md transition-all duration-200"
+                className="w-full h-12 sm:h-13 min-h-[48px] sm:min-h-[52px] pl-11 sm:pl-12 pr-11 py-3 text-sm sm:text-base font-card font-medium bg-white/[0.05] hover:bg-white/[0.08] focus:bg-white/[0.09] border border-white/12 rounded-2xl text-white placeholder-zinc-400 outline-none shadow-lg backdrop-blur-md transition-all duration-200"
+                style={{
+                  borderColor: buscaMaterias ? theme.primaryAlpha60 : undefined,
+                }}
               />
               {buscaMaterias && (
                 <button
@@ -205,12 +236,15 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
           </div>
         </header>
 
-        {/* Lista de Matérias com Tipografia Estilo Cards do Início */}
+        {/* Lista de Matérias com Mesma Altura e Barra de Progresso */}
         <div className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 py-4 overscroll-contain">
           <div className="max-w-[1200px] mx-auto space-y-3 pb-28">
             <div className="flex items-center justify-between px-1 mb-2">
               <p className="font-card text-xs sm:text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                <span className="w-1.5 h-4 rounded-full bg-blue-500" />
+                <span
+                  className="w-1.5 h-4 rounded-full"
+                  style={{ backgroundColor: theme.primary, boxShadow: `0 0 8px ${theme.primary}` }}
+                />
                 <span>Selecione uma matéria ({temasFiltrados.length})</span>
               </p>
               <span className="font-card text-xs text-zinc-500 hidden sm:inline">
@@ -234,7 +268,14 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                 <h3 className="text-lg sm:text-xl font-extrabold text-white mb-2">
                   {formatarTituloMateria(area)}
                 </h3>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-bold mb-3">
+                <span
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold mb-3"
+                  style={{
+                    backgroundColor: theme.primaryAlpha15,
+                    borderColor: theme.primaryAlpha40,
+                    color: theme.primaryLight,
+                  }}
+                >
                   <Sparkles className="w-3.5 h-3.5" />
                   Acervo em gravação
                 </span>
@@ -256,6 +297,9 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
 
                 const temTocando = listaAulas.some((a) => a.id === atualId && tocando);
 
+                // Cálculo de progresso consolidado para esta matéria
+                const progressoMat = calcularProgressoMateria(listaAulas, progressoMap);
+
                 return (
                   <motion.button
                     key={tema}
@@ -267,20 +311,27 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                       setMateriaSelecionada(tema);
                       setBuscaAulas('');
                     }}
-                    className={`w-full group flex items-center justify-between gap-3 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all duration-300 text-left cursor-pointer backdrop-blur-md shadow-md ${
+                    style={{
+                      background: temTocando ? theme.cardActiveBg : undefined,
+                      borderColor: temTocando ? theme.primaryAlpha60 : undefined,
+                      boxShadow: temTocando ? theme.glowShadow : undefined,
+                    }}
+                    className={`w-full group rounded-2xl sm:rounded-3xl border transition-all duration-300 text-left cursor-pointer backdrop-blur-md shadow-md h-[86px] sm:h-[92px] min-h-[86px] sm:min-h-[92px] max-h-[86px] sm:max-h-[92px] px-3.5 sm:px-5 flex items-center justify-between gap-3 overflow-hidden ${
                       temTocando
-                        ? 'bg-gradient-to-r from-blue-900/40 via-blue-950/30 to-black/40 border-blue-500/50 shadow-xl shadow-blue-600/20 ring-1 ring-blue-500/30'
-                        : 'bg-gradient-to-r from-white/[0.05] via-white/[0.03] to-white/[0.02] hover:bg-white/[0.08] border-white/10 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-950/30'
+                        ? 'ring-1'
+                        : 'bg-gradient-to-r from-white/[0.05] via-white/[0.03] to-white/[0.02] hover:bg-white/[0.08] border-white/10 hover:border-white/25'
                     }`}
                   >
-                    <div className="flex items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
-                      {/* Badge numérico elegante com gradiente azul */}
+                    <div className="flex items-center gap-3.5 sm:gap-4 min-w-0 flex-1 h-full py-1">
+                      {/* Badge numérico com a cor da capa */}
                       <div
-                        className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-card font-bold text-sm sm:text-base shrink-0 border transition-all duration-300 ${
-                          temTocando
-                            ? 'bg-blue-600 text-white border-blue-400 shadow-lg shadow-blue-600/40 animate-pulse'
-                            : 'bg-gradient-to-br from-blue-500/20 to-blue-600/5 text-blue-300 border-blue-400/25 group-hover:from-blue-500/30 group-hover:to-blue-600/20 group-hover:border-blue-400/50 group-hover:text-white shadow-sm'
-                        }`}
+                        className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-card font-bold text-sm sm:text-base shrink-0 border transition-all duration-300"
+                        style={{
+                          backgroundColor: temTocando ? theme.primary : theme.primaryAlpha15,
+                          borderColor: temTocando ? theme.primaryLight : theme.primaryAlpha30,
+                          color: temTocando ? '#ffffff' : theme.primaryLight,
+                          boxShadow: temTocando ? theme.glowShadow : undefined,
+                        }}
                       >
                         {temTocando ? (
                           <Volume2 className="w-5 h-5 text-white animate-pulse" />
@@ -289,16 +340,39 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                         )}
                       </div>
 
-                      {/* Informações da Matéria com tipografia igual aos cards do início */}
-                      <div className="min-w-0 flex-1">
-                        <h2 className="font-card text-[15px] sm:text-lg font-bold text-white group-hover:text-sky-300 transition-colors line-clamp-2 leading-snug drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                      {/* Informações da Matéria e Barra de Progresso */}
+                      <div className="min-w-0 flex-1 flex flex-col justify-center">
+                        <h2 className="font-card text-[14px] sm:text-[16px] font-semibold text-white group-hover:text-white transition-colors truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                           {nomeMateriaFormatado}
                         </h2>
-                        <div className="font-card text-xs sm:text-[13px] text-zinc-300 font-medium flex items-center gap-1.5 mt-1 drop-shadow-sm">
-                          <Headphones className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                          <span>
-                            {listaAulas.length} {listaAulas.length === 1 ? 'aula didática' : 'aulas didáticas'}
+
+                        <div className="font-card text-xs sm:text-[13px] text-zinc-300 font-medium flex items-center gap-2 mt-0.5 drop-shadow-sm truncate">
+                          <span className="flex items-center gap-1.5 shrink-0">
+                            <Headphones className="w-3.5 h-3.5 shrink-0" style={{ color: theme.primaryLight }} />
+                            <span>
+                              {listaAulas.length} {listaAulas.length === 1 ? 'aula' : 'aulas'}
+                            </span>
                           </span>
+
+                          {progressoMat.percent > 0 && (
+                            <span
+                              className="text-[11px] font-semibold flex items-center gap-1 shrink-0"
+                              style={{ color: theme.primaryLight }}
+                            >
+                              • {progressoMat.percent}% concluído
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Barra de Progresso da Matéria */}
+                        <div className="mt-1.5 w-full h-1 bg-white/[0.08] rounded-full overflow-hidden relative">
+                          <div
+                            className="h-full rounded-full transition-all duration-500 ease-out"
+                            style={{
+                              width: `${Math.max(0, progressoMat.percent)}%`,
+                              background: `linear-gradient(90deg, ${theme.primary}, ${theme.primaryLight})`,
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
@@ -308,7 +382,12 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                       <span className="font-card text-xs font-semibold text-zinc-400 hidden sm:inline group-hover:text-white transition-colors">
                         Ver aulas
                       </span>
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 border border-white/10 group-hover:bg-blue-600 group-hover:border-blue-500 text-zinc-400 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-md">
+                      <div
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 border border-white/10 text-zinc-400 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-md group-hover:border-transparent"
+                        style={{
+                          backgroundColor: undefined,
+                        }}
+                      >
                         <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
@@ -321,7 +400,7 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
       </motion.div>
 
       {/* ══════════════════════════════════════════════════════════════════
-          TELA 2: LISTA DE AULAS DA MATÉRIA SELECIONADA (DE BAIXO PRA CIMA)
+          TELA 2: LISTA DE AULAS DA MATÉRIA (COM CORES DA CAPA E MESMA ALTURA)
          ══════════════════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {materiaSelecionada && (
@@ -333,20 +412,20 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
             transition={{ type: 'spring', damping: 28, stiffness: 290 }}
             className="fixed inset-0 z-50 bg-[#070b14] text-white flex flex-col overflow-hidden"
           >
-            {/* Fundo de Quadrados Animados idêntico à Home (ShapeGrid) */}
+            {/* Fundo de Quadrados Animados com cor sutil da capa */}
             <div className="absolute inset-0 z-0 opacity-45 pointer-events-none">
               <ShapeGrid
                 speed={0.5}
                 squareSize={40}
                 direction="diagonal"
                 borderColor="rgba(255, 255, 255, 0.05)"
-                hoverFillColor="rgba(59, 130, 246, 0.15)"
+                hoverFillColor={theme.primaryAlpha25}
                 shape="square"
                 hoverTrailAmount={5}
               />
             </div>
 
-            {/* Topbar da Matéria com Glassmorphism */}
+            {/* Topbar da Matéria com Glassmorphism e Acentos da Capa */}
             <header
               className="relative z-20 shrink-0 px-4 sm:px-6 pb-3.5 border-b border-white/[0.08] bg-[#080d19]/90 backdrop-blur-xl shadow-lg"
               style={{ paddingTop: 'max(0.75rem, var(--sai-top, env(safe-area-inset-top, 0px)))' }}
@@ -366,20 +445,27 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                   </button>
 
                   <div className="min-w-0">
-                    <p className="font-card text-[11px] font-bold uppercase tracking-wider text-blue-400 truncate">
+                    <p
+                      className="font-card text-[11px] font-bold uppercase tracking-wider truncate"
+                      style={{ color: theme.primaryLight }}
+                    >
                       {formatarTituloMateria(area)}
                     </p>
-                    <h2 className="font-card text-base sm:text-xl font-extrabold text-white truncate tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                    <h2 className="font-card text-base sm:text-xl font-bold text-white truncate tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                       {formatarTituloMateria(materiaSelecionada)}
                     </h2>
                   </div>
                 </div>
 
-                {/* Botão de Tocar Todas / Reproduzir Sequência */}
+                {/* Botão de Tocar Todas estilizado com o gradiente da Capa */}
                 <button
                   type="button"
                   onClick={handleTocarTodas}
-                  className="flex items-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 active:scale-95 text-white font-card font-bold text-xs sm:text-sm shadow-xl shadow-blue-600/35 transition shrink-0 cursor-pointer"
+                  style={{
+                    background: theme.gradientButton,
+                    boxShadow: theme.glowShadow,
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl active:scale-95 text-white font-card font-bold text-xs sm:text-sm transition shrink-0 cursor-pointer shadow-lg"
                 >
                   <Play className="w-4 h-4 fill-white" />
                   <span className="hidden sm:inline">Ouvir matéria completa</span>
@@ -387,16 +473,22 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                 </button>
               </div>
 
-              {/* Sub-barra de busca dentro da matéria: Alta e Responsiva */}
+              {/* Sub-barra de busca dentro da matéria */}
               <div className="max-w-[1200px] mx-auto mt-3 flex items-center justify-between gap-2">
                 <div className="relative flex items-center flex-1">
-                  <Search className="w-5 h-5 text-blue-400 absolute left-3.5 sm:left-4 pointer-events-none" />
+                  <Search
+                    className="w-5 h-5 absolute left-3.5 sm:left-4 pointer-events-none transition-colors"
+                    style={{ color: buscaAulas ? theme.primaryLight : 'rgba(255,255,255,0.45)' }}
+                  />
                   <input
                     type="text"
                     value={buscaAulas}
                     onChange={(e) => setBuscaAulas(e.target.value)}
                     placeholder="Buscar aula ou termo..."
-                    className="w-full h-12 sm:h-13 min-h-[48px] sm:min-h-[52px] pl-11 sm:pl-12 pr-11 py-3 text-sm sm:text-base font-card font-medium bg-white/[0.05] hover:bg-white/[0.08] focus:bg-white/[0.09] border border-white/12 focus:border-blue-500/60 rounded-2xl text-white placeholder-zinc-400 outline-none shadow-lg backdrop-blur-md transition-all duration-200"
+                    className="w-full h-12 sm:h-13 min-h-[48px] sm:min-h-[52px] pl-11 sm:pl-12 pr-11 py-3 text-sm sm:text-base font-card font-medium bg-white/[0.05] hover:bg-white/[0.08] focus:bg-white/[0.09] border border-white/12 rounded-2xl text-white placeholder-zinc-400 outline-none shadow-lg backdrop-blur-md transition-all duration-200"
+                    style={{
+                      borderColor: buscaAulas ? theme.primaryAlpha60 : undefined,
+                    }}
                   />
                   {buscaAulas && (
                     <button
@@ -410,13 +502,20 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                   )}
                 </div>
 
-                <div className="h-12 sm:h-13 min-h-[48px] sm:min-h-[52px] px-3.5 sm:px-4 rounded-2xl bg-white/[0.05] border border-white/12 flex items-center text-xs sm:text-sm font-card font-semibold text-zinc-300 shrink-0 shadow-md">
+                <div
+                  className="h-12 sm:h-13 min-h-[48px] sm:min-h-[52px] px-3.5 sm:px-4 rounded-2xl border flex items-center text-xs sm:text-sm font-card font-semibold shrink-0 shadow-md backdrop-blur-md"
+                  style={{
+                    backgroundColor: theme.primaryAlpha15,
+                    borderColor: theme.primaryAlpha30,
+                    color: theme.primaryLight,
+                  }}
+                >
                   {aulasDaMateriaAtiva.length} {aulasDaMateriaAtiva.length === 1 ? 'aula' : 'aulas'}
                 </div>
               </div>
             </header>
 
-            {/* Lista das Aulas da Matéria */}
+            {/* Lista das Aulas da Matéria: Mesma Altura, Tipografia Não-Negrito e Progresso */}
             <div className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-6 py-4 overscroll-contain">
               <div className="max-w-[1200px] mx-auto space-y-2.5 pb-28">
                 {aulasDaMateriaAtiva.length === 0 ? (
@@ -430,16 +529,31 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                     const isExp = aulaExpandidaId === aula.id;
                     const numFaixa = aula.sequencia ?? i + 1;
 
+                    // Progresso individual da aula
+                    const chaveAula = audioIdOf(aula);
+                    const salvo = progressoMap[chaveAula];
+                    const aulaPercent =
+                      isAtivo && dur > 0
+                        ? Math.min(100, Math.round((tempo / dur) * 100))
+                        : salvo?.percent || 0;
+                    const concluida = Boolean(salvo?.concluida) || aulaPercent >= 90;
+
                     return (
                       <div
                         key={aula.id}
-                        className={`rounded-2xl sm:rounded-3xl border transition-all duration-300 backdrop-blur-md ${
+                        style={{
+                          background: isAtivo ? theme.cardActiveBg : undefined,
+                          borderColor: isAtivo ? theme.primaryAlpha60 : undefined,
+                          boxShadow: isAtivo ? theme.glowShadow : undefined,
+                        }}
+                        className={`rounded-2xl sm:rounded-3xl border transition-all duration-300 backdrop-blur-md overflow-hidden ${
                           isAtivo
-                            ? 'bg-gradient-to-r from-blue-900/40 via-blue-950/30 to-black/40 border-blue-500/50 shadow-xl shadow-blue-500/20 ring-1 ring-blue-500/30'
+                            ? 'ring-1'
                             : 'bg-white/[0.03] hover:bg-white/[0.07] border-white/10 hover:border-white/20'
                         }`}
                       >
-                        <div className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4">
+                        {/* Linha Principal com Altura Padronizada e Rigorosamente Uniforme */}
+                        <div className="flex items-center gap-3 sm:gap-4 px-3.5 sm:px-4 h-[86px] sm:h-[92px]">
                           {/* Botão de Play / Pause */}
                           <button
                             type="button"
@@ -447,12 +561,20 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                               haptic.selection();
                               handleTocarAula(aula, aulasDaMateriaAtiva);
                             }}
-                            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform active:scale-95 shadow-md cursor-pointer ${
-                              isAtivo && tocando
-                                ? 'bg-blue-600 text-white shadow-blue-600/40'
-                                : isAtivo
-                                ? 'bg-blue-600/70 text-white border border-blue-400/50'
-                                : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+                            style={{
+                              backgroundColor:
+                                isAtivo && tocando
+                                  ? theme.primary
+                                  : isAtivo
+                                  ? theme.primaryAlpha40
+                                  : undefined,
+                              borderColor: isAtivo ? theme.primaryLight : undefined,
+                              boxShadow: isAtivo && tocando ? theme.glowShadow : undefined,
+                            }}
+                            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform active:scale-95 shadow-md cursor-pointer border ${
+                              isAtivo
+                                ? 'text-white'
+                                : 'bg-white/10 text-white hover:bg-white/20 border-white/10'
                             }`}
                           >
                             {isAtivo && tocando ? (
@@ -462,32 +584,69 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                             )}
                           </button>
 
-                          {/* Título e Faixa com font-card */}
+                          {/* Faixa, Título Refinado (não-negrito) e Barra de Progresso */}
                           <button
                             type="button"
                             onClick={() => {
                               haptic.selection();
                               handleTocarAula(aula, aulasDaMateriaAtiva);
                             }}
-                            className="min-w-0 flex-1 text-left cursor-pointer"
+                            className="min-w-0 flex-1 text-left cursor-pointer flex flex-col justify-center h-full py-1"
                           >
                             <div className="flex items-center gap-2">
-                              <span className="font-card text-[11px] font-bold px-2 py-0.5 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300">
+                              <span
+                                className="font-medium text-[11px] px-2 py-0.5 rounded-md border shrink-0"
+                                style={{
+                                  backgroundColor: theme.primaryAlpha15,
+                                  borderColor: theme.primaryAlpha30,
+                                  color: theme.primaryLight,
+                                }}
+                              >
                                 Faixa {numFaixa}
                               </span>
-                              {isAtivo && (
-                                <span className="font-card text-[10px] font-bold uppercase tracking-wider text-sky-400 animate-pulse">
+
+                              {isAtivo ? (
+                                <span
+                                  className="font-card text-[10px] font-bold uppercase tracking-wider animate-pulse truncate"
+                                  style={{ color: theme.primaryLight }}
+                                >
                                   {tocando ? 'Reproduzindo' : 'Pausado'}
                                 </span>
-                              )}
+                              ) : concluida ? (
+                                <span
+                                  className="text-[10px] font-medium flex items-center gap-1 truncate"
+                                  style={{ color: theme.primaryLight }}
+                                >
+                                  <CheckCircle2 className="w-3 h-3 shrink-0" />
+                                  Concluída
+                                </span>
+                              ) : aulaPercent > 0 ? (
+                                <span className="text-[10px] font-medium text-zinc-400 truncate">
+                                  {aulaPercent}% ouvido
+                                </span>
+                              ) : null}
                             </div>
+
+                            {/* Tipografia suave e elegante: font-medium, sem negrito pesado */}
                             <h3
-                              className={`font-card text-sm sm:text-base font-bold mt-1 line-clamp-2 transition-colors ${
-                                isAtivo ? 'text-sky-300' : 'text-white'
-                              }`}
+                              className="font-medium text-[14px] sm:text-[15px] text-zinc-100 truncate mt-1 tracking-normal transition-colors drop-shadow-sm leading-snug"
+                              style={{
+                                color: isAtivo ? theme.primaryLight : undefined,
+                              }}
                             >
                               {aula.titulo}
                             </h3>
+
+                            {/* Barra de Progresso da Aula */}
+                            <div className="mt-1.5 w-full h-1 bg-white/[0.08] rounded-full overflow-hidden relative">
+                              <div
+                                className="h-full rounded-full transition-all duration-300 ease-out"
+                                style={{
+                                  width: `${Math.max(0, aulaPercent)}%`,
+                                  background: `linear-gradient(90deg, ${theme.primary}, ${theme.primaryLight})`,
+                                }}
+                              />
+                            </div>
                           </button>
 
                           {/* Ações: Download, Favorito e Resumo */}
@@ -515,9 +674,14 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                                 type="button"
                                 onClick={() => setAulaExpandidaId(isExp ? null : aula.id)}
                                 aria-label="Ver resumo doutrinário"
-                                className={`px-3 py-1.5 rounded-xl font-card text-xs font-semibold transition border cursor-pointer ${
+                                style={{
+                                  backgroundColor: isExp ? theme.primaryAlpha25 : undefined,
+                                  borderColor: isExp ? theme.primaryAlpha40 : undefined,
+                                  color: isExp ? theme.primaryLight : undefined,
+                                }}
+                                className={`px-2.5 sm:px-3 py-1.5 rounded-xl font-card text-xs font-semibold transition border cursor-pointer ${
                                   isExp
-                                    ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+                                    ? ''
                                     : 'bg-white/5 text-zinc-300 hover:text-white border-white/10'
                                 }`}
                               >
@@ -536,7 +700,10 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                               exit={{ opacity: 0, height: 0 }}
                               className="overflow-hidden border-t border-white/[0.06] bg-black/40 px-4 py-3.5 rounded-b-2xl sm:rounded-b-3xl"
                             >
-                              <p className="font-card text-xs font-bold text-blue-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                              <p
+                                className="font-card text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5"
+                                style={{ color: theme.primaryLight }}
+                              >
                                 <BookOpen className="w-3.5 h-3.5" />
                                 Síntese e Conteúdo Doutrinário
                               </p>
