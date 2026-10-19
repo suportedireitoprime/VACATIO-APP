@@ -17,6 +17,7 @@
   --sai-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
   --sai-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   --sai-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --active-mini-player-offset: 0px;
 }
 
 /* No Android WebView com edge-to-edge, env(safe-area-inset-*) NÃO é propagado
@@ -58,6 +59,11 @@ body {
 .pb-safe { padding-bottom: var(--sai-bottom, env(safe-area-inset-bottom, 0px)); }
 .pl-safe { padding-left: var(--sai-left, env(safe-area-inset-left, 0px)); }
 .pr-safe { padding-right: var(--sai-right, env(safe-area-inset-right, 0px)); }
+
+/* Utilitário para páginas com barra de navegação inferior e suporte a mini-player ativo */
+.pb-nav-safe {
+  padding-bottom: calc(5.5rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + var(--active-mini-player-offset, 0px));
+}
 
 /* Tablet: a navegação agora é uma barra inferior flutuante (BottomNav),
  * portanto o body ocupa a largura total sem reservar espaço lateral. */

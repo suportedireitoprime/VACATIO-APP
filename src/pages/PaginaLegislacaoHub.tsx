@@ -90,7 +90,7 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
   };
 
   return (
-    <div className="min-h-dvh bg-[#050505] text-foreground pb-12 relative overflow-x-hidden">
+    <div className="min-h-dvh bg-[#050505] text-foreground pb-[calc(6.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] relative overflow-x-hidden">
       {/* Background Animated ShapeGrid */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <ShapeGrid
@@ -107,7 +107,7 @@ const PaginaLegislacaoHub = ({ tipo: propTipo }: PaginaLegislacaoHubProps) => {
       <div className="relative z-10">
         {/* HERO AMARELO — Idêntico ao início do aplicativo */}
         <div
-          className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 pt-[var(--sai-top)] flex flex-col z-20"
+          className="bg-hero-panel-yellow relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 pt-[var(--sai-top,0px)] flex flex-col z-20"
           style={{
             transform: 'translateZ(0)',
             backgroundColor: '#050505',

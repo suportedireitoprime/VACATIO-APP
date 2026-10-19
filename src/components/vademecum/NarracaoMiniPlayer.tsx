@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, ArrowRight, X } from 'lucide-react';
 import { useNarracaoFlutuante } from '@/stores/useNarracaoFlutuante';
+import { registerMiniPlayer } from '@/lib/miniPlayerCoordinator';
 
 /**
  * Mini player flutuante que aparece quando a pessoa fecha o artigo mas
@@ -20,7 +22,38 @@ const NarracaoMiniPlayer = () => {
   const toggle = useNarracaoFlutuante((s) => s.toggle);
   const close = useNarracaoFlutuante((s) => s.close);
 
+  const [navHeight, setNavHeight] = useState(0);
+
+  useEffect(() => {
+    const medir = () => {
+      const nav = document.querySelector<HTMLElement>('[data-bottom-nav]');
+      setNavHeight(nav ? nav.getBoundingClientRect().height : 0);
+    };
+    medir();
+
+    const nav = document.querySelector<HTMLElement>('[data-bottom-nav]');
+    let ro: ResizeObserver | undefined;
+    if (nav && 'ResizeObserver' in window) {
+      ro = new ResizeObserver(medir);
+      ro.observe(nav);
+    }
+    window.addEventListener('resize', medir);
+    const t = window.setTimeout(medir, 300);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', medir);
+      window.clearTimeout(t);
+    };
+  }, [location.pathname]);
+
   const visible = !!audio && !!artigo;
+
+  useEffect(() => {
+    registerMiniPlayer('narracao', visible);
+    return () => {
+      registerMiniPlayer('narracao', false);
+    };
+  }, [visible]);
 
   const handleReopen = () => {
     if (!returnPath || !artigo) return;
@@ -52,8 +85,9 @@ const NarracaoMiniPlayer = () => {
           transition={{ type: 'spring', damping: 22, stiffness: 260 }}
           className="fixed left-0 right-0 z-[80] px-3 pointer-events-none"
           style={{
-            // Sobe mais acima da bottom nav (botão central elevado "Ferramentas")
-            bottom: `calc(9.5rem + var(--sai-bottom,var(--sai-bottom)))`,
+            bottom: navHeight
+              ? `${navHeight + 16}px`
+              : `calc(1rem + var(--sai-bottom, 0px))`,
           }}
         >
           <div className="pointer-events-auto mx-auto max-w-md min-h-[58px] sm:min-h-[64px] rounded-full border border-white/10 bg-background/95 backdrop-blur-md shadow-2xl shadow-black/60 flex items-center gap-2.5 pl-2 pr-2.5 py-2 sm:py-2.5 relative overflow-hidden transition-all hover:scale-[1.01] active:scale-[0.99]">

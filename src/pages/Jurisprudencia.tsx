@@ -200,7 +200,7 @@ const Jurisprudencia = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-16">
+    <div className="min-h-dvh bg-background pb-[calc(6.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))]">
       {/* Painel verde (mirror do painel amarelo do início) */}
       <div
         className="relative overflow-hidden rounded-b-[36px] border-b border-emerald-500/30 shadow-2xl shadow-black/50"
@@ -259,7 +259,7 @@ const Jurisprudencia = () => {
         <div className="absolute -bottom-20 -left-10 w-64 h-64 rounded-full bg-teal-300/10 blur-3xl pointer-events-none" />
 
         {/* Header com voltar */}
-        <div className="relative flex items-center justify-between px-4 pt-[calc(var(--sai-top,var(--sai-top))+0.875rem)] pb-2">
+        <div className="relative flex items-center justify-between px-4 pt-[calc(var(--sai-top,0px)+0.875rem)] pb-2">
           <button
             onClick={() => navigate('/')}
             aria-label="Voltar"

@@ -8,7 +8,7 @@ const Configuracoes = () => {
   const { currentTheme, setTheme, palettes } = useTheme();
 
   return (
-    <div className="min-h-dvh bg-background text-foreground">
+    <div className="min-h-dvh bg-background text-foreground pb-[calc(6rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))]">
       <AppHeader
         title={
           <span className="flex items-center gap-1.5">

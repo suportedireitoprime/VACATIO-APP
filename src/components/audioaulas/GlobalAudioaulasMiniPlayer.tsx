@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, ArrowRight, X, Music } from 'lucide-react';
 import { useAudioaulasPlayer } from '@/contexts/AudioaulasPlayerContext';
 import { AudioaulasBgmModal } from '@/components/audioaulas/AudioaulasBgmModal';
+import { registerMiniPlayer } from '@/lib/miniPlayerCoordinator';
 
 /**
  * Mini Player Flutuante de Áudio Aulas — Estilo Cápsula idêntico ao Narração do Artigo.
@@ -43,6 +44,13 @@ export default function GlobalAudioaulasMiniPlayer() {
   // Se o player full-screen estiver aberto na página de áudio aulas, esconde o mini player
   const visible = !!atual && !(aberto && onAudioaulasPage);
 
+  useEffect(() => {
+    registerMiniPlayer('audioaulas', visible);
+    return () => {
+      registerMiniPlayer('audioaulas', false);
+    };
+  }, [visible]);
+
   const handleReopen = () => {
     if (onAudioaulasPage) {
       setAberto(true);
@@ -66,8 +74,8 @@ export default function GlobalAudioaulasMiniPlayer() {
           className="fixed left-0 right-0 z-[80] px-3 pointer-events-none md:left-auto md:right-6 md:px-0"
           style={{
             bottom: navHeight
-              ? `${navHeight + 28}px`
-              : `calc(9.5rem + var(--sai-bottom))`,
+              ? `${navHeight + 16}px`
+              : `calc(1rem + var(--sai-bottom, 0px))`,
           }}
         >
           <div className="pointer-events-auto mx-auto max-w-md md:w-[410px] min-h-[58px] sm:min-h-[64px] rounded-full border border-white/15 bg-[#0f0f0f]/95 backdrop-blur-md shadow-2xl shadow-black/80 flex items-center gap-2.5 pl-2 pr-2.5 py-2 sm:py-2.5 relative overflow-hidden transition-all hover:scale-[1.01] active:scale-[0.99]">

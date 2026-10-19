@@ -48,10 +48,10 @@ export default function HorusBottomNav({
   const isAjustes = active === 'ajustes';
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50">
+    <nav data-bottom-nav className="fixed bottom-0 left-0 right-0 z-50">
       <div
         className="bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10"
-        style={{ paddingBottom: 'var(--sai-bottom,var(--sai-bottom))' }}
+        style={{ paddingBottom: 'var(--sai-bottom, 0px)' }}
       >
         <div className="relative grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
           {/* Funções */}
