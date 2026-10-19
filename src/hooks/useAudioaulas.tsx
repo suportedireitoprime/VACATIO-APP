@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useGatedFeature } from '@/hooks/useGatedFeature';
 import { useAudioaulasPlayer, audioIdOf, type AulaAudio } from '@/contexts/AudioaulasPlayerContext';
-import { estaBaixado, assinarAudioOffline } from '@/lib/nativo/audioOffline';
+import { listarAudiosOffline, assinarAudioOffline } from '@/lib/nativo/audioOffline';
 import { normalizar, AUDIOAULAS_CATALOGO_AREAS } from '@/lib/audioaulasHelper';
 import { type AudioaulasTab } from '@/components/audioaulas/AudioaulasBottomNav';
 
@@ -40,10 +40,14 @@ export function useAudioaulas(areaAtual: string | null) {
   useEffect(() => {
     let vivo = true;
     const checar = async () => {
-      const ids = await Promise.all(
-        aulas.map(async (a) => ((await estaBaixado(audioIdOf(a))) ? audioIdOf(a) : null)),
-      );
-      if (vivo) setBaixadas(new Set(ids.filter(Boolean) as string[]));
+      try {
+        const itens = await listarAudiosOffline();
+        if (vivo) {
+          setBaixadas(new Set(itens.map((item) => item.id)));
+        }
+      } catch {
+        /* noop */
+      }
     };
     void checar();
     const off = assinarAudioOffline(() => void checar());
@@ -51,7 +55,7 @@ export function useAudioaulas(areaAtual: string | null) {
       vivo = false;
       off();
     };
-  }, [aulas]);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

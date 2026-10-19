@@ -21,7 +21,8 @@ import { capaDaArea, fmt, VELOCIDADES } from '@/lib/audioaulasHelper';
 import { CapaOtimizada } from './CapaOtimizada';
 import { AudioaulasBgmModal } from '@/components/audioaulas/AudioaulasBgmModal';
 import { temLousaMagica } from '@/data/lousas/lousaRegistry';
-import { LousaMagicaModal } from '@/components/audioaulas/lousa/LousaMagicaModal';
+
+const LousaMagicaModal = React.lazy(() => import('@/components/audioaulas/lousa/LousaMagicaModal'));
 
 interface AudioaulasPlayerModalProps {
   aberto: boolean;
@@ -405,17 +406,23 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
         </div>
 
         {/* Modal de Configurações de Música de Fundo (Lo-Fi) */}
-        <AudioaulasBgmModal
-          isOpen={bgmModalAberto}
-          onClose={() => setBgmModalAberto(false)}
-        />
+        {bgmModalAberto && (
+          <AudioaulasBgmModal
+            isOpen={bgmModalAberto}
+            onClose={() => setBgmModalAberto(false)}
+          />
+        )}
 
-        {/* Modal Interativo da Lousa Mágica (Modo Dinâmico) */}
-        <LousaMagicaModal
-          aberto={lousaAberta}
-          aula={atual}
-          onFechar={() => setLousaAberta(false)}
-        />
+        {/* Modal Interativo da Lousa Mágica (Carregado dinamicamente sob demanda) */}
+        {lousaAberta && (
+          <React.Suspense fallback={null}>
+            <LousaMagicaModal
+              aberto={lousaAberta}
+              aula={atual}
+              onFechar={() => setLousaAberta(false)}
+            />
+          </React.Suspense>
+        )}
       </div>
     </>
   );

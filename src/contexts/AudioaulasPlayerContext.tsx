@@ -133,8 +133,8 @@ export function useAudioaulasPlayer() {
 }
 
 export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [aulas, setAulas] = useState<AulaAudio[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [aulas, setAulas] = useState<AulaAudio[]>(() => (AUDIOAULAS_ACERVO_INICIAL as AulaAudio[]) || []);
+  const [loading, setLoading] = useState<boolean>(() => !AUDIOAULAS_ACERVO_INICIAL || AUDIOAULAS_ACERVO_INICIAL.length === 0);
   const [atualId, setAtualId] = useState<number | null>(null);
   const [tocando, setTocando] = useState(false);
   const [tempo, setTempo] = useState(0);

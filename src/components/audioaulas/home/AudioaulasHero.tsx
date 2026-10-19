@@ -4,12 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { AudioActionShortcuts } from '@/components/audio/AudioActionShortcuts';
-import { AudioFavoritosModal } from '@/components/audio/AudioFavoritosModal';
-import { AudioRecentesModal } from '@/components/audio/AudioRecentesModal';
-import { AudioEstatisticasModal } from '@/components/audio/AudioEstatisticasModal';
-import { AudioEmAltaModal } from '@/components/audio/AudioEmAltaModal';
-import { AudioTrilhasModal } from '@/components/audio/AudioTrilhasModal';
 import { type AulaAudio } from '@/contexts/AudioaulasPlayerContext';
+
+const AudioFavoritosModal = React.lazy(() => import('@/components/audio/AudioFavoritosModal').then((m) => ({ default: m.AudioFavoritosModal })));
+const AudioRecentesModal = React.lazy(() => import('@/components/audio/AudioRecentesModal').then((m) => ({ default: m.AudioRecentesModal })));
+const AudioEstatisticasModal = React.lazy(() => import('@/components/audio/AudioEstatisticasModal').then((m) => ({ default: m.AudioEstatisticasModal })));
+const AudioEmAltaModal = React.lazy(() => import('@/components/audio/AudioEmAltaModal').then((m) => ({ default: m.AudioEmAltaModal })));
+const AudioTrilhasModal = React.lazy(() => import('@/components/audio/AudioTrilhasModal').then((m) => ({ default: m.AudioTrilhasModal })));
 
 import cenarioOnibus from '@/assets/audio-cenarios/cenario-onibus.webp';
 import cenarioAcademia from '@/assets/audio-cenarios/cenario-academia.webp';
@@ -285,41 +286,61 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
           </div>
         </div>
 
-        {/* Modais de Ações de Áudio com tema Azul */}
-        <AudioRecentesModal
-          isOpen={recentesOpen}
-          onClose={() => setRecentesOpen(false)}
-          colorScheme="blue"
-          aulasRecentes={aulasRecentes}
-          onTocarAula={onTocarAula}
-          onLimparRecentes={onLimparRecentes}
-          onAlternarFavoritoAula={onAlternarFavoritoAula}
-        />
-        <AudioFavoritosModal
-          isOpen={favoritosOpen}
-          onClose={() => setFavoritosOpen(false)}
-          colorScheme="blue"
-          aulasFavoritas={aulasFavoritas}
-          onTocarAula={onTocarAula}
-          onAlternarFavoritoAula={onAlternarFavoritoAula}
-        />
-        <AudioEstatisticasModal
-          isOpen={statsOpen}
-          onClose={() => setStatsOpen(false)}
-          colorScheme="blue"
-        />
-        <AudioEmAltaModal
-          isOpen={emAltaOpen}
-          onClose={() => setEmAltaOpen(false)}
-          colorScheme="blue"
-          aulas={aulas}
-          onTocarAula={onTocarAula}
-        />
-        <AudioTrilhasModal
-          isOpen={trilhasOpen}
-          onClose={() => setTrilhasOpen(false)}
-          colorScheme="blue"
-        />
+        {/* Modais de Ações de Áudio com tema Azul (Carregados sob demanda) */}
+        {recentesOpen && (
+          <React.Suspense fallback={null}>
+            <AudioRecentesModal
+              isOpen={recentesOpen}
+              onClose={() => setRecentesOpen(false)}
+              colorScheme="blue"
+              aulasRecentes={aulasRecentes}
+              onTocarAula={onTocarAula}
+              onLimparRecentes={onLimparRecentes}
+              onAlternarFavoritoAula={onAlternarFavoritoAula}
+            />
+          </React.Suspense>
+        )}
+        {favoritosOpen && (
+          <React.Suspense fallback={null}>
+            <AudioFavoritosModal
+              isOpen={favoritosOpen}
+              onClose={() => setFavoritosOpen(false)}
+              colorScheme="blue"
+              aulasFavoritas={aulasFavoritas}
+              onTocarAula={onTocarAula}
+              onAlternarFavoritoAula={onAlternarFavoritoAula}
+            />
+          </React.Suspense>
+        )}
+        {statsOpen && (
+          <React.Suspense fallback={null}>
+            <AudioEstatisticasModal
+              isOpen={statsOpen}
+              onClose={() => setStatsOpen(false)}
+              colorScheme="blue"
+            />
+          </React.Suspense>
+        )}
+        {emAltaOpen && (
+          <React.Suspense fallback={null}>
+            <AudioEmAltaModal
+              isOpen={emAltaOpen}
+              onClose={() => setEmAltaOpen(false)}
+              colorScheme="blue"
+              aulas={aulas}
+              onTocarAula={onTocarAula}
+            />
+          </React.Suspense>
+        )}
+        {trilhasOpen && (
+          <React.Suspense fallback={null}>
+            <AudioTrilhasModal
+              isOpen={trilhasOpen}
+              onClose={() => setTrilhasOpen(false)}
+              colorScheme="blue"
+            />
+          </React.Suspense>
+        )}
       </div>
     );
   }

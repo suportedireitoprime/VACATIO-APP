@@ -173,8 +173,8 @@ const BottomNav = ({ forceVisible = false }: BottomNavProps = {}) => {
   ];
 
   const ESTUDOS_ITENS: Array<{ id: string; label: string; desc: string; icon: any; action: () => void; prefetch?: PrefetchKey }> = [
-    { id: 'audio-leis', label: 'Áudio Leis', desc: 'Narrações dos artigos de leis e códigos', icon: Mic, action: () => navigate('/audio-leis') },
-    { id: 'audioaulas', label: 'Audioaulas', desc: '124 aulas em áudio por área do Direito', icon: Headphones, action: () => navigate('/audioaulas') },
+    { id: 'audio-leis', label: 'Áudio Leis', desc: 'Narrações dos artigos de leis e códigos', icon: Mic, action: () => navigate('/audio-leis'), prefetch: 'audioLeis' },
+    { id: 'audioaulas', label: 'Audioaulas', desc: '124 aulas em áudio por área do Direito', icon: Headphones, action: () => navigate('/audioaulas'), prefetch: 'audioaulas' },
     { id: 'resumos', label: 'Resumos Jurídicos', desc: 'Biblioteca por área, tema e subtema', icon: FileText, action: () => navigate('/resumos-juridicos'), prefetch: 'resumosJuridicos' },
     { id: 'videoaulas', label: 'Videoaulas', desc: 'Aulas em vídeo com transcrição', icon: Video, action: () => navigate('/estudos'), prefetch: 'estudos' },
   ];

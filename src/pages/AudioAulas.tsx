@@ -1,26 +1,27 @@
-import { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useState, useMemo, lazy, Suspense } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Loader2, Flame, Clock, Headphones as HeadphonesIcon, Heart, Sparkles, Play, Pause } from 'lucide-react';
 import DesktopPageLayout from '@/components/layout/DesktopPageLayout';
 import { useIsDesktop } from '@/hooks/use-desktop';
-import ShapeGrid from '@/components/ui/ShapeGrid';
-
 import { useAudioaulas } from '@/hooks/useAudioaulas';
 import { AudioaulasHero } from '@/components/audioaulas/home/AudioaulasHero';
 import { AudioaulasCarrosselAreas } from '@/components/audioaulas/home/AudioaulasCarrosselAreas';
 import { AudioaulasSecaoLegislacao } from '@/components/audioaulas/home/AudioaulasSecaoLegislacao';
 import { AudioaulasListaAulas, LinhaAula } from '@/components/audioaulas/home/AudioaulasListaAulas';
 import { AudioaulasBuscaInput } from '@/components/audioaulas/home/AudioaulasBuscaInput';
-import { AudioaulasPlayerModal } from '@/components/audioaulas/home/AudioaulasPlayerModal';
 import { AudioaulasCategoriasNav, type AudioaulasFiltroMenu } from '@/components/audioaulas/AudioaulasCategoriasNav';
 import { AudioaulasAulasRecentes } from '@/components/audioaulas/home/AudioaulasAulasRecentes';
 import { AudioAppBottomNav } from '@/components/audio/AudioAppBottomNav';
-import { AudioaulasPlaylistsView } from '@/components/audioaulas/home/AudioaulasPlaylistsView';
-import { AudioaulasAreaView } from '@/components/audioaulas/area/AudioaulasAreaView';
 import { audioIdOf } from '@/contexts/AudioaulasPlayerContext';
 import { capaDaArea } from '@/lib/audioaulasHelper';
 import { CapaOtimizada } from '@/components/audioaulas/home/CapaOtimizada';
 import { motion } from 'framer-motion';
+
+// Componentes pesados ou secundários carregados sob demanda
+const ShapeGrid = React.lazy(() => import('@/components/ui/ShapeGrid'));
+const AudioaulasPlaylistsView = React.lazy(() => import('@/components/audioaulas/home/AudioaulasPlaylistsView').then(m => ({ default: m.AudioaulasPlaylistsView })));
+const AudioaulasAreaView = React.lazy(() => import('@/components/audioaulas/area/AudioaulasAreaView').then(m => ({ default: m.AudioaulasAreaView })));
+const AudioaulasPlayerModal = React.lazy(() => import('@/components/audioaulas/home/AudioaulasPlayerModal').then(m => ({ default: m.AudioaulasPlayerModal })));
 
 const Audioaulas = () => {
   const navigate = useNavigate();
@@ -35,6 +36,18 @@ const Audioaulas = () => {
 
   // Filtro de alternância superior (Todos, Em alta, Recentes, Mais Ouvidas, Favoritas)
   const [filtroHome, setFiltroHome] = useState<AudioaulasFiltroMenu>('todos');
+
+  // Adia o ShapeGrid animado para não competir com o primeiro paint da tela
+  const [mountedGrid, setMountedGrid] = useState(false);
+  useEffect(() => {
+    const ric = (window as any).requestIdleCallback;
+    if (typeof ric === 'function') {
+      const id = ric(() => setMountedGrid(true), { timeout: 1000 });
+      return () => (window as any).cancelIdleCallback?.(id);
+    }
+    const t = setTimeout(() => setMountedGrid(true), 400);
+    return () => clearTimeout(t);
+  }, []);
 
   // Listas computadas para as opções do menu de alternância
   const aulasEmAlta = useMemo(() => {
@@ -100,15 +113,19 @@ const Audioaulas = () => {
       }}
     >
       <div className="absolute inset-0 z-0 opacity-60">
-        <ShapeGrid 
-          speed={0.5} 
-          squareSize={40}
-          direction='diagonal'
-          borderColor='rgba(255, 255, 255, 0.05)'
-          hoverFillColor='rgba(255, 255, 255, 0.1)'
-          shape='square'
-          hoverTrailAmount={5}
-        />
+        {mountedGrid && (
+          <React.Suspense fallback={null}>
+            <ShapeGrid 
+              speed={0.5} 
+              squareSize={40}
+              direction='diagonal'
+              borderColor='rgba(255, 255, 255, 0.05)'
+              hoverFillColor='rgba(255, 255, 255, 0.1)'
+              shape='square'
+              hoverTrailAmount={5}
+            />
+          </React.Suspense>
+        )}
       </div>
 
       <div className="relative z-10">
@@ -116,17 +133,19 @@ const Audioaulas = () => {
 
         {areaAtual ? (
           /* ───────── TELA DA ÁREA (SEM A CAPA, SLIDE UP, CATEGORIAS/MATÉRIAS) ───────── */
-          <AudioaulasAreaView
-            area={areaAtual}
-            aulas={state.daArea}
-            temas={state.temasDaArea}
-            atualId={state.atualId}
-            tocando={state.tocando}
-            favoritos={state.favoritos}
-            alternarFavorito={state.alternarFavorito}
-            handleTocarAula={state.handleTocarAula}
-            onVoltar={() => navigate('/audioaulas')}
-          />
+          <React.Suspense fallback={<div className="py-20 grid place-items-center"><Loader2 className="h-7 w-7 animate-spin text-primary" /></div>}>
+            <AudioaulasAreaView
+              area={areaAtual}
+              aulas={state.daArea}
+              temas={state.temasDaArea}
+              atualId={state.atualId}
+              tocando={state.tocando}
+              favoritos={state.favoritos}
+              alternarFavorito={state.alternarFavorito}
+              handleTocarAula={state.handleTocarAula}
+              onVoltar={() => navigate('/audioaulas')}
+            />
+          </React.Suspense>
         ) : (
           <>
             <AudioaulasHero 
@@ -341,17 +360,19 @@ const Audioaulas = () => {
           )
         ) : state.aba === 'playlists' ? (
           /* ───────── PLAYLISTS DE ESTUDO ───────── */
-          <AudioaulasPlaylistsView
-            aulas={state.aulas}
-            areas={state.areas}
-            onSelectArea={(ar) => navigate(`/audioaulas/${encodeURIComponent(ar)}`)}
-            onPlayArea={(ar) => {
-              const aulasDaArea = state.aulas.filter((a) => (a.area || 'Geral') === ar);
-              if (aulasDaArea.length > 0) {
-                state.handleTocarAula(aulasDaArea[0]);
-              }
-            }}
-          />
+          <React.Suspense fallback={<div className="py-20 grid place-items-center"><Loader2 className="h-7 w-7 animate-spin text-primary" /></div>}>
+            <AudioaulasPlaylistsView
+              aulas={state.aulas}
+              areas={state.areas}
+              onSelectArea={(ar) => navigate(`/audioaulas/${encodeURIComponent(ar)}`)}
+              onPlayArea={(ar) => {
+                const aulasDaArea = state.aulas.filter((a) => (a.area || 'Geral') === ar);
+                if (aulasDaArea.length > 0) {
+                  state.handleTocarAula(aulasDaArea[0]);
+                }
+              }}
+            />
+          </React.Suspense>
         ) : (
           /* ───────── ABAS: favoritas / baixadas / buscar ───────── */
           <>
@@ -381,23 +402,27 @@ const Audioaulas = () => {
     )}
 
         {/* Player Completo Expandido — Adaptado como Modal Centralizado em Desktop */}
-        <AudioaulasPlayerModal
-          aberto={state.aberto}
-          setAberto={state.setAberto}
-          atual={state.atual}
-          atualIdx={state.atualIdx}
-          fila={state.fila}
-          tempo={state.tempo}
-          dur={state.dur}
-          tocando={state.tocando}
-          velocidade={state.velocidade}
-          favoritos={state.favoritos}
-          alternarFavorito={state.alternarFavorito}
-          togglePlay={state.togglePlay}
-          seek={state.seek}
-          pular={state.pular}
-          setVelocidade={state.setVelocidade}
-        />
+        {state.aberto && (
+          <React.Suspense fallback={null}>
+            <AudioaulasPlayerModal
+              aberto={state.aberto}
+              setAberto={state.setAberto}
+              atual={state.atual}
+              atualIdx={state.atualIdx}
+              fila={state.fila}
+              tempo={state.tempo}
+              dur={state.dur}
+              tocando={state.tocando}
+              velocidade={state.velocidade}
+              favoritos={state.favoritos}
+              alternarFavorito={state.alternarFavorito}
+              togglePlay={state.togglePlay}
+              seek={state.seek}
+              pular={state.pular}
+              setVelocidade={state.setVelocidade}
+            />
+          </React.Suspense>
+        )}
 
         {/* Menu de Rodapé Idêntico ao Início do App */}
         <AudioAppBottomNav

@@ -24,7 +24,8 @@ import { haptic } from '@/lib/nativeHaptics';
 import { getAreaTheme } from '@/lib/audioaulasThemes';
 import { useAudioaulasProgresso, calcularProgressoMateria } from '@/lib/audioaulasProgresso';
 import { temLousaMagica } from '@/data/lousas/lousaRegistry';
-import { LousaMagicaModal } from '@/components/audioaulas/lousa/LousaMagicaModal';
+
+const LousaMagicaModal = React.lazy(() => import('@/components/audioaulas/lousa/LousaMagicaModal'));
 
 interface AudioaulasAreaViewProps {
   area: string;
@@ -767,12 +768,16 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Modal Interativo da Lousa Mágica (Modo Dinâmico) */}
-      <LousaMagicaModal
-        aberto={Boolean(lousaModalAula)}
-        aula={lousaModalAula}
-        onFechar={() => setLousaModalAula(null)}
-      />
+      {/* Modal Interativo da Lousa Mágica (Carregado dinamicamente sob demanda) */}
+      {Boolean(lousaModalAula) && (
+        <React.Suspense fallback={null}>
+          <LousaMagicaModal
+            aberto={Boolean(lousaModalAula)}
+            aula={lousaModalAula}
+            onFechar={() => setLousaModalAula(null)}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 };

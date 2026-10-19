@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Volume2, GraduationCap } from 'lucide-react';
+import { prefetchRoute } from '@/lib/routePrefetch';
 
 interface AudioNavigationSwitcherProps {
   active: 'leis' | 'aulas';
@@ -25,6 +26,9 @@ export const AudioNavigationSwitcher: React.FC<AudioNavigationSwitcherProps> = (
     >
       <button
         type="button"
+        onPointerEnter={() => prefetchRoute('audioLeis')}
+        onPointerDown={() => prefetchRoute('audioLeis')}
+        onFocus={() => prefetchRoute('audioLeis')}
         onClick={() => navigate('/audio-leis')}
         className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
           active === 'leis'
@@ -38,6 +42,9 @@ export const AudioNavigationSwitcher: React.FC<AudioNavigationSwitcherProps> = (
 
       <button
         type="button"
+        onPointerEnter={() => prefetchRoute('audioaulas')}
+        onPointerDown={() => prefetchRoute('audioaulas')}
+        onFocus={() => prefetchRoute('audioaulas')}
         onClick={() => navigate('/audioaulas')}
         className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
           active === 'aulas'

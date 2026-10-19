@@ -5,8 +5,8 @@ import { useShortcutBadges } from '@/hooks/useShortcutBadges';
 import { prefetchRoute, type PrefetchKey } from '@/lib/routePrefetch';
 
 const SHORTCUT_ITEMS = [
-  { label: 'Áudio Aulas', icon: Headphones, to: '/audio-aulas' as string | null, action: null as (() => void) | null, color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: null },
-  { label: 'Áudio Leis', icon: Volume2, to: '/audio-leis' as string | null, action: null as (() => void) | null, color: '#A78BFA', badgeColor: null, badgeKey: null, prefetch: null },
+  { label: 'Áudio Aulas', icon: Headphones, to: '/audio-aulas' as string | null, action: null as (() => void) | null, color: '#38BDF8', badgeColor: null, badgeKey: null, prefetch: 'audioaulas' as PrefetchKey | null },
+  { label: 'Áudio Leis', icon: Volume2, to: '/audio-leis' as string | null, action: null as (() => void) | null, color: '#A78BFA', badgeColor: null, badgeKey: null, prefetch: 'audioLeis' as PrefetchKey | null },
   { label: 'Blog', icon: Scroll, to: '/blog' as string | null, action: null as (() => void) | null, color: '#F87171', badgeColor: null, badgeKey: null, prefetch: 'blog' as PrefetchKey | null },
   { label: 'Novidades', icon: AlertTriangle, to: '/novidades' as string | null, action: null as (() => void) | null, color: '#FACC15', badgeColor: null, badgeKey: null, prefetch: 'novidades' as PrefetchKey | null },
 ];

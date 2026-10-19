@@ -32,6 +32,8 @@ export const CapaOtimizada = React.memo(function CapaOtimizada({
         ref={imgRef}
         src={src}
         alt={alt || ''}
+        loading={props.loading ?? 'lazy'}
+        decoding={props.decoding ?? 'async'}
         onLoad={() => setLoaded(true)}
         onError={() => setLoaded(true)}
         className={cn(
