@@ -125,22 +125,22 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     }
   }, []);
 
-  // Cria faísca / pó de giz na ponta
+  // Cria faísca sutil de pó de giz na ponta
   const emitirPoGiz = useCallback((el: HTMLElement) => {
     try {
       const puff = document.createElement('span');
       puff.className = 'lz-chalk-dust-spark';
-      puff.style.left = `${Math.random() * 8}px`;
-      puff.style.top = `${-4 + Math.random() * 8}px`;
+      puff.style.left = `${Math.random() * 6}px`;
+      puff.style.top = `${-3 + Math.random() * 6}px`;
       el.appendChild(puff);
-      setTimeout(() => puff.remove(), 600);
+      setTimeout(() => puff.remove(), 500);
     } catch {
       // safe
     }
   }, []);
 
   // Digita letra por letra com efeito de toco de giz 3D oscilante e som procedural
-  const lousaType = useCallback((el: HTMLElement, full: string, onDone?: (instant: boolean) => void) => {
+  const lousaType = useCallback((el: HTMLElement, full: string, isCapitulo: boolean, onDone?: (instant: boolean) => void) => {
     lousaFinishTyping(true);
     (el as any)._full = full;
     (el as any)._onDone = onDone || null;
@@ -165,6 +165,13 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       lzGizElRef.current = g;
     }
 
+    // Se for capítulo, usa giz amarelo! Caso contrário, giz branco
+    if (isCapitulo) {
+      lzGizElRef.current.classList.add('is-yellow');
+    } else {
+      lzGizElRef.current.classList.remove('is-yellow');
+    }
+
     let k = 0;
     el.textContent = '';
     const intervalMs = Math.max(14, Math.round(30 / (velocidadeRef.current || 1)));
@@ -175,14 +182,14 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
 
       // Efeito sonoro procedural suave de giz a cada 3 caracteres
       if (k % 3 === 0) {
-        lousaAudio.playGizScratch(0.045);
+        lousaAudio.playGizScratch(0.04);
         emitirPoGiz(el);
       }
 
       if (lzGizElRef.current) {
         el.appendChild(lzGizElRef.current);
         const osc = (k % 4);
-        const angulos = ['-16deg', '-6deg', '-12deg', '-3deg'];
+        const angulos = ['-15deg', '-5deg', '-12deg', '-3deg'];
         const yOffs = ['-2px', '1px', '-1px', '0px'];
         lzGizElRef.current.style.transform = `rotate(${angulos[osc]}) translateY(${yOffs[osc]})`;
       }
@@ -210,10 +217,10 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
         d.style.animation = 'none';
         d.style.opacity = '1';
       } else {
-        d.style.animationDelay = `${0.1 + i * 0.18}s`;
+        d.style.animationDelay = `${0.08 + i * 0.16}s`;
         setTimeout(() => {
           lousaAudio.playGizScratch(0.035);
-        }, (0.1 + i * 0.18) * 1000);
+        }, (0.08 + i * 0.16) * 1000);
       }
       box.appendChild(d);
     });
@@ -228,8 +235,9 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     // Atualiza classes de foco
     body.querySelectorAll('.lz-ativo').forEach((n) => n.classList.remove('lz-ativo'));
 
+    const isCapitulo = e.kind === 'titulo';
     const d = document.createElement('div');
-    d.className = e.kind === 'titulo' ? 'lz-titulo lz-ativo' : 'lz-ponto lz-ativo';
+    d.className = isCapitulo ? 'lz-titulo lz-ativo' : 'lz-ponto lz-ativo';
     d.title = `Pular para ${fmt(e.t)}`;
     d.setAttribute('data-timestamp', fmt(e.t));
 
@@ -255,14 +263,14 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       d.appendChild(box);
       const show = (instant: boolean) => lousaRevealItems(box, e.items || [], instant);
       if (animate) {
-        if (e.text) lousaType(head, e.text, show);
+        if (e.text) lousaType(head, e.text, false, show);
         else show(false);
       } else {
         if (e.text) head.textContent = e.text;
         show(true);
       }
     } else {
-      if (animate) lousaType(d, e.text);
+      if (animate) lousaType(d, e.text, isCapitulo);
       else d.textContent = e.text;
     }
     lousaScroll();
@@ -304,16 +312,15 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     lousaPendingRef.current = giz.slice();
 
     // Feedback sonoro e tátil de limpeza de sala de aula
-    lousaAudio.playApagadorWhoosh(0.14);
+    lousaAudio.playApagadorWhoosh(0.12);
     haptic.medium();
     setTimeout(() => haptic.light(), 800);
 
-    // Fade progressivo em ondas simulando o toque do feltro
+    // Fade progressivo suave
     Array.from(body.querySelectorAll('.lz-titulo,.lz-ponto')).forEach((el: any, i) => {
-      el.style.transition = 'opacity .42s ease, filter .42s ease';
-      el.style.transitionDelay = `${Math.min(i * 0.05, 0.7)}s`;
+      el.style.transition = 'opacity .38s ease';
+      el.style.transitionDelay = `${Math.min(i * 0.04, 0.6)}s`;
       el.style.opacity = '0';
-      el.style.filter = 'blur(1px)';
     });
 
     // Camada de resíduo de giz (smudge) deixada pelo apagador
@@ -338,14 +345,14 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     container.appendChild(ap);
 
     // Partículas de nuvem de giz caindo durante a varredura
-    for (let p = 0; p < 7; p++) {
+    for (let p = 0; p < 6; p++) {
       const dust = document.createElement('div');
       dust.className = 'lz-dust-cloud-particle';
-      dust.style.left = `${15 + p * 12}%`;
+      dust.style.left = `${18 + p * 12}%`;
       dust.style.top = `${20 + p * 8}%`;
-      dust.style.animationDelay = `${0.2 + p * 0.18}s`;
+      dust.style.animationDelay = `${0.18 + p * 0.16}s`;
       container.appendChild(dust);
-      setTimeout(() => dust.remove(), 2100);
+      setTimeout(() => dust.remove(), 1900);
     }
 
     requestAnimationFrame(() => requestAnimationFrame(() => ap.classList.add('sweep')));
@@ -361,17 +368,27 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       setApagadorLimpando(false);
       lousaFlushGiz();
       lousaScroll();
-    }, 1950);
+    }, 1850);
   }, [lousaAdd, lousaFinishTyping, lousaFlushGiz, lousaScroll]);
 
-  // Atualiza a coluna de post-its com perguntas da Luna
+  // Atualiza a coluna de post-its com perguntas da Aluna (MAIS RECENTE NO TOPO)
   const lousaRefreshPosts = useCallback((t: number) => {
     if (!roteiro) return;
+    // Pega as perguntas até o momento atual e inverte para a mais recente ficar no topo
     const perguntas = roteiro
       .filter((e) => e.kind === 'pergunta' && e.t <= t)
-      .slice(-4);
+      .slice(-5)
+      .reverse();
 
     setPostItsVisiveis((prev) => {
+      // Otimização de desempenho: só re-renderiza se realmente mudou
+      if (
+        prev.length === perguntas.length &&
+        prev.length > 0 &&
+        prev[0].t === perguntas[0]?.t
+      ) {
+        return prev;
+      }
       if (perguntas.length > prev.length) {
         lousaAudio.playPostitStick(0.09);
         haptic.light();
@@ -464,7 +481,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       ref={modalWrapperRef}
       className="fixed inset-0 z-[130] bg-[#120d09] text-[#f7f2ea] flex flex-col overflow-hidden select-none animate-in fade-in duration-200"
     >
-      {/* Estilos e animações com fontes caligráficas autênticas e física de lousa */}
+      {/* Estilos calibrados: giz nítido sem brilho leitoso, giz amarelo no capítulo e post-its em escala de foco */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap');
 
@@ -472,101 +489,74 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           font-family: 'Kalam', 'Caveat', 'Segoe Print', cursive, sans-serif;
         }
 
-        /* Textura realista de Ardósia Escolar com Granulação e Manchas de Giz */
+        /* Textura de ardósia nítida e escura com granulação refinada */
         .lz-chalkboard-texture {
-          background-color: #1c2b23;
+          background-color: #1a2720;
           background-image: 
-            radial-gradient(circle at 45% 40%, rgba(35, 54, 45, 0.9) 0%, rgba(20, 31, 25, 0.98) 100%),
-            repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 6px);
-          box-shadow: inset 0 0 80px rgba(0,0,0,0.85);
+            radial-gradient(circle at 50% 35%, rgba(32, 48, 40, 0.95) 0%, rgba(18, 28, 22, 0.98) 100%),
+            repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.006) 3px, rgba(255,255,255,0.006) 6px);
+          box-shadow: inset 0 0 70px rgba(0,0,0,0.85);
           position: relative;
         }
-        .lz-chalkboard-texture::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          opacity: 0.28;
-          mix-blend-mode: overlay;
-          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.55'/></svg>");
-        }
 
-        /* Partículas flutuantes de poeira de giz no ambiente */
-        .lz-ambient-dust {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background-image: radial-gradient(rgba(255,255,255,0.3) 1px, transparent 1px);
-          background-size: 140px 140px;
-          opacity: 0.2;
-          animation: lzDustDrift 30s linear infinite alternate;
-        }
-        @keyframes lzDustDrift {
-          from { transform: translateY(0px) translateX(0px); }
-          to { transform: translateY(-20px) translateX(15px); }
-        }
-
-        /* Título de Giz (Giz Branco puro com traço largo e sublinhado feito à mão) */
+        /* CAPÍTULO: GIZ AMARELO DOURADO ESCOLAR, NÍTIDO E SEM BORRÃO */
         .lz-titulo {
           font-family: 'Kalam', 'Caveat', 'Segoe Print', cursive, sans-serif;
           font-size: clamp(21px, 3.2vw, 32px);
           font-weight: 700;
-          color: #fbf8ee;
+          color: #f7d070;
           line-height: 1.35;
-          margin: 12px 0 20px;
-          text-shadow: 
-            0 0 2px rgba(255,255,255,0.8),
-            0 0 7px rgba(255,255,255,0.35),
-            1px 2px 2px rgba(0,0,0,0.6);
-          border-bottom: 3px dashed rgba(245, 238, 220, 0.7);
-          padding-bottom: 8px;
+          margin: 10px 0 18px;
+          text-shadow: 1px 1px 1px rgba(0,0,0,0.85);
+          border-bottom: 2px dashed rgba(247, 208, 112, 0.75);
+          padding-bottom: 6px;
           display: inline-block;
           cursor: pointer;
           position: relative;
-          transition: transform 0.15s ease, text-shadow 0.2s ease;
+          transition: transform 0.15s ease, color 0.15s ease;
         }
         .lz-titulo:hover {
           transform: scale(1.015);
-          text-shadow: 0 0 12px rgba(240, 208, 137, 0.7);
+          color: #ffe28a;
         }
 
-        /* Ponto de Giz (Giz Branco com marcador travessão dourado) */
+        /* PONTOS DA AULA: GIZ BRANCO SUAVE, LIMPO E PERFEITAMENTE LEGÍVEL */
         .lz-ponto {
           font-family: 'Kalam', 'Caveat', 'Segoe Print', cursive, sans-serif;
           font-size: clamp(16px, 2.3vw, 22px);
-          color: #f5f0e3;
-          line-height: 1.5;
-          margin: 0 0 16px;
-          padding-left: 28px;
+          color: #f2eee5;
+          line-height: 1.48;
+          margin: 0 0 14px;
+          padding-left: 26px;
           position: relative;
-          text-shadow: 
-            0 0 2px rgba(255,255,255,0.7),
-            0 0 5px rgba(255,255,255,0.25),
-            1px 1px 2px rgba(0,0,0,0.55);
+          text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
           cursor: pointer;
-          animation: lzIn 0.35s ease-out;
-          transition: transform 0.15s ease;
+          animation: lzIn 0.28s ease-out;
+          transition: transform 0.15s ease, color 0.15s ease;
         }
         .lz-ponto:hover {
-          transform: translateX(4px);
+          transform: translateX(3px);
+          color: #ffffff;
         }
         .lz-ponto::before {
           content: "–";
           position: absolute;
           left: 6px;
-          color: #f2cb73;
+          color: #f7d070;
           font-weight: bold;
         }
 
-        /* Item em Foco Ativo (Atenção do Estudante com Halo Dourado de Giz) */
+        /* PONTO ATIVO: Destaque sutil sem estourar o brilho */
         .lz-ativo {
-          text-shadow: 
-            0 0 2px rgba(255,255,255,0.9),
-            0 0 9px rgba(242, 203, 115, 0.75),
-            0 0 16px rgba(212, 169, 78, 0.4) !important;
+          color: #ffffff !important;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.9), 0 0 1px rgba(255,255,255,0.6) !important;
+        }
+        .lz-titulo.lz-ativo {
+          color: #fce18d !important;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.9), 0 0 1px rgba(252, 225, 141, 0.6) !important;
         }
 
-        /* Badge interativa de minutagem de giz [02:15] */
+        /* Badge discreta de minutagem [02:15] */
         .lz-time-badge {
           display: none;
           margin-left: 10px;
@@ -585,11 +575,11 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
         }
 
         @keyframes lzIn {
-          from { opacity: 0; transform: translateX(-12px); }
+          from { opacity: 0; transform: translateX(-8px); }
           to { opacity: 1; transform: none; }
         }
 
-        /* Subitens com Giz Amarelo Dourado de Destaque */
+        /* Subitens com Giz Amarelo Dourado */
         .lz-item {
           display: flex;
           gap: 10px;
@@ -597,16 +587,13 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           margin: 6px 0 8px 22px;
           font-size: 0.94em;
           line-height: 1.45;
-          color: #f6d47b;
-          text-shadow: 
-            0 0 2px rgba(246, 212, 123, 0.8),
-            0 0 9px rgba(212, 169, 78, 0.35),
-            1px 1px 2px rgba(0,0,0,0.5);
+          color: #f7d070;
+          text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
           opacity: 0;
-          animation: lzItemIn 0.45s ease-out forwards;
+          animation: lzItemIn 0.35s ease-out forwards;
         }
         @keyframes lzItemIn {
-          from { opacity: 0; transform: translateX(-10px); }
+          from { opacity: 0; transform: translateX(-8px); }
           to { opacity: 1; transform: none; }
         }
         .lz-item-mark {
@@ -615,52 +602,59 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           flex: none;
         }
 
-        /* GIZ 3D REALISTA COM PONTA CHANFRADA E SOMBRA */
+        /* GIZ 3D REALISTA (Alterna Branco ou Amarelo conforme o elemento) */
         .lz-giz-3d {
           display: inline-flex;
           align-items: center;
           vertical-align: middle;
           margin-left: 8px;
           position: relative;
-          width: 34px;
-          height: 12px;
-          filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.65));
+          width: 32px;
+          height: 11px;
+          filter: drop-shadow(2px 3px 3px rgba(0,0,0,0.6));
           transform-origin: left bottom;
-          transition: transform 0.06s cubic-bezier(0.2, 0.8, 0.4, 1);
+          transition: transform 0.05s ease-out;
           pointer-events: none;
         }
         .lz-giz-corpo {
-          width: 25px;
-          height: 10px;
+          width: 23px;
+          height: 9px;
           border-radius: 3px 0 0 3px;
-          background: linear-gradient(180deg, #ffffff 0%, #ede6d3 50%, #c4bea8 100%);
+          background: linear-gradient(180deg, #ffffff 0%, #ebe5d4 50%, #c4bea8 100%);
           box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -2px 2px rgba(0,0,0,0.25);
         }
         .lz-giz-ponta {
           width: 9px;
-          height: 10px;
-          background: linear-gradient(135deg, #ffffff 30%, #dfd7be 100%);
+          height: 9px;
+          background: linear-gradient(135deg, #ffffff 30%, #ded7c1 100%);
           clip-path: polygon(0 0, 100% 35%, 100% 65%, 0 100%);
-          box-shadow: inset -1px 0 2px rgba(0,0,0,0.15);
         }
 
-        /* Faísca de pó de giz emitida na ponta */
+        /* GIZ AMARELO QUANDO FOR CAPÍTULO */
+        .lz-giz-3d.is-yellow .lz-giz-corpo {
+          background: linear-gradient(180deg, #fff1aa 0%, #f7cb5c 50%, #d49f2b 100%);
+          box-shadow: inset 0 1px 1px rgba(255,255,255,0.85), inset 0 -2px 2px rgba(0,0,0,0.3);
+        }
+        .lz-giz-3d.is-yellow .lz-giz-ponta {
+          background: linear-gradient(135deg, #fff1aa 30%, #e6b83f 100%);
+        }
+
+        /* Faísca sutil de pó de giz emitida na ponta */
         .lz-chalk-dust-spark {
           position: absolute;
-          width: 4px;
-          height: 4px;
-          background: rgba(255,255,255,0.9);
+          width: 3px;
+          height: 3px;
+          background: rgba(255,255,255,0.8);
           border-radius: 50%;
-          filter: blur(0.5px);
           pointer-events: none;
-          animation: lzSpark 0.5s ease-out forwards;
+          animation: lzSpark 0.45s ease-out forwards;
         }
         @keyframes lzSpark {
-          0% { transform: scale(1) translate(0, 0); opacity: 0.9; }
-          100% { transform: scale(3.5) translate(8px, -10px); opacity: 0; }
+          0% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+          100% { transform: scale(2.8) translate(6px, -8px); opacity: 0; }
         }
 
-        /* APAGADOR 3D EM MADEIRA NOBRE COM ENCAIXES E FELTRO DUPLO */
+        /* APAGADOR 3D EM MADEIRA NOBRE COM FELTRO DUPLO */
         .lz-apagador-3d {
           position: absolute;
           top: -90px;
@@ -711,7 +705,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           box-shadow: 0 1px 2px rgba(255,255,255,0.2);
         }
 
-        /* Varredura Fluida e Realista do Apagador pela Lousa */
+        /* Varredura Fluida do Apagador */
         .lz-apagador-3d.sweep {
           animation: lzSweep3D 1.85s cubic-bezier(0.42, 0, 0.58, 1) forwards;
         }
@@ -725,37 +719,37 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           100% { top: 110%;  left: 48%; transform: rotate(0deg); }
         }
 
-        /* Nuvem de poeira de giz emitida pelo feltro durante a limpeza */
+        /* Partículas de pó de giz caindo durante a limpeza */
         .lz-dust-cloud-particle {
           position: absolute;
-          width: 28px;
-          height: 28px;
-          background: radial-gradient(circle, rgba(245,240,225,0.45) 0%, transparent 70%);
+          width: 26px;
+          height: 26px;
+          background: radial-gradient(circle, rgba(245,240,225,0.4) 0%, transparent 70%);
           border-radius: 50%;
           pointer-events: none;
           animation: lzDustFall 1.8s ease-out forwards;
         }
         @keyframes lzDustFall {
           0% { opacity: 0; transform: scale(0.6) translateY(0); }
-          30% { opacity: 0.65; transform: scale(1.6) translateY(10px); }
-          100% { opacity: 0; transform: scale(2.4) translateY(45px); }
+          30% { opacity: 0.55; transform: scale(1.5) translateY(10px); }
+          100% { opacity: 0; transform: scale(2.2) translateY(40px); }
         }
 
-        /* Haze de giz deixado na lousa (Chalkboard Smudge Ghosting) */
+        /* Smudge suave após apagamento */
         .lz-chalk-smudge {
           position: absolute;
           inset: 0;
           pointer-events: none;
-          background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 80%);
-          animation: lzSmudgeFade 2.2s ease-out forwards;
+          background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.06) 0%, transparent 80%);
+          animation: lzSmudgeFade 2s ease-out forwards;
         }
         @keyframes lzSmudgeFade {
           0% { opacity: 0; }
-          40% { opacity: 0.8; }
+          40% { opacity: 0.7; }
           100% { opacity: 0; }
         }
 
-        /* CALHA INFERIOR DE MADEIRA (CHALK TRAY) COM GIZ E APAGADOR EM REPOUSO */
+        /* CALHA INFERIOR DE MADEIRA COM GIZ E APAGADOR */
         .lz-calha-madeira {
           height: 22px;
           background: linear-gradient(180deg, #51351c 0%, #3a2411 60%, #26160a 100%);
@@ -779,41 +773,59 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           box-shadow: 0 2px 3px rgba(0,0,0,0.6);
         }
 
-        /* Post-its 3D da Aluna Luna com Fita Durex e Sombra Curva */
-        .postit-card-3d {
+        /* POST-IT ATIVO (MAIS RECENTE - TOPO): AMARELO VIBRANTE */
+        .postit-card-ativo {
           background: linear-gradient(175deg, #ffea88 0%, #fcd64e 65%, #f4ca35 100%);
-          color: #382c06;
-          border: none;
-          border-radius: 3px;
-          padding: 12px 14px;
-          font-family: Arial, -apple-system, sans-serif;
-          font-size: 12px;
-          line-height: 1.45;
-          text-align: left;
-          cursor: pointer;
           box-shadow: 
-            2px 8px 18px rgba(0,0,0,0.42),
+            2px 8px 18px rgba(0,0,0,0.45),
             0 2px 4px rgba(0,0,0,0.25);
           position: relative;
-          transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.4, 1), box-shadow 0.22s ease;
+          border-radius: 3px;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .postit-card-3d:hover {
-          transform: scale(1.05) rotate(0deg) !important;
+        .postit-card-ativo:hover {
+          transform: scale(1.04) rotate(0deg) !important;
           box-shadow: 4px 14px 26px rgba(0,0,0,0.6);
-          z-index: 10;
         }
-        .postit-card-3d .tape {
+        .postit-card-ativo .tape {
           position: absolute;
           top: -8px;
           left: 50%;
           transform: translateX(-50%);
           width: 48px;
           height: 16px;
-          background: rgba(255, 255, 255, 0.55);
+          background: rgba(255, 255, 255, 0.6);
           backdrop-filter: blur(1px);
           border: 1px solid rgba(0,0,0,0.06);
           pointer-events: none;
           box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+        }
+
+        /* POST-ITS ANTERIORES: ACINZENTADOS/ESCURECIDOS EM SEGUNDO PLANO */
+        .postit-card-antigo {
+          background: linear-gradient(175deg, #372f27 0%, #29221b 100%);
+          border: 1px solid rgba(255,255,255,0.07);
+          box-shadow: 1px 4px 12px rgba(0,0,0,0.35);
+          opacity: 0.78;
+          position: relative;
+          border-radius: 3px;
+          transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+        }
+        .postit-card-antigo:hover {
+          opacity: 1;
+          transform: scale(1.03) rotate(0deg) !important;
+          background: linear-gradient(175deg, #443a31 0%, #302821 100%);
+        }
+        .postit-card-antigo .tape {
+          position: absolute;
+          top: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 44px;
+          height: 15px;
+          background: rgba(255, 255, 255, 0.22);
+          border: 1px solid rgba(0,0,0,0.15);
+          pointer-events: none;
         }
       `}</style>
 
@@ -823,7 +835,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold uppercase tracking-wider shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             Lousa Mágica · Modo Dinâmico
           </span>
           <span className="hidden sm:inline text-xs text-zinc-400 truncate max-w-xs font-medium">
@@ -894,14 +906,11 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
             boxShadow: '0 25px 70px rgba(0,0,0,0.8), inset 0 2px 6px rgba(255,255,255,0.2)',
           }}
         >
-          {/* Quadro Negro Ardósia com Textura, Poeira e Calha */}
+          {/* Quadro Negro Ardósia com Textura e Calha */}
           <div
             ref={lousaContainerRef}
             className="lz-chalkboard-texture flex-1 min-w-0 rounded-lg overflow-hidden relative flex flex-col border border-white/5"
           >
-            {/* Poeira de giz flutuante sutil no ambiente */}
-            <div className="lz-ambient-dust" aria-hidden="true" />
-
             {/* Área de rolagem do texto escrito de giz */}
             <div
               ref={lousaBodyRef}
@@ -956,11 +965,11 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
             </div>
           </div>
 
-          {/* Coluna / Mural de Post-its da Aluna Luna */}
+          {/* Coluna / Mural de Post-its das Perguntas da Aluna (MAIS RECENTE NO TOPO) */}
           <aside
             ref={postsContainerRef}
-            className="w-[130px] sm:w-[205px] flex flex-col gap-3.5 overflow-hidden pt-2 shrink-0 border-l border-white/5 pl-2 sm:pl-3"
-            aria-label="Perguntas da aluna Luna"
+            className="w-[130px] sm:w-[210px] flex flex-col gap-3 overflow-hidden pt-1 shrink-0 border-l border-white/5 pl-2 sm:pl-3"
+            aria-label="Perguntas da aluna"
           >
             <div className="text-[10.5px] sm:text-xs font-bold uppercase tracking-wider text-amber-200/90 px-1 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
@@ -979,7 +988,9 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
                 </div>
               ) : (
                 postItsVisiveis.map((p, idx) => {
+                  const isMaisRecente = idx === 0;
                   const rotacao = idx % 2 === 0 ? '-1.8deg' : '2.2deg';
+
                   return (
                     <button
                       key={`${p.t}-${idx}`}
@@ -990,15 +1001,34 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
                       }}
                       title={`Pular para a pergunta da aluna (${fmt(p.t)})`}
                       style={{ transform: `rotate(${rotacao})` }}
-                      className="postit-card-3d group"
+                      className={`text-left p-3 pt-3.5 cursor-pointer ${
+                        isMaisRecente ? 'postit-card-ativo' : 'postit-card-antigo'
+                      }`}
                     >
                       <div className="tape" />
-                      <span className="block text-zinc-900 font-semibold text-[11.5px] sm:text-[12.5px] leading-snug">
+
+                      {isMaisRecente && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-950/15 text-amber-950 mb-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block animate-ping" />
+                          Mais recente
+                        </span>
+                      )}
+
+                      <span
+                        className={`block font-semibold text-[11px] sm:text-[12px] leading-snug ${
+                          isMaisRecente ? 'text-zinc-900' : 'text-zinc-200'
+                        }`}
+                      >
                         "{p.text}"
                       </span>
-                      <span className="flex items-center justify-end gap-1 text-[10px] italic text-[#775a14] mt-2 font-mono font-medium">
+
+                      <span
+                        className={`flex items-center justify-end gap-1 text-[9.5px] italic mt-2 font-mono font-medium ${
+                          isMaisRecente ? 'text-[#775a14]' : 'text-zinc-400'
+                        }`}
+                      >
                         <Clock className="w-2.5 h-2.5" />
-                        Luna · {fmt(p.t)}
+                        Aluna · {fmt(p.t)}
                       </span>
                     </button>
                   );
