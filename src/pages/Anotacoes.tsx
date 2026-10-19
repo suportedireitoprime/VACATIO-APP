@@ -89,7 +89,7 @@ const Anotacoes = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
       <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-md">
         <div className="max-w-3xl mx-auto">
           <PageHeader
@@ -100,7 +100,7 @@ const Anotacoes = () => {
         </div>
       </header>
 
-      <main className="p-4 max-w-2xl mx-auto space-y-3 pb-32 mt-2">
+      <main className="p-4 max-w-2xl mx-auto space-y-3 mt-2">
         <button
           onClick={() => setSheetOpen(true)}
           className="w-full h-14 rounded-2xl border-2 border-dashed border-primary/50 bg-primary/5 text-primary hover:bg-primary/10 font-body font-semibold flex items-center justify-center gap-2 transition"

@@ -1051,7 +1051,7 @@ const MeExplique = () => {
       </div>
 
       {/* ── FOOTER / CONTROLES RESPONSIVOS ── */}
-      <footer className="relative z-20 flex items-center justify-center gap-3 px-4 pb-[calc(var(--sai-bottom,var(--sai-bottom))+1rem)] pt-3 max-w-md mx-auto w-full">
+      <footer className="relative z-20 flex items-center justify-center gap-3 px-4 pb-[calc(var(--sai-bottom,0px)+1rem)] pt-3 max-w-md mx-auto w-full">
         {ativo ? (
           <>
             {/* Botão Microfone */}

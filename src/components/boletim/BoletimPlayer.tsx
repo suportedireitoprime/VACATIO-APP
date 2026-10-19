@@ -615,7 +615,7 @@ export default function BoletimPlayer({ boletimId, scenes, youtubeUrl, onClose }
                   </div>
                 ))}
               </div>
-              <div className="p-3 border-t border-white/10 flex gap-2 items-center">
+              <div className="p-3 pb-[calc(0.75rem+var(--sai-bottom,0px))] border-t border-white/10 flex gap-2 items-center">
                 <input
                   value={novoComentario}
                   onChange={(e) => setNovoComentario(e.target.value)}
@@ -641,7 +641,7 @@ export default function BoletimPlayer({ boletimId, scenes, youtubeUrl, onClose }
         )}
       </AnimatePresence>
 
-      <div className="absolute inset-x-0 bottom-0 z-10 pb-6 pt-4 px-6 bg-gradient-to-t from-black via-black/85 to-transparent">
+      <div className="absolute inset-x-0 bottom-0 z-10 pb-[calc(1.5rem+var(--sai-bottom,0px))] pt-4 px-6 bg-gradient-to-t from-black via-black/85 to-transparent">
         <div className="flex items-center justify-center gap-8">
           <button
             onClick={() => goTo(idx - 1)}

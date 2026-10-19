@@ -53,7 +53,7 @@ export default function AdminPush() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-dvh bg-background pb-8">
+    <div className="min-h-dvh bg-background pb-[calc(3.5rem+var(--sai-bottom,0px))]">
       <PageHeader
         title="Admin Push"
         subtitle="Central de notificações push"

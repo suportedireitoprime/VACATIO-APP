@@ -539,6 +539,30 @@ REGRAS DE ESTILO E FORMATO:
     return Object.entries(g).sort((a, b) => b[0].localeCompare(a[0]));
   }, [sessions]);
 
+  const [viewportBottomOffset, setViewportBottomOffset] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    const updateOffset = () => {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const keyboardGap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setViewportBottomOffset(keyboardGap);
+    };
+    window.visualViewport.addEventListener('resize', updateOffset);
+    window.visualViewport.addEventListener('scroll', updateOffset);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateOffset);
+      window.visualViewport?.removeEventListener('scroll', updateOffset);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (viewportBottomOffset > 0) {
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  }, [viewportBottomOffset]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -872,11 +896,20 @@ REGRAS DE ESTILO E FORMATO:
           </div>
 
           {/* Input area */}
-          <div className={
-            isDesktop
-              ? 'relative px-6 pt-2 pb-6 bg-gradient-to-t from-background via-background to-transparent'
-              : 'relative px-3 pt-2 pb-[calc(0.75rem+var(--sai-bottom,0px))] border-t border-border/60 bg-background/95 backdrop-blur-md'
-          }>
+          <div
+            className={
+              isDesktop
+                ? 'relative px-6 pt-2 pb-6 bg-gradient-to-t from-background via-background to-transparent'
+                : 'relative px-3 pt-2 border-t border-border/60 bg-background/95 backdrop-blur-md transition-[padding] duration-150'
+            }
+            style={{
+              paddingBottom: isDesktop
+                ? undefined
+                : viewportBottomOffset > 0
+                ? `${viewportBottomOffset + 8}px`
+                : 'calc(0.75rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
+            }}
+          >
             <div className={isDesktop ? 'max-w-3xl mx-auto w-full' : 'w-full'}>
               {/* Attachment chip if present */}
               {attachment && (

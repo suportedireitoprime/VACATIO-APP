@@ -31,7 +31,7 @@ export default function AdminTriagemHub() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-dvh bg-background pb-8">
+    <div className="min-h-dvh bg-background pb-[calc(3.5rem+var(--sai-bottom,0px))]">
       <PageHeader
         title="Triagem"
         subtitle="Intro do app e triagem de cadastro"

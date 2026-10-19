@@ -271,7 +271,7 @@ export default function AdminMonitorApis() {
     : 0;
 
   return (
-    <div className="min-h-dvh bg-background pb-8">
+    <div className="min-h-dvh bg-background pb-[calc(3.5rem+var(--sai-bottom,0px))]">
       <PageHeader title="APIs de IA" onBack={() => navigate("/admin-monitoramento")} />
 
       <div className="p-4 space-y-4">

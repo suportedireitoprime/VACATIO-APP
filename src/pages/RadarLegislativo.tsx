@@ -353,7 +353,7 @@ export default function RadarLegislativo() {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-36 text-foreground selection:bg-primary/20">
+    <div className="min-h-dvh bg-background pb-[calc(6.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] text-foreground selection:bg-primary/20">
       {/* Header com Gradiente Temático do Radar 360 */}
       <div className="bg-gradient-to-b from-purple-900/25 via-primary/10 to-background pb-3">
         <PageHeader

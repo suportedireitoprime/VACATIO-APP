@@ -76,7 +76,7 @@ const EstadoDetalhe = () => {
 
   if (showConstituicao) {
     return (
-      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
+      <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
         <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm">
           <div className="max-w-5xl mx-auto">
             <PageHeader
@@ -173,7 +173,7 @@ const EstadoDetalhe = () => {
   }
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto">
@@ -186,7 +186,7 @@ const EstadoDetalhe = () => {
       </div>
 
 
-      <div className="px-4 py-4 max-w-5xl mx-auto space-y-4 pb-20">
+      <div className="px-4 py-4 max-w-5xl mx-auto space-y-4">
         {/* Constituição card */}
         <motion.button
           initial={{ opacity: 0, scale: 0.95 }}

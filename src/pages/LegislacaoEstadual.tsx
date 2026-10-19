@@ -57,7 +57,7 @@ const LegislacaoEstadual = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] lg:pb-8">
       <PageHeader
         title="Legislação Estadual"
         subtitle="27 unidades federativas"
@@ -66,7 +66,7 @@ const LegislacaoEstadual = () => {
 
 
 
-      <div className="px-4 py-4 max-w-5xl mx-auto space-y-6 pb-20">
+      <div className="px-4 py-4 max-w-5xl mx-auto space-y-6">
         {REGIOES.map((regiao) => {
           const estados = ESTADOS.filter((e) => e.regiao === regiao);
           return (

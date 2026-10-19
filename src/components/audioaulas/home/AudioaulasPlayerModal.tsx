@@ -119,7 +119,7 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
 
       {/* Janela Principal do Player */}
       <div
-        className={`fixed inset-0 z-[120] flex flex-col overflow-y-auto overscroll-contain transition-all duration-300 ease-out lg:inset-auto lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-xl lg:h-[88vh] lg:max-h-[740px] lg:rounded-3xl lg:border lg:border-white/15 lg:shadow-2xl lg:shadow-black/90 ${
+        className={`fixed inset-0 h-dvh max-h-dvh z-[120] flex flex-col overflow-y-auto overscroll-contain transition-all duration-300 ease-out lg:inset-auto lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-xl lg:h-[88vh] lg:max-h-[740px] lg:rounded-3xl lg:border lg:border-white/15 lg:shadow-2xl lg:shadow-black/90 ${
           aberto
             ? 'translate-y-0 lg:-translate-y-1/2 opacity-100 scale-100'
             : 'translate-y-full lg:translate-y-[-40%] lg:scale-95 opacity-0 pointer-events-none'
@@ -316,7 +316,7 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
           </div>
 
           {/* Opções de Velocidade e Download */}
-          <div className="mt-4 sm:mt-6 flex items-center justify-between border-t border-white/10 pt-3 sm:pt-4">
+          <div className="mt-4 sm:mt-6 flex items-center justify-between border-t border-white/10 pt-3 sm:pt-4 gap-2 flex-wrap sm:flex-nowrap">
             <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
               <Gauge className="h-4 w-4 text-primary mr-1 shrink-0" />
               {VELOCIDADES.map((v) => (

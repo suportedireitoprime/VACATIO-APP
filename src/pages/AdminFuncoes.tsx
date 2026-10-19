@@ -416,7 +416,7 @@ const AdminFuncoes = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-8">
+    <div className="min-h-dvh bg-background pb-[calc(3.5rem+var(--sai-bottom,0px))]">
       <PageHeader title="Funções Admin" onBack={() => navigate('/')} />
 
       <div className="p-4">
