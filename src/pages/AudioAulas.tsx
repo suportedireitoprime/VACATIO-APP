@@ -9,6 +9,7 @@ import { AudioaulasCarrosselAreas } from '@/components/audioaulas/home/Audioaula
 import { AudioaulasSecaoLegislacao } from '@/components/audioaulas/home/AudioaulasSecaoLegislacao';
 import { AudioaulasListaAulas } from '@/components/audioaulas/home/AudioaulasListaAulas';
 import { AudioaulasBuscaInput } from '@/components/audioaulas/home/AudioaulasBuscaInput';
+import { AudioaulasBuscaView } from '@/components/audioaulas/home/AudioaulasBuscaView';
 import { AudioaulasCategoriasNav, type AudioaulasFiltroMenu } from '@/components/audioaulas/AudioaulasCategoriasNav';
 import { AudioaulasAulasRecentes } from '@/components/audioaulas/home/AudioaulasAulasRecentes';
 import { AudioaulasListaFiltradaView } from '@/components/audioaulas/home/AudioaulasListaFiltradaView';
@@ -145,6 +146,20 @@ const Audioaulas = () => {
               onVoltar={() => navigate('/audioaulas')}
             />
           </React.Suspense>
+        ) : state.aba === 'buscar' ? (
+          /* ───────── TELA DEDICADA DE BUSCA DE ÁUDIO AULAS ───────── */
+          <AudioaulasBuscaView
+            aulas={state.aulas}
+            atualId={state.atualId}
+            tocando={state.tocando}
+            favoritos={state.favoritos}
+            alternarFavorito={state.alternarFavorito}
+            handleTocarAula={state.handleTocarAula}
+            onVoltar={() => {
+              state.setBusca('');
+              state.setAba('aulas');
+            }}
+          />
         ) : (
           <>
             <AudioaulasHero 
@@ -159,6 +174,7 @@ const Audioaulas = () => {
               onLimparRecentes={state.limparRecentes}
               onTocarAula={state.handleTocarAula}
               onAlternarFavoritoAula={state.alternarFavorito}
+              onBuscar={() => state.setAba('buscar')}
               aulas={state.aulas}
             />
 
@@ -236,29 +252,19 @@ const Audioaulas = () => {
             />
           </React.Suspense>
         ) : (
-          /* ───────── ABAS: favoritas / baixadas / buscar ───────── */
-          <>
-            {state.aba === 'buscar' && (
-              <AudioaulasBuscaInput 
-                busca={state.busca}
-                setBusca={state.setBusca}
-                buscaRef={buscaRef}
-              />
-            )}
-
-            <AudioaulasListaAulas
-              areaAtual={null}
-              aba={state.aba}
-              temasDaArea={state.temasDaArea}
-              listaAba={state.listaAba}
-              busca={state.busca}
-              atualId={state.atualId}
-              tocando={state.tocando}
-              favoritos={state.favoritos}
-              alternarFavorito={state.alternarFavorito}
-              handleTocarAula={state.handleTocarAula}
-            />
-          </>
+          /* ───────── ABAS: favoritas / baixadas ───────── */
+          <AudioaulasListaAulas
+            areaAtual={null}
+            aba={state.aba}
+            temasDaArea={state.temasDaArea}
+            listaAba={state.listaAba}
+            busca={state.busca}
+            atualId={state.atualId}
+            tocando={state.tocando}
+            favoritos={state.favoritos}
+            alternarFavorito={state.alternarFavorito}
+            handleTocarAula={state.handleTocarAula}
+          />
         )}
       </>
     )}

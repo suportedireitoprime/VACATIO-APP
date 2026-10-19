@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Headphones } from 'lucide-react';
+import { ArrowLeft, Headphones, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { AudioActionShortcuts } from '@/components/audio/AudioActionShortcuts';
 import { type AulaAudio } from '@/contexts/AudioaulasPlayerContext';
+import { haptic } from '@/lib/nativeHaptics';
 
 const AudioFavoritosModal = React.lazy(() => import('@/components/audio/AudioFavoritosModal').then((m) => ({ default: m.AudioFavoritosModal })));
 const AudioRecentesModal = React.lazy(() => import('@/components/audio/AudioRecentesModal').then((m) => ({ default: m.AudioRecentesModal })));
@@ -31,6 +32,7 @@ interface AudioaulasHeroProps {
   onTocarAula?: (aula: AulaAudio, fila?: AulaAudio[]) => void;
   onAlternarFavoritoAula?: (aula: AulaAudio) => void;
   aulas?: AulaAudio[];
+  onBuscar?: () => void;
   onFavoritos?: () => void;
   onRecentes?: () => void;
   onLimparRecentes?: () => void;
@@ -91,6 +93,7 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
     onTocarAula,
     onAlternarFavoritoAula,
     aulas = [],
+    onBuscar,
     onFavoritos,
     onRecentes,
     onLimparRecentes,
@@ -219,15 +222,29 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
             </div>
           </div>
 
-          {/* Barra Superior: Botão Voltar Circular Retrô */}
-          <header className="relative z-20 px-3 sm:px-6 lg:px-10 pt-3 sm:pt-4 flex items-center justify-start">
+          {/* Barra Superior: Botão Voltar Circular Retrô e Botão Pesquisar */}
+          <header className="relative z-20 px-3 sm:px-6 lg:px-10 pt-3 sm:pt-4 flex items-center justify-between">
             <button
               onClick={() => (areaAtual ? navigate('/audioaulas') : navigate('/'))}
               aria-label="Voltar"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1C1C1E]/80 border border-white/10 flex items-center justify-center text-white backdrop-blur-md hover:bg-[#2C2C2E] transition shrink-0 active:scale-95 shadow-lg"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1C1C1E]/80 border border-white/10 flex items-center justify-center text-white backdrop-blur-md hover:bg-[#2C2C2E] transition shrink-0 active:scale-95 shadow-lg cursor-pointer"
             >
               <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.4} />
             </button>
+
+            {onBuscar && (
+              <button
+                type="button"
+                onClick={() => {
+                  haptic.selection();
+                  onBuscar();
+                }}
+                aria-label="Pesquisar áudio aulas"
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1C1C1E]/80 border border-white/10 flex items-center justify-center text-white backdrop-blur-md hover:bg-[#2C2C2E] transition shrink-0 active:scale-95 shadow-lg cursor-pointer"
+              >
+                <Search className="w-5 h-5 sm:w-6 sm:h-6 text-sky-400" />
+              </button>
+            )}
           </header>
 
           {/* Conteúdo Principal do Painel Azul à Esquerda */}

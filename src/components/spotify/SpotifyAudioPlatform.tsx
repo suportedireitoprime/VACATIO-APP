@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Search } from 'lucide-react';
 import { useSpotifyAudioStore } from '@/stores/useSpotifyAudioStore';
 import { AudioLeisCategoriasNav, type LeiCategoryFilter } from './AudioLeisCategoriasNav';
 import { AudioAppBottomNav } from '@/components/audio/AudioAppBottomNav';
+import { haptic } from '@/lib/nativeHaptics';
 import { SpotifyMiniPlayer } from './SpotifyMiniPlayer';
 import { SpotifyExpandedPlayer } from './SpotifyExpandedPlayer';
 import { SpotifyExplorarTab } from './SpotifyExplorarTab';
@@ -168,41 +170,78 @@ export const SpotifyAudioPlatform: React.FC<SpotifyAudioPlatformProps> = ({
         </AnimatePresence>
 
         {!selectedLeiData && (
-          <>
-            {/* Hero Idêntico a Áudio Aulas com Fita Cassete Animada */}
-            <AudioLeisHero
-              totalAudios={totalStats.totalAudios}
-              totalLeis={totalStats.totalLeis}
-            />
-
-            {/* Conteúdo Principal de Acordo com a Aba do Menu */}
+          activeTab === 'pesquisar' ? (
+            /* ───────── TELA DEDICADA DE BUSCA DE ÁUDIO LEIS ───────── */
             <main
-              className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10"
+              className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pt-4"
               style={{
                 paddingBottom: 'calc(11rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
               }}
             >
-              {/* Menu Superior: Rolagem infinita (Todos, Constituição, Códigos...) */}
-              {activeTab === 'explorar' && (
-                <AudioLeisCategoriasNav
-                  activeCategory={activeCategory}
-                  onSelectCategory={setActiveCategory}
-                />
-              )}
+              {/* Cabeçalho da Busca com Botão Voltar para Explorar */}
+              <div className="flex items-center gap-3.5 mb-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic.selection();
+                    setActiveTab('explorar');
+                  }}
+                  aria-label="Voltar para explorar áudio leis"
+                  className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/15 active:scale-95 border border-white/15 flex items-center justify-center text-white transition shrink-0 shadow-lg cursor-pointer"
+                >
+                  <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.4} />
+                </button>
 
-              {activeTab === 'explorar' && (
-                <SpotifyExplorarTab
-                  onSelectLei={handleSelectLei}
-                  activeCategory={activeCategory}
-                  onSelectCategory={setActiveCategory}
-                />
-              )}
-              {activeTab === 'pesquisar' && <SpotifyPesquisarTab onSelectLei={handleSelectLei} />}
-              {activeTab === 'playlists' && <SpotifyPlaylistsTab />}
-              {activeTab === 'favoritos' && <SpotifyFavoritosTab />}
-              {activeTab === 'downloads' && <SpotifyDownloadsTab />}
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                    <Search className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+                    <span>Pesquisar Áudio Leis</span>
+                  </h1>
+                  <p className="text-xs sm:text-sm text-zinc-400 truncate">
+                    Códigos, estatutos, súmulas e artigos narrados
+                  </p>
+                </div>
+              </div>
+
+              <SpotifyPesquisarTab onSelectLei={handleSelectLei} />
             </main>
-          </>
+          ) : (
+            <>
+              {/* Hero Idêntico a Áudio Aulas com Fita Cassete Animada */}
+              <AudioLeisHero
+                totalAudios={totalStats.totalAudios}
+                totalLeis={totalStats.totalLeis}
+                onBuscar={() => setActiveTab('pesquisar')}
+              />
+
+              {/* Conteúdo Principal de Acordo com a Aba do Menu */}
+              <main
+                className="max-w-[1400px] 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10"
+                style={{
+                  paddingBottom: 'calc(11rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))',
+                }}
+              >
+                {/* Menu Superior: Rolagem infinita (Todos, Constituição, Códigos...) */}
+                {activeTab === 'explorar' && (
+                  <AudioLeisCategoriasNav
+                    activeCategory={activeCategory}
+                    onSelectCategory={setActiveCategory}
+                  />
+                )}
+
+                {activeTab === 'explorar' && (
+                  <SpotifyExplorarTab
+                    onSelectLei={handleSelectLei}
+                    activeCategory={activeCategory}
+                    onSelectCategory={setActiveCategory}
+                  />
+                )}
+                {activeTab === 'playlists' && <SpotifyPlaylistsTab />}
+                {activeTab === 'favoritos' && <SpotifyFavoritosTab />}
+                {activeTab === 'downloads' && <SpotifyDownloadsTab />}
+              </main>
+            </>
+          )
         )}
       </div>
 

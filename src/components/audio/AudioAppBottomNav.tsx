@@ -150,12 +150,6 @@ export const AudioAppBottomNav: React.FC<AudioAppBottomNavProps> = ({
         {/* 3. Pesquisar (FAB centralizado em relevo vibrante) */}
         <button
           type="button"
-          onPointerDown={(e) => {
-            if (e.button === 0) {
-              haptic.light();
-              onSelect('pesquisar');
-            }
-          }}
           onClick={() => {
             haptic.light();
             onSelect('pesquisar');
