@@ -249,6 +249,58 @@ class LousaAudioEffects {
       // Ignora erro
     }
   }
+
+  /**
+   * Efeito procedural de sopro suave de ar para dispersar pó de giz da calha
+   */
+  public playSoproSound(volume: number = 0.14) {
+    if (!this.habilitado) return;
+    try {
+      const ctx = this.initContext();
+      if (!ctx) return;
+
+      const duration = 0.65;
+      const now = ctx.currentTime;
+
+      // Gerador de ruído de ar suave para simular fôlego/sopro de ar
+      const bufferSize = Math.floor(ctx.sampleRate * duration);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99765 * b0 + white * 0.0555179;
+        b1 = 0.96300 * b1 + white * 0.0750759;
+        b2 = 0.57000 * b2 + white * 0.1538520;
+        data[i] = (b0 + b1 + b2) * 0.2;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      // Filtro lowpass dinâmico que sobe e desce simulando a modulação do sopro da boca
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(320, now);
+      filter.frequency.exponentialRampToValueAtTime(1150, now + 0.22);
+      filter.frequency.exponentialRampToValueAtTime(260, now + duration);
+      filter.Q.setValueAtTime(1.8, now);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(volume, now + 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      noise.start(now);
+      noise.stop(now + duration);
+    } catch {
+      // Ignora erro
+    }
+  }
 }
 
 export const lousaAudio = new LousaAudioEffects();

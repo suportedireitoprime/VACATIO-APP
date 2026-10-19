@@ -13,6 +13,12 @@ import {
   Minimize2,
   HelpCircle,
   Clock,
+  Lightbulb,
+  Wind,
+  BookOpen,
+  Columns2,
+  CheckCircle2,
+  ChevronRight,
 } from 'lucide-react';
 import { type AulaAudio, useAudioaulasPlayer } from '@/contexts/AudioaulasPlayerContext';
 import { type LousaItem } from '@/data/lousas/lousaTipos';
@@ -70,6 +76,97 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
   const [emTelaCheia, setEmTelaCheia] = useState<boolean>(false);
   const [apagadorLimpando, setApagadorLimpando] = useState<boolean>(false);
   const [postItsVisiveis, setPostItsVisiveis] = useState<LousaItem[]>([]);
+
+  // Iluminação cênica da lousa com foco de luz superior (Item 5)
+  const [iluminacaoCenica, setIluminacaoCenica] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('aa_lousa_spotlight') !== 'false';
+  });
+
+  // Acúmulo de resíduo de pó de giz na calha de madeira e ação de soprar (Item 4)
+  const [poCalha, setPoCalha] = useState<number>(18);
+  const [soprandoCalha, setSoprandoCalha] = useState<boolean>(false);
+  const calhaRef = useRef<HTMLDivElement>(null);
+
+  // Layout Adaptativo Split-View para Tablets e Telas Grandes (Item 11)
+  const [splitViewAtivo, setSplitViewAtivo] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth >= 1024;
+  });
+  const [drawerCadernoAberto, setDrawerCadernoAberto] = useState<boolean>(false);
+  const [abaCaderno, setAbaCaderno] = useState<'capitulos' | 'pontos' | 'perguntas'>('capitulos');
+
+  // Alterna iluminação cênica da lousa
+  const handleToggleIluminacao = () => {
+    haptic.selection();
+    setIluminacaoCenica((prev) => {
+      const next = !prev;
+      localStorage.setItem('aa_lousa_spotlight', String(next));
+      return next;
+    });
+  };
+
+  // Ação interativa de soprar o pó de giz acumulado na calha com física e som
+  const handleSoprarCalha = () => {
+    if (soprandoCalha || poCalha < 5) return;
+    haptic.medium();
+    lousaAudio.playSoproSound(0.18);
+    setSoprandoCalha(true);
+
+    const calha = calhaRef.current;
+    if (calha) {
+      for (let i = 0; i < 28; i++) {
+        const p = document.createElement('span');
+        p.className = 'lz-sopro-particula';
+        const dx = (Math.random() - 0.45) * 150;
+        const dy = -16 - Math.random() * 65;
+        const size = 1.8 + Math.random() * 3.5;
+        p.style.setProperty('--dx', `${dx}px`);
+        p.style.setProperty('--dy', `${dy}px`);
+        p.style.width = `${size}px`;
+        p.style.height = `${size}px`;
+        p.style.left = `${10 + Math.random() * 80}%`;
+        p.style.bottom = `${2 + Math.random() * 8}px`;
+        p.style.animationDuration = `${0.5 + Math.random() * 0.4}s`;
+        calha.appendChild(p);
+        setTimeout(() => p.remove(), 1000);
+      }
+    }
+
+    setTimeout(() => {
+      setPoCalha(0);
+      setSoprandoCalha(false);
+    }, 850);
+  };
+
+  // Extração de dados da aula para o Caderno de Estudos (Split-View)
+  const capitulos = React.useMemo(() => {
+    if (!roteiro) return [];
+    return roteiro.filter((e) => e.kind === 'titulo');
+  }, [roteiro]);
+
+  const capituloAtualIdx = React.useMemo(() => {
+    if (!capitulos || capitulos.length === 0) return -1;
+    let idx = -1;
+    for (let i = 0; i < capitulos.length; i++) {
+      if (capitulos[i].t <= tempo) {
+        idx = i;
+      } else {
+        break;
+      }
+    }
+    return idx;
+  }, [capitulos, tempo]);
+
+  const pontosChave = React.useMemo(() => {
+    if (!roteiro) return [];
+    return roteiro.filter((e) => e.kind === 'ponto' && (e.text || (e.items && e.items.length > 0)));
+  }, [roteiro]);
+
+  const todasPerguntas = React.useMemo(() => {
+    if (!roteiro) return [];
+    return roteiro.filter((e) => e.kind === 'pergunta');
+  }, [roteiro]);
 
   // Alterna som procedural de giz e apagador
   const handleToggleSom = () => {
@@ -320,6 +417,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
         const pitch = 0.8 + (ch.charCodeAt(0) % 20) * 0.03;
         lousaAudio.playGizScratch(0.03 + gizPressaoRef.current * 0.03, pitch);
         emitirPoGiz(el, gizPressaoRef.current);
+        setPoCalha((prev) => (prev < 100 ? prev + 0.06 : 100));
       }
 
       // Resíduo de giz a cada ~8 caracteres
@@ -469,6 +567,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     lousaAudio.playApagadorWhoosh(0.12);
     haptic.medium();
     setTimeout(() => haptic.light(), 800);
+    setPoCalha((prev) => Math.min(100, prev + 22));
 
     // Fade progressivo suave com efeito de "borrar" o texto antes de sumir
     Array.from(body.querySelectorAll('.lz-titulo,.lz-ponto')).forEach((el: any, i) => {
@@ -641,6 +740,222 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     };
   }, [aberto, aula?.id]);
 
+  // Renderizador do Caderno de Estudos da Aula (para Split-View no Tablet/Desktop e Drawer no Mobile)
+  const renderCadernoDeEstudos = () => {
+    return (
+      <div className="flex-1 flex flex-col h-full bg-[#18120d] text-[#f7f2ea] overflow-hidden">
+        {/* Cabeçalho do Caderno com Abas */}
+        <div className="p-3 border-b border-amber-900/30 bg-[#211811] flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-amber-400" />
+            <span className="font-bold text-xs uppercase tracking-wider text-amber-200">
+              Caderno de Estudos
+            </span>
+          </div>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300">
+            {fmt(tempo)}
+          </span>
+        </div>
+
+        {/* Barra de Abas */}
+        <div className="flex border-b border-white/5 bg-[#1a130e] shrink-0 text-xs">
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              setAbaCaderno('capitulos');
+            }}
+            className={`flex-1 py-2.5 px-2 flex items-center justify-center gap-1.5 font-medium transition cursor-pointer border-b-2 ${
+              abaCaderno === 'capitulos'
+                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
+                : 'border-transparent text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Capítulos</span>
+            <span className="text-[10px] opacity-70">({capitulos.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              setAbaCaderno('pontos');
+            }}
+            className={`flex-1 py-2.5 px-2 flex items-center justify-center gap-1.5 font-medium transition cursor-pointer border-b-2 ${
+              abaCaderno === 'pontos'
+                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
+                : 'border-transparent text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Pontos</span>
+            <span className="text-[10px] opacity-70">({pontosChave.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              setAbaCaderno('perguntas');
+            }}
+            className={`flex-1 py-2.5 px-2 flex items-center justify-center gap-1.5 font-medium transition cursor-pointer border-b-2 ${
+              abaCaderno === 'perguntas'
+                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
+                : 'border-transparent text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Dúvidas</span>
+            <span className="text-[10px] opacity-70">({todasPerguntas.length})</span>
+          </button>
+        </div>
+
+        {/* Conteúdo da Aba com Scroll suave */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-2 select-text" style={{ scrollbarWidth: 'thin' }}>
+          {abaCaderno === 'capitulos' && (
+            <div className="space-y-1.5">
+              {capitulos.map((cap, idx) => {
+                const isAtivo = idx === capituloAtualIdx;
+                const jaPassou = cap.t <= tempo;
+
+                return (
+                  <button
+                    key={`cap-${cap.t}-${idx}`}
+                    type="button"
+                    onClick={() => {
+                      haptic.selection();
+                      seek(cap.t + 0.01);
+                    }}
+                    className={`w-full text-left p-2.5 rounded-xl border transition flex items-start gap-2.5 group cursor-pointer ${
+                      isAtivo
+                        ? 'bg-amber-500/20 border-amber-400/60 text-amber-100 shadow-[0_0_15px_rgba(251,191,36,0.15)]'
+                        : jaPassou
+                        ? 'bg-white/[0.03] border-white/5 text-zinc-300 hover:bg-white/[0.07]'
+                        : 'bg-black/20 border-white/5 text-zinc-500 hover:text-zinc-300'
+                    }`}
+                  >
+                    <span
+                      className={`font-mono text-[10px] font-bold px-1.5 py-0.5 rounded mt-0.5 shrink-0 ${
+                        isAtivo
+                          ? 'bg-amber-400 text-black'
+                          : jaPassou
+                          ? 'bg-white/10 text-zinc-300'
+                          : 'bg-white/5 text-zinc-500'
+                      }`}
+                    >
+                      {fmt(cap.t)}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className={`block text-xs font-semibold leading-snug ${isAtivo ? 'text-amber-200' : ''}`}>
+                        {cap.text}
+                      </span>
+                      {isAtivo && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-amber-400/90 font-mono mt-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                          Explicando agora na lousa
+                        </span>
+                      )}
+                    </div>
+                    <ChevronRight className={`w-3.5 h-3.5 shrink-0 transition ${isAtivo ? 'text-amber-400' : 'text-zinc-600 group-hover:text-zinc-300'}`} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {abaCaderno === 'pontos' && (
+            <div className="space-y-2">
+              {pontosChave.map((pt, idx) => {
+                const jaPassou = pt.t <= tempo;
+
+                return (
+                  <button
+                    key={`pt-${pt.t}-${idx}`}
+                    type="button"
+                    onClick={() => {
+                      haptic.selection();
+                      seek(pt.t + 0.01);
+                    }}
+                    className={`w-full text-left p-2.5 rounded-xl border transition flex items-start gap-2 group cursor-pointer ${
+                      jaPassou
+                        ? 'bg-white/[0.04] border-white/10 text-zinc-200 hover:bg-white/[0.08]'
+                        : 'bg-black/20 border-white/5 text-zinc-500 hover:text-zinc-400'
+                    }`}
+                  >
+                    <span className="font-mono text-[9.5px] px-1 py-0.5 rounded bg-black/30 text-amber-300/80 mt-0.5 shrink-0">
+                      {fmt(pt.t)}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      {pt.text && (
+                        <span className="block text-xs leading-snug font-medium">
+                          {pt.text}
+                        </span>
+                      )}
+                      {pt.items && pt.items.length > 0 && (
+                        <ul className="mt-1.5 space-y-1 pl-2 border-l border-amber-500/30 text-[11px] text-amber-200/90">
+                          {pt.items.map((sub, sidx) => (
+                            <li key={sidx} className="flex items-start gap-1.5">
+                              <span className="text-amber-400 shrink-0">•</span>
+                              <span>{sub}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {abaCaderno === 'perguntas' && (
+            <div className="space-y-2">
+              {todasPerguntas.length === 0 ? (
+                <div className="p-4 text-center text-xs text-zinc-500 italic">
+                  Nenhuma dúvida catalogada para esta aula.
+                </div>
+              ) : (
+                todasPerguntas.map((perg, idx) => {
+                  const jaPassou = perg.t <= tempo;
+
+                  return (
+                    <button
+                      key={`perg-${perg.t}-${idx}`}
+                      type="button"
+                      onClick={() => {
+                        haptic.selection();
+                        seek(perg.t + 0.01);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl border transition flex flex-col gap-1.5 cursor-pointer ${
+                        jaPassou
+                          ? 'bg-[#2b2116]/80 border-amber-500/30 text-amber-100 hover:bg-[#34271a]'
+                          : 'bg-black/20 border-white/5 text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-bold uppercase tracking-wider text-amber-400/90 flex items-center gap-1">
+                          <HelpCircle className="w-3 h-3" />
+                          Aluna
+                        </span>
+                        <span className="font-mono text-zinc-400 bg-black/30 px-1.5 py-0.5 rounded">
+                          {fmt(perg.t)}
+                        </span>
+                      </div>
+                      <span className="text-xs font-medium leading-relaxed italic">
+                        "{perg.text}"
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (!aberto || !aula || !roteiro) return null;
 
   const modalNode = (
@@ -703,6 +1018,23 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
             );
           pointer-events: none;
           z-index: 1;
+        }
+
+        /* Foco Cênico Superior (Spotlight da Lousa - Item 5) */
+        .lz-chalkboard-texture.lz-spotlight-active::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(
+            ellipse 80% 65% at 50% 8%,
+            rgba(255, 240, 210, 0.14) 0%,
+            rgba(255, 220, 150, 0.05) 45%,
+            rgba(0, 0, 0, 0.52) 100%
+          );
+          box-shadow: inset 0 0 100px rgba(0,0,0,0.85);
+          pointer-events: none;
+          z-index: 5;
+          transition: opacity 0.5s ease;
         }
 
         /* Container de letras individuais com pressão variável */
@@ -1125,6 +1457,45 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           box-shadow: 0 2px 3px rgba(0,0,0,0.6);
         }
 
+        /* Camada de pó de giz acumulado no fundo da calha (Item 4) */
+        .lz-calha-dust-layer {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          pointer-events: none;
+          background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 250, 235, 0.35) 40%,
+            rgba(255, 245, 220, 0.82) 100%
+          );
+          border-radius: 0 0 2px 2px;
+          box-shadow: 0 0 6px rgba(255, 250, 230, 0.45);
+          transition: height 0.3s ease, opacity 0.3s ease;
+          z-index: 2;
+        }
+
+        /* Partículas de pó voando ao soprar a calha */
+        .lz-sopro-particula {
+          position: absolute;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(247, 208, 112, 0.6) 50%, transparent 80%);
+          pointer-events: none;
+          z-index: 30;
+          animation: lzSoproFly ease-out forwards;
+        }
+        @keyframes lzSoproFly {
+          0% {
+            opacity: 0.95;
+            transform: translate(0, 0) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(var(--dx), var(--dy)) scale(2.2);
+          }
+        }
+
         /* POST-IT ATIVO (MAIS RECENTE - TOPO): AMARELO VIBRANTE */
         .postit-card-ativo {
           background: linear-gradient(175deg, #ffea88 0%, #fcd64e 65%, #f4ca35 100%);
@@ -1201,7 +1572,52 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Botão de Iluminação Cênica (Spotlight da Lousa - Item 5) */}
+          <button
+            type="button"
+            onClick={handleToggleIluminacao}
+            aria-label={iluminacaoCenica ? 'Desativar iluminação cênica' : 'Ativar iluminação cênica (foco suave)'}
+            title={iluminacaoCenica ? 'Iluminação Cênica: Foco Suave Ligado' : 'Iluminação Cênica: Desligada'}
+            className={`px-2.5 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${
+              iluminacaoCenica
+                ? 'bg-amber-400/20 border-amber-400/50 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.22)]'
+                : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
+            }`}
+          >
+            <Lightbulb className={`w-3.5 h-3.5 ${iluminacaoCenica ? 'text-amber-300' : 'text-zinc-400'}`} />
+            <span className="hidden lg:inline text-[11px]">
+              {iluminacaoCenica ? 'Luz Cênica' : 'Luz Plana'}
+            </span>
+          </button>
+
+          {/* Botão de Caderno de Estudos (Split-View no Tablet/Desktop e Drawer no Mobile - Item 11) */}
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              if (window.innerWidth >= 1024) {
+                setSplitViewAtivo((v) => !v);
+              } else {
+                setDrawerCadernoAberto((v) => !v);
+              }
+            }}
+            aria-label="Abrir Caderno de Estudos da Aula"
+            title={splitViewAtivo || drawerCadernoAberto ? 'Fechar Caderno de Estudos' : 'Abrir Caderno de Estudos (Roteiro e Capítulos)'}
+            className={`px-2.5 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${
+              splitViewAtivo || drawerCadernoAberto
+                ? 'bg-amber-500/25 border-amber-400/60 text-amber-200 shadow-sm'
+                : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline text-[11px]">
+              Caderno
+            </span>
+            <span className="text-[10px] bg-black/40 px-1.5 py-0.2 rounded font-mono text-amber-300/90">
+              {capitulos.length}
+            </span>
+          </button>
+
           {/* Botão de Controle de Som Procedural de Giz / ASMR */}
           <button
             type="button"
@@ -1220,7 +1636,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
               <VolumeX className="w-3.5 h-3.5 text-zinc-400" />
             )}
             <span className="hidden md:inline text-[11px]">
-              {somHabilitado ? 'Som Giz: Ligado' : 'Som: Mudo'}
+              {somHabilitado ? 'Som: On' : 'Som: Off'}
             </span>
           </button>
 
@@ -1255,8 +1671,9 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
         </div>
       </header>
 
-      {/* Corpo da Lousa com Moldura de Madeira Nobre e Calha Inferior */}
-      <main className="flex-1 min-h-0 flex flex-col p-2.5 sm:p-4 max-w-[1260px] w-full mx-auto overflow-hidden">
+      {/* Corpo da Lousa com Moldura de Madeira Nobre e Painel Adaptativo de Estudos (Item 11) */}
+      <main className="flex-1 min-h-0 flex flex-col lg:flex-row gap-3 p-2.5 sm:p-4 max-w-[1460px] w-full mx-auto overflow-hidden">
+        {/* Lousa Mágica com Moldura de Madeira Nobre */}
         <div
           className="flex-1 min-h-0 flex gap-2.5 sm:gap-4 p-2.5 sm:p-4 rounded-2xl shadow-2xl overflow-hidden"
           style={{
@@ -1264,10 +1681,12 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
             boxShadow: '0 25px 70px rgba(0,0,0,0.8), inset 0 2px 6px rgba(255,255,255,0.2)',
           }}
         >
-          {/* Quadro Negro Ardósia com Textura e Calha */}
+          {/* Quadro Negro Ardósia com Textura, Foco Cênico e Calha */}
           <div
             ref={lousaContainerRef}
-            className="lz-chalkboard-texture flex-1 min-w-0 rounded-lg overflow-hidden relative flex flex-col border border-white/5"
+            className={`lz-chalkboard-texture flex-1 min-w-0 rounded-lg overflow-hidden relative flex flex-col border border-white/5 ${
+              iluminacaoCenica ? 'lz-spotlight-active' : ''
+            }`}
           >
             {/* Área de rolagem do texto escrito de giz */}
             <div
@@ -1281,10 +1700,19 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
               {/* O conteúdo dinâmico é injetado e atualizado sincronizado em tempo real */}
             </div>
 
-            {/* Calha de Madeira Inferior (Chalk Tray) com Giz e Apagador em Repouso */}
-            <div className="lz-calha-madeira" aria-hidden="true">
+            {/* Calha de Madeira Inferior (Chalk Tray) com Giz, Apagador e Acúmulo de Pó (Item 4) */}
+            <div ref={calhaRef} className="lz-calha-madeira relative" aria-label="Calha de giz">
+              {/* Camada orgânica de pó de giz acumulado no fundo da calha */}
+              <div
+                className="lz-calha-dust-layer"
+                style={{
+                  opacity: 0.15 + (poCalha / 100) * 0.82,
+                  height: `${Math.min(9, 2 + (poCalha / 100) * 7)}px`,
+                }}
+              />
+
               {/* Giz repousado na calha */}
-              <div className="lz-calha-giz-slot">
+              <div className="lz-calha-giz-slot z-10">
                 <div
                   className="lz-calha-giz-piece w-9"
                   style={{ background: 'linear-gradient(180deg, #ffffff, #ded8c5)' }}
@@ -1302,8 +1730,26 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
                 />
               </div>
 
+              {/* Centro da Calha: Ação interativa de Soprar o pó de giz */}
+              <div className="z-10 flex items-center">
+                {poCalha >= 15 && (
+                  <button
+                    type="button"
+                    onClick={handleSoprarCalha}
+                    disabled={soprandoCalha}
+                    aria-label="Soprar o pó de giz da calha"
+                    title="Soprar o pó acumulado na calha"
+                    className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/50 hover:bg-black/75 border border-amber-200/25 text-amber-200/90 hover:text-amber-100 text-[10px] font-mono transition cursor-pointer active:scale-95 shadow-sm"
+                  >
+                    <Wind className={`w-3 h-3 text-amber-300 ${soprandoCalha ? 'animate-spin' : ''}`} />
+                    <span className="hidden sm:inline">Soprar calha</span>
+                    <span className="text-[9px] text-amber-400/90 font-bold">({Math.round(poCalha)}%)</span>
+                  </button>
+                )}
+              </div>
+
               {/* Apagador em repouso na calha quando não está limpando */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 z-10">
                 {!apagadorLimpando && (
                   <div
                     className="h-3.5 w-16 rounded-[3px] shadow-md flex flex-col justify-end overflow-hidden transition-opacity duration-300"
@@ -1317,7 +1763,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
                   </div>
                 )}
                 <span className="text-[10px] text-amber-200/40 font-mono tracking-wider hidden sm:inline">
-                  VACATIO · LOUSA V3
+                  VACATIO · LOUSA
                 </span>
               </div>
             </div>
@@ -1395,7 +1841,38 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
             </div>
           </aside>
         </div>
+
+        {/* Painel Adaptativo: Caderno de Estudos da Aula (Split-View em Tablet Landscape / Desktop - Item 11) */}
+        {splitViewAtivo && (
+          <aside className="w-[320px] xl:w-[360px] shrink-0 hidden lg:flex flex-col rounded-2xl bg-[#19130d]/95 border border-amber-900/40 shadow-2xl overflow-hidden backdrop-blur-md">
+            {renderCadernoDeEstudos()}
+          </aside>
+        )}
       </main>
+
+      {/* DRAWER DO CADERNO DE ESTUDOS PARA SMARTPHONES E TELAS MENORES (Item 11) */}
+      {drawerCadernoAberto && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col justify-end animate-in fade-in duration-200">
+          <div className="w-full max-h-[82vh] h-[520px] rounded-t-3xl bg-[#19130e] border-t border-amber-500/30 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#221a13]">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-amber-400" />
+                <span className="font-bold text-sm text-amber-200">Caderno de Estudos da Aula</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDrawerCadernoAberto(false)}
+                className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-zinc-300 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden flex flex-col">
+              {renderCadernoDeEstudos()}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Barra de Player Integrada da Lousa com Timers e Controles */}
       <footer className="shrink-0 bg-[#17120e]/95 backdrop-blur-xl border-t border-white/10 px-4 sm:px-6 py-3 pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+0.6rem)] z-30">
