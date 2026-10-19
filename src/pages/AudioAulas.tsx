@@ -18,9 +18,9 @@ import { motion } from 'framer-motion';
 
 // Componentes pesados ou secundários carregados sob demanda
 const ShapeGrid = React.lazy(() => import('@/components/ui/ShapeGrid'));
-const AudioaulasPlaylistsView = React.lazy(() => import('@/components/audioaulas/home/AudioaulasPlaylistsView').then(m => ({ default: m.AudioaulasPlaylistsView })));
-const AudioaulasAreaView = React.lazy(() => import('@/components/audioaulas/area/AudioaulasAreaView').then(m => ({ default: m.AudioaulasAreaView })));
-const AudioaulasPlayerModal = React.lazy(() => import('@/components/audioaulas/home/AudioaulasPlayerModal').then(m => ({ default: m.AudioaulasPlayerModal })));
+const AudioaulasPlaylistsView = React.lazy(() => import('@/components/audioaulas/home/AudioaulasPlaylistsView').then(m => ({ default: m.AudioaulasPlaylistsView || m.default })));
+const AudioaulasAreaView = React.lazy(() => import('@/components/audioaulas/area/AudioaulasAreaView').then(m => ({ default: m.AudioaulasAreaView || m.default })));
+const AudioaulasPlayerModal = React.lazy(() => import('@/components/audioaulas/home/AudioaulasPlayerModal').then(m => ({ default: m.AudioaulasPlayerModal || m.default })));
 
 const Audioaulas = () => {
   const navigate = useNavigate();

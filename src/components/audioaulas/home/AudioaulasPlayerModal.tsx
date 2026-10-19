@@ -383,3 +383,5 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
   if (typeof document === 'undefined') return null;
   return createPortal(modalNode, document.body);
 });
+
+export default AudioaulasPlayerModal;
