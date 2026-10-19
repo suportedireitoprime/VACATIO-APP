@@ -136,6 +136,9 @@ const Audioaulas = () => {
               totalAreas={state.areas.length}
               totalFavoritas={state.favoritos.size}
               aulasFavoritas={aulasFavoritasFiltro}
+              totalRecentes={state.historicoRecentes.length}
+              aulasRecentes={state.historicoRecentes}
+              onLimparRecentes={state.limparRecentes}
               onTocarAula={state.handleTocarAula}
               onAlternarFavoritoAula={state.alternarFavorito}
               aulas={state.aulas}

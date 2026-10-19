@@ -1,13 +1,15 @@
 import React, { memo } from 'react';
-import { Heart, Flame, BarChart3, Route } from 'lucide-react';
+import { History, Flame, BarChart3, Route } from 'lucide-react';
 import { haptic } from '@/lib/nativeHaptics';
 
 interface AudioActionShortcutsProps {
   colorScheme?: 'purple' | 'blue';
-  onFavoritos: () => void;
+  onRecentes?: () => void;
+  onFavoritos?: () => void; // compatibilidade legada
   onEmAlta: () => void;
   onEstatistica: () => void;
   onTrilhas: () => void;
+  badgeRecentes?: number;
   badgeFavoritos?: number;
   badgeTrilhas?: number;
   className?: string;
@@ -16,25 +18,29 @@ interface AudioActionShortcutsProps {
 export const AudioActionShortcuts: React.FC<AudioActionShortcutsProps> = memo(
   function AudioActionShortcuts({
     colorScheme = 'purple',
+    onRecentes,
     onFavoritos,
     onEmAlta,
     onEstatistica,
     onTrilhas,
+    badgeRecentes,
     badgeFavoritos = 0,
     badgeTrilhas = 0,
     className = '',
   }) {
     const isPurple = colorScheme === 'purple';
+    const acaoRecentes = onRecentes || onFavoritos || (() => {});
+    const badgeRecentesFinal = badgeRecentes !== undefined ? badgeRecentes : badgeFavoritos;
 
     const ITEMS = [
       {
-        id: 'favoritos',
-        label: 'Favoritos',
-        icon: Heart,
+        id: 'recentes',
+        label: 'Recentes',
+        icon: History,
         color: isPurple ? '#C084FC' : '#60A5FA',
-        badge: badgeFavoritos,
+        badge: badgeRecentesFinal,
         badgeColor: isPurple ? '#9333EA' : '#2563EB',
-        action: onFavoritos,
+        action: acaoRecentes,
       },
       {
         id: 'em_alta',

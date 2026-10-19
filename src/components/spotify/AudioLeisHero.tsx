@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import { AudioActionShortcuts } from '@/components/audio/AudioActionShortcuts';
 import { AudioFavoritosModal } from '@/components/audio/AudioFavoritosModal';
+import { AudioRecentesModal } from '@/components/audio/AudioRecentesModal';
 import { AudioEstatisticasModal } from '@/components/audio/AudioEstatisticasModal';
 import { AudioEmAltaModal } from '@/components/audio/AudioEmAltaModal';
 import { AudioTrilhasModal } from '@/components/audio/AudioTrilhasModal';
@@ -20,6 +21,7 @@ import cenarioDescanso from '@/assets/audio-cenarios/cenario-descanso.webp';
 interface AudioLeisHeroProps {
   totalAudios: number;
   totalLeis: number;
+  onRecentes?: () => void;
   onFavoritos?: () => void;
   onEmAlta?: () => void;
   onEstatistica?: () => void;
@@ -68,15 +70,17 @@ const CENARIOS = [
 export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function AudioLeisHero({
   totalAudios,
   totalLeis,
+  onRecentes,
   onFavoritos,
   onEmAlta,
   onEstatistica,
   onTrilhas,
 }) {
   const navigate = useNavigate();
-  const { favoritos, setActiveTab } = useSpotifyAudioStore();
+  const { favoritos, historicoRecentes, setActiveTab } = useSpotifyAudioStore();
   const [cenarioIndex, setCenarioIndex] = useState(0);
 
+  const [recentesOpen, setRecentesOpen] = useState(false);
   const [favoritosOpen, setFavoritosOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [emAltaOpen, setEmAltaOpen] = useState(false);
@@ -236,9 +240,9 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
         <div className="relative z-10 px-3 sm:px-6 lg:px-10 pb-3 pt-1">
           <AudioActionShortcuts
             colorScheme="purple"
-            onFavoritos={() => {
-              if (onFavoritos) onFavoritos();
-              else setFavoritosOpen(true);
+            onRecentes={() => {
+              if (onRecentes) onRecentes();
+              else setRecentesOpen(true);
             }}
             onEmAlta={() => {
               if (onEmAlta) onEmAlta();
@@ -252,12 +256,17 @@ export const AudioLeisHero: React.FC<AudioLeisHeroProps> = React.memo(function A
               if (onTrilhas) onTrilhas();
               else setTrilhasOpen(true);
             }}
-            badgeFavoritos={favoritos.length}
+            badgeRecentes={historicoRecentes.length}
           />
         </div>
       </div>
 
       {/* Modais de Ações de Áudio em Tela Cheia Sobre o Menu de Rodapé */}
+      <AudioRecentesModal
+        isOpen={recentesOpen}
+        onClose={() => setRecentesOpen(false)}
+        colorScheme="purple"
+      />
       <AudioFavoritosModal
         isOpen={favoritosOpen}
         onClose={() => setFavoritosOpen(false)}
