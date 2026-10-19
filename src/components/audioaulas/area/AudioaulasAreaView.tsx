@@ -23,6 +23,8 @@ import ShapeGrid from '@/components/ui/ShapeGrid';
 import { haptic } from '@/lib/nativeHaptics';
 import { getAreaTheme } from '@/lib/audioaulasThemes';
 import { useAudioaulasProgresso, calcularProgressoMateria } from '@/lib/audioaulasProgresso';
+import { temLousaMagica } from '@/data/lousas/lousaRegistry';
+import { LousaMagicaModal } from '@/components/audioaulas/lousa/LousaMagicaModal';
 
 interface AudioaulasAreaViewProps {
   area: string;
@@ -90,6 +92,9 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
 
   // Descrição expandida de aula
   const [aulaExpandidaId, setAulaExpandidaId] = useState<number | null>(null);
+
+  // Modal de Lousa Mágica (Modo Dinâmico)
+  const [lousaModalAula, setLousaModalAula] = useState<AulaAudio | null>(null);
 
   // Filtra matérias
   const temasFiltrados = useMemo(() => {
@@ -537,6 +542,7 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                         ? Math.min(100, Math.round((tempo / dur) * 100))
                         : salvo?.percent || 0;
                     const concluida = Boolean(salvo?.concluida) || aulaPercent >= 90;
+                    const temLousa = temLousaMagica(aula);
 
                     return (
                       <div
@@ -593,7 +599,7 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                             }}
                             className="min-w-0 flex-1 text-left cursor-pointer flex flex-col justify-center h-full py-1"
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                               <span
                                 className="font-medium text-[11px] px-2 py-0.5 rounded-md border shrink-0"
                                 style={{
@@ -604,6 +610,25 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                               >
                                 Faixa {numFaixa}
                               </span>
+
+                              {temLousa && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    haptic.impactMedium();
+                                    if (aula.id !== atualId) {
+                                      handleTocarAula(aula, aulasDaMateriaAtiva);
+                                    }
+                                    setLousaModalAula(aula);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-500/25 hover:bg-amber-500/35 active:scale-95 text-amber-300 border border-amber-500/40 shadow-sm shrink-0 cursor-pointer transition"
+                                  title="Abrir Lousa Mágica (Modo Dinâmico)"
+                                >
+                                  <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+                                  <span>Modo Dinâmico</span>
+                                </button>
+                              )}
 
                               {isAtivo ? (
                                 <span
@@ -669,6 +694,25 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
                               />
                             </button>
 
+                            {temLousa && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  haptic.impactMedium();
+                                  if (aula.id !== atualId) {
+                                    handleTocarAula(aula, aulasDaMateriaAtiva);
+                                  }
+                                  setLousaModalAula(aula);
+                                }}
+                                className="hidden md:inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl font-card text-xs font-bold transition border cursor-pointer bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30 active:scale-95 shadow-sm"
+                                title="Abrir Lousa Mágica (Modo Dinâmico)"
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                                <span>Lousa</span>
+                              </button>
+                            )}
+
                             {aula.descricao && (
                               <button
                                 type="button"
@@ -722,6 +766,13 @@ export const AudioaulasAreaView: React.FC<AudioaulasAreaViewProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modal Interativo da Lousa Mágica (Modo Dinâmico) */}
+      <LousaMagicaModal
+        aberto={Boolean(lousaModalAula)}
+        aula={lousaModalAula}
+        onFechar={() => setLousaModalAula(null)}
+      />
     </div>
   );
 };

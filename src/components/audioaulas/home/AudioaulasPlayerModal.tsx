@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Heart, RotateCcw, RotateCw, SkipBack, SkipForward, Play, Pause, Gauge, X, Music } from 'lucide-react';
+import { ChevronDown, Heart, RotateCcw, RotateCw, SkipBack, SkipForward, Play, Pause, Gauge, X, Music, Sparkles } from 'lucide-react';
 import { type AulaAudio, audioIdOf, useAudioaulasPlayer } from '@/contexts/AudioaulasPlayerContext';
 import { BotaoDownloadAudio } from './BotaoDownloadAudio';
 import { capaDaArea, fmt, VELOCIDADES } from '@/lib/audioaulasHelper';
 import { CapaOtimizada } from './CapaOtimizada';
 import { AudioaulasBgmModal } from '@/components/audioaulas/AudioaulasBgmModal';
+import { temLousaMagica } from '@/data/lousas/lousaRegistry';
+import { LousaMagicaModal } from '@/components/audioaulas/lousa/LousaMagicaModal';
 
 interface AudioaulasPlayerModalProps {
   aberto: boolean;
@@ -44,6 +46,7 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
 }: AudioaulasPlayerModalProps) {
   const [expandirDesc, setExpandirDesc] = useState(false);
   const [bgmModalAberto, setBgmModalAberto] = useState(false);
+  const [lousaAberta, setLousaAberta] = useState(false);
   const { bgmAtivo, bgmVolume } = useAudioaulasPlayer();
 
   // Resetar o estado da descrição quando mudar a aula ou fechar o modal
@@ -107,39 +110,70 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
             <p className="text-[11px] uppercase tracking-widest font-semibold text-primary">Em Reprodução</p>
             <p className="text-sm font-bold text-white truncate max-w-[70vw] sm:max-w-md mx-auto">{atual.area}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => setBgmModalAberto(true)}
-            aria-label="Configurar música de fundo"
-            title="Música de Fundo (Lo-Fi)"
-            className={`h-11 w-11 grid place-items-center rounded-full transition active:scale-95 ${
-              bgmAtivo
-                ? 'bg-blue-600/30 text-blue-400 border border-blue-500/40 shadow-lg shadow-blue-900/30'
-                : 'hover:bg-white/10 text-zinc-400 hover:text-white'
-            }`}
-          >
-            <Music className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {temLousaMagica(atual) && (
+              <button
+                type="button"
+                onClick={() => setLousaAberta(true)}
+                aria-label="Abrir Modo Dinâmico (Lousa Mágica)"
+                title="Lousa Mágica (Modo Dinâmico)"
+                className="h-10 px-3 flex items-center gap-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition active:scale-95 shadow-md shadow-amber-950/40 text-xs font-bold cursor-pointer"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                <span className="hidden sm:inline">Modo Dinâmico</span>
+                <span className="sm:hidden">Lousa</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setBgmModalAberto(true)}
+              aria-label="Configurar música de fundo"
+              title="Música de Fundo (Lo-Fi)"
+              className={`h-11 w-11 grid place-items-center rounded-full transition active:scale-95 ${
+                bgmAtivo
+                  ? 'bg-blue-600/30 text-blue-400 border border-blue-500/40 shadow-lg shadow-blue-900/30'
+                  : 'hover:bg-white/10 text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Music className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* Conteúdo Principal do Player: flexível, responsivo e adaptado para qualquer altura de tela */}
         <div className="mx-auto w-full max-w-xl flex-1 flex flex-col justify-between px-6 pt-1 pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+2.5rem)] lg:pb-8">
           {/* Seção da Capa com botão de Favorito */}
-          <div className="relative flex items-center justify-center my-auto py-2">
-            <div className="h-44 w-44 sm:h-56 sm:w-56 max-h-[30vh] aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-zinc-900 shrink-0">
-              <CapaOtimizada src={capaDaArea(atual.area || '')} alt={atual.titulo} animacaoEntrada />
+          <div className="relative flex flex-col items-center justify-center my-auto py-2">
+            <div className="relative">
+              <div className="h-44 w-44 sm:h-56 sm:w-56 max-h-[30vh] aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-zinc-900 shrink-0">
+                <CapaOtimizada src={capaDaArea(atual.area || '')} alt={atual.titulo} animacaoEntrada />
+              </div>
+              <button
+                onClick={() => alternarFavorito(atual)}
+                aria-label={favoritos.has(audioIdOf(atual)) ? 'Remover dos favoritos' : 'Favoritar'}
+                className="absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-black/60 backdrop-blur-md transition hover:bg-white/20 active:opacity-70 shadow-xl"
+              >
+                <Heart
+                  className={`h-6 w-6 transition ${
+                    favoritos.has(audioIdOf(atual)) ? 'fill-rose-500 text-rose-500' : 'text-white'
+                  }`}
+                />
+              </button>
             </div>
-            <button
-              onClick={() => alternarFavorito(atual)}
-              aria-label={favoritos.has(audioIdOf(atual)) ? 'Remover dos favoritos' : 'Favoritar'}
-              className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-black/50 backdrop-blur-md transition hover:bg-white/20 active:opacity-70 shadow-xl"
-            >
-              <Heart
-                className={`h-6 w-6 transition ${
-                  favoritos.has(audioIdOf(atual)) ? 'fill-rose-500 text-rose-500' : 'text-white'
-                }`}
-              />
-            </button>
+
+            {/* Destaque para Lousa Mágica quando disponível na aula */}
+            {temLousaMagica(atual) && (
+              <div className="mt-3.5 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setLousaAberta(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500/25 via-amber-600/20 to-amber-500/25 hover:from-amber-500/35 hover:to-amber-600/35 border border-amber-500/40 text-amber-300 shadow-lg shadow-amber-950/60 active:scale-95 transition text-xs font-bold cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span>Abrir Lousa Mágica (Modo Dinâmico)</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Título e Tema */}
@@ -246,6 +280,18 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
             </div>
 
             <div className="flex items-center gap-2">
+              {temLousaMagica(atual) && (
+                <button
+                  type="button"
+                  onClick={() => setLousaAberta(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition active:scale-95 bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30 cursor-pointer shadow-sm"
+                  title="Abrir Lousa Mágica (Modo Dinâmico)"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Lousa</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => setBgmModalAberto(true)}
@@ -290,6 +336,13 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
         <AudioaulasBgmModal
           isOpen={bgmModalAberto}
           onClose={() => setBgmModalAberto(false)}
+        />
+
+        {/* Modal Interativo da Lousa Mágica (Modo Dinâmico) */}
+        <LousaMagicaModal
+          aberto={lousaAberta}
+          aula={atual}
+          onFechar={() => setLousaAberta(false)}
         />
       </div>
     </>
