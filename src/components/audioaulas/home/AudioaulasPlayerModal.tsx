@@ -10,7 +10,6 @@ import {
   Play,
   Pause,
   Gauge,
-  X,
   Music,
   Feather,
   Settings,
@@ -59,15 +58,9 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
   pular,
   setVelocidade,
 }: AudioaulasPlayerModalProps) {
-  const [expandirDesc, setExpandirDesc] = useState(false);
   const [bgmModalAberto, setBgmModalAberto] = useState(false);
   const [lousaAberta, setLousaAberta] = useState(false);
   const { bgmAtivo, bgmVolume } = useAudioaulasPlayer();
-
-  // Resetar o estado da descrição quando mudar a aula ou fechar o modal
-  useEffect(() => {
-    if (!aberto) setExpandirDesc(false);
-  }, [aberto, atual]);
 
   // Trava scroll da página de fundo quando o player expandido estiver aberto
   useEffect(() => {
@@ -231,17 +224,6 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
               {atual.titulo}
             </h2>
             <p className="text-sm font-medium text-primary mt-1 truncate">{atual.tema || atual.area}</p>
-            {atual.descricao && (
-              <div className="mt-1.5 flex flex-col items-center sm:items-start">
-                <p className="text-xs text-zinc-400 line-clamp-2">{atual.descricao}</p>
-                <button
-                  onClick={() => setExpandirDesc(true)}
-                  className="text-primary text-[11px] font-bold mt-1 hover:underline uppercase tracking-wider"
-                >
-                  Ver mais
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Barra de Progresso Fina e Elegante com Bolinha Alta */}
@@ -353,17 +335,7 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
             </div>
 
             <div className="flex items-center gap-2">
-              {temLousaMagica(atual) && (
-                <button
-                  type="button"
-                  onClick={() => setLousaAberta(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition active:scale-95 bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30 cursor-pointer shadow-sm"
-                  title="Abrir Lousa Mágica (Modo Dinâmico)"
-                >
-                  <Feather className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Lousa</span>
-                </button>
-              )}
+
 
               <button
                 type="button"
@@ -384,26 +356,7 @@ export const AudioaulasPlayerModal = React.memo(function AudioaulasPlayerModal({
           </div>
         </div>
 
-        {/* Modal/Overlay da Descrição (expande de baixo para cima) */}
-        <div 
-          className={`absolute inset-x-0 bottom-0 z-50 bg-zinc-950/95 backdrop-blur-xl border-t border-white/10 p-6 shadow-[0_-20px_50px_rgba(0,0,0,0.8)] rounded-t-3xl transition-transform duration-300 ease-out flex flex-col ${
-            expandirDesc ? 'translate-y-0' : 'translate-y-full'
-          }`}
-          style={{ maxHeight: '70%' }}
-        >
-          <div className="flex items-center justify-between mb-4 shrink-0">
-            <h3 className="text-sm font-black text-white uppercase tracking-widest">Descrição da Aula</h3>
-            <button 
-              onClick={() => setExpandirDesc(false)}
-              className="h-8 w-8 grid place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 transition active:opacity-70 cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="overflow-y-auto pb-6 text-sm text-zinc-300 leading-relaxed custom-scrollbar">
-            {atual.descricao}
-          </div>
-        </div>
+
 
         {/* Modal de Configurações de Música de Fundo (Lo-Fi) */}
         {bgmModalAberto && (
