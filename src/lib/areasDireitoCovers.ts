@@ -74,7 +74,7 @@ const MAP: Record<string, AreaCover> = {
   'direito ambiental': { cover: ambiental, tint: 'hsla(104, 56%, 36%, 0.88)' },
   'direito civil': { cover: civil, tint: 'hsla(24, 68%, 53%, 0.9)' },
   'direito concorrencial': { cover: concorrencial, tint: 'hsla(43, 76%, 66%, 0.9)' },
-  'direito constitucional': { cover: constitucional, tint: 'hsla(224, 65%, 40%, 0.9)' },
+  'direito constitucional': { cover: constitucional, tint: 'hsla(158, 64%, 32%, 0.9)' },
   'direito desportivo': { cover: desportivo, tint: 'hsla(34, 95%, 54%, 0.9)' },
   'direito do trabalho': { cover: trabalho, tint: 'hsla(28, 88%, 56%, 0.9)' },
   'direito empresarial': { cover: empresarial, tint: 'hsla(216, 30%, 48%, 0.9)' },
