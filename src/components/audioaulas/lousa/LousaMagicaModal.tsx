@@ -1,22 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { Capacitor } from '@capacitor/core';
 import {
   X,
   Play,
   Pause,
   RotateCcw,
   RotateCw,
-  Volume2,
-  VolumeX,
   Maximize2,
   Minimize2,
   HelpCircle,
   Clock,
   Wind,
-  BookOpen,
-  Columns2,
-  CheckCircle2,
-  ChevronRight,
 } from 'lucide-react';
 import { type AulaAudio, useAudioaulasPlayer } from '@/contexts/AudioaulasPlayerContext';
 import { type LousaItem } from '@/data/lousas/lousaTipos';
@@ -70,7 +65,6 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
   const gizPressaoRef = useRef<number>(0.7);
 
   // Estados de interface
-  const [somHabilitado, setSomHabilitado] = useState<boolean>(() => lousaAudio.isEnabled());
   const [emTelaCheia, setEmTelaCheia] = useState<boolean>(false);
   const [apagadorLimpando, setApagadorLimpando] = useState<boolean>(false);
   const [postItsVisiveis, setPostItsVisiveis] = useState<LousaItem[]>([]);
@@ -79,14 +73,6 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
   const [poCalha, setPoCalha] = useState<number>(18);
   const [soprandoCalha, setSoprandoCalha] = useState<boolean>(false);
   const calhaRef = useRef<HTMLDivElement>(null);
-
-  // Layout Adaptativo Split-View para Tablets e Telas Grandes (Item 11)
-  const [splitViewAtivo, setSplitViewAtivo] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth >= 1024;
-  });
-  const [drawerCadernoAberto, setDrawerCadernoAberto] = useState<boolean>(false);
-  const [abaCaderno, setAbaCaderno] = useState<'capitulos' | 'pontos' | 'perguntas'>('capitulos');
 
   // Ação interativa de soprar o pó de giz acumulado na calha com física e som
   const handleSoprarCalha = () => {
@@ -121,62 +107,99 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     }, 850);
   };
 
-  // Extração de dados da aula para o Caderno de Estudos (Split-View)
-  const capitulos = React.useMemo(() => {
-    if (!roteiro) return [];
-    return roteiro.filter((e) => e.kind === 'titulo');
-  }, [roteiro]);
-
-  const capituloAtualIdx = React.useMemo(() => {
-    if (!capitulos || capitulos.length === 0) return -1;
-    let idx = -1;
-    for (let i = 0; i < capitulos.length; i++) {
-      if (capitulos[i].t <= tempo) {
-        idx = i;
-      } else {
-        break;
+  // Helper para travar rotação de tela em modo paisagem (landscape) ao abrir tela cheia
+  const travarOrientacaoLandscape = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { ScreenOrientation } = await import('@capacitor/screen-orientation');
+        await ScreenOrientation.lock({ orientation: 'landscape' });
+      } catch (err) {
+        console.warn('[LousaMagica] Falha ao travar landscape nativo:', err);
       }
-    }
-    return idx;
-  }, [capitulos, tempo]);
-
-  const pontosChave = React.useMemo(() => {
-    if (!roteiro) return [];
-    return roteiro.filter((e) => e.kind === 'ponto' && (e.text || (e.items && e.items.length > 0)));
-  }, [roteiro]);
-
-  const todasPerguntas = React.useMemo(() => {
-    if (!roteiro) return [];
-    return roteiro.filter((e) => e.kind === 'pergunta');
-  }, [roteiro]);
-
-  // Alterna som procedural de giz e apagador
-  const handleToggleSom = () => {
-    const novo = lousaAudio.toggle();
-    setSomHabilitado(novo);
-    haptic.selection();
-    if (novo) {
-      lousaAudio.playGizScratch(0.08);
+    } else if (typeof screen !== 'undefined' && (screen as any).orientation?.lock) {
+      try {
+        await (screen.orientation as any).lock('landscape');
+      } catch {
+        // Ignora caso não suportado no navegador
+      }
     }
   };
 
-  // Alterna modo tela cheia
-  const handleToggleFullscreen = () => {
+  // Helper para restaurar a rotação de tela padrão (portrait)
+  const restaurarOrientacaoPortrait = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { ScreenOrientation } = await import('@capacitor/screen-orientation');
+        await ScreenOrientation.lock({ orientation: 'portrait' });
+      } catch (err) {
+        console.warn('[LousaMagica] Falha ao restaurar portrait nativo:', err);
+      }
+    } else if (typeof screen !== 'undefined' && (screen as any).orientation?.unlock) {
+      try {
+        (screen.orientation as any).unlock();
+      } catch {
+        // Ignora
+      }
+    }
+  };
+
+  // Fecha modal restaurando fullscreen e rotação portrait
+  const fecharComRestauracao = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.().catch(() => {});
+    }
+    restaurarOrientacaoPortrait();
+    setEmTelaCheia(false);
+    onFechar();
+  }, [onFechar]);
+
+  // Alterna modo tela cheia com orientação paisagem automática no mobile / tablet
+  const handleToggleFullscreen = async () => {
     haptic.selection();
-    if (!document.fullscreenElement) {
-      modalWrapperRef.current?.requestFullscreen?.().then(() => setEmTelaCheia(true)).catch(() => {});
+    if (!document.fullscreenElement && !emTelaCheia) {
+      try {
+        if (modalWrapperRef.current?.requestFullscreen) {
+          await modalWrapperRef.current.requestFullscreen();
+        }
+      } catch {
+        // Fallback
+      }
+      setEmTelaCheia(true);
+      await travarOrientacaoLandscape();
     } else {
-      document.exitFullscreen?.().then(() => setEmTelaCheia(false)).catch(() => {});
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        }
+      } catch {
+        // Fallback
+      }
+      setEmTelaCheia(false);
+      await restaurarOrientacaoPortrait();
     }
   };
 
   useEffect(() => {
     const handleFsChange = () => {
-      setEmTelaCheia(!!document.fullscreenElement);
+      const fs = !!document.fullscreenElement;
+      setEmTelaCheia(fs);
+      if (!fs) {
+        restaurarOrientacaoPortrait();
+      }
     };
     document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      restaurarOrientacaoPortrait();
+    };
   }, []);
+
+  // Garante restauração de portrait quando o modal fechar ou desmontar
+  useEffect(() => {
+    if (!aberto) {
+      restaurarOrientacaoPortrait();
+    }
+  }, [aberto]);
 
   // Auto-scroll da lousa para o final com suavidade
   const lousaScroll = useCallback(() => {
@@ -657,221 +680,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
     };
   }, [aberto, aula?.id]);
 
-  // Renderizador do Caderno de Estudos da Aula (para Split-View no Tablet/Desktop e Drawer no Mobile)
-  const renderCadernoDeEstudos = () => {
-    return (
-      <div className="flex-1 flex flex-col h-full bg-[#18120d] text-[#f7f2ea] overflow-hidden">
-        {/* Cabeçalho do Caderno com Abas */}
-        <div className="p-3 border-b border-amber-900/30 bg-[#211811] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-amber-400" />
-            <span className="font-bold text-xs uppercase tracking-wider text-amber-200">
-              Caderno de Estudos
-            </span>
-          </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300">
-            {fmt(tempo)}
-          </span>
-        </div>
 
-        {/* Barra de Abas */}
-        <div className="flex border-b border-white/5 bg-[#1a130e] shrink-0 text-xs">
-          <button
-            type="button"
-            onClick={() => {
-              haptic.selection();
-              setAbaCaderno('capitulos');
-            }}
-            className={`flex-1 py-2.5 px-2 flex items-center justify-center gap-1.5 font-medium transition cursor-pointer border-b-2 ${
-              abaCaderno === 'capitulos'
-                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>Capítulos</span>
-            <span className="text-[10px] opacity-70">({capitulos.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              haptic.selection();
-              setAbaCaderno('pontos');
-            }}
-            className={`flex-1 py-2.5 px-2 flex items-center justify-center gap-1.5 font-medium transition cursor-pointer border-b-2 ${
-              abaCaderno === 'pontos'
-                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Pontos</span>
-            <span className="text-[10px] opacity-70">({pontosChave.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              haptic.selection();
-              setAbaCaderno('perguntas');
-            }}
-            className={`flex-1 py-2.5 px-2 flex items-center justify-center gap-1.5 font-medium transition cursor-pointer border-b-2 ${
-              abaCaderno === 'perguntas'
-                ? 'border-amber-400 text-amber-300 bg-amber-500/10'
-                : 'border-transparent text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <HelpCircle className="w-3.5 h-3.5" />
-            <span>Dúvidas</span>
-            <span className="text-[10px] opacity-70">({todasPerguntas.length})</span>
-          </button>
-        </div>
-
-        {/* Conteúdo da Aba com Scroll suave */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2 select-text" style={{ scrollbarWidth: 'thin' }}>
-          {abaCaderno === 'capitulos' && (
-            <div className="space-y-1.5">
-              {capitulos.map((cap, idx) => {
-                const isAtivo = idx === capituloAtualIdx;
-                const jaPassou = cap.t <= tempo;
-
-                return (
-                  <button
-                    key={`cap-${cap.t}-${idx}`}
-                    type="button"
-                    onClick={() => {
-                      haptic.selection();
-                      seek(cap.t + 0.01);
-                    }}
-                    className={`w-full text-left p-2.5 rounded-xl border transition flex items-start gap-2.5 group cursor-pointer ${
-                      isAtivo
-                        ? 'bg-amber-500/20 border-amber-400/60 text-amber-100 shadow-[0_0_15px_rgba(251,191,36,0.15)]'
-                        : jaPassou
-                        ? 'bg-white/[0.03] border-white/5 text-zinc-300 hover:bg-white/[0.07]'
-                        : 'bg-black/20 border-white/5 text-zinc-500 hover:text-zinc-300'
-                    }`}
-                  >
-                    <span
-                      className={`font-mono text-[10px] font-bold px-1.5 py-0.5 rounded mt-0.5 shrink-0 ${
-                        isAtivo
-                          ? 'bg-amber-400 text-black'
-                          : jaPassou
-                          ? 'bg-white/10 text-zinc-300'
-                          : 'bg-white/5 text-zinc-500'
-                      }`}
-                    >
-                      {fmt(cap.t)}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <span className={`block text-xs font-semibold leading-snug ${isAtivo ? 'text-amber-200' : ''}`}>
-                        {cap.text}
-                      </span>
-                      {isAtivo && (
-                        <span className="inline-flex items-center gap-1 text-[10px] text-amber-400/90 font-mono mt-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                          Explicando agora na lousa
-                        </span>
-                      )}
-                    </div>
-                    <ChevronRight className={`w-3.5 h-3.5 shrink-0 transition ${isAtivo ? 'text-amber-400' : 'text-zinc-600 group-hover:text-zinc-300'}`} />
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {abaCaderno === 'pontos' && (
-            <div className="space-y-2">
-              {pontosChave.map((pt, idx) => {
-                const jaPassou = pt.t <= tempo;
-
-                return (
-                  <button
-                    key={`pt-${pt.t}-${idx}`}
-                    type="button"
-                    onClick={() => {
-                      haptic.selection();
-                      seek(pt.t + 0.01);
-                    }}
-                    className={`w-full text-left p-2.5 rounded-xl border transition flex items-start gap-2 group cursor-pointer ${
-                      jaPassou
-                        ? 'bg-white/[0.04] border-white/10 text-zinc-200 hover:bg-white/[0.08]'
-                        : 'bg-black/20 border-white/5 text-zinc-500 hover:text-zinc-400'
-                    }`}
-                  >
-                    <span className="font-mono text-[9.5px] px-1 py-0.5 rounded bg-black/30 text-amber-300/80 mt-0.5 shrink-0">
-                      {fmt(pt.t)}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      {pt.text && (
-                        <span className="block text-xs leading-snug font-medium">
-                          {pt.text}
-                        </span>
-                      )}
-                      {pt.items && pt.items.length > 0 && (
-                        <ul className="mt-1.5 space-y-1 pl-2 border-l border-amber-500/30 text-[11px] text-amber-200/90">
-                          {pt.items.map((sub, sidx) => (
-                            <li key={sidx} className="flex items-start gap-1.5">
-                              <span className="text-amber-400 shrink-0">•</span>
-                              <span>{sub}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {abaCaderno === 'perguntas' && (
-            <div className="space-y-2">
-              {todasPerguntas.length === 0 ? (
-                <div className="p-4 text-center text-xs text-zinc-500 italic">
-                  Nenhuma dúvida catalogada para esta aula.
-                </div>
-              ) : (
-                todasPerguntas.map((perg, idx) => {
-                  const jaPassou = perg.t <= tempo;
-
-                  return (
-                    <button
-                      key={`perg-${perg.t}-${idx}`}
-                      type="button"
-                      onClick={() => {
-                        haptic.selection();
-                        seek(perg.t + 0.01);
-                      }}
-                      className={`w-full text-left p-3 rounded-xl border transition flex flex-col gap-1.5 cursor-pointer ${
-                        jaPassou
-                          ? 'bg-[#2b2116]/80 border-amber-500/30 text-amber-100 hover:bg-[#34271a]'
-                          : 'bg-black/20 border-white/5 text-zinc-500 hover:text-zinc-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="font-bold uppercase tracking-wider text-amber-400/90 flex items-center gap-1">
-                          <HelpCircle className="w-3 h-3" />
-                          Aluna
-                        </span>
-                        <span className="font-mono text-zinc-400 bg-black/30 px-1.5 py-0.5 rounded">
-                          {fmt(perg.t)}
-                        </span>
-                      </div>
-                      <span className="text-xs font-medium leading-relaxed italic">
-                        "{perg.text}"
-                      </span>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   if (!aberto || !aula || !roteiro) return null;
 
@@ -1448,100 +1257,121 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
         }
       `}</style>
 
-      {/* Header com Glassmorphism, Controle de Som e Safe Area */}
+      {/* Header Integrado com Controles de Áudio, Barra de Progresso e Ações */}
       <header
-        className="shrink-0 px-4 sm:px-6 pb-2.5 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.6rem)] border-b border-white/10 bg-[#17120e]/95 backdrop-blur-xl flex items-center justify-between z-30"
+        className="shrink-0 px-3 sm:px-5 py-2.5 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.6rem)] border-b border-white/10 bg-[#17120e]/95 backdrop-blur-xl flex items-center gap-2 sm:gap-3.5 z-30"
       >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <h2 className="text-xs sm:text-sm font-semibold text-amber-100/90 truncate max-w-sm sm:max-w-md md:max-w-lg font-sans tracking-tight">
-            {aula.titulo}
-          </h2>
+        {/* Botão Play / Pause Dourado */}
+        <button
+          type="button"
+          onClick={() => {
+            haptic.selection();
+            togglePlay();
+          }}
+          aria-label={tocando ? 'Pausar aula' : 'Reproduzir aula'}
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 active:scale-95 transition shadow-md cursor-pointer"
+          style={{
+            background: 'linear-gradient(145deg, #f0d089, #d4a94e)',
+            color: '#241a08',
+            boxShadow: '0 4px 14px -3px rgba(212,169,78,0.5)',
+          }}
+        >
+          {tocando ? (
+            <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-[#241a08]" />
+          ) : (
+            <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-[#241a08] ml-0.5" />
+          )}
+        </button>
+
+        {/* Tempo Atual */}
+        <span className="text-[11px] sm:text-xs font-mono font-medium text-amber-200/90 tabular-nums shrink-0">
+          {fmt(tempo)}
+        </span>
+
+        {/* Barra de Progresso com Seek Range Slider */}
+        <div className="flex-1 min-w-[70px] sm:min-w-[120px] flex items-center">
+          <input
+            type="range"
+            min={0}
+            max={dur > 0 ? dur : 100}
+            step={0.1}
+            value={dur > 0 ? tempo : 0}
+            onChange={(e) => seek(Number(e.target.value))}
+            aria-label="Buscar no áudio da aula"
+            className="w-full h-2 rounded-full bg-[#3a2f24] appearance-none cursor-pointer accent-[#f0d089]"
+          />
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Botão de Caderno de Estudos (Split-View no Tablet/Desktop e Drawer no Mobile - Item 11) */}
-          <button
-            type="button"
-            onClick={() => {
-              haptic.selection();
-              if (window.innerWidth >= 1024) {
-                setSplitViewAtivo((v) => !v);
-              } else {
-                setDrawerCadernoAberto((v) => !v);
-              }
-            }}
-            aria-label="Abrir Caderno de Estudos da Aula"
-            title={splitViewAtivo || drawerCadernoAberto ? 'Fechar Caderno de Estudos' : 'Abrir Caderno de Estudos (Roteiro e Capítulos)'}
-            className={`px-2.5 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${
-              splitViewAtivo || drawerCadernoAberto
-                ? 'bg-amber-500/25 border-amber-400/60 text-amber-200 shadow-sm'
-                : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline text-[11px]">
-              Caderno
-            </span>
-            <span className="text-[10px] bg-black/40 px-1.5 py-0.2 rounded font-mono text-amber-300/90">
-              {capitulos.length}
-            </span>
-          </button>
+        {/* Duração Total */}
+        <span className="text-[11px] sm:text-xs font-mono font-medium text-amber-200/90 tabular-nums shrink-0">
+          {dur > 0 ? fmt(dur) : '--:--'}
+        </span>
 
-          {/* Botão de Controle de Som Procedural de Giz / ASMR */}
-          <button
-            type="button"
-            onClick={handleToggleSom}
-            aria-label={somHabilitado ? 'Silenciar som de giz' : 'Ativar som de giz (ASMR)'}
-            title={somHabilitado ? 'Efeitos sonoros de giz ativados' : 'Efeitos sonoros desativados'}
-            className={`px-2.5 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${
-              somHabilitado
-                ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
-            }`}
-          >
-            {somHabilitado ? (
-              <Volume2 className="w-3.5 h-3.5 text-amber-400" />
-            ) : (
-              <VolumeX className="w-3.5 h-3.5 text-zinc-400" />
-            )}
-            <span className="hidden md:inline text-[11px]">
-              {somHabilitado ? 'Som: On' : 'Som: Off'}
-            </span>
-          </button>
+        {/* Voltar 15s */}
+        <button
+          type="button"
+          onClick={() => seek(Math.max(0, tempo - 15))}
+          aria-label="Voltar 15 segundos"
+          title="Voltar 15s"
+          className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 hidden md:flex items-center justify-center text-zinc-300 hover:text-white transition shrink-0 cursor-pointer"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+        </button>
 
-          {/* Botão de Tela Cheia */}
-          <button
-            type="button"
-            onClick={handleToggleFullscreen}
-            aria-label="Alternar tela cheia"
-            title="Alternar tela cheia"
-            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-zinc-300 hover:text-white transition cursor-pointer"
-          >
-            {emTelaCheia ? (
-              <Minimize2 className="w-4 h-4" />
-            ) : (
-              <Maximize2 className="w-4 h-4" />
-            )}
-          </button>
+        {/* Avançar 15s */}
+        <button
+          type="button"
+          onClick={() => seek(Math.min(dur, tempo + 15))}
+          aria-label="Avançar 15 segundos"
+          title="Avançar 15s"
+          className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 hidden md:flex items-center justify-center text-zinc-300 hover:text-white transition shrink-0 cursor-pointer"
+        >
+          <RotateCw className="w-3.5 h-3.5" />
+        </button>
 
-          {/* Botão de Fechar */}
-          <button
-            type="button"
-            onClick={() => {
-              haptic.selection();
-              onFechar();
-            }}
-            aria-label="Voltar para a aula normal"
-            title="Fechar Lousa Mágica"
-            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        {/* Seletor de Velocidade */}
+        <select
+          value={velocidade}
+          onChange={(e) => setVelocidade(Number(e.target.value))}
+          aria-label="Velocidade de reprodução"
+          className="bg-[#2c2318] text-amber-200 border border-[#4a3b28] rounded-xl px-2 py-1 text-[11px] sm:text-xs font-semibold cursor-pointer shrink-0 outline-none"
+        >
+          {VELOCIDADES.map((v) => (
+            <option key={v} value={v}>
+              {v}×
+            </option>
+          ))}
+        </select>
+
+        {/* Botão de Tela Cheia com Modo Paisagem (Landscape) */}
+        <button
+          type="button"
+          onClick={handleToggleFullscreen}
+          aria-label="Alternar tela cheia"
+          title={emTelaCheia ? 'Sair da tela cheia' : 'Tela cheia em modo horizontal (paisagem)'}
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-zinc-300 hover:text-white transition cursor-pointer shrink-0"
+        >
+          {emTelaCheia ? (
+            <Minimize2 className="w-4 h-4 text-amber-300" />
+          ) : (
+            <Maximize2 className="w-4 h-4" />
+          )}
+        </button>
+
+        {/* Botão de Fechar */}
+        <button
+          type="button"
+          onClick={fecharComRestauracao}
+          aria-label="Fechar Lousa Mágica"
+          title="Fechar Lousa Mágica"
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition cursor-pointer shrink-0"
+        >
+          <X className="w-4.5 h-4.5" />
+        </button>
       </header>
 
-      {/* Corpo da Lousa com Moldura de Madeira Nobre e Painel Adaptativo de Estudos (Item 11) */}
-      <main className="flex-1 min-h-0 flex flex-col lg:flex-row gap-3 p-2.5 sm:p-4 max-w-[1460px] w-full mx-auto overflow-hidden">
+      {/* Corpo da Lousa com Moldura de Madeira Nobre ocupando todo o espaço vertical */}
+      <main className="flex-1 min-h-0 flex flex-col p-2 sm:p-3.5 max-w-[1600px] w-full mx-auto overflow-hidden pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+0.6rem)]">
         {/* Lousa Mágica com Moldura de Madeira Nobre */}
         <div
           className="flex-1 min-h-0 flex flex-col gap-2 p-2 sm:p-3.5 rounded-2xl shadow-2xl overflow-hidden"
@@ -1728,123 +1558,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
 
 
         </div>
-
-        {/* Painel Adaptativo: Caderno de Estudos da Aula (Split-View em Tablet Landscape / Desktop - Item 11) */}
-        {splitViewAtivo && (
-          <aside className="w-[320px] xl:w-[360px] shrink-0 hidden lg:flex flex-col rounded-2xl bg-[#19130d]/95 border border-amber-900/40 shadow-2xl overflow-hidden backdrop-blur-md">
-            {renderCadernoDeEstudos()}
-          </aside>
-        )}
       </main>
-
-      {/* DRAWER DO CADERNO DE ESTUDOS PARA SMARTPHONES E TELAS MENORES (Item 11) */}
-      {drawerCadernoAberto && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col justify-end animate-in fade-in duration-200">
-          <div className="w-full max-h-[82vh] h-[520px] rounded-t-3xl bg-[#19130e] border-t border-amber-500/30 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#221a13]">
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-amber-400" />
-                <span className="font-bold text-sm text-amber-200">Caderno de Estudos da Aula</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDrawerCadernoAberto(false)}
-                className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-zinc-300 hover:text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden flex flex-col">
-              {renderCadernoDeEstudos()}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Barra de Player Integrada da Lousa com Timers e Controles */}
-      <footer className="shrink-0 bg-[#17120e]/95 backdrop-blur-xl border-t border-white/10 px-4 sm:px-6 py-3 pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+0.6rem)] z-30">
-        <div className="max-w-[960px] mx-auto flex items-center gap-3 sm:gap-4">
-          {/* Botão de Play / Pause Dourado */}
-          <button
-            type="button"
-            onClick={() => {
-              haptic.selection();
-              togglePlay();
-            }}
-            aria-label={tocando ? 'Pausar' : 'Reproduzir'}
-            className="w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center shrink-0 active:scale-95 transition shadow-lg cursor-pointer"
-            style={{
-              background: 'linear-gradient(145deg, #f0d089, #d4a94e)',
-              color: '#241a08',
-              boxShadow: '0 6px 20px -4px rgba(212,169,78,0.6)',
-            }}
-          >
-            {tocando ? (
-              <Pause className="w-5 h-5 sm:w-6 sm:h-6 fill-[#241a08]" />
-            ) : (
-              <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-[#241a08] ml-0.5" />
-            )}
-          </button>
-
-          {/* Tempo Atual */}
-          <span className="text-xs font-mono font-medium text-amber-200/90 tabular-nums shrink-0">
-            {fmt(tempo)}
-          </span>
-
-          {/* Barra de Progresso com Seek Slider */}
-          <input
-            type="range"
-            min={0}
-            max={dur > 0 ? dur : 100}
-            step={0.1}
-            value={dur > 0 ? tempo : 0}
-            onChange={(e) => seek(Number(e.target.value))}
-            aria-label="Buscar no áudio da aula"
-            className="flex-1 h-2 rounded-full bg-[#3a2f24] appearance-none cursor-pointer accent-[#f0d089]"
-          />
-
-          {/* Duração Total */}
-          <span className="text-xs font-mono font-medium text-amber-200/90 tabular-nums shrink-0">
-            {dur > 0 ? fmt(dur) : '--:--'}
-          </span>
-
-          {/* Voltar 15s */}
-          <button
-            type="button"
-            onClick={() => seek(Math.max(0, tempo - 15))}
-            aria-label="Voltar 15 segundos"
-            title="Voltar 15s"
-            className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 flex items-center justify-center text-zinc-300 hover:text-white transition shrink-0 hidden sm:flex cursor-pointer"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-
-          {/* Avançar 15s */}
-          <button
-            type="button"
-            onClick={() => seek(Math.min(dur, tempo + 15))}
-            aria-label="Avançar 15 segundos"
-            title="Avançar 15s"
-            className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 flex items-center justify-center text-zinc-300 hover:text-white transition shrink-0 hidden sm:flex cursor-pointer"
-          >
-            <RotateCw className="w-4 h-4" />
-          </button>
-
-          {/* Seletor de Velocidade */}
-          <select
-            value={velocidade}
-            onChange={(e) => setVelocidade(Number(e.target.value))}
-            aria-label="Velocidade de reprodução"
-            className="bg-[#2c2318] text-amber-200 border border-[#4a3b28] rounded-xl px-2.5 py-1.5 text-xs font-semibold cursor-pointer shrink-0 outline-none"
-          >
-            {VELOCIDADES.map((v) => (
-              <option key={v} value={v}>
-                {v}×
-              </option>
-            ))}
-          </select>
-        </div>
-      </footer>
     </div>
   );
 

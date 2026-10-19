@@ -14,6 +14,7 @@ import {
   BGM_VOLUME_PADRAO,
 } from '@/lib/audioaulasBgm';
 import { salvarProgressoAula, marcarAulaConcluida } from '@/lib/audioaulasProgresso';
+import { atualizarNotificacaoPlayback, limparNotificacaoPlayback } from '@/lib/nativo/audioNotification';
 
 export interface AulaAudio {
   id: number;
@@ -306,6 +307,40 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
       cleanup();
     };
   }, [atual, atualIdx, fila]);
+
+  // Notificação persistente de reprodução nativa (estilo Spotify) no Capacitor
+  useEffect(() => {
+    void atualizarNotificacaoPlayback({
+      aula: atual,
+      tocando,
+      tempo,
+      dur,
+    });
+  }, [atual, tocando]);
+
+  // Atualiza notificação quando o usuário sai do aplicativo para a Home/Background
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    import('@capacitor/app').then(({ App }) => {
+      App.addListener('appStateChange', ({ isActive }) => {
+        if (!isActive && tocando && atual) {
+          void atualizarNotificacaoPlayback({ aula: atual, tocando: true });
+        }
+      }).then((handle) => {
+        unlisten = () => handle.remove();
+      });
+    }).catch(() => {});
+
+    return () => {
+      unlisten?.();
+    };
+  }, [tocando, atual]);
+
+  useEffect(() => {
+    return () => {
+      void limparNotificacaoPlayback();
+    };
+  }, []);
 
   // Coordenador Universal: pausa se outro player de mídia iniciar
   useEffect(() => {
