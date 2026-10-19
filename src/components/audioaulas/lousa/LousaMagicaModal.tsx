@@ -549,10 +549,10 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
   // Atualiza a coluna de post-its com perguntas da Aluna (MAIS RECENTE NO TOPO)
   const lousaRefreshPosts = useCallback((t: number) => {
     if (!roteiro) return;
-    // Pega as perguntas até o momento atual e inverte para a mais recente ficar no topo
+    // Pega as perguntas até o momento atual e inverte para a mais recente ficar no início do carrossel
     const perguntas = roteiro
       .filter((e) => e.kind === 'pergunta' && e.t <= t)
-      .slice(-5)
+      .slice(-10)
       .reverse();
 
     setPostItsVisiveis((prev) => {
@@ -567,6 +567,14 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       if (perguntas.length > prev.length) {
         lousaAudio.playPostitStick(0.09);
         haptic.light();
+        requestAnimationFrame(() => {
+          if (postsContainerRef.current) {
+            const scroller = postsContainerRef.current.querySelector('.lz-postits-scroller');
+            if (scroller) {
+              scroller.scrollTo({ left: 0, behavior: 'smooth' });
+            }
+          }
+        });
       }
       return perguntas;
     });
@@ -1433,6 +1441,11 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
           border: 1px solid rgba(0,0,0,0.15);
           pointer-events: none;
         }
+
+        /* Carrossel horizontal de post-its com rolagem suave sem scrollbar visível */
+        .lz-postits-scroller::-webkit-scrollbar {
+          display: none;
+        }
       `}</style>
 
       {/* Header com Glassmorphism, Controle de Som e Safe Area */}
@@ -1531,16 +1544,106 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
       <main className="flex-1 min-h-0 flex flex-col lg:flex-row gap-3 p-2.5 sm:p-4 max-w-[1460px] w-full mx-auto overflow-hidden">
         {/* Lousa Mágica com Moldura de Madeira Nobre */}
         <div
-          className="flex-1 min-h-0 flex gap-2.5 sm:gap-4 p-2.5 sm:p-4 rounded-2xl shadow-2xl overflow-hidden"
+          className="flex-1 min-h-0 flex flex-col gap-2 p-2 sm:p-3.5 rounded-2xl shadow-2xl overflow-hidden"
           style={{
             background: 'linear-gradient(145deg, #74512e, #4d3319 60%, #634324)',
             boxShadow: '0 25px 70px rgba(0,0,0,0.8), inset 0 2px 6px rgba(255,255,255,0.2)',
           }}
         >
-          {/* Quadro Negro Ardósia com Textura e Calha de Madeira */}
+          {/* Carrossel Superior de Post-its com Perguntas da Aluna (Topo) */}
+          {postItsVisiveis.length > 0 && (
+            <aside
+              ref={postsContainerRef}
+              className="shrink-0 w-full flex flex-col gap-1 overflow-hidden"
+              aria-label="Perguntas da aluna em carrossel"
+            >
+              <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-200/90 px-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
+                  Perguntas da Aluna
+                </span>
+                <span className="text-amber-400/80 font-mono font-medium text-[10px] bg-black/35 px-2 py-0.5 rounded-full border border-white/10">
+                  {postItsVisiveis.length} {postItsVisiveis.length === 1 ? 'pergunta' : 'perguntas'} · deslize
+                </span>
+              </div>
+
+              <div
+                className="lz-postits-scroller flex items-stretch gap-3 overflow-x-auto pt-2.5 pb-2 px-1.5 scroll-smooth overscroll-x-contain select-none"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+              >
+                {postItsVisiveis.map((p, idx) => {
+                  const isMaisRecente = idx === 0;
+                  const rotacao = idx % 2 === 0 ? '-1.2deg' : '1.4deg';
+
+                  return (
+                    <button
+                      key={`${p.t}-${idx}`}
+                      type="button"
+                      onClick={() => {
+                        haptic.selection();
+                        seek(p.t + 0.01);
+                      }}
+                      title={`Pular para a pergunta da aluna (${fmt(p.t)})`}
+                      style={{ transform: `rotate(${rotacao})`, '--rot': rotacao } as React.CSSProperties}
+                      className={`shrink-0 w-[205px] sm:w-[250px] text-left p-2.5 sm:p-3 pt-3 sm:pt-3.5 cursor-pointer rounded transition-all active:scale-95 flex flex-col justify-between shadow-md ${
+                        isMaisRecente ? 'postit-card-ativo' : 'postit-card-antigo'
+                      }`}
+                    >
+                      <div className="tape" />
+
+                      <div>
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          {isMaisRecente ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8.5px] font-bold uppercase tracking-wider bg-amber-950/20 text-amber-950">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block animate-ping" />
+                              Mais recente
+                            </span>
+                          ) : (
+                            <span className="text-[9px] uppercase tracking-wider font-semibold text-amber-200/50">
+                              Pergunta #{postItsVisiveis.length - idx}
+                            </span>
+                          )}
+
+                          <span
+                            className={`flex items-center gap-1 text-[9px] font-mono font-medium ${
+                              isMaisRecente ? 'text-[#6d510e]' : 'text-zinc-400'
+                            }`}
+                          >
+                            <Clock className="w-2.5 h-2.5" />
+                            {fmt(p.t)}
+                          </span>
+                        </div>
+
+                        <span
+                          className={`block font-semibold text-[11px] sm:text-[11.5px] line-clamp-2 leading-snug ${
+                            isMaisRecente ? 'text-zinc-950' : 'text-zinc-200'
+                          }`}
+                        >
+                          "{p.text}"
+                        </span>
+                      </div>
+
+                      <span
+                        className={`text-right text-[8.5px] italic mt-1 font-mono ${
+                          isMaisRecente ? 'text-[#775a14]' : 'text-zinc-400'
+                        }`}
+                      >
+                        Toque para ouvir
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+          )}
+
+          {/* Quadro Negro Ardósia com Textura e Calha de Madeira (Abaixo dos Post-its, ocupando largura total) */}
           <div
             ref={lousaContainerRef}
-            className="lz-chalkboard-texture flex-1 min-w-0 rounded-lg overflow-hidden relative flex flex-col border border-white/5"
+            className="lz-chalkboard-texture flex-1 min-h-0 w-full rounded-lg overflow-hidden relative flex flex-col border border-white/5"
           >
             {/* Área de rolagem do texto escrito de giz */}
             <div
@@ -1623,77 +1726,7 @@ export const LousaMagicaModal: React.FC<LousaMagicaModalProps> = ({
             </div>
           </div>
 
-          {/* Coluna / Mural de Post-its das Perguntas da Aluna (MAIS RECENTE NO TOPO) */}
-          <aside
-            ref={postsContainerRef}
-            className="w-[130px] sm:w-[210px] flex flex-col gap-3 overflow-hidden pt-1 shrink-0 border-l border-white/5 pl-2 sm:pl-3"
-            aria-label="Perguntas da aluna"
-          >
-            <div className="text-[10.5px] sm:text-xs font-bold uppercase tracking-wider text-amber-200/90 px-1 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
-                Perguntas
-              </span>
-              <span className="text-amber-400/80 font-mono font-medium text-[11px] bg-black/25 px-1.5 py-0.5 rounded">
-                {postItsVisiveis.length}
-              </span>
-            </div>
 
-            <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3">
-              {postItsVisiveis.length === 0 ? (
-                <div className="p-3 text-[11px] text-amber-200/45 italic text-center rounded-lg bg-black/20 border border-white/5 leading-relaxed">
-                  As perguntas formuladas pela aluna durante a explicação surgirão aqui...
-                </div>
-              ) : (
-                postItsVisiveis.map((p, idx) => {
-                  const isMaisRecente = idx === 0;
-                  const rotacao = idx % 2 === 0 ? '-1.8deg' : '2.2deg';
-
-                  return (
-                    <button
-                      key={`${p.t}-${idx}`}
-                      type="button"
-                      onClick={() => {
-                        haptic.selection();
-                        seek(p.t + 0.01);
-                      }}
-                      title={`Pular para a pergunta da aluna (${fmt(p.t)})`}
-                      style={{ transform: `rotate(${rotacao})`, '--rot': rotacao } as React.CSSProperties}
-                      className={`text-left p-3 pt-3.5 cursor-pointer ${
-                        isMaisRecente ? 'postit-card-ativo' : 'postit-card-antigo'
-                      }`}
-                    >
-                      <div className="tape" />
-
-                      {isMaisRecente && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-950/15 text-amber-950 mb-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block animate-ping" />
-                          Mais recente
-                        </span>
-                      )}
-
-                      <span
-                        className={`block font-semibold text-[11px] sm:text-[12px] leading-snug ${
-                          isMaisRecente ? 'text-zinc-900' : 'text-zinc-200'
-                        }`}
-                      >
-                        "{p.text}"
-                      </span>
-
-                      <span
-                        className={`flex items-center justify-end gap-1 text-[9.5px] italic mt-2 font-mono font-medium ${
-                          isMaisRecente ? 'text-[#775a14]' : 'text-zinc-400'
-                        }`}
-                      >
-                        <Clock className="w-2.5 h-2.5" />
-                        Aluna · {fmt(p.t)}
-                      </span>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </aside>
         </div>
 
         {/* Painel Adaptativo: Caderno de Estudos da Aula (Split-View em Tablet Landscape / Desktop - Item 11) */}
