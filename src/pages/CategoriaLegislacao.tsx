@@ -438,35 +438,38 @@ const CategoriaLegislacao = () => {
     // Save article in recent laws so it shows on Home as "Continuar Leitura"
     if (selectedLeiId) {
       const leiCat = LEIS_CATALOG.find(l => l.id === selectedLeiId);
-      if (leiCat) {
-        pushRecente({
-          tipo: leiCat.tipo,
-          leiId: leiCat.id,
-          nome: leiCat.nome,
-          descricao: leiCat.descricao,
-          tabela_nome: leiCat.tabela_nome,
-          artigoNumero: artigo.numero,
-        });
-      }
+      pushRecente({
+        tipo: (leiCat?.tipo || tipo || 'lei'),
+        leiId: (leiCat?.id || selectedLeiId),
+        nome: (leiCat?.nome || selectedLeiNome || selectedLeiId.toUpperCase()),
+        descricao: (leiCat?.descricao || selectedLeiDescricao || ''),
+        tabela_nome: (leiCat?.tabela_nome || selectedTabelaNome || selectedLeiId),
+        artigoNumero: artigo.numero,
+      });
     }
 
-    if (!selectedTabelaNome) return;
-    setRecentIds(prev => {
-      const next = [String(artigo.id), ...prev.filter(id => id !== String(artigo.id))].slice(0, 30);
-      try { localStorage.setItem(`recentes_artigos_${selectedTabelaNome}`, JSON.stringify(next)); } catch {}
-      return next;
-    });
-  }, [selectedTabelaNome, selectedLeiId, selectedLeiNome]);
+    if (selectedTabelaNome) {
+      try {
+        localStorage.setItem(`ultimo_artigo_numero_${selectedTabelaNome}`, artigo.numero);
+        if (selectedLeiId) localStorage.setItem(`ultimo_artigo_numero_${selectedLeiId}`, artigo.numero);
+      } catch {}
+      setRecentIds(prev => {
+        const next = [String(artigo.id), ...prev.filter(id => id !== String(artigo.id))].slice(0, 30);
+        try { localStorage.setItem(`recentes_artigos_${selectedTabelaNome}`, JSON.stringify(next)); } catch {}
+        return next;
+      });
+    }
+  }, [selectedTabelaNome, selectedLeiId, selectedLeiNome, selectedLeiDescricao, tipo]);
 
   // Player flutuante de narração: quando a pessoa clica pra voltar ao artigo
   useEffect(() => {
     const handler = (ev: Event) => {
       const detail = (ev as CustomEvent).detail as { artigo?: ArtigoLei } | undefined;
-      if (detail?.artigo) setOpenArtigo(detail.artigo);
+      if (detail?.artigo) openArtigoWithRecent(detail.artigo);
     };
     window.addEventListener('narracao-flutuante:reopen', handler);
     return () => window.removeEventListener('narracao-flutuante:reopen', handler);
-  }, []);
+  }, [openArtigoWithRecent]);
 
   const togglePlayAudio = useCallback((url: string) => {
     if (playingUrl === url && audioRef.current) {
@@ -890,14 +893,14 @@ const CategoriaLegislacao = () => {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           // After the fluid scroll finishes, open the article sheet
           setTimeout(() => {
-            setOpenArtigo(found);
+            openArtigoWithRecent(found);
             setTimeout(() => setHighlightedArtigoId(null), 2500);
           }, 900);
         } else if (attempts < 20) {
           // list may still be rendering (deferred), retry shortly
           setTimeout(() => tryScrollAndOpen(attempts + 1), 100);
         } else {
-          setOpenArtigo(found);
+          openArtigoWithRecent(found);
           setTimeout(() => setHighlightedArtigoId(null), 2500);
         }
       };
@@ -925,12 +928,12 @@ const CategoriaLegislacao = () => {
       });
     if (found) {
       setHighlightedArtigoId(found.id);
-      setOpenArtigo(found);
+      openArtigoWithRecent(found);
       setTimeout(() => setHighlightedArtigoId(null), 2500);
     }
     setPendingArtigoNumero(null);
      
-  }, [artigos, pendingArtigoNumero]);
+  }, [artigos, pendingArtigoNumero, openArtigoWithRecent]);
 
 
 
@@ -1805,7 +1808,7 @@ const CategoriaLegislacao = () => {
                   {isCapExpanded && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="pl-3 mt-2 space-y-2">
                       {capGroup.artigos.map((artigo, i) => (
-                        <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => setOpenArtigo(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
+                        <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => openArtigoWithRecent(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
                       ))}
                     </motion.div>
                   )}
@@ -1911,7 +1914,7 @@ const CategoriaLegislacao = () => {
                             {isCapExpanded && (
                               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="pl-3 mt-2 space-y-2">
                                 {capGroup.artigos.map((artigo, i) => (
-                                  <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => setOpenArtigo(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
+                                  <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => openArtigoWithRecent(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
                                 ))}
                               </motion.div>
                             )}
@@ -1920,7 +1923,7 @@ const CategoriaLegislacao = () => {
                       })
                     ) : (
                       allArts.map((artigo, i) => (
-                        <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => setOpenArtigo(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
+                        <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => openArtigoWithRecent(artigo)} accentColor={leiAccent} tags={{ favorito: isArtigoFav(artigo), grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
                       ))
                     )}
                   </motion.div>
@@ -2004,7 +2007,7 @@ const CategoriaLegislacao = () => {
       <div className={`pb-8 ${isDesktop ? 'grid grid-cols-2 gap-4 items-start' : 'space-y-2'}`}>
         {artigos.filter(a => isArtigoFav(a)).length > 0 ? (
           artigos.filter(a => isArtigoFav(a)).map((artigo, i) => (
-            <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => { setOverlayPanel(null); setOpenArtigo(artigo); }} accentColor={leiAccent} tags={{ favorito: true, grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
+            <ArtigoCard key={artigo.id} artigo={artigo} index={i} onClick={() => { setOverlayPanel(null); openArtigoWithRecent(artigo); }} accentColor={leiAccent} tags={{ favorito: true, grifado: grifadoNumeros.has(artigo.numero), anotado: anotadoNumeros.has(artigo.numero) }} anotacaoTexto={anotadoNumeros.get(artigo.numero)} />
           ))
         ) : (
           <div className={`flex flex-col items-center py-16 gap-3 ${isDesktop ? 'col-span-2' : ''}`}>
@@ -2069,7 +2072,7 @@ const CategoriaLegislacao = () => {
                   </button>
                   <div
                     className="flex-1 min-w-0 cursor-pointer"
-                    onClick={() => { setOverlayPanel(null); setOpenArtigo(artigo); }}
+                    onClick={() => { setOverlayPanel(null); openArtigoWithRecent(artigo); }}
                   >
                     <h4 className="font-display text-[15px] font-bold text-primary-light">{artigo.numero}</h4>
                     <p className="text-[13px] leading-relaxed line-clamp-2 text-foreground/80 font-body">
@@ -2896,7 +2899,7 @@ const CategoriaLegislacao = () => {
               leiAccent={leiAccent} 
               onOpenNovidade={(item) => {
                 setOpenFromNovidades(true);
-                setOpenArtigo(item.artigo);
+                openArtigoWithRecent(item.artigo);
                 setOpenModInfo({
                   tipo: item.tipo,
                   referencia: item.referencia,
@@ -3151,13 +3154,13 @@ const CategoriaLegislacao = () => {
           onNext={filteredArtigos ? () => {
             const idx = filteredArtigos.findIndex((a) => a.id === openArtigo?.id);
             if (idx >= 0 && idx < filteredArtigos.length - 1) {
-              setOpenArtigo(filteredArtigos[idx + 1]);
+              openArtigoWithRecent(filteredArtigos[idx + 1]);
             }
           } : undefined}
           onPrev={filteredArtigos ? () => {
             const idx = filteredArtigos.findIndex((a) => a.id === openArtigo?.id);
             if (idx > 0) {
-              setOpenArtigo(filteredArtigos[idx - 1]);
+              openArtigoWithRecent(filteredArtigos[idx - 1]);
             }
           } : undefined}
           breadcrumb={(() => {
@@ -3259,6 +3262,7 @@ const CategoriaLegislacao = () => {
                 linhasModificadas: [] // optional
               });
               setOpenArtigo(selectedNovidade.artigo);
+              openArtigoWithRecent(selectedNovidade.artigo);
               setSelectedNovidade(null);
             }
           }}
@@ -3284,7 +3288,7 @@ const CategoriaLegislacao = () => {
                 parteModificada: selectedNovidade.parteModificada,
                 linhasModificadas: []
               });
-              setOpenArtigo(selectedNovidade.artigo);
+              openArtigoWithRecent(selectedNovidade.artigo);
               setSelectedNovidade(null);
             }
           }}

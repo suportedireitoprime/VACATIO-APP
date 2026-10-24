@@ -13,14 +13,47 @@ export type LeiRecente = {
 const KEY = 'leis_recentes_v1';
 const MAX = 20;
 
-// Lê o cache local síncrono
+// Detecta se a string parece um UUID (ex: '17e8abb2-80c3-4317-96b8-d62192e37545')
+// Artigos de lei NUNCA são UUIDs.
+export function isUuidLike(val?: string | null): boolean {
+  if (!val) return false;
+  const s = String(val).trim();
+  if (!s) return false;
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)) return true;
+  if (s.length >= 20 && /^[0-9a-f-]+$/i.test(s)) return true;
+  return false;
+}
+
+export function cleanArtigoNumero(val?: string | null): string | undefined {
+  if (!val) return undefined;
+  const s = String(val).trim();
+  if (!s || s === 'CAPA' || s === 'BUSCA' || isUuidLike(s)) return undefined;
+  return s;
+}
+
+// Lê o cache local síncrono e sanitiza contra UUIDs residuais
 export function getRecentes(): LeiRecente[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    let needsRewrite = false;
+    const sanitized: LeiRecente[] = parsed.map((item: any) => {
+      const cleaned = cleanArtigoNumero(item.artigoNumero);
+      if (item.artigoNumero && item.artigoNumero !== cleaned) {
+        needsRewrite = true;
+      }
+      return {
+        ...item,
+        artigoNumero: cleaned,
+      };
+    });
+    if (needsRewrite) {
+      try { localStorage.setItem(KEY, JSON.stringify(sanitized)); } catch {}
+    }
+    return sanitized;
   } catch {
     return [];
   }
@@ -46,11 +79,12 @@ export async function syncRecentesFromSupabase() {
     
     // Adiciona locais no map (preserva metadados)
     // Chave única composta por lei + artigo
-    local.forEach(l => map.set(`${l.leiId}-${l.artigoNumero || 'CAPA'}`, l));
+    local.forEach(l => map.set(`${l.leiId}-${cleanArtigoNumero(l.artigoNumero) || 'CAPA'}`, l));
     
     // Atualiza/Adiciona baseados no Supabase
     data.forEach(row => {
-      const key = `${row.tabela_codigo}-${row.numero_artigo || 'CAPA'}`;
+      const artClean = cleanArtigoNumero(row.numero_artigo);
+      const key = `${row.tabela_codigo}-${artClean || 'CAPA'}`;
       const existing = map.get(key);
       const sbTime = new Date(row.visualizado_em).getTime();
       
@@ -61,7 +95,7 @@ export async function syncRecentesFromSupabase() {
           nome: existing?.nome || row.tabela_codigo.toUpperCase(),
           descricao: existing?.descricao || '',
           tabela_nome: existing?.tabela_nome || row.tabela_codigo,
-          artigoNumero: row.numero_artigo === 'CAPA' ? undefined : row.numero_artigo,
+          artigoNumero: artClean,
           openedAt: sbTime
         });
       }
@@ -91,9 +125,11 @@ export function pushRecente(lei: Omit<LeiRecente, 'openedAt'>) {
   if (typeof window === 'undefined') return;
   try {
     const list = getRecentes();
-    // Preserva o artigo existente se a chamada atual não forneceu um novo
-    const existing = list.find((l) => l.leiId === lei.leiId && l.artigoNumero);
-    const artigoNumeroResolvido = lei.artigoNumero || existing?.artigoNumero;
+    const cleanNovo = cleanArtigoNumero(lei.artigoNumero);
+    // Preserva o artigo existente se a chamada atual não forneceu um novo válido
+    const existing = list.find((l) => l.leiId === lei.leiId && cleanArtigoNumero(l.artigoNumero));
+    const existingClean = cleanArtigoNumero(existing?.artigoNumero);
+    const artigoNumeroResolvido = cleanNovo || existingClean;
 
     const filtered = list.filter((l) => l.leiId !== lei.leiId);
     filtered.unshift({ ...lei, artigoNumero: artigoNumeroResolvido, openedAt: Date.now() });
@@ -107,7 +143,7 @@ export function pushRecente(lei: Omit<LeiRecente, 'openedAt'>) {
         await supabase.from('artigos_visualizacoes').insert({
           user_id: session.session.user.id,
           tabela_codigo: lei.leiId,
-          numero_artigo: lei.artigoNumero || 'CAPA', // Flag especial ou o artigo em si
+          numero_artigo: artigoNumeroResolvido || 'CAPA', // Flag especial ou o artigo em si
           origem: 'leis_recentes',
           visualizado_em: new Date().toISOString()
         });

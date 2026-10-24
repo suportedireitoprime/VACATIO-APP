@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getRecentes, LEIS_RECENTES_EVENT } from '@/lib/leisRecentes';
+import { getRecentes, LEIS_RECENTES_EVENT, pushRecente, isUuidLike, cleanArtigoNumero } from '@/lib/leisRecentes';
+import { getCachedArtigos } from '@/services/legislacaoService';
 import {
   Accessibility, Baby, Banknote, BookMarked, Briefcase, BriefcaseBusiness, Building,
   Cannabis, Car, ChevronDown, ChevronRight, CircleDollarSign, Clock, Columns3, Cross, Drama,
@@ -19,7 +20,7 @@ import { ESTADOS } from '@/pages/LegislacaoEstadual';
 import { PillarIcon } from '@/components/icons/PillarIcon';
 import { leiPath, tipoToSlug, leiToSlug } from '@/lib/legislacaoSlugs';
 import { getLeiColor, shade } from '@/lib/leiTheme';
-import { pushRecente } from '@/lib/leisRecentes';
+
 import { getFavoritos, LEIS_FAVORITOS_EVENT } from '@/lib/leisFavoritos';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import VoiceCaptureOverlay from './VoiceCaptureOverlay';
@@ -327,6 +328,16 @@ const CHAT_HINTS = [
   'Consulte a constituição sem complicação'
 ];
 
+function formatParouNoArtigo(artigoNumero?: string | null): string {
+  if (!artigoNumero || isUuidLike(artigoNumero)) return '';
+  const clean = artigoNumero.trim();
+  if (!clean) return '';
+  if (/^(?:art|adct)/i.test(clean)) {
+    return `Parou no ${clean}`;
+  }
+  return `Parou no Art. ${clean}`;
+}
+
 function TypewriterText({ hints }: { hints: string[] }) {
   const [text, setText] = useState('');
   const [hintIndex, setHintIndex] = useState(0);
@@ -385,16 +396,40 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       const recentes = getRecentes();
       if (recentes.length > 0) {
         const top = { ...recentes[0] };
-        if (!top.artigoNumero) {
+        const cleanTop = cleanArtigoNumero(top.artigoNumero);
+        if (!cleanTop) {
+          top.artigoNumero = undefined;
           try {
-            const raw = localStorage.getItem(`recentes_artigos_${top.tabela_nome || top.leiId}`);
-            if (raw) {
-              const arr = JSON.parse(raw);
-              if (arr && arr[0]) {
-                top.artigoNumero = String(arr[0]);
+            // 1. Tenta pegar o último número de artigo salvo diretamente
+            const salvo = localStorage.getItem(`ultimo_artigo_numero_${top.tabela_nome || top.leiId}`) ||
+                          localStorage.getItem(`ultimo_artigo_numero_${top.leiId}`);
+            const cleanSalvo = cleanArtigoNumero(salvo);
+            if (cleanSalvo) {
+              top.artigoNumero = cleanSalvo;
+            } else {
+              // 2. Se houver recentes_artigos (que contém UUIDs), tenta resolver o número do artigo no cache
+              const raw = localStorage.getItem(`recentes_artigos_${top.tabela_nome || top.leiId}`);
+              if (raw) {
+                const arr = JSON.parse(raw);
+                if (arr && arr[0]) {
+                  const first = String(arr[0]);
+                  const cleanFirst = cleanArtigoNumero(first);
+                  if (cleanFirst) {
+                    top.artigoNumero = cleanFirst;
+                  } else if (isUuidLike(first) && top.tabela_nome) {
+                    const cached = getCachedArtigos(top.tabela_nome);
+                    const hit = cached?.find(a => a.id === first);
+                    if (hit?.numero) {
+                      const cleanHit = cleanArtigoNumero(hit.numero);
+                      if (cleanHit) top.artigoNumero = cleanHit;
+                    }
+                  }
+                }
               }
             }
           } catch {}
+        } else {
+          top.artigoNumero = cleanTop;
         }
         setUltimaLei(top);
       } else {
@@ -524,7 +559,16 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           onClick={() => {
             const leiCat = LEIS_CATALOG.find(l => l.id === ultimaLei.leiId);
             const base = leiCat ? leiPath(leiCat) : `/legislacao/${tipoToSlug(ultimaLei.tipo)}/${leiToSlug({ id: ultimaLei.leiId, nome: ultimaLei.nome })}`;
-            navigate(base);
+            const artLimpo = cleanArtigoNumero(ultimaLei.artigoNumero);
+            if (artLimpo) {
+              const numOnly = artLimpo.replace(/^art(?:igo)?\.?\s*/i, '').trim();
+              const dest = base.includes('?') 
+                ? `${base}&artigo=${encodeURIComponent(numOnly)}`
+                : `${base}?artigo=${encodeURIComponent(numOnly)}`;
+              navigate(dest);
+            } else {
+              navigate(base);
+            }
           }}
           style={{
             background: `linear-gradient(to right, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}33, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}0D)`,
@@ -541,6 +585,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               ultimaLei.leiId === 'constituicao' ||
               ultimaLei.nome?.toLowerCase().includes('constitui');
             const IconeLei = isCf ? Landmark : (LAW_ICON_MAP[ultimaLei.leiId] || BookOpen);
+            const parouTexto = formatParouNoArtigo(ultimaLei.artigoNumero);
             return (
               <>
                 <div className="flex items-center justify-center shrink-0 z-10">
@@ -549,10 +594,10 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                 <div className="flex-1 min-w-0 z-10">
                   <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: shade(bgCor, 0.2) }}>Continuar Leitura</p>
                   <p className="font-display text-[13px] font-bold text-foreground truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{ultimaLei.nome}</p>
-                  {ultimaLei.artigoNumero ? (
+                  {parouTexto ? (
                     <p className="text-[11px] font-semibold truncate flex items-center gap-1.5" style={{ color: shade(bgCor, 0.25) }}>
                       <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: bgCor }} />
-                      <span>{ultimaLei.artigoNumero.toLowerCase().includes('art') ? `Parou no ${ultimaLei.artigoNumero}` : `Parou no Art. ${ultimaLei.artigoNumero}`}</span>
+                      <span>{parouTexto}</span>
                     </p>
                   ) : (
                     <p className="text-[11px] font-medium truncate flex items-center gap-1.5" style={{ color: shade(bgCor, 0.25) }}>
