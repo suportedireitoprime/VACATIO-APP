@@ -418,7 +418,7 @@ export default function AdminAprenderAulas() {
               </div>
 
               {/* Informação sobre as demais aulas */}
-              <div className="p-4 rounded-xl border border-dashed border-zinc-800 bg-zinc-950/40 flex flex-col justify-center items-center text-center p-6 space-y-2">
+              <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-950/40 flex flex-col justify-center items-center text-center p-6 space-y-2">
                 <FileCode className="w-8 h-8 text-zinc-500" />
                 <h4 className="font-medium text-sm text-zinc-300">Demais Aulas de Família (Aulas 02 a 10)</h4>
                 <p className="text-xs text-zinc-500 max-w-sm">

@@ -1170,6 +1170,15 @@ const ArtigoBottomSheet = ({
   const voicePanelRef = useRef<GrifoVoicePanelHandle | null>(null);
   const lastCreatedHlRef = useRef<string | null>(null);
 
+  // Auto-scroll suave para o parágrafo/trecho narrado ativo
+  useEffect(() => {
+    if (!narracaoPlaying || narracaoActiveLineIndex < 0) return;
+    const el = containerRef.current?.querySelector(`[data-line-index="${narracaoActiveLineIndex}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [narracaoPlaying, narracaoActiveLineIndex, containerRef]);
+
   // Auto-inicia gravação ao ativar Grifar por voz
   useEffect(() => {
     if (voiceGrifoActive && voicePhase === 'idle') {
@@ -2474,11 +2483,11 @@ Regras:
       classified.type === 'paragrafo' ? 'mt-3.5' : '';
 
     const highlightBg = isCurrentNarratingLine
-      ? 'animate-narracao-active border-l-4 border-yellow-400 text-yellow-50 rounded-r-xl py-2.5 px-3 -mx-2.5 ring-1 ring-yellow-400/40 transition-all duration-500 ease-out'
+      ? 'animate-narracao-active border-l-4 border-primary text-foreground rounded-r-xl py-2.5 px-3 -mx-2.5 ring-1 ring-primary/40 shadow-sm shadow-primary/20 transition-all duration-500 ease-out'
       : isModifiedLine
       ? 'bg-violet-500/20 border-l-3 border-violet-400 pl-3 rounded-r-lg'
       : !modificationInfo && showRedacao && EDITORIAL_NOTE_TEST_REGEX.test(line)
-        ? 'bg-yellow-400/5 border-l-2 border-yellow-400/40 pl-2 rounded-r'
+        ? 'bg-primary/5 border-l-2 border-primary/40 pl-2 rounded-r'
         : '';
 
     const artLabel = (() => {
@@ -2491,12 +2500,19 @@ Regras:
       <p
         key={lineIndex}
         data-line-index={lineIndex}
-        className={`text-foreground leading-[1.8] ${extra} ${highlightBg}`}
+        className={`text-foreground leading-[1.8] relative overflow-hidden ${extra} ${highlightBg}`}
         style={{ fontSize: `${fontSize}px` }}
       >
+        {isCurrentNarratingLine && (
+          <span
+            key={`sheen-${lineIndex}`}
+            className="narracao-sheen-bar pointer-events-none"
+            aria-hidden="true"
+          />
+        )}
         {isFirst && !isRevogado && artLabel && (
           <>
-            <span className="font-bold text-amber-400">{artLabel}</span>
+            <span className="font-bold text-primary">{artLabel}</span>
             <span className="text-foreground/60"> — </span>
           </>
         )}
@@ -2884,9 +2900,9 @@ Regras:
                             const el = containerRef.current?.querySelector(`[data-line-index="${chip.index}"]`);
                             if (el) {
                               el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                              el.classList.add('animate-narracao-active', 'border-l-4', 'border-yellow-400', 'ring-2', 'ring-yellow-400/40', 'rounded-xl', 'px-2');
+                              el.classList.add('animate-narracao-active', 'border-l-4', 'border-primary', 'ring-2', 'ring-primary/40', 'rounded-xl', 'px-2');
                               setTimeout(() => {
-                                el.classList.remove('animate-narracao-active', 'border-l-4', 'border-yellow-400', 'ring-2', 'ring-yellow-400/40', 'px-2');
+                                el.classList.remove('animate-narracao-active', 'border-l-4', 'border-primary', 'ring-2', 'ring-primary/40', 'px-2');
                               }, 1400);
                             }
                             if (narracaoPlaying && narracaoAudioRef.current && computedLineRanges[chip.index]) {
@@ -2900,7 +2916,7 @@ Regras:
                           }}
                           className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold transition-all duration-300 ${
                             isChipActive
-                              ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/30 scale-105 ring-2 ring-yellow-400/60'
+                              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105 ring-2 ring-primary/60'
                               : 'bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary'
                           }`}
                         >
