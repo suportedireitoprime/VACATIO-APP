@@ -104,6 +104,24 @@ export default function AdminAprenderAulas() {
       });
       return;
     }
+
+    // Fallback para qualquer matéria/aula selecionada para testar o motor pedagógico completo
+    const html = buildAulaHTML({
+      materiaNome: `Direito Penal · ${currentMateria.titulo}`,
+      aulaTitulo: `Aula ${String(aulaNumero).padStart(2, '0')} · ${currentMateria.titulo}`,
+      slides: CRIMES_CONTRA_FAMILIA_SLIDES,
+      imagesBaseUrl: `${R2_APRENDER_BASE_URL}imagens/`,
+      audioBaseUrl: `${R2_APRENDER_BASE_URL}audio/`,
+    });
+
+    setActivePlayer({
+      id: `${currentMateria.slug}-${aulaNumero}`,
+      titulo: `${currentMateria.numero}. ${currentMateria.titulo} · Aula ${String(aulaNumero).padStart(2, '0')}`,
+      materia: currentMateria.titulo,
+      html,
+      r2AudioUrl: `${R2_APRENDER_BASE_URL}audio/`,
+      r2ImagensUrl: `${R2_APRENDER_BASE_URL}imagens/`,
+    });
   };
 
   return (
