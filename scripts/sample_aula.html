@@ -1,0 +1,1889 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <title>Crimes Contra a Família · Direito Penal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --bg:#120409;
+        --phone:#1d0810;
+        --panel:#2e1219;
+        --panel2:#250d14;
+        --red:#e23e57;
+        --red2:#ff8296;
+        --gold:#d4af37;
+        --gold2:#e9cd6d;
+        --ink:#f8edef;
+        --muted:#c9a7ad;
+        --line:rgba(212,175,55,.3);
+        --ok:#3ecf7a;
+        --bad:#ff7a7a;
+        color-scheme:dark;
+      }
+      *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+      html,body{height:100%}
+      body{
+        margin:0;
+        font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+        background:
+          radial-gradient(900px 500px at 15% -10%, #3a0f1c 0%, transparent 60%),
+          radial-gradient(800px 500px at 110% 110%, #2b0812 0%, transparent 55%),
+          var(--bg);
+        color:var(--ink);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        gap:12px;padding:12px;
+        min-height:100dvh;
+      }
+      .stage{
+        display:flex;flex-direction:row;align-items:stretch;justify-content:center;
+        gap:12px;width:min(574px,100%);flex:1 1 auto;min-height:0;
+      }
+      .phone{
+        position:relative;
+        width:auto;max-width:430px;min-width:0;
+        flex:1 1 auto;min-height:0;
+        background:linear-gradient(180deg,#26060f 0%,var(--phone) 30%);
+        display:flex;flex-direction:column;
+        overflow:hidden;
+        border-radius:26px;
+      }
+      @media (min-width:520px){
+        .phone{
+          max-height:880px;
+          border-radius:38px;
+          border:1px solid rgba(226,62,87,.5);
+          box-shadow:0 30px 80px rgba(0,0,0,.65),0 0 0 8px #0d0206,0 0 60px rgba(226,62,87,.1);
+        }
+      }
+      header{
+        padding:16px 20px 10px;
+        border-bottom:1px solid rgba(226,62,87,.18);
+        background:rgba(20,4,9,.55);
+        flex:0 0 auto;
+      }
+      .hrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+      .subject{color:var(--red2);font-weight:700;font-size:11.5px;letter-spacing:2.4px}
+      .design{color:var(--muted);font-size:11px;letter-spacing:1.4px;font-weight:600;white-space:nowrap}
+      h1{font-family:"Playfair Display",Georgia,serif;font-size:24px;line-height:1.15;margin:6px 0 2px;font-weight:800}
+      .etapa{color:var(--muted);font-size:13.5px;margin:0 0 10px}
+      .etapa b{color:var(--ink);font-weight:600}
+      .track{height:6px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden}
+      .fill{height:100%;background:linear-gradient(90deg,#8f1020,var(--red),var(--gold));border-radius:99px;transition:width .45s ease}
+      .playerdock{
+        flex:0 0 132px;width:132px;
+        display:flex;flex-direction:column;justify-content:center;
+        background:linear-gradient(180deg,#2e0f18,#210a11);
+        border:1px solid rgba(226,62,87,.5);
+        border-radius:18px;
+        padding:18px 14px;
+        box-shadow:0 14px 34px rgba(0,0,0,.5);
+      }
+      .playerdock .audio{margin:0;border:none;background:transparent;padding:0;width:100%;display:flex;flex-direction:column;gap:14px}
+      .playerdock .audio .arow{flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:0}
+      .playerdock .audio .alabel{line-height:1.55}
+      .playerdock .audio .acontrol{flex-direction:column;align-items:center;gap:14px}
+      .playerdock .playbtn{width:56px;height:56px}
+      .playerdock .playbtn svg{width:24px;height:24px}
+      .playerdock .atrack{flex:0 0 auto;width:100%}
+      @media (max-width:560px){
+        .stage{gap:10px}
+        .playerdock{flex-basis:102px;width:102px;padding:14px 10px;border-radius:16px}
+        .playerdock .audio .alabel{font-size:10px;letter-spacing:1.2px}
+        .playerdock .audio .atime{font-size:11.5px}
+        .playerdock .playbtn{width:50px;height:50px}
+        header{padding:14px 15px 10px}
+        .scroll{padding:16px 15px 22px}
+        footer{padding:12px 14px calc(12px + env(safe-area-inset-bottom))}
+        .navbtn{font-size:15px;padding:14px 6px}
+      }
+      .scroll{
+        flex:1 1 auto;overflow-y:auto;overflow-x:hidden;
+        padding:18px 20px 26px;
+        scrollbar-width:thin;scrollbar-color:rgba(226,62,87,.6) rgba(255,255,255,.04);
+        overscroll-behavior:contain;
+      }
+      .scroll::-webkit-scrollbar{width:5px}
+      .scroll::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:99px}
+      .scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--red),#7d0c1e);border-radius:99px}
+      .banner{
+        width:100%;aspect-ratio:5/2;object-fit:cover;display:block;
+        border-radius:14px;border:1px solid var(--line);
+        margin-bottom:16px;background:#250d14;
+      }
+      /* ===== CAPA: imagem primeiro, título abaixo ===== */
+      .coverimg{
+        width:100%;aspect-ratio:7/4.4;object-fit:cover;object-position:center 38%;display:block;
+        border-radius:16px;border:1px solid var(--line);
+        box-shadow:0 20px 44px rgba(0,0,0,.5),0 0 34px rgba(226,62,87,.12);
+        margin-bottom:16px;background:#250d14;
+      }
+      .covertitle{
+        font-family:"Playfair Display",Georgia,serif;font-size:36px;line-height:1.12;
+        font-weight:800;margin:0 0 6px;
+      }
+      .coverrule{
+        height:3px;width:72px;border-radius:99px;margin:12px 0 16px;
+        background:linear-gradient(90deg,var(--red),var(--gold));
+      }
+      /* ===== IMAGEM VAZADA NO MEIO DO TEXTO ===== */
+      .vazada{
+        position:relative;height:138px;border-radius:14px;overflow:hidden;
+        margin:16px 0;border:1px solid rgba(212,175,55,.2);background:#250d14;
+      }
+      .vazada img{
+        width:100%;height:100%;object-fit:cover;object-position:center 40%;
+        opacity:.42;display:block;
+      }
+      .vazada::after{
+        content:"";position:absolute;inset:0;pointer-events:none;
+        background:linear-gradient(180deg,rgba(29,8,16,.72),rgba(29,8,16,0) 38%,rgba(29,8,16,0) 62%,rgba(29,8,16,.72));
+      }
+      .scroll.enter{animation:fadein .32s ease}
+      @keyframes fadein{from{opacity:.25}to{opacity:1}}
+      /* ===== TERMO TÉCNICO EM DESTAQUE ===== */
+      .term{color:var(--red2);font-weight:700}
+      p b.term, ul.tight li b.term, .box p b.term{color:var(--red2)}
+      /* ===== FRASE-CHAVE ===== */
+      .frasechave{
+        background:linear-gradient(160deg,rgba(226,62,87,.17),rgba(226,62,87,.05));
+        border:1px solid rgba(226,62,87,.45);border-radius:14px;
+        padding:14px 16px;margin:16px 0;
+      }
+      .frasechave .flabel{color:var(--red2);font-size:11.5px;font-weight:700;letter-spacing:1.8px;margin:0 0 6px;display:flex;align-items:center}
+      .frasechave p.fq2{font-family:"Playfair Display",Georgia,serif;font-size:19px;line-height:1.45;margin:0;color:#fdf3f4}
+      /* ===== CARTÃO DE FECHAMENTO DE BLOCO ===== */
+      .fimbloco{
+        background:var(--panel);border:1px solid var(--line);border-radius:14px;
+        padding:14px 16px;margin:16px 0 4px;
+      }
+      .fimbloco .flabel{color:var(--gold2);font-size:11.5px;font-weight:700;letter-spacing:1.8px;margin:0 0 8px;display:flex;align-items:center}
+      .fimbloco ul{list-style:none;margin:0;padding:0}
+      .fimbloco li{position:relative;font-size:15.5px;line-height:1.5;padding:5px 0 5px 22px;border-bottom:1px dashed rgba(255,255,255,.07)}
+      .fimbloco li:last-child{border-bottom:none}
+      .fimbloco li::before{content:"◆";position:absolute;left:2px;top:10px;font-size:8px;color:var(--gold)}
+      .fimbloco li b{color:var(--gold2);font-weight:700}
+      /* ===== ÍCONES DOS BLOCOS ESPECIAIS ===== */
+      .bic{display:inline-flex;vertical-align:-2px;margin-right:7px;flex:0 0 auto}
+      .bic svg{width:14px;height:14px;display:block}
+      /* ===== SELO DE PROGRESSO POR BLOCO ===== */
+      .sealrow{margin-top:9px}
+      .blockseal{
+        display:inline-block;font-size:11px;font-weight:700;letter-spacing:1.6px;
+        color:var(--gold2);border:1px solid var(--line);border-radius:99px;
+        padding:4px 11px;background:rgba(212,175,55,.07);text-transform:uppercase;
+      }
+      .kicker{color:var(--red2);font-size:12px;font-weight:700;letter-spacing:2.2px;text-transform:uppercase;margin:0 0 6px}
+      .kicker::before{content:"◆";font-size:8px;vertical-align:2px;margin-right:7px;color:var(--gold)}
+      h2{font-family:"Playfair Display",Georgia,serif;font-size:25px;line-height:1.22;margin:0 0 12px;font-weight:700}
+      p{font-size:16.5px;line-height:1.62;margin:0 0 12px;color:var(--ink)}
+      p.lead{font-size:17.5px;color:#fdf3f4}
+      ul.tight{list-style:none;margin:4px 0 14px;padding:0}
+      ul.tight li{
+        position:relative;font-size:16.5px;line-height:1.55;
+        padding:7px 0 7px 24px;border-bottom:1px dashed rgba(255,255,255,.07);
+      }
+      ul.tight li:last-child{border-bottom:none}
+      ul.tight li::before{content:"◆";position:absolute;left:2px;top:12px;font-size:8px;color:var(--gold)}
+      ul.tight li b, p b{color:var(--gold2);font-weight:700}
+      .box{
+        background:var(--panel);border:1px solid var(--line);border-radius:14px;
+        padding:14px 16px;margin:14px 0;
+      }
+      .box .blabel{color:var(--red2);font-size:11.5px;font-weight:700;letter-spacing:1.8px;margin:0 0 6px}
+      .box p{margin:0;font-size:15.5px}
+      .box p + p{margin-top:8px}
+      .box.exemplo{position:relative;overflow:hidden}
+      .box.exemplo .wm{
+        position:absolute;top:0;right:0;width:74%;height:100%;object-fit:cover;
+        opacity:.15;mix-blend-mode:screen;pointer-events:none;
+        -webkit-mask-image:linear-gradient(to left,#000 40%,transparent 96%);
+        mask-image:linear-gradient(to left,#000 40%,transparent 96%);
+      }
+      .box.exemplo .excontent{position:relative;z-index:1}
+      .viarow{display:flex;gap:12px;align-items:flex-start;background:var(--panel2);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:13px 14px;margin:10px 0}
+      .vianum{
+        flex:0 0 auto;width:40px;height:40px;border-radius:50%;
+        border:1.5px solid var(--red);color:var(--red2);
+        display:flex;align-items:center;justify-content:center;
+        font-family:"Playfair Display",serif;font-weight:700;font-size:16px;
+      }
+      .viarow h3{margin:2px 0 3px;font-size:17px;font-weight:700}
+      .viarow p{margin:0;font-size:15px;color:var(--muted);line-height:1.5}
+      .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+      .chip{border:1px solid var(--line);color:var(--gold2);border-radius:99px;padding:6px 12px;font-size:13.5px;font-weight:600;background:rgba(212,175,55,.07)}
+      .audio{
+        margin:0 0 16px;background:#2c0f18;border:1px solid rgba(226,62,87,.4);
+        border-radius:16px;padding:13px 15px 12px;cursor:pointer;
+      }
+      .audio .arow{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+      .audio .alabel{color:var(--red2);font-size:11.5px;font-weight:700;letter-spacing:1.8px}
+      .audio .atime{color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+      .audio .acontrol{display:flex;align-items:center;gap:12px}
+      .playbtn{
+        flex:0 0 auto;width:46px;height:46px;border-radius:50%;
+        background:linear-gradient(180deg,#ff7a8a,#c8102e);
+        border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+        box-shadow:0 4px 14px rgba(226,62,87,.4);
+      }
+      .playbtn svg{width:20px;height:20px;fill:#fff}
+      .atrack{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;cursor:pointer}
+      .afill{height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--gold))}
+      .qtext{font-size:17.5px;line-height:1.6;margin-bottom:14px}
+      .opt{
+        display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;
+        background:var(--panel2);border:1.5px solid rgba(255,255,255,.12);color:var(--ink);
+        border-radius:13px;padding:13px 14px;margin:9px 0;font-size:16px;line-height:1.45;
+        font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;
+      }
+      .opt:hover{border-color:rgba(226,62,87,.65)}
+      .opt .letter{
+        flex:0 0 auto;width:27px;height:27px;border-radius:8px;margin-top:1px;
+        border:1.5px solid var(--red);color:var(--red2);
+        display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;
+      }
+      .opt.correct{border-color:var(--ok);background:rgba(62,207,122,.12)}
+      .opt.correct .letter{border-color:var(--ok);color:var(--ok)}
+      .opt.wrong{border-color:var(--bad);background:rgba(255,122,122,.1)}
+      .opt.wrong .letter{border-color:var(--bad);color:var(--bad)}
+      .opt:disabled{cursor:default;opacity:.92}
+      .feedback{display:none;border-radius:13px;padding:13px 15px;margin-top:13px;font-size:15.5px;line-height:1.55}
+      .feedback.show{display:block}
+      .feedback.good{background:rgba(62,207,122,.13);border:1px solid rgba(62,207,122,.5)}
+      .feedback.bad{background:rgba(255,122,122,.1);border:1px solid rgba(255,122,122,.45)}
+      .feedback b{display:block;margin-bottom:3px;font-size:16px}
+      .flashwrap{perspective:1200px;margin:6px 0 4px}
+      .flash{
+        position:relative;width:100%;min-height:250px;cursor:pointer;
+        transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,.7,.3,1);
+      }
+      .flash.flipped{transform:rotateY(180deg)}
+      .face{
+        position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+        border-radius:18px;padding:22px 20px;display:flex;flex-direction:column;justify-content:center;
+      }
+      .face.front{background:linear-gradient(160deg,#33121b,#200a10);border:1.5px solid var(--line);text-align:center;align-items:center}
+      .face.back{background:linear-gradient(160deg,#3d1620,#2a0e16);border:1.5px solid var(--red);transform:rotateY(180deg)}
+      .face .flabel{color:var(--red2);font-size:11.5px;font-weight:700;letter-spacing:2px;margin-bottom:12px}
+      .face.front .fq{font-family:"Playfair Display",serif;font-size:21px;line-height:1.4}
+      .face.back p{font-size:16px;line-height:1.6;margin:0}
+      .face.back p b{color:var(--gold2)}
+      .tap{margin-top:16px;color:var(--muted);font-size:13px}
+      .matchscore{color:var(--muted);font-size:14.5px;margin-bottom:10px}
+      .matchscore b{color:var(--gold2)}
+      .matchgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+      .mbtn{
+        background:var(--panel2);border:1.5px solid rgba(255,255,255,.12);color:var(--ink);
+        border-radius:12px;padding:11px 11px;font-size:14.5px;line-height:1.4;font-family:inherit;
+        cursor:pointer;text-align:left;transition:border-color .15s,background .15s;
+      }
+      .mbtn.sel{border-color:var(--red);background:rgba(226,62,87,.16)}
+      .mbtn.done{border-color:var(--ok);background:rgba(62,207,122,.12);color:#c9f2da;cursor:default}
+      .mbtn.shake{animation:shake .35s}
+      @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+      .matchdone{display:none;margin-top:14px;background:rgba(62,207,122,.13);border:1px solid rgba(62,207,122,.5);border-radius:13px;padding:13px 15px;font-size:15.5px}
+      .matchdone.show{display:block}
+      table.cmp{width:100%;border-collapse:collapse;margin:8px 0 6px;font-size:14px}
+      table.cmp th{
+        background:#33121b;color:var(--gold2);text-align:left;padding:10px 9px;
+        font-size:13px;letter-spacing:.4px;border-bottom:2px solid var(--red);
+      }
+      table.cmp td{padding:10px 9px;border-bottom:1px solid rgba(255,255,255,.09);line-height:1.45;vertical-align:top}
+      table.cmp td.t{font-weight:700;color:var(--gold2)}
+      .explorebox{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);margin:4px 0 12px;background:#250d14}
+      .explorebox img{width:100%;display:block}
+      .hotspot{
+        position:absolute;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;
+        background:rgba(20,4,9,.85);border:2px solid var(--gold);color:var(--gold2);
+        font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;z-index:2;
+        display:flex;align-items:center;justify-content:center;
+      }
+      .hotspot::after{
+        content:"";position:absolute;inset:-2px;border-radius:50%;
+        border:2px solid rgba(212,175,55,.8);animation:pulse 1.8s ease-out infinite;pointer-events:none;
+      }
+      @keyframes pulse{0%{transform:scale(1);opacity:.9}70%{transform:scale(1.7);opacity:0}100%{transform:scale(1.7);opacity:0}}
+      .hotspot.active{background:linear-gradient(180deg,#ff7a8a,#c8102e);border-color:#fff;color:#fff}
+      .hotspot.active::after{display:none}
+      .hotspot.seen{background:var(--gold);color:#2a0e16;border-color:var(--gold2)}
+      .hotspot.seen::after{animation:none;opacity:0}
+      .explorecount{color:var(--muted);font-size:14.5px;margin:0 0 10px}
+      .explorecount b{color:var(--gold2)}
+      .hotpanel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 6px}
+      .hotpanel h3{margin:0 0 6px;font-size:18px;font-family:"Playfair Display",serif;font-weight:700}
+      .hotpanel p{margin:0;font-size:15.5px}
+      .explorehint{color:var(--muted);font-size:15px;margin:0}
+      .revealcard{
+        display:block;width:100%;text-align:left;cursor:pointer;color:var(--ink);font-family:inherit;
+        background:linear-gradient(160deg,#33121b,#200a10);border:1.5px solid var(--line);
+        border-radius:14px;padding:15px 16px;margin:10px 0;
+      }
+      .revealcard .rlabel{color:var(--red2);font-size:11.5px;font-weight:700;letter-spacing:1.8px;margin:0 0 6px}
+      .revealcard .rbody{font-size:16px;line-height:1.55;margin:0}
+      .revealcard .rbody b{color:var(--gold2)}
+      .revealcard .rhint{color:var(--muted);font-size:13px;margin:8px 0 0}
+      .revealcard.open{border-color:var(--red)}
+      .revealcard.done{border-color:var(--gold);background:linear-gradient(160deg,#3a1420,#2a0e16);cursor:default}
+      .revealcard.done .rlabel{color:var(--gold2)}
+      /* ===== LINHA DO TEMPO ===== */
+      .timeline{position:relative;margin:8px 0 4px;padding-left:30px}
+      .timeline::before{content:"";position:absolute;left:12px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--gold),var(--red))}
+      .tlitem{position:relative;margin-bottom:10px}
+      .tlbtn{
+        width:100%;text-align:left;background:var(--panel2);border:1.5px solid rgba(255,255,255,.12);
+        color:var(--ink);border-radius:12px;padding:11px 13px;font-family:inherit;cursor:pointer;
+        display:flex;gap:11px;align-items:baseline;
+      }
+      .tlbtn::before{
+        content:"";position:absolute;left:-24px;top:16px;width:11px;height:11px;border-radius:50%;
+        background:#1d0810;border:2.5px solid var(--gold);
+      }
+      .tlbtn.open{border-color:var(--gold)}
+      .tlbtn.open::before{background:var(--gold)}
+      .tlyear{font-family:"Playfair Display",serif;font-weight:800;color:var(--gold2);font-size:16px;white-space:nowrap}
+      .tltitle{font-size:15.5px;font-weight:600;line-height:1.35}
+      .tlbody{display:none;background:var(--panel);border:1px solid var(--line);border-radius:0 0 12px 12px;border-top:none;padding:4px 13px 12px;margin-top:-6px}
+      .tlbody.show{display:block}
+      .tlbody p{font-size:15px;margin:6px 0 2px}
+      /* ===== VERDADEIRO OU FALSO ===== */
+      .vfstage{position:relative;margin:6px 0 4px;touch-action:pan-y}
+      .vfcard{
+        background:linear-gradient(160deg,#33121b,#200a10);border:1.5px solid var(--line);border-radius:16px;
+        padding:20px 18px;min-height:150px;display:flex;flex-direction:column;justify-content:center;
+        cursor:grab;user-select:none;-webkit-user-select:none;position:relative;
+      }
+      .vfcard .vflabel{color:var(--red2);font-size:11.5px;font-weight:700;letter-spacing:1.8px;margin:0 0 8px}
+      .vfcard .vftext{font-size:17.5px;line-height:1.55;margin:0;font-family:"Playfair Display",serif}
+      .vfstamp{
+        position:absolute;top:14px;font-weight:800;font-size:14px;letter-spacing:1.5px;
+        border:2.5px solid;border-radius:8px;padding:3px 9px;opacity:0;transform:rotate(-8deg);
+      }
+      .vfstamp.f{left:14px;color:var(--bad);border-color:var(--bad)}
+      .vfstamp.v{right:14px;color:var(--ok);border-color:var(--ok);transform:rotate(8deg)}
+      .vfbtns{display:flex;gap:10px;margin-top:12px}
+      .vfbtn{
+        flex:1;padding:13px 8px;border-radius:12px;font-size:15.5px;font-weight:700;font-family:inherit;cursor:pointer;
+        background:transparent;color:var(--ink);border:1.5px solid rgba(255,255,255,.25);
+      }
+      .vfbtn.f:hover{border-color:var(--bad);color:var(--bad)}
+      .vfbtn.v:hover{border-color:var(--ok);color:var(--ok)}
+      /* ===== COMPLETAR A FRASE ===== */
+      .filltext{font-size:17.5px;line-height:1.9;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin:6px 0 12px}
+      .blank{
+        display:inline-block;min-width:88px;text-align:center;border-bottom:2.5px solid var(--gold);
+        color:var(--gold2);font-weight:700;padding:0 6px;margin:0 2px;vertical-align:baseline;
+      }
+      .blank.empty{color:var(--muted);font-weight:400}
+      .blank.next{border-bottom-color:var(--red2);animation:blankglow 1.2s ease-in-out infinite}
+      @keyframes blankglow{0%,100%{background:rgba(226,62,87,.05)}50%{background:rgba(226,62,87,.22)}}
+      .wordbank{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 6px}
+      .wordchip{
+        background:var(--panel2);border:1.5px solid rgba(255,255,255,.2);color:var(--ink);border-radius:99px;
+        padding:9px 15px;font-size:15.5px;font-weight:600;font-family:inherit;cursor:pointer;
+      }
+      .wordchip:hover{border-color:var(--gold)}
+      .wordchip.used{opacity:.28;cursor:default;border-style:dashed}
+      .wordchip.shake{animation:shake .35s;border-color:var(--bad)}
+      /* ===== KARAOKÊ ===== */
+      .karaoke{font-size:17.5px;line-height:1.85}
+      .karaoke .sent{border-radius:6px;padding:1px 3px;cursor:pointer;color:#d8bfc4;transition:background .3s,color .3s}
+      .karaoke .sent.on{background:rgba(212,175,55,.28);color:#fff}
+      .karaoke .sent.done{color:var(--ink)}
+      /* ===== COMPARADOR ===== */
+      .cmpbox{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);aspect-ratio:4/4.6;margin:6px 0 12px;background:#250d14;touch-action:none}
+      .cmpbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+      .cmpbox .cmpafter{clip-path:inset(0 0 0 50%)}
+      .cmplabel{
+        position:absolute;top:10px;z-index:3;background:rgba(20,4,9,.78);color:var(--gold2);
+        font-size:12px;font-weight:700;letter-spacing:1.4px;border:1px solid var(--line);
+        border-radius:99px;padding:5px 11px;pointer-events:none;
+      }
+      .cmplabel.l{left:10px}.cmplabel.r{right:10px}
+      .cmphandle{
+        position:absolute;top:0;bottom:0;left:50%;width:3px;margin-left:-1.5px;z-index:2;
+        background:linear-gradient(180deg,var(--gold2),var(--gold));pointer-events:none;
+      }
+      .cmphandle::after{
+        content:"◂ ▸";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+        background:linear-gradient(180deg,#ff7a8a,#c8102e);color:#fff;font-size:13px;font-weight:700;
+        border-radius:99px;padding:7px 11px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.5);
+      }
+      input.cmprange{width:100%;margin:2px 0 12px;accent-color:var(--gold);height:28px;cursor:pointer}
+      /* ===== MAPA MENTAL ===== */
+      .mindcenter{
+        text-align:center;font-family:"Playfair Display",serif;font-size:19px;font-weight:800;
+        background:linear-gradient(160deg,#3d1620,#2a0e16);border:1.5px solid var(--gold);color:var(--gold2);
+        border-radius:14px;padding:14px 12px;margin:6px 0 12px;
+      }
+      .mindbranch{margin-bottom:9px}
+      .mindbtn{
+        width:100%;text-align:left;background:var(--panel2);border:1.5px solid rgba(255,255,255,.12);color:var(--ink);
+        border-radius:12px;padding:12px 14px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;
+        display:flex;justify-content:space-between;align-items:center;gap:8px;
+      }
+      .mindbtn.open{border-color:var(--red)}
+      .mindbtn .marr{color:var(--gold2);font-size:13px}
+      .mindbody{display:none;background:var(--panel);border:1px solid var(--line);border-top:none;border-radius:0 0 12px 12px;padding:12px 14px 6px;margin-top:-5px}
+      .mindbody.show{display:block}
+      .mindbody p{font-size:15px;margin:0 0 8px}
+      /* ===== DESAFIO ===== */
+      .scorebar{
+        display:flex;justify-content:space-between;align-items:center;background:var(--panel);
+        border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:6px 0 12px;
+        font-size:15px;color:var(--muted);
+      }
+      .scorebar .pts{color:var(--gold2);font-weight:800;font-size:18px;font-variant-numeric:tabular-nums}
+      .finalscore{
+        text-align:center;background:linear-gradient(160deg,#3d1620,#2a0e16);border:1.5px solid var(--gold);
+        border-radius:16px;padding:20px 16px;margin:8px 0;
+      }
+      .finalscore .big{font-family:"Playfair Display",serif;font-size:38px;font-weight:800;color:var(--gold2);margin:4px 0}
+      .finalscore p{margin:0;font-size:15.5px}
+      .againbtn{
+        margin-top:14px;background:linear-gradient(180deg,#ff7a8a,#c8102e);color:#fff;border:none;
+        border-radius:12px;padding:12px 22px;font-size:15.5px;font-weight:700;font-family:inherit;cursor:pointer;
+      }
+      footer{
+        flex:0 0 auto;display:flex;gap:12px;padding:13px 20px calc(13px + env(safe-area-inset-bottom));
+        border-top:1px solid rgba(226,62,87,.18);background:rgba(20,4,9,.7);
+      }
+      .navbtn{
+        flex:1;padding:15px 10px;border-radius:14px;font-size:16.5px;font-weight:700;
+        font-family:inherit;cursor:pointer;border:1.5px solid rgba(255,255,255,.2);
+        background:transparent;color:var(--ink);transition:opacity .15s,transform .1s;
+      }
+      .navbtn:active{transform:scale(.98)}
+      .navbtn.next{background:linear-gradient(180deg,#ff7a8a,#c8102e);color:#fff;border-color:transparent}
+      .navbtn:disabled{opacity:.35;cursor:default}
+      @media (prefers-reduced-motion:reduce){
+        .flash{transition:none}.fill{transition:none}.hotspot::after{animation:none}
+        .scroll.enter{animation:none}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+    <div class="phone" id="phone">
+      <header>
+        <div class="hrow">
+          <span class="subject">DIREITO PENAL</span>
+          <span class="design">TEMA VERMELHO</span>
+        </div>
+        <h1>Crimes Contra a Família</h1>
+        <p class="etapa" id="etapaLabel">Etapa 1 de 32</p>
+        <div class="track"><div class="fill" id="progressFill" style="width:3.13%"></div></div>
+        <div class="sealrow"><span class="blockseal" id="blockSeal">Bloco 1 de 3 · O terreno da família</span></div>
+      </header>
+      <div class="scroll" id="scrollArea" tabindex="0"></div>
+      <footer>
+        <button class="navbtn" id="btnPrev" type="button">← Anterior</button>
+        <button class="navbtn next" id="btnNext" type="button">Próximo →</button>
+      </footer>
+    </div>
+    <div class="playerdock">
+      <div class="audio" id="audioBox" title="Ouvir a narração desta etapa">
+        <div class="arow"><span class="alabel">NARRAÇÃO · VOZ FEMININA</span><span class="atime" id="aTime">0:00 / 0:00</span></div>
+        <div class="acontrol"><button class="playbtn" id="playBtn" type="button" aria-label="Ouvir ou pausar a narração"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg></button><div class="atrack" id="aTrack"><div class="afill" id="aFill"></div></div></div>
+      </div>
+    </div>
+    </div>
+
+    <script>
+    var IMG = {
+  "capa": "assets/img/capa.webp",
+  "mapa": "assets/img/mapa.webp",
+  "familia": "assets/img/familia.webp",
+  "capitulos": "assets/img/capitulos.webp",
+  "balanca": "assets/img/balanca.webp",
+  "questao": "assets/img/questao.webp",
+  "flashcards": "assets/img/flashcards.webp",
+  "bigamia": "assets/img/bigamia.webp",
+  "sujeitos": "assets/img/sujeitos.webp",
+  "anulacao": "assets/img/anulacao.webp",
+  "condicoes": "assets/img/condicoes.webp",
+  "dolo": "assets/img/dolo.webp",
+  "questao2": "assets/img/questao2.webp",
+  "flashcards2": "assets/img/flashcards2.webp",
+  "compcivil": "assets/img/compcivil.webp",
+  "compreligioso": "assets/img/compreligioso.webp",
+  "explorar": "assets/img/explorar.webp",
+  "revelar": "assets/img/revelar.webp",
+  "ligar": "assets/img/ligar.webp",
+  "ligar2": "assets/img/ligar2.webp",
+  "lacuna": "assets/img/lacuna.webp",
+  "tabela": "assets/img/tabela.webp",
+  "cartasvf": "assets/img/cartasvf.webp",
+  "timeline": "assets/img/timeline.webp",
+  "mapamental": "assets/img/mapamental.webp",
+  "pegadinhas": "assets/img/pegadinhas.webp",
+  "martelo": "assets/img/martelo.webp",
+  "ouro": "assets/img/ouro.webp",
+  "fim": "assets/img/fim.webp",
+  "panorama": "assets/img/panorama.webp"
+};
+    var SLIDES = [
+ {
+  "tipo": "Capa",
+  "img": "capa",
+  "alt": "Casal trocando alianças douradas em salão de cartório com cortinas vermelhas",
+  "kicker": "Direito Penal · Crimes Contra a Família",
+  "titulo": "Crimes Contra a Família",
+  "corpo": "<p class=\"lead\">A família é o primeiro núcleo de proteção de uma pessoa: é onde ela nasce, cresce, aprende a falar, é alimentada, educada e amparada nos momentos difíceis. Mas o que acontece quando o ataque vem de dentro, quando quem fere esse núcleo é justamente alguém que deveria protegê-lo?</p><p>É para situações assim que o Código Penal reserva um título inteiro: os <b>crimes contra a família</b>, previstos nos artigos 235 a 249. São condutas que atingem o <b>casamento</b>, o <b>estado de filiação</b>, a <b>assistência</b> devida entre familiares e o <b>poder familiar</b> sobre crianças e incapazes.</p><p>Nesta aula, eu te apresento o <b>mapa completo</b> desse título e mergulho no primeiro crime dele: a <b>bigamia</b>, o ato de contrair um novo casamento já sendo casado. Você vai conhecer o artigo 235 por dentro: a pena, quem responde, quem a lei protege e em que situações o crime simplesmente <b>deixa de existir</b>.</p><div class=\"chips\"><span class=\"chip\">Artigos 235 a 249</span><span class=\"chip\">Quatro capítulos</span><span class=\"chip\">Bigamia</span><span class=\"chip\">Artigo 235</span></div>",
+  "narr": "A família é o primeiro núcleo de proteção de uma pessoa: é onde ela nasce, cresce, aprende a falar, é alimentada, educada e amparada nos momentos difíceis. Mas o que acontece quando o ataque vem de dentro, quando quem fere esse núcleo é justamente alguém que deveria protegê-lo? É para situações assim que o Código Penal reserva um título inteiro: os crimes contra a família, previstos nos artigos duzentos e trinta e cinco a duzentos e quarenta e nove. São condutas que atingem o casamento, o estado de filiação, a assistência devida entre familiares e o poder familiar sobre crianças e incapazes. Nesta aula, eu te apresento o mapa completo desse título e mergulho no primeiro crime dele: a bigamia, o ato de contrair um novo casamento já sendo casado. Você vai conhecer o artigo duzentos e trinta e cinco por dentro: a pena, quem responde, quem a lei protege e em que situações o crime simplesmente deixa de existir."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "mapa",
+  "alt": "Mapa antigo em pergaminho com quatro selos dourados e uma bússola de latão",
+  "kicker": "Roteiro da aula",
+  "titulo": "O caminho desta aula",
+  "corpo": "<p>Antes de mergulhar no conteúdo, deixa eu te mostrar o <b>caminho que vamos percorrer juntas</b>. A aula está organizada em <b>três blocos</b> e um fechamento:</p><div class=\"viarow\"><div class=\"vianum\">1</div><div><h3>Primeiro, o terreno</h3><p>O mapa dos artigos 235 a 249 e os quatro capítulos que protegem a vida familiar.</p></div></div><div class=\"viarow\"><div class=\"vianum\">2</div><div><h3>Bigamia em detalhes</h3><p>O artigo 235 por dentro: o segundo casamento, quem responde por ele e quando o crime desaparece.</p></div></div><div class=\"viarow\"><div class=\"vianum\">3</div><div><h3>Prática e fixação</h3><p>Comparador, imagem para explorar, ligar termos, verdadeiro ou falso, linha do tempo e mapa mental.</p></div></div><div class=\"viarow\"><div class=\"vianum\">4</div><div><h3>Fechamento</h3><p>Desafio final com placar e a pergunta de ouro, a mais valiosa da aula.</p></div></div><div class=\"vazada\" aria-hidden=\"true\"><img src=\"assets/img/mapa.webp\" alt=\"\"></div><p>O conteúdo vem em <b>texto corrido</b>, como uma conversa, e a prática fica concentrada no <b>fim de cada bloco</b>: questões, flashcards e atividades para fixar cada parte antes de seguir. Vamos ao primeiro bloco!</p>",
+  "narr": "O caminho desta aula. Antes de mergulhar no conteúdo, deixa eu te mostrar o caminho que vamos percorrer juntas. A aula está organizada em três blocos e um fechamento. Bloco um: primeiro, o terreno. O mapa dos artigos duzentos e trinta e cinco a duzentos e quarenta e nove e os quatro capítulos que protegem a vida familiar. Bloco dois: bigamia em detalhes. O artigo duzentos e trinta e cinco por dentro: o segundo casamento, quem responde por ele e quando o crime desaparece. Bloco três: prática e fixação. Comparador, imagem para explorar, ligar termos, verdadeiro ou falso, linha do tempo e mapa mental. Fechamento: desafio final com placar e a pergunta de ouro, a mais valiosa da aula. O conteúdo vem em texto corrido, como uma conversa, e a prática fica concentrada no fim de cada bloco: questões, flashcards e atividades para fixar cada parte antes de seguir. Vamos ao primeiro bloco!"
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "familia",
+  "alt": "Família aconchegada na janela de uma casa protegida por um escudo dourado de luz",
+  "kicker": "O bem jurídico",
+  "titulo": "A família sob a proteção da lei penal",
+  "corpo": "<p>Eu começo com a pergunta que organiza tudo: <b>o que exatamente a lei quer proteger</b> quando pune os crimes contra a família? A resposta é a própria <b>família como instituição</b>: a confiança que sustenta o casamento, a certeza sobre a origem de cada criança, o dever de sustento entre parentes e o cuidado com quem não consegue se defender sozinho.</p><p>Repare que não estamos falando de desentendimentos comuns do dia a dia. O Direito Penal entra em cena quando a conduta é tão grave que <b>abala a estrutura jurídica da família</b>: um segundo casamento sobre um casamento verdadeiro, um registro de nascimento que nunca existiu, um filho deixado sem sustento. São ataques à base sobre a qual a vida familiar se organiza.</p><div class=\"box exemplo\"><img class=\"wm\" src=\"assets/img/familia.webp\" alt=\"\" aria-hidden=\"true\"><div class=\"excontent\"><p class=\"blabel\">EXEMPLO PRÁTICO</p><p>Pense na família como uma <b>casa</b>. O casamento é a porta de entrada, a filiação são as paredes que dizem quem mora ali, a assistência é o telhado que protege da chuva e o poder familiar é o cuidado com quem ainda não alcança a maçaneta. Os crimes deste título são ataques a essas partes da casa.</p></div></div><div class=\"frasechave\"><p class=\"flabel\">FRASE-CHAVE</p><p class=\"fq2\">O Direito Penal protege a família por dentro: casamento, filiação, sustento e cuidado.</p></div><p>Todo esse sistema está concentrado num bloco enxuto do Código Penal: os <b>artigos 235 a 249</b>, divididos em <b>quatro capítulos</b>. Na próxima etapa, eu te mostro o mapa completo, capítulo por capítulo.</p>",
+  "narr": "A família sob a proteção da lei penal. Eu começo com a pergunta que organiza tudo: o que exatamente a lei quer proteger quando pune os crimes contra a família? A resposta é a própria família como instituição: a confiança que sustenta o casamento, a certeza sobre a origem de cada criança, o dever de sustento entre parentes e o cuidado com quem não consegue se defender sozinho. Repare que não estamos falando de desentendimentos comuns do dia a dia. O Direito Penal entra em cena quando a conduta é tão grave que abala a estrutura jurídica da família: um segundo casamento sobre um casamento verdadeiro, um registro de nascimento que nunca existiu, um filho deixado sem sustento. São ataques à base sobre a qual a vida familiar se organiza. Exemplo prático: pense na família como uma casa. O casamento é a porta de entrada, a filiação são as paredes que dizem quem mora ali, a assistência é o telhado que protege da chuva e o poder familiar é o cuidado com quem ainda não alcança a maçaneta. Os crimes deste título são ataques a essas partes da casa. O Direito Penal protege a família por dentro: casamento, filiação, sustento e cuidado. Todo esse sistema está concentrado num bloco enxuto do Código Penal: os artigos duzentos e trinta e cinco a duzentos e quarenta e nove, divididos em quatro capítulos. Na próxima etapa, eu te mostro o mapa completo, capítulo por capítulo."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "capitulos",
+  "alt": "Quatro portas ornamentadas lado a lado em um salão escuro, com luz dourada sob cada uma",
+  "kicker": "O mapa do título",
+  "titulo": "Os quatro capítulos do mapa",
+  "corpo": "<p>Aqui está o mapa que eu prometi. Os crimes contra a família se dividem em <b>quatro capítulos</b>, e cada um protege uma face da vida familiar:</p><div class=\"viarow\"><div class=\"vianum\">1</div><div><h3>Crimes contra o casamento</h3><p>Protegem a relação conjugal: a monogamia e a fidelidade entre os cônjuges. É neste capítulo que mora a bigamia.</p></div></div><div class=\"viarow\"><div class=\"vianum\">2</div><div><h3>Crimes contra o estado de filiação</h3><p>Protegem a verdade sobre a origem da criança: o registro de nascimento, o parto suposto e a sonegação da filiação.</p></div></div><div class=\"viarow\"><div class=\"vianum\">3</div><div><h3>Crimes contra a assistência familiar</h3><p>Protegem o sustento e o cuidado dentro de casa: abandono material, abandono intelectual e abandono moral.</p></div></div><div class=\"viarow\"><div class=\"vianum\">4</div><div><h3>Crimes contra o pátrio poder, tutela e curatela</h3><p>Protegem a guarda de menores e interditos: induzimento a fuga, entrega arbitrária e subtração de incapazes.</p></div></div><div class=\"vazada\" aria-hidden=\"true\"><img src=\"assets/img/capitulos.webp\" alt=\"\"></div><p>O nosso mergulho de hoje é no <b>primeiro capítulo</b>, o do casamento, e no crime que abre o título inteiro: a <b>bigamia</b>. Os outros três capítulos estão no mapa para você se localizar, e cada um deles ganha aulas próprias na sequência dos nossos estudos.</p>",
+  "narr": "Os quatro capítulos do mapa. Aqui está o mapa que eu prometi. Os crimes contra a família se dividem em quatro capítulos, e cada um protege uma face da vida familiar. Capítulo um: crimes contra o casamento. Protegem a relação conjugal: a monogamia e a fidelidade entre os cônjuges; é neste capítulo que mora a bigamia. Capítulo dois: crimes contra o estado de filiação. Protegem a verdade sobre a origem da criança: o registro de nascimento, o parto suposto e a sonegação da filiação. Capítulo três: crimes contra a assistência familiar. Protegem o sustento e o cuidado dentro de casa: abandono material, abandono intelectual e abandono moral. Capítulo quatro: crimes contra o pátrio poder, tutela e curatela. Protegem a guarda de menores e interditos: induzimento a fuga, entrega arbitrária e subtração de incapazes. O nosso mergulho de hoje é no primeiro capítulo, o do casamento, e no crime que abre o título inteiro: a bigamia. Os outros três capítulos estão no mapa para você se localizar, e cada um deles ganha aulas próprias na sequência dos nossos estudos."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "balanca",
+  "alt": "Balança dourada perfeitamente equilibrada com uma aliança de casamento em cada prato",
+  "kicker": "Crimes contra o casamento",
+  "titulo": "O casamento no centro do primeiro capítulo",
+  "corpo": "<p>Os crimes contra o casamento visam proteger a <b>relação conjugal</b> nos moldes da cultura ocidental atual. Traduzindo: o modelo de casamento que o nosso ordenamento protege é o da <b class=\"term\">monogamia</b>, um só parceiro no casamento, com <b>fidelidade</b> entre os contraentes.</p><p>Isso não é só uma escolha cultural escrita num papel. Dela nascem efeitos jurídicos enormes: regime de bens, direitos de herança, filiação dos filhos, pensão, nome. Quando alguém finge que esse casamento não existe e contrai outro, a confusão se espalha por <b>todas</b> essas áreas, e atinge gente que não tem culpa de nada: o cônjuge enganado, os filhos, a família inteira.</p><div class=\"box exemplo\"><img class=\"wm\" src=\"assets/img/balanca.webp\" alt=\"\" aria-hidden=\"true\"><div class=\"excontent\"><p class=\"blabel\">PENSE ASSIM</p><p>O casamento no civil é como um <b>registro público com uma vaga só</b>. Enquanto o seu nome ocupa aquela vaga, não existe como registrar outra pessoa no mesmo lugar. Para casar de novo, primeiro é preciso liberar a vaga do jeito certo: com o divórcio ou com a anulação.</p></div></div><p>É exatamente para guardar essa vaga única que existe o primeiro crime do título. Se a pessoa casada ignora a regra e contrai um novo casamento, ela não comete só uma infração civil: ela comete <b>crime</b>, e é esse crime que nós vamos destrinchar no próximo bloco.</p><div class=\"fimbloco\"><p class=\"flabel\">NESTE BLOCO VOCÊ VIU</p><ul><li><b>Mapa decorado:</b> os crimes contra a família vão dos artigos 235 a 249 do Código Penal.</li><li>São quatro capítulos: casamento, estado de filiação, assistência familiar e pátrio poder, tutela e curatela.</li><li>O casamento protegido é o monogâmico: um só parceiro, com fidelidade entre os cônjuges.</li></ul></div>",
+  "narr": "O casamento no centro do primeiro capítulo. Os crimes contra o casamento visam proteger a relação conjugal nos moldes da cultura ocidental atual. Traduzindo: o modelo de casamento que o nosso ordenamento protege é o da monogamia, um só parceiro no casamento, com fidelidade entre os contraentes. Isso não é só uma escolha cultural escrita num papel. Dela nascem efeitos jurídicos enormes: regime de bens, direitos de herança, filiação dos filhos, pensão, nome. Quando alguém finge que esse casamento não existe e contrai outro, a confusão se espalha por todas essas áreas, e atinge gente que não tem culpa de nada: o cônjuge enganado, os filhos, a família inteira. Pense assim: o casamento no civil é como um registro público com uma vaga só. Enquanto o seu nome ocupa aquela vaga, não existe como registrar outra pessoa no mesmo lugar. Para casar de novo, primeiro é preciso liberar a vaga do jeito certo: com o divórcio ou com a anulação. É exatamente para guardar essa vaga única que existe o primeiro crime do título. Se a pessoa casada ignora a regra e contrai um novo casamento, ela não comete só uma infração civil: ela comete crime, e é esse crime que nós vamos destrinchar no próximo bloco."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "bigamia",
+  "alt": "Duas alianças douradas sobrepostas sobre duas certidões de casamento, uma delas na sombra",
+  "kicker": "Bigamia · Artigo 235",
+  "titulo": "Bigamia: um segundo casamento sobre o primeiro",
+  "corpo": "<p><b class=\"term\">Bigamia</b> é o ato de contrair casamento já sendo casado com outra pessoa. A palavra entrega o raciocínio: a pessoa tenta manter <b>dois casamentos ao mesmo tempo</b>, quando o ordenamento só admite um.</p><div class=\"box\"><p class=\"blabel\">O TEXTO DA LEI</p><p>Art. 235. Contrair alguém, sendo casado, novo casamento. Pena: reclusão, de dois a seis anos.</p></div><p>Repare na pena: <b>reclusão de dois a seis anos</b>. Não é uma pena leve, e isso mostra o peso que a lei dá para a confiança no casamento. O crime se consuma no momento em que o segundo casamento é celebrado, ainda que a vida em comum nem tenha começado.</p><p>E a bigamia conversa diretamente com o Código Civil, que fecha a porta antes: no artigo 1.521, inciso VI, ele diz que <b>as pessoas casadas não podem casar</b>. Ou seja, quem já é casado está impedido de contrair novo casamento. Se, mesmo impedida, a pessoa casa de novo, o segundo casamento é <b>nulo</b> e, além da nulidade, ela comete o crime de bigamia.</p><div class=\"box exemplo\"><img class=\"wm\" src=\"assets/img/bigamia.webp\" alt=\"\" aria-hidden=\"true\"><div class=\"excontent\"><p class=\"blabel\">EXEMPLO PRÁTICO</p><p>O Carlos casou com a Ana em São Paulo. Anos depois, mudou de cidade, conheceu a Beatriz e, <b>sem se divorciar</b>, casou com ela no civil, como se fosse solteiro. No instante em que o segundo casamento foi celebrado, o crime de bigamia se consumou, ainda que o Carlos nunca tenha morado com a Beatriz.</p></div></div>",
+  "narr": "Bigamia: um segundo casamento sobre o primeiro. Bigamia é o ato de contrair casamento já sendo casado com outra pessoa. A palavra entrega o raciocínio: a pessoa tenta manter dois casamentos ao mesmo tempo, quando o ordenamento só admite um. O texto da lei: artigo duzentos e trinta e cinco: contrair alguém, sendo casado, novo casamento. Pena: reclusão, de dois a seis anos. Repare na pena: reclusão de dois a seis anos. Não é uma pena leve, e isso mostra o peso que a lei dá para a confiança no casamento. O crime se consuma no momento em que o segundo casamento é celebrado, ainda que a vida em comum nem tenha começado. E a bigamia conversa diretamente com o Código Civil, que fecha a porta antes: no artigo mil quinhentos e vinte e um, inciso seis, ele diz que as pessoas casadas não podem casar. Ou seja, quem já é casado está impedido de contrair novo casamento. Se, mesmo impedida, a pessoa casa de novo, o segundo casamento é nulo e, além da nulidade, ela comete o crime de bigamia. Exemplo prático: o Carlos casou com a Ana em São Paulo. Anos depois, mudou de cidade, conheceu a Beatriz e, sem se divorciar, casou com ela no civil, como se fosse solteiro. No instante em que o segundo casamento foi celebrado, o crime de bigamia se consumou, ainda que o Carlos nunca tenha morado com a Beatriz."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "sujeitos",
+  "alt": "Casal assinando documentos no cartório, com o homem escondendo uma segunda aliança atrás das costas",
+  "kicker": "Bigamia · Quem responde",
+  "titulo": "Quem responde pelo crime?",
+  "corpo": "<p>Vamos organizar as pessoas desse crime. O <b>sujeito ativo</b>, quem pratica a bigamia, é o indivíduo <b>já casado</b> que contrai o novo casamento. E repare num detalhe que a banca adora: a bigamia é um crime de <b>concurso necessário</b>, ou seja, ela <b>não se comete sozinha</b>: para existir um casamento, são precisas duas pessoas diante do celebrante.</p><p>Mas atenção: precisar de duas pessoas para o ato não significa que as duas respondam pelo crime. A outra pessoa <b>não precisa saber</b> de nada. Se ela foi enganada e acreditou que estava casando com alguém livre, ela não é autora: ela é <b>vítima</b>.</p><div class=\"box\"><p class=\"blabel\">O TEXTO DA LEI</p><p>Art. 235, § 1º. Aquele que, não sendo casado, contrai casamento com pessoa casada, conhecendo essa circunstância, é punido com reclusão ou detenção, de um a três anos.</p></div><p>O parágrafo primeiro desenha a outra hipótese: a pessoa solteira que casa com alguém casado <b>sabendo</b> disso também comete o crime, com pena menor, de <b>um a três anos</b> de reclusão ou detenção. A palavra decisiva do dispositivo é <b>conhecendo</b>: sem conhecimento, não há crime para ela.</p><div class=\"frasechave\"><p class=\"flabel\">FRASE-CHAVE</p><p class=\"fq2\">Quem sabia, responde junto; quem não sabia, é vítima.</p></div><p>E quem a lei protege? O <b>sujeito passivo</b> é duplo: o <b>Estado</b>, guardião da ordem familiar, e o <b>consorte que não conhecia a situação</b>, a pessoa de boa-fé que foi enganada no ato mais solene da vida civil.</p>",
+  "narr": "Quem responde pelo crime? Vamos organizar as pessoas desse crime. O sujeito ativo, quem pratica a bigamia, é o indivíduo já casado que contrai o novo casamento. E repare num detalhe que a banca adora: a bigamia é um crime de concurso necessário, ou seja, ela não se comete sozinha: para existir um casamento, são precisas duas pessoas diante do celebrante. Mas atenção: precisar de duas pessoas para o ato não significa que as duas respondam pelo crime. A outra pessoa não precisa saber de nada. Se ela foi enganada e acreditou que estava casando com alguém livre, ela não é autora: ela é vítima. O texto da lei: artigo duzentos e trinta e cinco, parágrafo primeiro: aquele que, não sendo casado, contrai casamento com pessoa casada, conhecendo essa circunstância, é punido com reclusão ou detenção, de um a três anos. O parágrafo primeiro desenha a outra hipótese: a pessoa solteira que casa com alguém casado sabendo disso também comete o crime, com pena menor, de um a três anos de reclusão ou detenção. A palavra decisiva do dispositivo é conhecendo: sem conhecimento, não há crime para ela. Quem sabia, responde junto; quem não sabia, é vítima. E quem a lei protege? O sujeito passivo é duplo: o Estado, guardião da ordem familiar, e o consorte que não conhecia a situação, a pessoa de boa-fé que foi enganada no ato mais solene da vida civil."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "anulacao",
+  "alt": "Martelo de juiz ao lado de uma certidão de casamento que se dissolve em luz dourada",
+  "kicker": "Bigamia · Parágrafo 2º",
+  "titulo": "Quando o crime deixa de existir",
+  "corpo": "<p>Agora vem a parte mais surpreendente do artigo 235: existe uma situação em que o crime, depois de cometido, passa a ser tratado como se <b>nunca tivesse existido</b>. Quem diz isso é o parágrafo segundo:</p><div class=\"box\"><p class=\"blabel\">O TEXTO DA LEI</p><p>Art. 235, § 2º. Anulado por qualquer motivo o primeiro casamento, ou o outro por motivo que não a bigamia, considera-se inexistente o crime.</p></div><p>Vamos destrinchar as duas portas de saída. <b>Primeira porta:</b> o <b>primeiro casamento é anulado</b>, por qualquer motivo. Se o alicerce cai, o crime perde a base. <b>Segunda porta:</b> o <b>segundo casamento é anulado por um motivo diferente</b> da bigamia, como um erro essencial sobre a pessoa. Nas duas hipóteses, a lei manda considerar o crime inexistente.</p><p>E o detalhe fino: o casamento <b>nulo ou anulável</b>, enquanto estiver <b>vigente</b>, também gera bigamia. Ou seja, não basta a pessoa achar que o primeiro casamento não vale mais: enquanto não houver a <b>sentença</b> que declara a nulidade ou anula o casamento, o vínculo continua produzindo efeitos, e o segundo casamento continua sendo crime. Só depois da sentença é que o crime se torna inexistente, efeito que parte da doutrina descreve como uma forma de extinção.</p><div class=\"frasechave\"><p class=\"flabel\">FRASE-CHAVE</p><p class=\"fq2\">Anulou o primeiro casamento, apagou o crime.</p></div><div class=\"box exemplo\"><img class=\"wm\" src=\"assets/img/anulacao.webp\" alt=\"\" aria-hidden=\"true\"><div class=\"excontent\"><p class=\"blabel\">EXEMPLO PRÁTICO</p><p>A Fernanda casou pela segunda vez porque o primeiro casamento, celebrado anos antes, tinha um vício grave. Enquanto ela não conseguiu a sentença de anulação daquele primeiro casamento, o segundo foi tratado como bigamia. Quando a sentença finalmente anulou o primeiro casamento, o crime passou a ser considerado <b>inexistente</b>.</p></div></div>",
+  "narr": "Quando o crime deixa de existir. Agora vem a parte mais surpreendente do artigo duzentos e trinta e cinco: existe uma situação em que o crime, depois de cometido, passa a ser tratado como se nunca tivesse existido. Quem diz isso é o parágrafo segundo. O texto da lei: artigo duzentos e trinta e cinco, parágrafo segundo: anulado por qualquer motivo o primeiro casamento, ou o outro por motivo que não a bigamia, considera-se inexistente o crime. Vamos destrinchar as duas portas de saída. Primeira porta: o primeiro casamento é anulado, por qualquer motivo. Se o alicerce cai, o crime perde a base. Segunda porta: o segundo casamento é anulado por um motivo diferente da bigamia, como um erro essencial sobre a pessoa. Nas duas hipóteses, a lei manda considerar o crime inexistente. E o detalhe fino: o casamento nulo ou anulável, enquanto estiver vigente, também gera bigamia. Ou seja, não basta a pessoa achar que o primeiro casamento não vale mais: enquanto não houver a sentença que declara a nulidade ou anula o casamento, o vínculo continua produzindo efeitos, e o segundo casamento continua sendo crime. Só depois da sentença é que o crime se torna inexistente, efeito que parte da doutrina descreve como uma forma de extinção. Anulou o primeiro casamento, apagou o crime. Exemplo prático: a Fernanda casou pela segunda vez porque o primeiro casamento, celebrado anos antes, tinha um vício grave. Enquanto ela não conseguiu a sentença de anulação daquele primeiro casamento, o segundo foi tratado como bigamia. Quando a sentença finalmente anulou o primeiro casamento, o crime passou a ser considerado inexistente."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "condicoes",
+  "alt": "Passaporte, aliança de casamento e uma miniatura de avião sobre uma mesa escura",
+  "kicker": "Bigamia · Condições",
+  "titulo": "As condições, uma a uma",
+  "corpo": "<p>Para você nunca mais confundir, eu organizei as <b>condições</b> da bigamia numa lista só. Leia cada uma como uma regra de decisão rápida:</p><ul class=\"tight\"><li><b>O primeiro casamento precisa existir no momento do segundo.</b> É essa fotografia, tirada no instante da celebração, que define o crime.</li><li><b>Morte ou divórcio posteriores não extinguem o crime.</b> Se o casamento existia quando o segundo foi celebrado, o crime já se consumou, e o que vem depois não apaga o passado.</li><li><b>Casamento no estrangeiro configura bigamia.</b> Mudar de país não muda a regra: o segundo casamento civil, ainda que celebrado lá fora, é crime.</li><li><b>Casamento apenas religioso não configura.</b> Sem o casamento civil, não há o ato que o artigo 235 pune.</li><li><b>União estável seguida de casamento não configura.</b> A união estável, por mais séria que seja, não é casamento; quem vive em união estável e depois casa com outra pessoa não comete bigamia.</li></ul><div class=\"box exemplo\"><img class=\"wm\" src=\"assets/img/condicoes.webp\" alt=\"\" aria-hidden=\"true\"><div class=\"excontent\"><p class=\"blabel\">EXEMPLO PRÁTICO</p><p>O Roberto vivia em união estável com a Paula havia dez anos. Um dia, casou no civil com a Simone. Por mais difícil que a situação seja para a Paula, <b>não há bigamia</b>: a união estável não é casamento, e o crime exige um primeiro <b>casamento</b> de pé.</p></div></div>",
+  "narr": "As condições, uma a uma. Para você nunca mais confundir, eu organizei as condições da bigamia numa lista só. Leia cada uma como uma regra de decisão rápida. O primeiro casamento precisa existir no momento do segundo: é essa fotografia, tirada no instante da celebração, que define o crime. Morte ou divórcio posteriores não extinguem o crime: se o casamento existia quando o segundo foi celebrado, o crime já se consumou, e o que vem depois não apaga o passado. Casamento no estrangeiro configura bigamia: mudar de país não muda a regra; o segundo casamento civil, ainda que celebrado lá fora, é crime. Casamento apenas religioso não configura: sem o casamento civil, não há o ato que o artigo duzentos e trinta e cinco pune. União estável seguida de casamento não configura: a união estável, por mais séria que seja, não é casamento; quem vive em união estável e depois casa com outra pessoa não comete bigamia. Exemplo prático: o Roberto vivia em união estável com a Paula havia dez anos. Um dia, casou no civil com a Simone. Por mais difícil que a situação seja para a Paula, não há bigamia: a união estável não é casamento, e o crime exige um primeiro casamento de pé."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "dolo",
+  "alt": "Pessoa diante de um grande espelho embaçado, com o reflexo incerto",
+  "kicker": "Bigamia · Dolo e erro",
+  "titulo": "Sem dolo, sem crime: o erro de tipo",
+  "corpo": "<p>O elemento subjetivo da bigamia é o <b>dolo</b>: o agente precisa ter <b>consciência do impedimento</b>, saber que é casado e, mesmo assim, contrair o novo casamento. Sem essa consciência, a história muda de figura.</p><p>Quem casa de novo sem saber do impedimento incorre em <b class=\"term\">erro de tipo</b>: uma falsa percepção em relação à realidade. A pessoa enxerga o mundo de um jeito, mas o mundo é de outro. E o erro de tipo <b>exclui o dolo</b>; sem dolo, <b>não há crime de bigamia</b>.</p><div class=\"box exemplo\"><img class=\"wm\" src=\"assets/img/dolo.webp\" alt=\"\" aria-hidden=\"true\"><div class=\"excontent\"><p class=\"blabel\">PENSE ASSIM</p><p>É como assinar um documento novo confiando que o anterior foi cancelado, quando, na verdade, o cancelamento nunca aconteceu. A sua <b>intenção</b> era agir certo; o que falhou foi a sua leitura da realidade. O Direito Penal não pune quem foi enganado pela própria percepção.</p></div></div><div class=\"box exemplo\"><img class=\"wm\" src=\"assets/img/dolo.webp\" alt=\"\" aria-hidden=\"true\"><div class=\"excontent\"><p class=\"blabel\">CASO REAL · NOVO HAMBURGO</p><p>A 2ª Vara de Família e Sucessões da Comarca de Novo Hamburgo, no Rio Grande do Sul, reconheceu, em 28 de agosto de 2023, uma <b>união estável entre um homem e duas mulheres</b>, três pessoas, revestida de publicidade, continuidade e afetividade, com o objetivo de constituir uma família e de buscar a felicidade. Os dois autores que eram casados pediram o divórcio, para o imediato reconhecimento, por sentença, da relação poliamorosa entre os três envolvidos. Repare na conversa com a nossa aula: o caso trata de <b>união estável</b>, e não de casamento, e união estável não gera bigamia.</p></div></div><p>Guarde o tripé completo: a bigamia mora no <b>casamento civil</b>, exige <b>dolo</b> e desaparece quando a <b>anulação</b> derruba o primeiro vínculo. É com esse tripé que você resolve qualquer caso sobre o tema.</p><div class=\"fimbloco\"><p class=\"flabel\">NESTE BLOCO VOCÊ VIU</p><ul><li><b>Bigamia:</b> novo casamento de quem já é casado, com reclusão de dois a seis anos (art. 235).</li><li><b>Parágrafo 1º:</b> quem casa com pessoa casada, sabendo disso, também responde, de um a três anos.</li><li><b>Parágrafo 2º e erro de tipo:</b> anulado o primeiro casamento, o crime é inexistente; sem consciência do impedimento, não há dolo nem crime.</li></ul></div>",
+  "narr": "Sem dolo, sem crime: o erro de tipo. O elemento subjetivo da bigamia é o dolo: o agente precisa ter consciência do impedimento, saber que é casado e, mesmo assim, contrair o novo casamento. Sem essa consciência, a história muda de figura. Quem casa de novo sem saber do impedimento incorre em erro de tipo: uma falsa percepção em relação à realidade. A pessoa enxerga o mundo de um jeito, mas o mundo é de outro. E o erro de tipo exclui o dolo; sem dolo, não há crime de bigamia. Pense assim: é como assinar um documento novo confiando que o anterior foi cancelado, quando, na verdade, o cancelamento nunca aconteceu. A sua intenção era agir certo; o que falhou foi a sua leitura da realidade. O Direito Penal não pune quem foi enganado pela própria percepção. Caso real, Novo Hamburgo: a Segunda Vara de Família e Sucessões da Comarca de Novo Hamburgo, no Rio Grande do Sul, reconheceu, em vinte e oito de agosto de dois mil e vinte e três, uma união estável entre um homem e duas mulheres, três pessoas, revestida de publicidade, continuidade e afetividade, com o objetivo de constituir uma família e de buscar a felicidade. Os dois autores que eram casados pediram o divórcio, para o imediato reconhecimento, por sentença, da relação poliamorosa entre os três envolvidos. Repare na conversa com a nossa aula: o caso trata de união estável, e não de casamento, e união estável não gera bigamia. Guarde o tripé completo: a bigamia mora no casamento civil, exige dolo e desaparece quando a anulação derruba o primeiro vínculo. É com esse tripé que você resolve qualquer caso sobre o tema."
+ },
+ {
+  "tipo": "Questão",
+  "img": "questao",
+  "alt": "Pergaminho de prova com pena dourada, selo e ampulheta",
+  "kicker": "Questão 1 · Bigamia",
+  "titulo": "Questão 1",
+  "intro": "Hora de treinar! Pense no que eu te expliquei sobre <b>quem responde</b> pela bigamia e responda:",
+  "questao": "Sobre o crime de bigamia (art. 235 do Código Penal), é correto afirmar que:",
+  "opcoes": [
+   "O solteiro que contrai casamento com pessoa casada, sem saber dessa circunstância, comete o crime do parágrafo 1º.",
+   "Quem, não sendo casado, contrai casamento com pessoa casada, conhecendo essa circunstância, é punido com reclusão ou detenção, de um a três anos.",
+   "O divórcio obtido depois do segundo casamento extingue o crime de bigamia já consumado.",
+   "O casamento celebrado no estrangeiro não pode configurar bigamia."
+  ],
+  "certa": 1,
+  "feedback": "Isso mesmo! É o parágrafo 1º do artigo 235: o conhecimento da circunstância é o que faz o solteiro responder, com pena de um a três anos. Sem saber, ele é vítima, não autor. O divórcio posterior não extingue o crime, e o casamento no estrangeiro configura bigamia, sim.",
+  "narr": "Questão um: bigamia. Hora de treinar! Pense no que eu te expliquei sobre quem responde pela bigamia e responda: sobre o crime de bigamia, artigo duzentos e trinta e cinco do Código Penal, é correto afirmar o quê? Leia as alternativas e escolha a correta."
+ },
+ {
+  "tipo": "Flashcard",
+  "img": "flashcards",
+  "alt": "Cartões de estudo elegantes amarrados com fita vermelha sobre uma mesa escura",
+  "kicker": "Flashcard 1 · Bigamia",
+  "titulo": "Flashcard 1",
+  "frente": "Anulado o primeiro casamento, o que acontece com o crime de bigamia?",
+  "verso": "<p>Ele passa a ser considerado <b>inexistente</b>: é o que manda o <b>parágrafo 2º</b> do artigo 235.</p><p style='margin-top:10px'>O mesmo efeito ocorre quando o <b>segundo casamento</b> é anulado por motivo <b>diverso da bigamia</b>.</p>",
+  "narr": "Flashcard um: bigamia. Anulado o primeiro casamento, o que acontece com o crime de bigamia? Toque no cartão para ver a resposta."
+ },
+ {
+  "tipo": "Karaokê",
+  "img": "bigamia",
+  "alt": "Duas alianças douradas sobrepostas sobre duas certidões de casamento",
+  "kicker": "Karaokê · Siga a narração",
+  "titulo": "Recapitule a bigamia com a narração",
+  "frases": [
+   "Vamos recapitular a bigamia, acompanhando a narração pela tela.",
+   "Bigamia é contrair um novo casamento já sendo casado, e o artigo duzentos e trinta e cinco pune com reclusão de dois a seis anos.",
+   "O crime precisa de duas pessoas para acontecer, mas a outra só responde se souber de tudo: é o parágrafo primeiro, com pena de um a três anos.",
+   "Quem não sabia de nada é vítima, ao lado do Estado, e nunca autor do crime.",
+   "Se o primeiro casamento for anulado, o crime passa a ser considerado inexistente, pelo parágrafo segundo.",
+   "E sem consciência do impedimento, há erro de tipo, que exclui o dolo e apaga o crime.",
+   "Casamento no estrangeiro configura; só religioso ou união estável, não."
+  ],
+  "narr": "Vamos recapitular a bigamia, acompanhando a narração pela tela. Bigamia é contrair um novo casamento já sendo casado, e o artigo duzentos e trinta e cinco pune com reclusão de dois a seis anos. O crime precisa de duas pessoas para acontecer, mas a outra só responde se souber de tudo: é o parágrafo primeiro, com pena de um a três anos. Quem não sabia de nada é vítima, ao lado do Estado, e nunca autor do crime. Se o primeiro casamento for anulado, o crime passa a ser considerado inexistente, pelo parágrafo segundo. E sem consciência do impedimento, há erro de tipo, que exclui o dolo e apaga o crime. Casamento no estrangeiro configura; só religioso ou união estável, não."
+ },
+ {
+  "tipo": "Comparador",
+  "img": "compcivil",
+  "img2": "compreligioso",
+  "alt": "Comparador de duas cenas: o casamento civil no cartório e a cerimônia apenas religiosa na igreja",
+  "rotuloL": "CIVIL · CONFIGURA",
+  "rotuloR": "SÓ RELIGIOSO · NÃO",
+  "kicker": "Comparador · Arraste a barra",
+  "titulo": "Dois casamentos, dois destinos",
+  "intro": "Arraste a barra dourada para um lado e para o outro e compare as duas cenas. De um lado, o casamento civil, celebrado no cartório, ainda que em outro país: é ele que o artigo 235 enxerga, e um segundo casamento civil configura a bigamia. Do outro, a cerimônia apenas religiosa, bonita e solene, mas sem o ato civil: sozinha, ela não configura o crime. A diferença entre as duas cenas é a diferença entre crime e fato atípico.",
+  "narr": "Dois casamentos, dois destinos. Arraste a barra dourada para um lado e para o outro e compare as duas cenas. De um lado, o casamento civil, celebrado no cartório, ainda que em outro país: é ele que o artigo duzentos e trinta e cinco enxerga, e um segundo casamento civil configura a bigamia. Do outro, a cerimônia apenas religiosa, bonita e solene, mas sem o ato civil: sozinha, ela não configura o crime. A diferença entre as duas cenas é a diferença entre crime e fato atípico."
+ },
+ {
+  "tipo": "Explorar",
+  "img": "explorar",
+  "alt": "Imagem vertical em cinco cenas empilhadas: assinatura no cartório, certidão escondida em gaveta, noiva sorrindo sem suspeitar, juiz com martelo e passaportes com avião",
+  "kicker": "Exploração · Toque nos pontos",
+  "titulo": "Explore a imagem: um caso em cinco cenas",
+  "intro": "Esta imagem grande conta, de cima para baixo, a história de um caso de bigamia. Toque nas bolinhas douradas que ficam piscando sobre a imagem e leia a explicação de cada cena. São cinco pontos para descobrir: tente encontrar todos antes de seguir.",
+  "pontos": [
+   {
+    "x": 50,
+    "y": 11,
+    "titulo": "O segundo casamento no cartório",
+    "texto": "Na primeira cena, o casal assina o casamento no civil. Se um deles já é casado, é neste instante, o da celebração, que o crime de bigamia se consuma, ainda que os dois nunca venham a morar juntos."
+   },
+   {
+    "x": 50,
+    "y": 29,
+    "titulo": "A certidão escondida na gaveta",
+    "texto": "A certidão antiga, guardada na gaveta, é o primeiro casamento, que continua de pé. A regra de ouro da bigamia é esta: o primeiro casamento precisa existir no momento do segundo. Sem ele, não há crime."
+   },
+   {
+    "x": 40,
+    "y": 48,
+    "titulo": "A noiva que não sabia de nada",
+    "texto": "Ela sorri porque acredita estar casando com uma pessoa livre. Quem não conhecia a situação é sujeito passivo do crime, vítima ao lado do Estado. Só responderia pelo parágrafo primeiro quem casasse sabendo de tudo."
+   },
+   {
+    "x": 48,
+    "y": 69,
+    "titulo": "A sentença que apaga o crime",
+    "texto": "O juiz e o martelo representam a anulação. Se o primeiro casamento for anulado, o parágrafo segundo manda considerar o crime inexistente. Mas atenção: enquanto a sentença não sai, o vínculo continua valendo, e o crime continua existindo."
+   },
+   {
+    "x": 50,
+    "y": 90,
+    "titulo": "O casamento do outro lado do oceano",
+    "texto": "O avião e os passaportes lembram a última regra: casamento civil celebrado no estrangeiro também configura bigamia. Já a cerimônia apenas religiosa e a união estável ficam fora do crime."
+   }
+  ],
+  "narr": "Explore a imagem: um caso em cinco cenas. Esta imagem grande conta, de cima para baixo, a história de um caso de bigamia. Toque nas bolinhas douradas que ficam piscando sobre a imagem e leia a explicação de cada cena. São cinco pontos para descobrir: tente encontrar todos antes de seguir."
+ },
+ {
+  "tipo": "Toque e revele",
+  "img": "revelar",
+  "alt": "Quatro cartas douradas viradas para baixo sobre veludo vermelho, uma se levantando sob a luz",
+  "kicker": "Toque e revele",
+  "titulo": "Toque, pense e revele",
+  "intro": "Quatro cartas escondem quatro perguntas rápidas sobre a bigamia. Toque em uma carta para ver a pergunta, pense na resposta com calma e toque de novo para revelar a resposta. Tente acertar as quatro antes de revelar.",
+  "cartas": [
+   {
+    "p": "A cerimônia apenas religiosa, sem casamento civil, configura bigamia?",
+    "r": "Não. O crime do artigo 235 exige um <b>casamento</b>: sem o ato civil, não há bigamia."
+   },
+   {
+    "p": "Quem são os sujeitos passivos da bigamia?",
+    "r": "O <b>Estado</b> e o <b>consorte que não conhecia a situação</b>, a pessoa de boa-fé que foi enganada."
+   },
+   {
+    "p": "O que é o erro de tipo na bigamia?",
+    "r": "A <b>falsa percepção da realidade</b>: quem não tinha consciência do impedimento não age com dolo, e sem dolo não há crime."
+   },
+   {
+    "p": "O divórcio, depois do segundo casamento, extingue a bigamia?",
+    "r": "Não. Morte ou divórcio <b>posteriores</b> não extinguem o crime: ele já se consumou na celebração do segundo casamento."
+   }
+  ],
+  "narr": "Toque, pense e revele. Quatro cartas escondem quatro perguntas rápidas sobre a bigamia. Toque em uma carta para ver a pergunta, pense na resposta com calma e toque de novo para revelar a resposta. Tente acertar as quatro antes de revelar."
+ },
+ {
+  "tipo": "Ligar termos",
+  "img": "ligar",
+  "alt": "Chaves douradas antigas e cadeados ornamentados sobre veludo vermelho",
+  "kicker": "Ligar termos 1 · Bigamia",
+  "titulo": "Ligar termos 1",
+  "instrucao": "Ligue cada termo da bigamia à sua explicação. Toque em um termo e, depois, na explicação correspondente.",
+  "pares": [
+   [
+    "Bigamia",
+    "Contrair novo casamento sendo casado"
+   ],
+   [
+    "Monogamia",
+    "Um só parceiro no casamento"
+   ],
+   [
+    "Art. 235, § 1º",
+    "Pune quem casa com pessoa casada, sabendo disso"
+   ],
+   [
+    "Art. 235, § 2º",
+    "Anulação que torna o crime inexistente"
+   ],
+   [
+    "Erro de tipo",
+    "Falsa percepção que exclui o dolo"
+   ]
+  ],
+  "ordemDefs": [
+   2,
+   4,
+   0,
+   3,
+   1
+  ],
+  "narr": "Ligar termos um: bigamia. Ligue cada termo da bigamia à sua explicação. Toque em um termo e, depois, na explicação correspondente."
+ },
+ {
+  "tipo": "Completar",
+  "img": "lacuna",
+  "alt": "Pergaminho antigo com espaços dourados vazios e peças douradas ao lado esperando para serem colocadas",
+  "kicker": "Completar · Toque nas palavras",
+  "titulo": "Complete a frase",
+  "intro": "O caput do artigo 235 apareceu com quatro palavras faltando. Abaixo dele estão as palavras embaralhadas: toque nelas na ordem certa para preencher cada lacuna. Se tocar na palavra errada, nada acontece: respire e tente a próxima.",
+  "partes": [
+   "Contrair alguém, sendo ",
+   " , novo ",
+   ": pena de ",
+   " , de dois a seis ",
+   "."
+  ],
+  "respostas": [
+   "casado",
+   "casamento",
+   "reclusão",
+   "anos"
+  ],
+  "banco": [
+   "detenção",
+   "anos",
+   "casado",
+   "reclusão",
+   "casamento",
+   "multa"
+  ],
+  "feedbackFinal": "É o caput do artigo 235 do Código Penal: quem já é casado e contrai novo casamento responde com reclusão de dois a seis anos.",
+  "narr": "Complete a frase. O caput do artigo duzentos e trinta e cinco apareceu com quatro palavras faltando. Abaixo dele estão as palavras embaralhadas: toque nelas na ordem certa para preencher cada lacuna. Se tocar na palavra errada, nada acontece: respire e tente a próxima."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "tabela",
+  "alt": "Balança de dois pratos com um sinal de certo dourado de um lado e um sinal de errado do outro",
+  "kicker": "Comparativo",
+  "titulo": "Configura ou não configura?",
+  "corpo": "<p>Hora de transformar as condições da bigamia em <b>decisões rápidas</b>. Para cada situação, a pergunta é uma só: configura o crime ou não?</p><table class=\"cmp\"><tr><th>Situação</th><th>Bigamia?</th></tr><tr><td class=\"t\">Segundo casamento civil, com o primeiro vigente</td><td>Sim</td></tr><tr><td class=\"t\">Casamento civil celebrado no estrangeiro</td><td>Sim</td></tr><tr><td class=\"t\">Cerimônia apenas religiosa</td><td>Não</td></tr><tr><td class=\"t\">União estável e, depois, casamento com outra pessoa</td><td>Não</td></tr><tr><td class=\"t\">Segundo casamento, e divórcio logo em seguida</td><td>Sim: o divórcio não apaga</td></tr><tr><td class=\"t\">Primeiro casamento anulado por sentença</td><td>Crime inexistente (§ 2º)</td></tr></table><div class=\"vazada\" aria-hidden=\"true\"><img src=\"assets/img/tabela.webp\" alt=\"\"></div><p>Repare no padrão: o crime mora no <b>casamento civil vigente</b>. Onde não há um primeiro casamento de pé, ou onde a anulação derruba esse casamento, a bigamia não se sustenta.</p>",
+  "narr": "Configura ou não configura? Hora de transformar as condições da bigamia em decisões rápidas. Para cada situação, a pergunta é uma só: configura o crime ou não? Segundo casamento civil, com o primeiro vigente: sim. Casamento civil celebrado no estrangeiro: sim. Cerimônia apenas religiosa: não. União estável e, depois, casamento com outra pessoa: não. Segundo casamento, e divórcio logo em seguida: sim, o divórcio não apaga. Primeiro casamento anulado por sentença: crime inexistente, pelo parágrafo segundo. Repare no padrão: o crime mora no casamento civil vigente. Onde não há um primeiro casamento de pé, ou onde a anulação derruba esse casamento, a bigamia não se sustenta."
+ },
+ {
+  "tipo": "Verdadeiro ou falso",
+  "img": "cartasvf",
+  "alt": "Duas pilhas de cartas antigas sobre veludo vermelho, uma com símbolo de certo e outra com símbolo de errado em dourado",
+  "kicker": "Verdadeiro ou falso · Arraste a carta",
+  "titulo": "Verdadeiro ou falso: arraste e decida",
+  "intro": "Agora é reflexo rápido! Cinco afirmações vão aparecer, uma de cada vez. Se a afirmação for verdadeira, arraste a carta para a direita; se for falsa, arraste para a esquerda. Quem preferir pode tocar nos botões de verdadeiro ou falso. No fim, você vê quantas acertou.",
+  "afirmacoes": [
+   {
+    "t": "A pessoa solteira que casa com alguém casado, sem saber dessa situação, comete bigamia pelo parágrafo 1º.",
+    "v": false,
+    "exp": "O parágrafo 1º exige conhecimento da circunstância. Quem não sabia é vítima do crime, não autor."
+   },
+   {
+    "t": "O casamento civil celebrado no estrangeiro pode configurar bigamia.",
+    "v": true,
+    "exp": "Isso mesmo: mudar de país não muda a regra. O segundo casamento civil configura o crime ainda que celebrado lá fora."
+   },
+   {
+    "t": "Se o agente obtiver o divórcio depois do segundo casamento, o crime de bigamia se extingue.",
+    "v": false,
+    "exp": "Não se extingue. Morte ou divórcio posteriores não apagam o crime, que já se consumou na celebração do segundo casamento."
+   },
+   {
+    "t": "Quem vive em união estável e depois se casa com outra pessoa comete bigamia.",
+    "v": false,
+    "exp": "União estável não é casamento. Sem um primeiro casamento vigente, não há bigamia."
+   },
+   {
+    "t": "Anulado o primeiro casamento, o crime de bigamia é considerado inexistente.",
+    "v": true,
+    "exp": "Perfeito: é a regra do parágrafo 2º do artigo 235."
+   }
+  ],
+  "narr": "Verdadeiro ou falso: arraste e decida. Agora é reflexo rápido! Cinco afirmações vão aparecer, uma de cada vez. Se a afirmação for verdadeira, arraste a carta para a direita; se for falsa, arraste para a esquerda. Quem preferir pode tocar nos botões de verdadeiro ou falso. No fim, você vê quantas acertou."
+ },
+ {
+  "tipo": "Linha do tempo",
+  "img": "timeline",
+  "alt": "Linha do tempo dourada com cinco marcos brilhantes sobre pergaminho escuro",
+  "kicker": "Linha do tempo · Toque nos marcos",
+  "titulo": "A linha do tempo de um caso",
+  "intro": "Vamos amarrar as regras da bigamia numa história só, a do Paulo. Toque em cada marco dourado para abrir a explicação dele: são cinco momentos que mostram, em ordem, como o crime nasce, se consuma e pode deixar de existir.",
+  "marcos": [
+   {
+    "ano": "2015",
+    "titulo": "O primeiro casamento",
+    "texto": "Paulo e Marina se casam no civil. A partir desse dia, nenhum dos dois pode contrair novo casamento enquanto esse vínculo existir: a vaga do registro está ocupada."
+   },
+   {
+    "ano": "2019",
+    "titulo": "O segundo casamento",
+    "texto": "Sem se divorciar, Paulo casa no civil com a Júlia, em outro país. Nesse instante, o crime de bigamia se consuma, e o fato de a celebração ser no estrangeiro não muda nada."
+   },
+   {
+    "ano": "2020",
+    "titulo": "A Júlia descobre tudo",
+    "texto": "Júlia fica sabendo que Paulo já era casado. Como ela não conhecia a situação, ela não responde pelo parágrafo primeiro: ela é sujeito passivo, vítima do crime, ao lado do Estado."
+   },
+   {
+    "ano": "2021",
+    "titulo": "O divórcio de Marina",
+    "texto": "Paulo finalmente se divorcia de Marina e imagina que o problema acabou. Não acabou: o divórcio posterior não extingue o crime, que já se consumou no segundo casamento."
+   },
+   {
+    "ano": "2023",
+    "titulo": "A anulação do primeiro casamento",
+    "texto": "Uma sentença anula o primeiro casamento de Paulo, por um vício que existia desde a celebração. Com a anulação, aplica-se o parágrafo segundo: o crime de bigamia passa a ser considerado inexistente."
+   }
+  ],
+  "narr": "A linha do tempo de um caso. Vamos amarrar as regras da bigamia numa história só, a do Paulo. Toque em cada marco dourado para abrir a explicação dele: são cinco momentos que mostram, em ordem, como o crime nasce, se consuma e pode deixar de existir."
+ },
+ {
+  "tipo": "Mapa mental",
+  "img": "mapamental",
+  "alt": "Mapa mental de luz dourada com uma aliança no centro e cinco ramos ao redor",
+  "centro": "CRIMES CONTRA A FAMÍLIA",
+  "kicker": "Mapa mental · Toque nos ramos",
+  "titulo": "Mapa mental da aula",
+  "intro": "Para organizar tudo, um mapa da aula inteira. No centro estão os crimes contra a família; em volta, os cinco ramos que estudamos. Toque em cada ramo para abrir o resumo dele: em poucos minutos, você revisita a aula toda.",
+  "ramos": [
+   {
+    "nome": "O mapa",
+    "texto": "Os crimes contra a família estão nos artigos 235 a 249 do Código Penal, em quatro capítulos: casamento, estado de filiação, assistência familiar e pátrio poder, tutela e curatela.",
+    "chips": [
+     "Arts. 235 a 249",
+     "Quatro capítulos"
+    ]
+   },
+   {
+    "nome": "Bigamia",
+    "texto": "Contrair novo casamento já sendo casado. É o crime que abre o título, no artigo 235, com pena de reclusão de dois a seis anos.",
+    "chips": [
+     "Art. 235",
+     "Reclusão de 2 a 6 anos"
+    ]
+   },
+   {
+    "nome": "Quem responde",
+    "texto": "O sujeito ativo é quem já é casado. O solteiro que casa com pessoa casada, conhecendo a situação, responde pelo parágrafo primeiro, de um a três anos.",
+    "chips": [
+     "Concurso necessário",
+     "§ 1º: quem sabia"
+    ]
+   },
+   {
+    "nome": "Quando o crime some",
+    "texto": "Anulado o primeiro casamento, ou o segundo por motivo diverso da bigamia, o crime é considerado inexistente, pelo parágrafo segundo.",
+    "chips": [
+     "§ 2º",
+     "Anulação"
+    ]
+   },
+   {
+    "nome": "Dolo e erro de tipo",
+    "texto": "A bigamia exige dolo, a consciência do impedimento. Sem ela, há erro de tipo, falsa percepção da realidade, que exclui o dolo e o crime.",
+    "chips": [
+     "Consciência do impedimento",
+     "Erro de tipo exclui"
+    ]
+   }
+  ],
+  "narr": "Mapa mental da aula. Para organizar tudo, um mapa da aula inteira. No centro estão os crimes contra a família; em volta, os cinco ramos que estudamos. Toque em cada ramo para abrir o resumo dele: em poucos minutos, você revisita a aula toda."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "pegadinhas",
+  "alt": "Alvo dourado com flechas e uma lupa revelando armadilhas sobre um pergaminho",
+  "kicker": "Pegadinhas de prova",
+  "titulo": "Não caia nessas!",
+  "corpo": "<p>Antes de fechar o conteúdo, eu separei as <b>cinco confusões</b> que mais derrubam candidatos neste tema. Grave cada uma:</p><div class=\"box\"><p class=\"blabel\">PEGADINHA 1 · UNIÃO ESTÁVEL NÃO É CASAMENTO</p><p>União estável seguida de casamento com outra pessoa <b>não</b> configura bigamia. O crime exige um primeiro <b>casamento</b> vigente, e união estável, por mais duradoura que seja, não é casamento.</p></div><div class=\"box\"><p class=\"blabel\">PEGADINHA 2 · RELIGIOSO SOZINHO NÃO BASTA</p><p>A cerimônia religiosa, sem o casamento civil, <b>não</b> configura bigamia. Quem casa só na igreja não pratica o ato que o artigo 235 descreve.</p></div><div class=\"box\"><p class=\"blabel\">PEGADINHA 3 · DIVÓRCIO NÃO APAGA O PASSADO</p><p>Morte ou divórcio <b>depois</b> do segundo casamento não extinguem o crime. A fotografia que importa é a do momento da celebração: se o primeiro casamento existia ali, o crime se consumou.</p></div><div class=\"vazada\" aria-hidden=\"true\"><img src=\"assets/img/pegadinhas.webp\" alt=\"\"></div><div class=\"box\"><p class=\"blabel\">PEGADINHA 4 · QUEM NÃO SABIA NÃO É AUTOR</p><p>O parágrafo 1º só pune quem casa com pessoa casada <b>conhecendo</b> essa circunstância. Quem foi enganado é sujeito passivo, vítima, e não criminoso.</p></div><div class=\"box\"><p class=\"blabel\">PEGADINHA 5 · ANULAÇÃO NÃO É DIVÓRCIO</p><p>Anulado o primeiro casamento, o crime é <b>inexistente</b>, pelo parágrafo 2º. Já o divórcio apenas dissolve o casamento dali para frente e <b>não</b> apaga o crime já cometido. Trocar um pelo outro é o erro clássico.</p></div>",
+  "narr": "Não caia nessas! Antes de fechar o conteúdo, eu separei as cinco confusões que mais derrubam candidatos neste tema. Grave cada uma. Pegadinha um, união estável não é casamento: união estável seguida de casamento com outra pessoa não configura bigamia. O crime exige um primeiro casamento vigente, e união estável, por mais duradoura que seja, não é casamento. Pegadinha dois, religioso sozinho não basta: a cerimônia religiosa, sem o casamento civil, não configura bigamia. Quem casa só na igreja não pratica o ato que o artigo duzentos e trinta e cinco descreve. Pegadinha três, divórcio não apaga o passado: morte ou divórcio depois do segundo casamento não extinguem o crime. A fotografia que importa é a do momento da celebração: se o primeiro casamento existia ali, o crime se consumou. Pegadinha quatro, quem não sabia não é autor: o parágrafo primeiro só pune quem casa com pessoa casada conhecendo essa circunstância. Quem foi enganado é sujeito passivo, vítima, e não criminoso. Pegadinha cinco, anulação não é divórcio: anulado o primeiro casamento, o crime é inexistente, pelo parágrafo segundo. Já o divórcio apenas dissolve o casamento dali para frente e não apaga o crime já cometido. Trocar um pelo outro é o erro clássico."
+ },
+ {
+  "tipo": "Questão de banca",
+  "img": "martelo",
+  "alt": "Martelo de juiz sobre um livro de leis aberto com marcador dourado",
+  "kicker": "Questão 2 · Estilo de banca",
+  "titulo": "Questão 2",
+  "intro": "Questão em <b>estilo de banca</b>, juntando duas condições da bigamia. Leia o caso com atenção:",
+  "questao": "Carlos, casado no Brasil, viajou ao exterior e lá contraiu novo casamento civil, sem dissolver o primeiro. Meses depois, obteve o divórcio do primeiro casamento. Sobre a conduta de Carlos, é correto afirmar que:",
+  "opcoes": [
+   "Não há crime, porque o segundo casamento foi celebrado no estrangeiro.",
+   "Não há crime, porque o divórcio posterior extinguiu a bigamia.",
+   "Há crime de bigamia: o casamento no estrangeiro configura o delito, e o divórcio posterior não o extingue.",
+   "Há crime apenas se a segunda esposa soubesse que Carlos era casado."
+  ],
+  "certa": 2,
+  "feedback": "Exatamente. O casamento civil celebrado no estrangeiro configura bigamia, e o divórcio posterior não apaga o crime já consumado. E repare na alternativa D: o conhecimento da segunda esposa só importaria para a responsabilidade dela, pelo parágrafo 1º, nunca para a existência do crime de Carlos.",
+  "narr": "Questão dois, em estilo de banca, juntando duas condições da bigamia. Leia o caso com atenção: Carlos, casado no Brasil, viajou ao exterior e lá contraiu novo casamento civil, sem dissolver o primeiro. Meses depois, obteve o divórcio do primeiro casamento. Sobre a conduta de Carlos, é correto afirmar o quê? Leia as alternativas e escolha a correta."
+ },
+ {
+  "tipo": "Flashcard",
+  "img": "flashcards2",
+  "alt": "Dois cartões de estudo em pé, frente e verso, ligados por uma fita vermelha",
+  "kicker": "Flashcard 2 · O mapa",
+  "titulo": "Flashcard 2",
+  "frente": "Quais são os quatro capítulos dos crimes contra a família?",
+  "verso": "<p><b>1.</b> Crimes contra o <b>casamento</b>.</p><p style='margin-top:8px'><b>2.</b> Crimes contra o <b>estado de filiação</b>.</p><p style='margin-top:8px'><b>3.</b> Crimes contra a <b>assistência familiar</b>.</p><p style='margin-top:8px'><b>4.</b> Crimes contra o <b>pátrio poder, tutela e curatela</b>.</p><p style='margin-top:10px'>Tudo isso nos artigos <b>235 a 249</b> do Código Penal.</p>",
+  "narr": "Flashcard dois: o mapa. Quais são os quatro capítulos dos crimes contra a família? Toque no cartão para ver a resposta."
+ },
+ {
+  "tipo": "Conteúdo",
+  "img": "panorama",
+  "alt": "Vista panorâmica de uma casa de família, um cartório e um tribunal ligados por caminhos de luz dourada",
+  "kicker": "Panorama geral",
+  "titulo": "A aula em um relance",
+  "corpo": "<p>Respira fundo e olha o <b>mapa completo</b> da nossa aula. Cada capítulo do título protege uma face da família, e cada um tem um crime de abertura que você já sabe localizar:</p><table class=\"cmp\"><tr><th>Capítulo</th><th>Protege</th><th>Crime de abertura</th></tr><tr><td class=\"t\">Casamento</td><td>A monogamia e a fidelidade</td><td>Bigamia (art. 235)</td></tr><tr><td class=\"t\">Estado de filiação</td><td>A verdade sobre a origem da criança</td><td>Registro de nascimento inexistente (art. 241)</td></tr><tr><td class=\"t\">Assistência familiar</td><td>O sustento, a instrução e o amparo</td><td>Abandono material (art. 244)</td></tr><tr><td class=\"t\">Pátrio poder, tutela e curatela</td><td>A guarda de menores e interditos</td><td>Subtração de incapazes (art. 249)</td></tr></table><div class=\"vazada\" aria-hidden=\"true\"><img src=\"assets/img/panorama.webp\" alt=\"\"></div><p>Nesta aula, o nosso estudo foi o <b>primeiro degrau</b> desse mapa: a bigamia. Nas próximas aulas, destrinchamos cada um dos outros crimes, capítulo por capítulo, sempre com o mesmo cuidado: o texto da lei, quem responde, quem é protegido e as situações em que o crime não se configura.</p><div class=\"fimbloco\"><p class=\"flabel\">NESTE BLOCO VOCÊ VIU</p><ul><li><b>Decisão rápida:</b> o crime mora no casamento civil vigente; religioso sozinho e união estável ficam fora.</li><li>As pegadinhas clássicas trocam anulação por divórcio e autor por vítima: você já sabe separá-las.</li><li>O mapa dos quatro capítulos está pronto para acompanhar as próximas aulas.</li></ul></div>",
+  "narr": "A aula em um relance. Respira fundo e olha o mapa completo da nossa aula. Cada capítulo do título protege uma face da família, e cada um tem um crime de abertura que você já sabe localizar. Casamento: protege a monogamia e a fidelidade; crime de abertura: bigamia, artigo duzentos e trinta e cinco. Estado de filiação: protege a verdade sobre a origem da criança; crime de abertura: registro de nascimento inexistente, artigo duzentos e quarenta e um. Assistência familiar: protege o sustento, a instrução e o amparo; crime de abertura: abandono material, artigo duzentos e quarenta e quatro. Pátrio poder, tutela e curatela: protege a guarda de menores e interditos; crime de abertura: subtração de incapazes, artigo duzentos e quarenta e nove. Nesta aula, o nosso estudo foi o primeiro degrau desse mapa: a bigamia. Nas próximas aulas, destrinchamos cada um dos outros crimes, capítulo por capítulo, sempre com o mesmo cuidado: o texto da lei, quem responde, quem é protegido e as situações em que o crime não se configura."
+ },
+ {
+  "tipo": "Karaokê",
+  "img": "mapa",
+  "alt": "Mapa antigo em pergaminho com quatro selos dourados",
+  "kicker": "Karaokê final · Siga a narração",
+  "titulo": "A aula inteira em um minuto",
+  "frases": [
+   "Vamos fechar o conteúdo recapitulando a aula inteira com a narração.",
+   "Os crimes contra a família ocupam os artigos duzentos e trinta e cinco a duzentos e quarenta e nove do Código Penal.",
+   "São quatro capítulos: casamento, estado de filiação, assistência familiar e pátrio poder, tutela e curatela.",
+   "O primeiro crime é a bigamia: contrair novo casamento já sendo casado, com reclusão de dois a seis anos.",
+   "Quem casa com pessoa casada, sabendo disso, responde pelo parágrafo primeiro; quem não sabia é vítima.",
+   "Anulado o primeiro casamento, o crime é inexistente; e sem dolo, por erro de tipo, crime nenhum se sustenta.",
+   "Se você gravou mapa, bigamia, parágrafos primeiro e segundo e erro de tipo, você gravou esta aula."
+  ],
+  "narr": "Vamos fechar o conteúdo recapitulando a aula inteira com a narração. Os crimes contra a família ocupam os artigos duzentos e trinta e cinco a duzentos e quarenta e nove do Código Penal. São quatro capítulos: casamento, estado de filiação, assistência familiar e pátrio poder, tutela e curatela. O primeiro crime é a bigamia: contrair novo casamento já sendo casado, com reclusão de dois a seis anos. Quem casa com pessoa casada, sabendo disso, responde pelo parágrafo primeiro; quem não sabia é vítima. Anulado o primeiro casamento, o crime é inexistente; e sem dolo, por erro de tipo, crime nenhum se sustenta. Se você gravou mapa, bigamia, parágrafos primeiro e segundo e erro de tipo, você gravou esta aula."
+ },
+ {
+  "tipo": "Ligar termos",
+  "img": "ligar2",
+  "alt": "Elos de corrente dourados frente a frente sobre veludo vermelho, aguardando a ligação",
+  "kicker": "Ligar termos 2 · Os capítulos",
+  "titulo": "Ligar termos 2",
+  "instrucao": "Agora ligue cada capítulo dos crimes contra a família àquilo que ele protege. Toque em um capítulo e, depois, na proteção correspondente.",
+  "pares": [
+   [
+    "Crimes contra o casamento",
+    "Monogamia e fidelidade entre cônjuges"
+   ],
+   [
+    "Crimes contra o estado de filiação",
+    "Verdade sobre a origem da criança"
+   ],
+   [
+    "Crimes contra a assistência familiar",
+    "Sustento, instrução e amparo moral"
+   ],
+   [
+    "Crimes contra o pátrio poder",
+    "Guarda de menores e interditos"
+   ],
+   [
+    "Bigamia",
+    "Segundo casamento de quem já é casado"
+   ]
+  ],
+  "ordemDefs": [
+   3,
+   1,
+   4,
+   0,
+   2
+  ],
+  "narr": "Ligar termos dois: os capítulos. Agora ligue cada capítulo dos crimes contra a família àquilo que ele protege. Toque em um capítulo e, depois, na proteção correspondente."
+ },
+ {
+  "tipo": "Questão",
+  "img": "questao2",
+  "alt": "Lupa dourada sobre alternativas em pergaminho escuro, com pena e tinteiro ao lado",
+  "kicker": "Questão 3 · Dolo e erro de tipo",
+  "titulo": "Questão 3",
+  "intro": "Última questão de treino, sobre o <b>elemento subjetivo</b> da bigamia. Vá com calma:",
+  "questao": "A respeito do elemento subjetivo do crime de bigamia, é correto afirmar que:",
+  "opcoes": [
+   "Basta a culpa: quem casa sem conferir o estado civil do outro responde pelo crime.",
+   "É indispensável o dolo, a consciência do impedimento; sem ela, há erro de tipo, que exclui o dolo e o crime.",
+   "O dolo é irrelevante, porque a bigamia se consuma com qualquer segundo casamento.",
+   "Quem desconhecia o impedimento responde, ainda assim, pelo parágrafo 1º do artigo 235."
+  ],
+  "certa": 1,
+  "feedback": "Perfeito. A bigamia é crime doloso: o agente precisa ter consciência do impedimento. Quem não tem essa consciência incorre em erro de tipo, uma falsa percepção da realidade, que exclui o dolo. E o parágrafo 1º também exige conhecimento: a palavra conhecendo está no texto da lei.",
+  "narr": "Questão três: dolo e erro de tipo. Última questão de treino, sobre o elemento subjetivo da bigamia. Vá com calma: a respeito do elemento subjetivo do crime de bigamia, é correto afirmar o quê? Leia as alternativas e escolha a correta."
+ },
+ {
+  "tipo": "Desafio",
+  "img": "martelo",
+  "alt": "Martelo de juiz e placar dourado sobre um livro de leis aberto",
+  "kicker": "Desafio final · Vale pontos",
+  "titulo": "Desafio final: o placar da professora",
+  "intro": "Chegou a hora do desafio que fecha a aula! São cinco perguntas rápidas sobre tudo o que vimos. Cada resposta certa vale cem pontos. Responda com calma, acompanhe o seu placar e veja, no fim, como você se saiu. Boa sorte!",
+  "perguntas": [
+   {
+    "q": "A bigamia está prevista em qual artigo do Código Penal?",
+    "ops": [
+     "Artigo 233",
+     "Artigo 235",
+     "Artigo 241",
+     "Artigo 244"
+    ],
+    "certa": 1,
+    "exp": "Artigo 235, o primeiro do título dos crimes contra a família."
+   },
+   {
+    "q": "A pena do caput do artigo 235 é:",
+    "ops": [
+     "Detenção, de um a três anos",
+     "Reclusão, de dois a seis anos",
+     "Reclusão, de um a cinco anos",
+     "Detenção, de seis meses a dois anos"
+    ],
+    "certa": 1,
+    "exp": "Reclusão, de dois a seis anos. A pena de um a três anos é a do parágrafo primeiro, para quem casa sabendo."
+   },
+   {
+    "q": "O solteiro que casa com pessoa casada, conhecendo a situação, responde com base em qual dispositivo?",
+    "ops": [
+     "Artigo 235, caput",
+     "Artigo 235, parágrafo 1º",
+     "Artigo 235, parágrafo 2º",
+     "Artigo 236"
+    ],
+    "certa": 1,
+    "exp": "Parágrafo primeiro do artigo 235: a palavra decisiva do dispositivo é conhecendo."
+   },
+   {
+    "q": "Qual situação NÃO configura bigamia?",
+    "ops": [
+     "Casamento civil celebrado no estrangeiro",
+     "Segundo casamento com o primeiro ainda vigente",
+     "Cerimônia apenas religiosa",
+     "Segundo casamento com o primeiro casamento anulável ainda vigente"
+    ],
+    "certa": 2,
+    "exp": "A cerimônia apenas religiosa, sem casamento civil, não configura. E atenção: o casamento nulo ou anulável, enquanto vigente, gera bigamia, sim."
+   },
+   {
+    "q": "Anulado o primeiro casamento, o crime de bigamia:",
+    "ops": [
+     "Tem a pena reduzida pela metade",
+     "Passa a ser considerado inexistente",
+     "Prescreve no mesmo dia",
+     "Transforma-se em contravenção penal"
+    ],
+    "certa": 1,
+    "exp": "Considera-se inexistente o crime: é a regra do parágrafo segundo do artigo 235."
+   }
+  ],
+  "narr": "Desafio final: o placar da professora. Chegou a hora do desafio que fecha a aula! São cinco perguntas rápidas sobre tudo o que vimos. Cada resposta certa vale cem pontos. Responda com calma, acompanhe o seu placar e veja, no fim, como você se saiu. Boa sorte!"
+ },
+ {
+  "tipo": "Questão",
+  "img": "ouro",
+  "alt": "Medalha dourada com louros sobre um livro de leis aberto, sob luz radiante",
+  "kicker": "Pergunta de Ouro · A mais valiosa da aula",
+  "titulo": "Pergunta de ouro",
+  "intro": "Para fechar, a <b>pergunta de ouro</b>: um caso completo, que junta tudo o que você estudou. Leia devagar, monte o quebra-cabeça e responda:",
+  "questao": "Roberto era casado com Clara. Sem se divorciar, casou-se no civil, em outro país, com Júlia, que desconhecia por completo o primeiro casamento. Dois anos depois, o primeiro casamento de Roberto foi anulado por sentença. Diante do caso, a conclusão correta é:",
+  "opcoes": [
+   "Roberto comete bigamia, e Júlia também, como coautora do crime.",
+   "Júlia responde pelo parágrafo 1º, porque deveria ter investigado o estado civil de Roberto.",
+   "O crime chegou a se consumar no segundo casamento, mas, anulado o primeiro, passa a ser considerado inexistente; e Júlia, que nada sabia, nunca responderia pelo parágrafo 1º.",
+   "Nada pode ser punido, porque o segundo casamento foi celebrado no exterior."
+  ],
+  "certa": 2,
+  "feedback": "Brilhante! Você montou o caso inteiro: o casamento no exterior consumou a bigamia de Roberto; Júlia, sem conhecimento, é vítima e não autora, porque o parágrafo 1º exige que ela conhecesse a circunstância; e a anulação do primeiro casamento, pelo parágrafo 2º, faz o crime ser considerado inexistente. É exatamente assim que uma banca espera que você raciocine.",
+  "narr": "Pergunta de ouro. Para fechar, a pergunta de ouro: um caso completo, que junta tudo o que você estudou. Leia devagar, monte o quebra-cabeça e responda: Roberto era casado com Clara. Sem se divorciar, casou-se no civil, em outro país, com Júlia, que desconhecia por completo o primeiro casamento. Dois anos depois, o primeiro casamento de Roberto foi anulado por sentença. Diante do caso, a conclusão correta é qual? Leia as alternativas e escolha a correta."
+ },
+ {
+  "tipo": "Encerramento",
+  "img": "fim",
+  "alt": "Estrada dourada saindo de um tribunal neoclássico em direção ao nascer do sol, com duas alianças como portal",
+  "kicker": "Encerramento",
+  "titulo": "O que você leva desta aula",
+  "corpo": "<p>Chegamos ao fim, e eu quero que você perceba o caminho que percorreu. Começamos olhando a família como uma casa que a lei protege por dentro, e terminamos dominando o primeiro crime do título que a defende.</p><p>Você conheceu o <b>mapa dos artigos 235 a 249</b>, com os quatro capítulos, e destrinchou a <b>bigamia</b> em todas as suas camadas: o ato, a pena de dois a seis anos, o parceiro que sabia e responde pelo parágrafo primeiro, o parceiro enganado que é vítima, a anulação que apaga o crime pelo parágrafo segundo e o erro de tipo que exclui o dolo.</p><div class=\"vazada\" aria-hidden=\"true\"><img src=\"assets/img/capa.webp\" alt=\"\"></div><p>A lição maior é um método: diante de qualquer caso, pergunte <b>existia um primeiro casamento de pé?</b>, <b>quem sabia do impedimento?</b> e <b>houve anulação?</b>. Com essas três perguntas, você resolve a bigamia em qualquer prova.</p><p>Parabéns por chegar até aqui! Na próxima aula, o mergulho continua no capítulo do casamento, com o induzimento a erro essencial e a ocultação de impedimento. Revisite os flashcards quando quiser e confie: crime contra a família se aprende pelo <b>raciocínio</b>, não pela decoreba. Eu fico por aqui, e te espero na próxima aula. <b>Bons estudos!</b></p>",
+  "pontos": [
+   "<b>O mapa:</b> os artigos 235 a 249 protegem casamento, filiação, assistência familiar e pátrio poder.",
+   "<b>Bigamia:</b> novo casamento de quem já é casado, com reclusão de dois a seis anos.",
+   "<b>Parágrafo 1º:</b> quem casa com pessoa casada, sabendo disso, também responde.",
+   "<b>Parágrafo 2º:</b> anulado o primeiro casamento, o crime é considerado inexistente.",
+   "<b>Dolo:</b> sem consciência do impedimento, há erro de tipo, e nenhum crime se sustenta."
+  ],
+  "narr": "O que você leva desta aula. Chegamos ao fim, e eu quero que você perceba o caminho que percorreu. Começamos olhando a família como uma casa que a lei protege por dentro, e terminamos dominando o primeiro crime do título que a defende. Você conheceu o mapa dos artigos duzentos e trinta e cinco a duzentos e quarenta e nove, com os quatro capítulos, e destrinchou a bigamia em todas as suas camadas: o ato, a pena de dois a seis anos, o parceiro que sabia e responde pelo parágrafo primeiro, o parceiro enganado que é vítima, a anulação que apaga o crime pelo parágrafo segundo e o erro de tipo que exclui o dolo. A lição maior é um método: diante de qualquer caso, pergunte: existia um primeiro casamento de pé? Quem sabia do impedimento? E houve anulação? Com essas três perguntas, você resolve a bigamia em qualquer prova. Parabéns por chegar até aqui! Na próxima aula, o mergulho continua no capítulo do casamento, com o induzimento a erro essencial e a ocultação de impedimento. Revisite os flashcards quando quiser e confie: crime contra a família se aprende pelo raciocínio, não pela decoreba. Eu fico por aqui, e te espero na próxima aula. Bons estudos!"
+ }
+];
+
+    /* ============ ÁUDIO / NAVEGAÇÃO ============ */
+    var total = SLIDES.length;
+    var idx = 0;
+    var unlocked = false;
+    var player = new Audio();
+    player.preload = "auto";
+    var state = {};
+
+    var scrollArea = document.getElementById("scrollArea");
+    var etapaLabel = document.getElementById("etapaLabel");
+    var progressFill = document.getElementById("progressFill");
+    var btnPrev = document.getElementById("btnPrev");
+    var btnNext = document.getElementById("btnNext");
+
+    var ICON_PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
+    var ICON_PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+
+    /* ===== ÍCONES DOS BLOCOS ESPECIAIS ===== */
+    var BIC = {
+      book:'<span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="#e9cd6d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg></span>',
+      bulb:'<span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="#e9cd6d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></span>',
+      eye:'<span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="#e9cd6d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>',
+      contrast:'<span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="#e9cd6d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18V3z" fill="#e9cd6d" stroke="none"/></svg></span>',
+      warn:'<span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="#e9cd6d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>',
+      list:'<span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="#e9cd6d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3.5 6h.01"/><path d="M3.5 12h.01"/><path d="M3.5 18h.01"/></svg></span>',
+      check:'<span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="#e9cd6d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>',
+      key:'<span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="#e9cd6d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="16" r="4.5"/><path d="M11.2 12.8L20 4"/><path d="M16.5 7.5L19 10"/><path d="M14 10l2.5 2.5"/></svg></span>'
+    };
+    function iconize(h){
+      h = h.split('<p class="blabel">EXEMPLO PRÁTICO</p>').join('<p class="blabel">' + BIC.book + 'EXEMPLO PRÁTICO</p>');
+      h = h.split('<p class="blabel">PENSE ASSIM</p>').join('<p class="blabel">' + BIC.bulb + 'PENSE ASSIM</p>');
+      h = h.split('<p class="blabel">OLHE COM CUIDADO</p>').join('<p class="blabel">' + BIC.eye + 'OLHE COM CUIDADO</p>');
+      h = h.split('<p class="blabel">CONTRASTE RÁPIDO</p>').join('<p class="blabel">' + BIC.contrast + 'CONTRASTE RÁPIDO</p>');
+      h = h.split('<p class="blabel">OS PRINCÍPIOS DA NOVA DEFESA SOCIAL</p>').join('<p class="blabel">' + BIC.list + 'OS PRINCÍPIOS DA NOVA DEFESA SOCIAL</p>');
+      h = h.replace(/(<p class="blabel">)(PEGADINHA)/g, '$1' + BIC.warn + '$2');
+      h = h.split('<p class="flabel">FRASE-CHAVE</p>').join('<p class="flabel">' + BIC.key + 'FRASE-CHAVE</p>');
+      h = h.split('<p class="flabel">NESSE BLOCO VOCÊ VIU</p>').join('<p class="flabel">' + BIC.check + 'NESSE BLOCO VOCÊ VIU</p>');
+      h = h.split('<p class="blabel">O TEXTO DA LEI</p>').join('<p class="blabel">' + BIC.book + 'O TEXTO DA LEI</p>');
+      h = h.replace(/(<p class="blabel">)(CASO REAL)/g, '$1' + BIC.eye + '$2');
+      h = h.split('<p class="flabel">NESTE BLOCO VOCÊ VIU</p>').join('<p class="flabel">' + BIC.check + 'NESTE BLOCO VOCÊ VIU</p>');
+      h = h.split('<p class="flabel">PONTOS PRINCIPAIS DA AULA</p>').join('<p class="flabel">' + BIC.check + 'PONTOS PRINCIPAIS DA AULA</p>');
+      return h;
+    }
+
+    function pad(n){ return String(n).padStart(2,"0"); }
+    function fmt(t){
+      if(!isFinite(t) || t == null) return "0:00";
+      t = Math.max(0, Math.floor(t));
+      return Math.floor(t/60) + ":" + pad(t%60);
+    }
+    function audioSrc(i){ return "assets/audio/s" + pad(i+1) + ".mp3"; }
+
+    function hotPanelHTML(s, es){
+      if(es.cur === null || es.cur === undefined){
+        return '<p class="explorehint">Toque em uma bolinha dourada sobre a imagem para ler a explicação daquela cena.</p>';
+      }
+      var pt = s.pontos[es.cur];
+      var h = '<h3>' + pt.titulo + '</h3><p>' + pt.texto + '</p>';
+      if(es.count === s.pontos.length){
+        h += '<p style="margin-top:10px"><b>Exploração completa!</b> Você descobriu os cinco pontos da imagem: cada cena guarda uma regra da bigamia.</p>';
+      }
+      return h;
+    }
+
+    function slideHTML(s){
+      if(s.tipo === "Capa"){
+        var hc = '<img class="coverimg" src="' + IMG[s.img] + '" alt="' + s.alt + '">';
+        hc += '<p class="kicker">' + s.kicker + '</p>';
+        hc += '<h2 class="covertitle">' + s.titulo + '</h2>';
+        hc += '<div class="coverrule"></div>';
+        hc += s.corpo;
+        return hc;
+      }
+      if(s.tipo === "Encerramento"){
+        var hf = '<img class="coverimg" src="' + IMG[s.img] + '" alt="' + s.alt + '">';
+        hf += '<p class="kicker">' + s.kicker + '</p>';
+        hf += '<h2 class="covertitle">' + s.titulo + '</h2>';
+        hf += '<div class="coverrule"></div>';
+        hf += s.corpo;
+        hf += '<div class="fimbloco"><p class="flabel">PONTOS PRINCIPAIS DA AULA</p><ul>'
+          + '<li><b>Clássica:</b> razão, legalidade e livre-arbítrio, com um freio no Estado.</li>'
+          + '<li><b>Positiva:</b> ciência e determinismo, com os olhos na pessoa que delinque.</li>'
+          + '<li><b>Correcionalismo:</b> corrigir a vontade em vez de castigar.</li>'
+          + '<li><b>Técnico-Jurídica:</b> método próprio e autonomia da ciência penal.</li>'
+          + '<li><b>Defesa Social:</b> proteger a sociedade sem perder a pessoa.</li></ul></div>';
+        return iconize(hf);
+      }
+      var h = '<img class="banner" src="' + IMG[s.img] + '" alt="' + s.alt + '">';
+      h += '<p class="kicker">' + s.kicker + '</p>';
+      if(s.tipo === "Questão" || s.tipo === "Questão de banca"){
+        if(s.intro) h += '<p>' + s.intro + '</p>';
+        h += '<p class="qtext">' + s.questao + '</p>';
+        var letters = ["A","B","C","D","E"];
+        s.opcoes.forEach(function(op, oi){
+          h += '<button class="opt" type="button" data-opt="' + oi + '"><span class="letter">' + letters[oi] + '</span><span>' + op + '</span></button>';
+        });
+        h += '<div class="feedback" id="feedback"></div>';
+      } else if(s.tipo === "Flashcard"){
+        h += '<div class="flashwrap"><div class="flash" id="flashCard">'
+          + '<div class="face front"><div><p class="flabel">FLASHCARD · FRENTE</p><p class="fq">' + s.frente + '</p><p class="tap">Toque no cartão para ver a resposta</p></div></div>'
+          + '<div class="face back"><div><p class="flabel">RESPOSTA</p>' + s.verso + '<p class="tap">Toque para voltar à pergunta</p></div></div>'
+          + '</div></div>';
+      } else if(s.tipo === "Ligar termos"){
+        var st = state[idx] || (state[idx] = {done:{}, selT:null, selD:null, count:0});
+        h += '<p>' + s.instrucao + '</p>';
+        h += '<p class="matchscore">Pares encontrados: <b id="matchCount">' + st.count + ' de ' + s.pares.length + '</b></p>';
+        h += '<div class="matchgrid"><div id="colTerms">';
+        s.pares.forEach(function(p, pi){
+          h += '<button class="mbtn term' + (st.done[pi] ? ' done' : '') + '" type="button" data-term="' + pi + '" style="display:block;width:100%;margin-bottom:9px">' + p[0] + '</button>';
+        });
+        h += '</div><div id="colDefs">';
+        s.ordemDefs.forEach(function(pi){
+          h += '<button class="mbtn def' + (st.done[pi] ? ' done' : '') + '" type="button" data-def="' + pi + '" style="display:block;width:100%;margin-bottom:9px">' + s.pares[pi][1] + '</button>';
+        });
+        h += '</div></div>';
+        h += '<div class="matchdone' + (st.count === s.pares.length ? ' show' : '') + '" id="matchDone"><b>Muito bem!</b> Todos os pares foram ligados corretamente.</div>';
+      } else if(s.tipo === "Explorar"){
+        var es = state[idx] || (state[idx] = {seen:{}, cur:null, count:0});
+        h = '<p class="kicker">' + s.kicker + '</p>';
+        h += '<h2>' + s.titulo + '</h2>';
+        h += '<p>' + s.intro + '</p>';
+        h += '<p class="explorecount">Pontos descobertos: <b id="exploreCount">' + es.count + ' de ' + s.pontos.length + '</b></p>';
+        h += '<div class="explorebox"><img src="' + IMG[s.img] + '" alt="' + s.alt + '">';
+        s.pontos.forEach(function(pt, pi){
+          var cls = "hotspot" + (es.cur === pi ? " active" : "") + (es.seen[pi] && es.cur !== pi ? " seen" : "");
+          var label = (es.seen[pi] && es.cur !== pi) ? "✓" : (pi + 1);
+          h += '<button class="' + cls + '" type="button" data-hot="' + pi + '" style="left:' + pt.x + '%;top:' + pt.y + '%" aria-label="Ponto ' + (pi + 1) + ': ' + pt.titulo + '">' + label + '</button>';
+        });
+        h += '</div>';
+        h += '<div class="hotpanel" id="hotPanel">' + hotPanelHTML(s, es) + '</div>';
+      } else if(s.tipo === "Toque e revele"){
+        h = '<img class="banner" src="' + IMG[s.img] + '" alt="' + s.alt + '">';
+        h += '<p class="kicker">' + s.kicker + '</p>';
+        h += '<h2>' + s.titulo + '</h2>';
+        h += '<p>' + s.intro + '</p>';
+        var rs = state[idx] || (state[idx] = {stage:{}, count:0});
+        h += '<p class="matchscore">Respostas reveladas: <b id="revealCount">' + rs.count + ' de ' + s.cartas.length + '</b></p>';
+        s.cartas.forEach(function(c, ci){
+          var stage = rs.stage[ci] || 0;
+          var cls = "revealcard" + (stage === 1 ? " open" : "") + (stage === 2 ? " done" : "");
+          var inner;
+          if(stage === 0){ inner = '<p class="rlabel">CARTA ' + (ci + 1) + '</p><p class="rbody">Uma pergunta está escondida aqui.</p><p class="rhint">Toque para ver a pergunta</p>'; }
+          else if(stage === 1){ inner = '<p class="rlabel">PERGUNTA</p><p class="rbody">' + c.p + '</p><p class="rhint">Pensou? Toque de novo para revelar a resposta</p>'; }
+          else { inner = '<p class="rlabel">RESPOSTA</p><p class="rbody">' + c.r + '</p>'; }
+          h += '<button class="' + cls + '" type="button" data-card="' + ci + '">' + inner + '</button>';
+        });
+      } else if(s.tipo === "Linha do tempo"){
+        var ts = state[idx] || (state[idx] = {open:{}, count:0});
+        h = '<p class="kicker">' + s.kicker + '</p>';
+        h += '<h2>' + s.titulo + '</h2>';
+        h += '<p>' + s.intro + '</p>';
+        h += '<p class="explorecount">Marcos abertos: <b id="tlCount">' + ts.count + ' de ' + s.marcos.length + '</b></p>';
+        h += '<div class="timeline">';
+        s.marcos.forEach(function(m, mi){
+          var open = !!ts.open[mi];
+          h += '<div class="tlitem"><button class="tlbtn' + (open ? ' open' : '') + '" type="button" data-tl="' + mi + '"><span class="tlyear">' + m.ano + '</span><span class="tltitle">' + m.titulo + '</span></button>'
+            + '<div class="tlbody' + (open ? ' show' : '') + '" id="tlBody' + mi + '"><p>' + m.texto + '</p></div></div>';
+        });
+        h += '</div>';
+      } else if(s.tipo === "Verdadeiro ou falso"){
+        if(!state[idx]) state[idx] = {cur:0, score:0, answered:false, chosen:null, done:false};
+        h += '<h2>' + s.titulo + '</h2>';
+        h += '<p>' + s.intro + '</p>';
+        h += '<div id="vfArea"></div>';
+      } else if(s.tipo === "Comparador"){
+        h = '<p class="kicker">' + s.kicker + '</p>';
+        h += '<h2>' + s.titulo + '</h2>';
+        h += '<p>' + s.intro + '</p>';
+        h += '<div class="cmpbox" id="cmpBox">'
+          + '<img src="' + IMG[s.img] + '" alt="">'
+          + '<img class="cmpafter" id="cmpTop" src="' + IMG[s.img2] + '" alt="">'
+          + '<span class="cmplabel l">' + s.rotuloL + '</span><span class="cmplabel r">' + s.rotuloR + '</span>'
+          + '<div class="cmphandle" id="cmpHandle"></div>'
+          + '</div>';
+        h += '<input class="cmprange" id="cmpRange" type="range" min="0" max="100" value="50" aria-label="Arraste para comparar as duas escolas">';
+      } else if(s.tipo === "Completar"){
+        var cs = state[idx] || (state[idx] = {filled:0, used:{}});
+        h += '<h2>' + s.titulo + '</h2>';
+        h += '<p>' + s.intro + '</p>';
+        var ft = '';
+        s.partes.forEach(function(part, pi){
+          ft += part;
+          if(pi < s.respostas.length){
+            var filled = cs.filled > pi;
+            var isNext = cs.filled === pi;
+            ft += '<span class="blank' + (filled ? '' : ' empty') + (isNext ? ' next' : '') + '" data-blank="' + pi + '">' + (filled ? s.respostas[pi] : '· · · · · ·') + '</span>';
+          }
+        });
+        h += '<div class="filltext">' + ft + '</div>';
+        h += '<div class="wordbank" id="wordBank">';
+        s.banco.forEach(function(w, wi){
+          h += '<button class="wordchip' + (cs.used[wi] ? ' used' : '') + '" type="button" data-word="' + wi + '">' + w + '</button>';
+        });
+        h += '</div>';
+        h += '<div class="matchdone' + (cs.filled === s.respostas.length ? ' show' : '') + '" id="fillDone"><b>Frase completa!</b> ' + s.feedbackFinal + '</div>';
+      } else if(s.tipo === "Karaokê"){
+        h = '<p class="kicker">' + s.kicker + '</p>';
+        h += '<h2>' + s.titulo + '</h2>';
+        h += '<p class="karaoke" id="karaokeBox">';
+        s.frases.forEach(function(f, fi){
+          h += '<span class="sent" data-sent="' + fi + '">' + f + '</span> ';
+        });
+        h += '</p>';
+        h += '<p class="explorehint">Toque no player, do lado de fora do celular, e acompanhe: cada frase acende na tela no ritmo da narração. Se quiser, toque numa frase para ouvir a partir dela.</p>';
+      } else if(s.tipo === "Mapa mental"){
+        var ms = state[idx] || (state[idx] = {open:{}, seen:{}, count:0});
+        h = '<p class="kicker">' + s.kicker + '</p>';
+        h += '<h2>' + s.titulo + '</h2>';
+        h += '<p>' + s.intro + '</p>';
+        h += '<p class="explorecount">Ramos abertos: <b id="mindCount">' + ms.count + ' de ' + s.ramos.length + '</b></p>';
+        h += '<div class="mindcenter">' + s.centro + '</div>';
+        s.ramos.forEach(function(r, ri){
+          var open = !!ms.open[ri];
+          h += '<div class="mindbranch"><button class="mindbtn' + (open ? ' open' : '') + '" type="button" data-mind="' + ri + '"><span>' + r.nome + '</span><span class="marr">' + (open ? '▾ aberto' : '▸ tocar') + '</span></button>'
+            + '<div class="mindbody' + (open ? ' show' : '') + '" id="mindBody' + ri + '"><p>' + r.texto + '</p><div class="chips">' + r.chips.map(function(c){ return '<span class="chip">' + c + '</span>'; }).join('') + '</div></div></div>';
+        });
+      } else if(s.tipo === "Desafio"){
+        if(!state[idx]) state[idx] = {q:0, pts:0, answered:false, chosen:null, finished:false};
+        h = '<p class="kicker">' + s.kicker + '</p>';
+        h += '<h2>' + s.titulo + '</h2>';
+        h += '<p>' + s.intro + '</p>';
+        h += '<div id="desafioArea"></div>';
+      } else {
+        h += '<h2>' + s.titulo + '</h2>' + s.corpo;
+      }
+      return iconize(h);
+    }
+
+    function bindAudio(){
+      var playBtn = document.getElementById("playBtn");
+      var box = document.getElementById("audioBox");
+      var track = document.getElementById("aTrack");
+      playBtn.addEventListener("click", function(ev){
+        ev.stopPropagation();
+        unlocked = true;
+        togglePlay();
+      });
+      track.addEventListener("click", function(ev){
+        ev.stopPropagation();
+        var r = track.getBoundingClientRect();
+        if(player.duration){
+          player.currentTime = player.duration * ((ev.clientX - r.left) / r.width);
+        }
+      });
+      box.addEventListener("mouseenter", function(){
+        if(player.paused){ tryPlay(); }
+      });
+    }
+
+    function tryPlay(){
+      var p = player.play();
+      if(p && p.catch){ p.catch(function(){}); }
+    }
+    function togglePlay(){
+      if(player.paused){ tryPlay(); } else { player.pause(); }
+    }
+
+    player.addEventListener("play", function(){
+      var b = document.getElementById("playBtn");
+      if(b) b.innerHTML = ICON_PAUSE;
+    });
+    player.addEventListener("pause", function(){
+      var b = document.getElementById("playBtn");
+      if(b) b.innerHTML = ICON_PLAY;
+    });
+    player.addEventListener("timeupdate", function(){
+      var f = document.getElementById("aFill");
+      var t = document.getElementById("aTime");
+      if(f && player.duration) f.style.width = (100 * player.currentTime / player.duration) + "%";
+      if(t) t.textContent = fmt(player.currentTime) + " / " + fmt(player.duration);
+      karaSync();
+    });
+    player.addEventListener("loadedmetadata", function(){
+      var t = document.getElementById("aTime");
+      if(t) t.textContent = "0:00 / " + fmt(player.duration);
+    });
+    player.addEventListener("ended", function(){
+      var f = document.getElementById("aFill");
+      if(f) f.style.width = "0%";
+    });
+
+    function bindInteractions(s){
+      if(s.tipo === "Questão" || s.tipo === "Questão de banca"){
+        var answered = state[idx] && state[idx].answered;
+        var opts = scrollArea.querySelectorAll(".opt");
+        var fb = document.getElementById("feedback");
+        function paint(chosen){
+          opts.forEach(function(o){
+            var oi = parseInt(o.getAttribute("data-opt"), 10);
+            o.disabled = true;
+            if(oi === s.certa) o.classList.add("correct");
+            else if(oi === chosen) o.classList.add("wrong");
+          });
+          fb.className = "feedback show " + (chosen === s.certa ? "good" : "bad");
+          fb.innerHTML = "<b>" + (chosen === s.certa ? "Resposta certa!" : "Não foi dessa vez.") + "</b>" + s.feedback;
+        }
+        if(answered){ paint(state[idx].chosen); }
+        opts.forEach(function(o){
+          o.addEventListener("click", function(){
+            if(state[idx] && state[idx].answered) return;
+            var oi = parseInt(o.getAttribute("data-opt"), 10);
+            state[idx] = {answered:true, chosen:oi};
+            paint(oi);
+          });
+        });
+      } else if(s.tipo === "Flashcard"){
+        var card = document.getElementById("flashCard");
+        card.addEventListener("click", function(){ card.classList.toggle("flipped"); });
+      } else if(s.tipo === "Ligar termos"){
+        var st = state[idx];
+        var terms = scrollArea.querySelectorAll(".term");
+        var defs = scrollArea.querySelectorAll(".def");
+        function select(el, group){
+          if(el.classList.contains("done")) return;
+          var groupBtns = group === "t" ? terms : defs;
+          groupBtns.forEach(function(b){ b.classList.remove("sel"); });
+          el.classList.add("sel");
+          if(group === "t") st.selT = parseInt(el.getAttribute("data-term"), 10);
+          else st.selD = parseInt(el.getAttribute("data-def"), 10);
+          checkMatch();
+        }
+        function checkMatch(){
+          if(st.selT === null || st.selT === undefined || st.selD === null || st.selD === undefined) return;
+          var tBtn = scrollArea.querySelector('.term[data-term="' + st.selT + '"]');
+          var dBtn = scrollArea.querySelector('.def[data-def="' + st.selD + '"]');
+          if(st.selT === st.selD){
+            st.done[st.selT] = true;
+            st.count++;
+            tBtn.classList.add("done"); dBtn.classList.add("done");
+            tBtn.classList.remove("sel"); dBtn.classList.remove("sel");
+            var mc = document.getElementById("matchCount");
+            if(mc) mc.textContent = st.count + " de " + s.pares.length;
+            if(st.count === s.pares.length){
+              var md = document.getElementById("matchDone");
+              if(md) md.classList.add("show");
+            }
+          } else {
+            [tBtn, dBtn].forEach(function(b){
+              b.classList.add("shake");
+              setTimeout(function(){ b.classList.remove("shake", "sel"); }, 380);
+            });
+          }
+          st.selT = null; st.selD = null;
+        }
+        terms.forEach(function(b){ b.addEventListener("click", function(){ select(b, "t"); }); });
+        defs.forEach(function(b){ b.addEventListener("click", function(){ select(b, "d"); }); });
+      } else if(s.tipo === "Explorar"){
+        var es = state[idx];
+        var hots = scrollArea.querySelectorAll(".hotspot");
+        hots.forEach(function(b){
+          b.addEventListener("click", function(){
+            var pi = parseInt(b.getAttribute("data-hot"), 10);
+            if(!es.seen[pi]){ es.seen[pi] = true; es.count++; }
+            es.cur = pi;
+            var ec = document.getElementById("exploreCount");
+            if(ec) ec.textContent = es.count + " de " + s.pontos.length;
+            var panel = document.getElementById("hotPanel");
+            if(panel) panel.innerHTML = hotPanelHTML(s, es);
+            hots.forEach(function(o){
+              var oi = parseInt(o.getAttribute("data-hot"), 10);
+              var isCur = oi === pi;
+              var isSeen = !!es.seen[oi] && !isCur;
+              o.classList.toggle("active", isCur);
+              o.classList.toggle("seen", isSeen);
+              o.textContent = isSeen ? "✓" : (oi + 1);
+            });
+            if(panel) panel.scrollIntoView({behavior:"smooth", block:"nearest"});
+          });
+        });
+      } else if(s.tipo === "Toque e revele"){
+        var rs = state[idx];
+        var cards = scrollArea.querySelectorAll(".revealcard");
+        cards.forEach(function(card){
+          card.addEventListener("click", function(){
+            var ci = parseInt(card.getAttribute("data-card"), 10);
+            var stage = rs.stage[ci] || 0;
+            if(stage >= 2) return;
+            stage++;
+            rs.stage[ci] = stage;
+            var c = s.cartas[ci];
+            if(stage === 2){
+              rs.count++;
+              var rc = document.getElementById("revealCount");
+              if(rc) rc.textContent = rs.count + " de " + s.cartas.length;
+              card.classList.remove("open");
+              card.classList.add("done");
+              card.innerHTML = '<p class="rlabel">RESPOSTA</p><p class="rbody">' + c.r + '</p>';
+            } else {
+              card.classList.add("open");
+              card.innerHTML = '<p class="rlabel">PERGUNTA</p><p class="rbody">' + c.p + '</p><p class="rhint">Pensou? Toque de novo para revelar a resposta</p>';
+            }
+          });
+        });
+      } else if(s.tipo === "Linha do tempo"){
+        var ts = state[idx];
+        scrollArea.querySelectorAll(".tlbtn").forEach(function(b){
+          b.addEventListener("click", function(){
+            var mi = parseInt(b.getAttribute("data-tl"), 10);
+            var body = document.getElementById("tlBody" + mi);
+            var opening = !body.classList.contains("show");
+            body.classList.toggle("show", opening);
+            b.classList.toggle("open", opening);
+            ts.open[mi] = opening;
+            if(opening && !b.getAttribute("data-counted")){
+              b.setAttribute("data-counted", "1");
+              ts.count++;
+              var tc = document.getElementById("tlCount");
+              if(tc) tc.textContent = ts.count + " de " + s.marcos.length;
+            }
+          });
+        });
+      } else if(s.tipo === "Verdadeiro ou falso"){
+        var vst = state[idx];
+        var vfArea = document.getElementById("vfArea");
+        function renderVF(){
+          if(vst.done){
+            vfArea.innerHTML = '<div class="finalscore"><p>Você acertou</p><p class="big">' + vst.score + ' de ' + s.afirmacoes.length + '</p><p>' + (vst.score === s.afirmacoes.length ? "Perfeito! Nenhuma pegadinha te derrubou." : vst.score >= 3 ? "Muito bem! O seu raciocínio está ficando afiado." : "Bom treino! Volte às cartas com calma depois de rever as explicações das etapas.") + '</p></div>';
+            return;
+          }
+          var a = s.afirmacoes[vst.cur];
+          var h = '<p class="matchscore">Carta <b>' + (vst.cur + 1) + ' de ' + s.afirmacoes.length + '</b> · Acertos: <b>' + vst.score + '</b></p>';
+          h += '<div class="vfstage"><div class="vfcard" id="vfCard"><span class="vfstamp f" id="stampF">FALSO</span><span class="vfstamp v" id="stampV">VERDADEIRO</span><p class="vflabel">AFIRMAÇÃO</p><p class="vftext">' + a.t + '</p></div></div>';
+          if(!vst.answered){
+            h += '<div class="vfbtns"><button class="vfbtn f" type="button" id="vfFalse">← Falso</button><button class="vfbtn v" type="button" id="vfTrue">Verdadeiro →</button></div>';
+            h += '<p class="explorehint" style="margin-top:10px">Você também pode arrastar a carta para o lado da sua resposta.</p>';
+          } else {
+            h += '<div class="feedback show ' + (vst.chosen === a.v ? 'good' : 'bad') + '"><b>' + (vst.chosen === a.v ? "Acertou! " : "Não foi dessa vez. ") + (a.v ? "É verdadeira." : "É falsa.") + '</b>' + a.exp + '</div>';
+            h += '<button class="againbtn" type="button" id="vfNext" style="width:100%">' + (vst.cur === s.afirmacoes.length - 1 ? "Ver o resultado" : "Próxima carta →") + '</button>';
+          }
+          vfArea.innerHTML = h;
+          bindVFCard();
+        }
+        function answerVF(choice){
+          if(vst.answered) return;
+          var a = s.afirmacoes[vst.cur];
+          vst.answered = true;
+          vst.chosen = choice;
+          if(choice === a.v) vst.score++;
+          renderVF();
+        }
+        function bindVFCard(){
+          var card = document.getElementById("vfCard");
+          var bF = document.getElementById("vfFalse");
+          var bT = document.getElementById("vfTrue");
+          var bN = document.getElementById("vfNext");
+          if(bF) bF.addEventListener("click", function(){ answerVF(false); });
+          if(bT) bT.addEventListener("click", function(){ answerVF(true); });
+          if(bN) bN.addEventListener("click", function(){
+            if(vst.cur === s.afirmacoes.length - 1){ vst.done = true; }
+            else { vst.cur++; vst.answered = false; vst.chosen = null; }
+            renderVF();
+          });
+          if(!card || vst.answered) return;
+          card.addEventListener("touchstart", function(ev){ ev.stopPropagation(); }, {passive:true});
+          card.addEventListener("touchend", function(ev){ ev.stopPropagation(); }, {passive:true});
+          var startX = null, dx = 0;
+          var stampF = document.getElementById("stampF");
+          var stampV = document.getElementById("stampV");
+          card.addEventListener("pointerdown", function(ev){
+            startX = ev.clientX; dx = 0;
+            try{ card.setPointerCapture(ev.pointerId); }catch(e){}
+          });
+          card.addEventListener("pointermove", function(ev){
+            if(startX === null) return;
+            dx = ev.clientX - startX;
+            card.style.transform = "translateX(" + dx + "px) rotate(" + (dx / 22) + "deg)";
+            if(stampV) stampV.style.opacity = dx > 12 ? Math.min(1, dx / 80) : 0;
+            if(stampF) stampF.style.opacity = dx < -12 ? Math.min(1, -dx / 80) : 0;
+          });
+          card.addEventListener("pointerup", function(){
+            if(startX === null) return;
+            var finalDx = dx;
+            startX = null;
+            card.style.transform = "";
+            if(stampV) stampV.style.opacity = 0;
+            if(stampF) stampF.style.opacity = 0;
+            if(finalDx > 70) answerVF(true);
+            else if(finalDx < -70) answerVF(false);
+          });
+          card.addEventListener("pointercancel", function(){
+            startX = null;
+            card.style.transform = "";
+          });
+        }
+        renderVF();
+      } else if(s.tipo === "Comparador"){
+        var top = document.getElementById("cmpTop");
+        var handle = document.getElementById("cmpHandle");
+        var range = document.getElementById("cmpRange");
+        var box = document.getElementById("cmpBox");
+        function setCmp(v){
+          v = Math.max(0, Math.min(100, v));
+          top.style.clipPath = "inset(0 0 0 " + v + "%)";
+          handle.style.left = v + "%";
+          range.value = v;
+        }
+        range.addEventListener("input", function(){ setCmp(parseFloat(range.value)); });
+        range.addEventListener("touchstart", function(ev){ ev.stopPropagation(); }, {passive:true});
+        range.addEventListener("touchend", function(ev){ ev.stopPropagation(); }, {passive:true});
+        box.addEventListener("touchstart", function(ev){ ev.stopPropagation(); }, {passive:true});
+        box.addEventListener("touchend", function(ev){ ev.stopPropagation(); }, {passive:true});
+        var cmpDrag = false;
+        function cmpFromEvent(ev){
+          var r = box.getBoundingClientRect();
+          setCmp((ev.clientX - r.left) / r.width * 100);
+        }
+        box.addEventListener("pointerdown", function(ev){ cmpDrag = true; try{ box.setPointerCapture(ev.pointerId); }catch(e){} cmpFromEvent(ev); });
+        box.addEventListener("pointermove", function(ev){ if(cmpDrag) cmpFromEvent(ev); });
+        box.addEventListener("pointerup", function(){ cmpDrag = false; });
+        box.addEventListener("pointercancel", function(){ cmpDrag = false; });
+        setCmp(50);
+      } else if(s.tipo === "Completar"){
+        var cs2 = state[idx];
+        scrollArea.querySelectorAll(".wordchip").forEach(function(chip){
+          chip.addEventListener("click", function(){
+            var wi = parseInt(chip.getAttribute("data-word"), 10);
+            if(cs2.used[wi] || cs2.filled >= s.respostas.length) return;
+            if(s.banco[wi] === s.respostas[cs2.filled]){
+              cs2.used[wi] = true;
+              chip.classList.add("used");
+              var blank = scrollArea.querySelector('.blank[data-blank="' + cs2.filled + '"]');
+              if(blank){
+                blank.textContent = s.respostas[cs2.filled];
+                blank.classList.remove("empty", "next");
+              }
+              cs2.filled++;
+              var nb = scrollArea.querySelector('.blank[data-blank="' + cs2.filled + '"]');
+              if(nb) nb.classList.add("next");
+              if(cs2.filled === s.respostas.length){
+                var fd = document.getElementById("fillDone");
+                if(fd) fd.classList.add("show");
+              }
+            } else {
+              chip.classList.add("shake");
+              setTimeout(function(){ chip.classList.remove("shake"); }, 380);
+            }
+          });
+        });
+      } else if(s.tipo === "Karaokê"){
+        var kbox = document.getElementById("karaokeBox");
+        if(kbox){
+          kbox.querySelectorAll(".sent").forEach(function(sp){
+            sp.addEventListener("click", function(){
+              karaSeek(parseInt(sp.getAttribute("data-sent"), 10));
+            });
+          });
+        }
+      } else if(s.tipo === "Mapa mental"){
+        var ms = state[idx];
+        scrollArea.querySelectorAll(".mindbtn").forEach(function(b){
+          b.addEventListener("click", function(){
+            var ri = parseInt(b.getAttribute("data-mind"), 10);
+            var body = document.getElementById("mindBody" + ri);
+            var opening = !body.classList.contains("show");
+            body.classList.toggle("show", opening);
+            b.classList.toggle("open", opening);
+            ms.open[ri] = opening;
+            b.querySelector(".marr").textContent = opening ? "▾ aberto" : "▸ tocar";
+            if(opening && !ms.seen[ri]){
+              ms.seen[ri] = true; ms.count++;
+              var mc = document.getElementById("mindCount");
+              if(mc) mc.textContent = ms.count + " de " + s.ramos.length;
+            }
+          });
+        });
+      } else if(s.tipo === "Desafio"){
+        var dst = state[idx];
+        var dArea = document.getElementById("desafioArea");
+        var dLetters = ["A","B","C","D","E"];
+        function renderDesafio(){
+          if(dst.finished){
+            var msg = dst.pts >= 500 ? "Pontuação máxima! Você dominou esta aula de ponta a ponta." : dst.pts >= 300 ? "Muito bem! O raciocínio da bigamia já está na sua mão." : "Bom começo! Refaça as questões e os flashcards da aula e tente de novo: o placar sobe rápido.";
+            dArea.innerHTML = '<div class="finalscore"><p>SEU PLACAR FINAL</p><p class="big">' + dst.pts + ' pontos</p><p>' + msg + '</p><button class="againbtn" type="button" id="desafioAgain">Jogar de novo</button></div>';
+            document.getElementById("desafioAgain").addEventListener("click", function(){
+              dst.q = 0; dst.pts = 0; dst.answered = false; dst.chosen = null; dst.finished = false;
+              renderDesafio();
+            });
+            return;
+          }
+          var pq = s.perguntas[dst.q];
+          var h = '<div class="scorebar"><span>Pergunta <b>' + (dst.q + 1) + ' de ' + s.perguntas.length + '</b></span><span class="pts">' + dst.pts + ' pts</span></div>';
+          h += '<p class="qtext">' + pq.q + '</p>';
+          pq.ops.forEach(function(op, oi){
+            var cls = "opt";
+            if(dst.answered){
+              if(oi === pq.certa) cls += " correct";
+              else if(oi === dst.chosen) cls += " wrong";
+            }
+            h += '<button class="' + cls + '" type="button" data-dopt="' + oi + '"' + (dst.answered ? ' disabled' : '') + '><span class="letter">' + dLetters[oi] + '</span><span>' + op + '</span></button>';
+          });
+          if(dst.answered){
+            h += '<div class="feedback show ' + (dst.chosen === pq.certa ? 'good' : 'bad') + '"><b>' + (dst.chosen === pq.certa ? "Resposta certa! +100 pontos" : "Não foi dessa vez.") + '</b>' + pq.exp + '</div>';
+            h += '<button class="againbtn" type="button" id="desafioNext" style="width:100%">' + (dst.q === s.perguntas.length - 1 ? "Ver meu placar" : "Próxima pergunta →") + '</button>';
+          }
+          dArea.innerHTML = h;
+          dArea.querySelectorAll(".opt").forEach(function(o){
+            o.addEventListener("click", function(){
+              if(dst.answered) return;
+              var oi = parseInt(o.getAttribute("data-dopt"), 10);
+              dst.answered = true;
+              dst.chosen = oi;
+              if(oi === pq.certa) dst.pts += 100;
+              renderDesafio();
+            });
+          });
+          var nb2 = document.getElementById("desafioNext");
+          if(nb2) nb2.addEventListener("click", function(){
+            if(dst.q === s.perguntas.length - 1){ dst.finished = true; }
+            else { dst.q++; dst.answered = false; dst.chosen = null; }
+            renderDesafio();
+          });
+        }
+        renderDesafio();
+      }
+    }
+
+    var karaIdx = -1;
+    function karaFracs(s){
+      var totalChars = 0;
+      s.frases.forEach(function(f){ totalChars += f.length; });
+      var acc = 0, fr = [];
+      s.frases.forEach(function(f){
+        fr.push([acc / totalChars, (acc + f.length) / totalChars]);
+        acc += f.length;
+      });
+      return fr;
+    }
+    function karaSync(){
+      var s = SLIDES[idx];
+      if(!s || s.tipo !== "Karaokê" || !player.duration) return;
+      var box = document.getElementById("karaokeBox");
+      if(!box) return;
+      var fr = karaFracs(s);
+      var pos = player.currentTime / player.duration;
+      var cur = 0;
+      for(var i = 0; i < fr.length; i++){ if(pos >= fr[i][0]) cur = i; }
+      if(cur === karaIdx) return;
+      karaIdx = cur;
+      var spans = box.querySelectorAll(".sent");
+      spans.forEach(function(sp, si){
+        sp.classList.toggle("on", si === cur);
+        sp.classList.toggle("done", si < cur);
+      });
+      var el = spans[cur];
+      if(el) el.scrollIntoView({behavior:"smooth", block:"nearest"});
+    }
+    function karaSeek(fi){
+      var s = SLIDES[idx];
+      if(!s || s.tipo !== "Karaokê" || !player.duration) return;
+      var fr = karaFracs(s);
+      player.currentTime = Math.max(0, fr[fi][0] * player.duration - 0.05);
+      karaIdx = -1;
+      karaSync();
+      unlocked = true;
+      tryPlay();
+    }
+
+    var BLOCKS = [[4,"Bloco 1 de 3 · O terreno da família"],[16,"Bloco 2 de 3 · Bigamia"],[28,"Bloco 3 de 3 · Prática e fixação"],[31,"Fechamento"]];
+    function blockLabel(i){
+      for(var b = 0; b < BLOCKS.length; b++){ if(i <= BLOCKS[b][0]) return BLOCKS[b][1]; }
+      return "Fechamento";
+    }
+
+    function show(i, autoplay){
+      idx = Math.max(0, Math.min(total - 1, i));
+      var s = SLIDES[idx];
+      karaIdx = -1;
+      scrollArea.innerHTML = slideHTML(s);
+      scrollArea.scrollTop = 0;
+      scrollArea.classList.remove("enter");
+      void scrollArea.offsetWidth;
+      scrollArea.classList.add("enter");
+      var h1El = document.querySelector("header h1");
+      if(h1El) h1El.style.display = idx === 0 ? "none" : "";
+      var seal = document.getElementById("blockSeal");
+      if(seal) seal.textContent = blockLabel(idx);
+      etapaLabel.innerHTML = "Etapa <b>" + (idx + 1) + " de " + total + "</b> · " + s.tipo + (s.titulo ? ": " + s.titulo : "");
+      progressFill.style.width = ((idx + 1) / total * 100) + "%";
+      btnPrev.disabled = idx === 0;
+      btnNext.innerHTML = idx === total - 1 ? "↺ Voltar ao início" : "Próximo →";
+      bindInteractions(s);
+      player.pause();
+      player.src = audioSrc(idx);
+      player.load();
+      if(autoplay && unlocked){ tryPlay(); }
+    }
+
+    btnPrev.addEventListener("click", function(){ show(idx - 1, true); });
+    btnNext.addEventListener("click", function(){
+      if(idx === total - 1){ show(0, true); } else { show(idx + 1, true); }
+    });
+    document.addEventListener("keydown", function(ev){
+      if(ev.key === "ArrowRight"){ btnNext.click(); }
+      else if(ev.key === "ArrowLeft"){ btnPrev.click(); }
+    });
+    document.addEventListener("pointerdown", function(){
+      if(!unlocked){
+        unlocked = true;
+        if(player.paused){ tryPlay(); }
+      }
+    }, {once:false});
+
+    var tx = null, ty = null;
+    var phone = document.getElementById("phone");
+    phone.addEventListener("touchstart", function(ev){
+      tx = ev.touches[0].clientX; ty = ev.touches[0].clientY;
+    }, {passive:true});
+    phone.addEventListener("touchend", function(ev){
+      if(tx === null) return;
+      var dx = ev.changedTouches[0].clientX - tx;
+      var dy = ev.changedTouches[0].clientY - ty;
+      if(Math.abs(dx) > 64 && Math.abs(dx) > Math.abs(dy) * 1.7){
+        if(dx < 0){ btnNext.click(); } else { btnPrev.click(); }
+      }
+      tx = null; ty = null;
+    }, {passive:true});
+
+    bindAudio();
+    show(0, false);
+    </script>
+  </body>
+</html>

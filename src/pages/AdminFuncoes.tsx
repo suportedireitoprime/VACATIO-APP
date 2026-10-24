@@ -55,6 +55,7 @@ const PREFETCH: Record<string, () => Promise<unknown>> = {
   '/configuracoes': () => import('./Configuracoes'),
   '/admin-omniroute': () => import('./AdminOmniRoute'),
   '/admin-fontes-legislacao': () => import('./AdminFontesLegislacao'),
+  '/admin-aprender-aulas': () => import('./AdminAprenderAulas'),
   '/admin-aprender': () => import('./AdminAprender'),
   '/admin-aprender-leis': () => import('./AdminAprenderLeis'),
   '/admin-aprender-leis/laboratorio': () => import('./AdminAprenderLeisLaboratorio'),
@@ -115,6 +116,17 @@ const CATEGORIES: Category[] = [
     color: '#8b5cf6',
     items: [
       { id: 'admin-push', label: 'Painel de Push', icon: BellRing, desc: 'Compor, agendar, campanhas e métricas', route: '/admin-push' },
+    ],
+  },
+  {
+    id: 'aprender-aulas',
+    title: 'Aprender',
+    desc: 'Aulas interativas e imersivas de Direito Penal com áudio, imagens e mecânicas pedagógicas',
+    icon: GraduationCap,
+    color: '#e23e57',
+    route: '/admin-aprender-aulas',
+    items: [
+      { id: 'admin-aprender-aulas-item', label: 'Aprender — Direito Penal', icon: GraduationCap, desc: 'Aulas interativas com áudio, imagens e mecânicas pedagógicas (40. Lei de Drogas)', route: '/admin-aprender-aulas' },
     ],
   },
   {
