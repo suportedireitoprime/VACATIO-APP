@@ -154,16 +154,53 @@ const CategoriaLegislacao = () => {
   const [premiumGateDesc, setPremiumGateDesc] = useState('');
   const [premiumGateFeature, setPremiumGateFeature] = useState<'radar' | 'favorito'>('radar');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLeiId, setSelectedLeiId] = useState<string | null>(null);
-  const [selectedLeiNome, setSelectedLeiNome] = useState('');
-  const [selectedLeiDescricao, setSelectedLeiDescricao] = useState('');
-  const [selectedTabelaNome, setSelectedTabelaNome] = useState<string | null>(null);
+
+  // Determina a lei inicial sincronamente no primeiro render (elimina atraso de montagem e layout shift)
+  const initialLei = useMemo(() => {
+    const state = location.state as {
+      autoSelectLei?: { leiId: string; nome: string; descricao: string; tabela_nome: string };
+    } | null;
+    if (state?.autoSelectLei) {
+      return {
+        id: state.autoSelectLei.leiId,
+        nome: state.autoSelectLei.nome,
+        descricao: state.autoSelectLei.descricao,
+        tabela_nome: state.autoSelectLei.tabela_nome,
+      };
+    }
+    if (tipo === 'constituicao') {
+      const cf = LEIS_CATALOG.find((l) => l.tipo === 'constituicao');
+      if (cf) return cf;
+    }
+    if (tipo && leiSlugParam) {
+      const found = findLeiBySlug(tipo, leiSlugParam);
+      if (found) return found;
+    }
+    return null;
+  }, [tipo, leiSlugParam, location.state]);
+
+  const [selectedLeiId, setSelectedLeiId] = useState<string | null>(() => initialLei?.id || null);
+  const [selectedLeiNome, setSelectedLeiNome] = useState<string>(() => initialLei?.nome || '');
+  const [selectedLeiDescricao, setSelectedLeiDescricao] = useState<string>(() => initialLei?.descricao || '');
+  const [selectedTabelaNome, setSelectedTabelaNome] = useState<string | null>(() => initialLei?.tabela_nome || null);
   const [selectedNovidade, setSelectedNovidade] = useState<any | null>(null);
   const [selectedLeiEmenta, setSelectedLeiEmenta] = useState<string>('');
   const [showEmentaDialog, setShowEmentaDialog] = useState(false);
-  const [artigos, setArtigos] = useState<ArtigoLei[]>([]);
+  const [artigos, setArtigos] = useState<ArtigoLei[]>(() => {
+    if (initialLei?.tabela_nome) {
+      const cached = getCachedArtigos(initialLei.tabela_nome);
+      if (cached && cached.length > 0) return cached;
+    }
+    return [];
+  });
   const [loadingArtigos, setLoadingArtigos] = useState(false);
-  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const [loadedKey, setLoadedKey] = useState<string | null>(() => {
+    if (initialLei?.tabela_nome) {
+      const cached = getCachedArtigos(initialLei.tabela_nome);
+      if (cached && cached.length > 0) return initialLei.tabela_nome;
+    }
+    return null;
+  });
   const [openArtigo, setOpenArtigo] = useState<ArtigoLei | null>(null);
   const [openFromNovidades, setOpenFromNovidades] = useState(false);
   const [activeNovidadesYear, setActiveNovidadesYear] = useState<number | null>(null);
@@ -173,6 +210,7 @@ const CategoriaLegislacao = () => {
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [overlayPanel, setOverlayPanel] = useState<'fav' | 'playlist' | 'novidades' | 'anotacoes' | 'radar' | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [stickySearch, setStickySearch] = useState(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
   const [isAulasOpen, setIsAulasOpen] = useState(false);
@@ -485,10 +523,15 @@ const CategoriaLegislacao = () => {
     setPlayingUrl(url);
   }, [playingUrl]);
 
-  // Scroll-to-top visibility + sticky search bar
+  // Scroll-to-top visibility + sticky search bar + detecção de scroll para o botão voltar flutuante
   useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 320);
+    const handleScroll = () => {
+      const y = window.scrollY;
+      setIsScrolled(y > 36);
+      setShowScrollTop(y > 320);
+    };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
 
     const observer = new IntersectionObserver(
       ([entry]) => setStickySearch(!entry.isIntersecting),
@@ -502,6 +545,7 @@ const CategoriaLegislacao = () => {
       if (el) observer.unobserve(el);
     };
   }, [selectedLeiId]);
+
   
 
   const toggleFavorito = (id: string) => {
@@ -2654,6 +2698,25 @@ const CategoriaLegislacao = () => {
 
   return (
       <div className={`min-h-dvh bg-background lg:pb-0 ${focusMode ? 'pb-8' : 'pb-8'}`}>
+        {/* Botão flutuante — Voltar (desce junto ao scrollar, com visual ofuscado e reflexo periódico a cada 5s) */}
+        <button
+          type="button"
+          onClick={goBack}
+          aria-label="Voltar"
+          className={`fixed left-[calc(1rem+var(--sai-left,0px))] top-[calc(var(--sai-top,0px)+12px)] z-50 w-12 h-12 rounded-full flex items-center justify-center active:scale-95 transition-all duration-300 touch-manipulation select-none overflow-hidden ${
+            isScrolled
+              ? 'bg-black/85 backdrop-blur-2xl border border-white/35 shadow-[0_12px_36px_rgba(0,0,0,0.75)] ring-1 ring-white/20 scale-[1.02]'
+              : 'bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)]'
+          }`}
+        >
+          <ArrowLeft className="w-6 h-6 text-white drop-shadow relative z-10" />
+          {isScrolled && (
+            <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-full" aria-hidden="true">
+              <span className="back-button-sheen" />
+            </span>
+          )}
+        </button>
+
         {/* Painel hero estilo Home — corte diagonal amarelo + imagem da lei */}
         {!focusMode && (() => {
           const cover = getLeiCover(selectedLeiId, tipo);
@@ -2732,16 +2795,6 @@ const CategoriaLegislacao = () => {
                   />
                 </div>
               </div>
-
-              {/* Botão flutuante — Voltar */}
-              <button
-                type="button"
-                onClick={goBack}
-                aria-label="Voltar"
-                className="absolute left-[calc(1rem+var(--sai-left,0px))] top-[calc(var(--sai-top,0px)+12px)] z-20 w-12 h-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
-              >
-                <ArrowLeft className="w-6 h-6 text-white drop-shadow" />
-              </button>
 
               {/* Botão flutuante — Favoritar */}
               {(() => {
@@ -2884,12 +2937,7 @@ const CategoriaLegislacao = () => {
 
           {/* Search bar + Tabs + Novidades — renderização instantânea sem delay */}
           {!focusMode && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.12 }}
-            className="space-y-4"
-          >
+          <div className="space-y-4">
             {/* Search bar agora fica dentro do hero panel */}
 
             {/* NOVO CARROSSEL DE HISTÓRICO DE ATUALIZAÇÃO */}
@@ -2897,6 +2945,7 @@ const CategoriaLegislacao = () => {
               artigos={artigos} 
               dbAlteracoes={dbAlteracoes} 
               leiAccent={leiAccent} 
+              leiKey={selectedTabelaNome || selectedLeiId || undefined}
               onOpenNovidade={(item) => {
                 setOpenFromNovidades(true);
                 openArtigoWithRecent(item.artigo);
@@ -2910,6 +2959,7 @@ const CategoriaLegislacao = () => {
               }} 
               onViewAll={() => setOverlayPanel('novidades')}
             />
+
 
             {/* CARROSSEL RECENTES */}
             {recentIds.length > 0 && (
@@ -3052,14 +3102,14 @@ const CategoriaLegislacao = () => {
               </motion.div>
             )}
           </AnimatePresence>
-          </motion.div>
+          </div>
           )}
 
-          {/* Lista entra depois de search+abas, com fade curto */}
+          {/* Lista entra junto com fade curto e sem atraso artificial */}
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.26, ease: [0.22, 0.61, 0.36, 1], delay: 0.16 }}
+            transition={{ duration: 0.2, ease: [0.22, 0.61, 0.36, 1] }}
           >
             {isDesktop ? (
               <div className="flex gap-6">
@@ -3078,37 +3128,24 @@ const CategoriaLegislacao = () => {
           </motion.div>
         </div>
 
-        {/* Floating glass controls once user descended past the cover */}
+        {/* Floating controls (Voltar ao topo ao scrollar fundo) */}
         <AnimatePresence>
           {showScrollTop && (
-            <>
-              <motion.button
-                key="back-glass"
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.18 }}
-                onClick={goBack}
-                aria-label="Voltar"
-                className="fixed left-[calc(1rem+var(--sai-left,0px))] top-[calc(var(--sai-top,0px)+12px)] z-40 w-12 h-12 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] active:scale-95 transition touch-manipulation select-none"
-              >
-                <ArrowLeft className="w-6 h-6 text-white" />
-              </motion.button>
-              <motion.button
-                key="up-glass"
-                initial={{ opacity: 0, scale: 0.85 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.85 }}
-                transition={{ duration: 0.18 }}
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                aria-label="Voltar ao topo"
-                className="fixed bottom-[calc(6.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] right-[calc(1rem+var(--sai-right,0px))] z-40 w-12 h-12 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] text-white active:scale-95 transition"
-              >
-                <ArrowUp className="w-5 h-5" />
-              </motion.button>
-            </>
+            <motion.button
+              key="up-glass"
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.85 }}
+              transition={{ duration: 0.18 }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              aria-label="Voltar ao topo"
+              className="fixed bottom-[calc(6.5rem+var(--sai-bottom,0px)+var(--active-mini-player-offset,0px))] right-[calc(1rem+var(--sai-right,0px))] z-40 w-12 h-12 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)] text-white active:scale-95 transition"
+            >
+              <ArrowUp className="w-5 h-5" />
+            </motion.button>
           )}
         </AnimatePresence>
+
 
         {isDesktop && (
           <div className={`fixed z-50 flex flex-col gap-2 transition-all ${focusMode ? 'top-4 right-4' : 'top-[120px] right-4'}`}>

@@ -481,6 +481,45 @@ body {
   z-index: 2;
 }
 
+/* Reflexo suave no botão voltar flutuante (dispara em ciclo a cada 5 segundos quando a tela é scrollada) */
+@keyframes back-button-sheen-sweep {
+  0%, 75% {
+    transform: translateX(-160%) skewX(-20deg);
+    opacity: 0;
+  }
+  76% {
+    opacity: 0.92;
+  }
+  88% {
+    opacity: 0.92;
+  }
+  94%, 100% {
+    transform: translateX(260%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+.back-button-sheen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 20%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(255, 255, 255, 0.2) 75%,
+    transparent 100%
+  );
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+  transform: translateX(-160%) skewX(-20deg);
+  animation: back-button-sheen-sweep 5s cubic-bezier(0.2, 0.8, 0.25, 1) infinite;
+  pointer-events: none;
+}
+
+
 /* Reflexo rápido horizontal (deitado) em cascata: um ícone por vez,
    o brilho desliza da esquerda para a direita passando de um ícone
    para o outro com delays curtos. */

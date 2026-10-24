@@ -452,6 +452,13 @@ export async function fetchArtigosPaginado(tabelaNome: string, offset: number, l
 export function setCachedArtigos(tabelaNome: string, artigos: ArtigoLei[]) {
   artigosCache.set(tabelaNome, artigos);
   setPersistedArtigosCache(tabelaNome, artigos);
+  // Auto-aquece o cache de novidades para abertura instantânea do carrossel
+  import('@/lib/novidadesCache').then(({ parseNovidadesFromArtigos, saveCachedNovidades, getCachedNovidades }) => {
+    if (!getCachedNovidades(tabelaNome)) {
+      const nov = parseNovidadesFromArtigos(artigos);
+      if (nov && nov.length > 0) saveCachedNovidades(tabelaNome, nov);
+    }
+  }).catch(() => {});
 }
 
 export function hasCachedArtigos(tabelaNome: string): boolean {
@@ -508,6 +515,12 @@ if (typeof window !== 'undefined') {
           const persisted = await getPersistedArtigosCache(tabela);
           if (persisted && persisted.length > 0) {
             artigosCache.set(tabela, persisted as ArtigoLei[]);
+            import('@/lib/novidadesCache').then(({ parseNovidadesFromArtigos, saveCachedNovidades, getCachedNovidades }) => {
+              if (!getCachedNovidades(tabela)) {
+                const nov = parseNovidadesFromArtigos(persisted as ArtigoLei[]);
+                if (nov && nov.length > 0) saveCachedNovidades(tabela, nov);
+              }
+            }).catch(() => {});
           }
         } catch { /* ignore */ }
       }

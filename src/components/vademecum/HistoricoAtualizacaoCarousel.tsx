@@ -1,112 +1,106 @@
-import { useMemo, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { ArtigoLei } from '@/data/mockData';
+import type { ArtigoLei } from '@/data/mockData';
 import { EDITORIAL_NOTE_REGEX } from './ArtigoBottomSheet';
+import {
+  type ModItem,
+  getCachedNovidades,
+  saveCachedNovidades,
+  parseNovidadesFromArtigos,
+} from '@/lib/novidadesCache';
+
+export type { ModItem };
 
 interface HistoricoAtualizacaoCarouselProps {
   artigos: ArtigoLei[];
-  dbAlteracoes: Record<string, any>[];
+  dbAlteracoes: Record<string, unknown>[];
   leiAccent: string;
-  onOpenNovidade: (item: any) => void;
+  leiKey?: string;
+  onOpenNovidade: (item: ModItem) => void;
   onViewAll?: () => void;
 }
 
-export type ModItem = { 
-  artigo: ArtigoLei; 
-  tipo: string; 
-  referencia: string; 
-  ano: number; 
-  parteModificada: string; 
-  leiNome: string; 
-  linhasModificadas: number[]; 
-  fromMonitor?: boolean;
-};
 
-export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, leiAccent, onOpenNovidade, onViewAll }: HistoricoAtualizacaoCarouselProps) {
+export default function HistoricoAtualizacaoCarousel({
+  artigos,
+  dbAlteracoes,
+  leiAccent,
+  leiKey,
+  onOpenNovidade,
+  onViewAll,
+}: HistoricoAtualizacaoCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
-  const historicoAlteracoes = useMemo(() => {
-    const modRegex = /\((?:Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Regulamento|Vide|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)[^)\n]*(?:\)|$)/gi;
-    const yearRegex = /\b(1\d{3}|20\d{2})\b/;
-    const typeRegex = /^\((Redação\s+dada|Incluíd[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vetad[oa]|Regulamento|Vide|Promulgação|Renumerado|Transformado|Suprimido|Restabelecido|Ressalvado|Produção de efeito)/i;
+  // 1. Tenta recuperar imediatamente do cache síncrono para renderizar no Frame 0
+  const [cachedItems, setCachedItems] = useState<ModItem[]>(() => {
+    return leiKey ? (getCachedNovidades(leiKey) || []) : [];
+  });
 
-    const items: ModItem[] = [];
-
-    for (const artigo of artigos) {
-      const lines = artigo.caput.split('\n').filter(l => l.trim());
-      const refGroups = new Map<string, { indices: number[]; tipo: string; ref: string; ano: number }>();
-      for (let li = 0; li < lines.length; li++) {
-        const lineMatches = lines[li].match(modRegex);
-        if (!lineMatches) continue;
-        const ref = lineMatches[lineMatches.length - 1];
-        const refKey = ref.replace(/^\(/, '').replace(/\)$/, '');
-        const tm = ref.match(typeRegex);
-        const ym = ref.match(yearRegex);
-        let tipo = tm ? tm[1].replace(/\s+dada/i, '') : 'Alteração';
-        if (/^redaç/i.test(tipo)) tipo = 'Alterada';
-        const ano = ym ? parseInt(ym[1]) : 0;
-        if (!refGroups.has(refKey)) {
-          refGroups.set(refKey, { indices: [], tipo, ref: refKey, ano });
-        }
-        refGroups.get(refKey)!.indices.push(li);
-      }
-      if (refGroups.size === 0) continue;
-      for (const [refKey, group] of refGroups) {
-        let parteModificada = 'Artigo inteiro';
-        if (group.indices.length < lines.length) {
-          const firstModLine = lines[group.indices[0]];
-          if (/^§\s*\d+[º°]?/i.test(firstModLine)) {
-            const pMatch = firstModLine.match(/^(§\s*\d+[º°]?)/i);
-            parteModificada = pMatch ? pMatch[1].replace(/°/g, 'º') : '§';
-          } else if (/^[IVXLC]+\s*[-–.]/i.test(firstModLine)) {
-            const iMatch = firstModLine.match(/^([IVXLC]+)/i);
-            parteModificada = iMatch ? `Inciso ${iMatch[1]}` : 'Inciso';
-          } else if (/^[a-z]\)/i.test(firstModLine)) {
-            const aMatch = firstModLine.match(/^([a-z]\))/i);
-            parteModificada = aMatch ? `Alínea ${aMatch[1]}` : 'Alínea';
-          } else if (/^Parágrafo\s+único/i.test(firstModLine)) {
-            parteModificada = 'Parágrafo único';
-          } else if (/caput/i.test(refKey)) {
-            parteModificada = 'Caput';
-          }
-          if (group.indices.length > 1) {
-            parteModificada += ` (+${group.indices.length - 1})`;
-          }
-        }
-        const leiMatch = refKey.match(/(?:Lei(?:\s+Complementar)?|Decreto(?:-Lei)?|Emenda\s+Constitucional|Medida\s+Provisória)\s+n[º°]?\s*[\d.]+(?:,\s*de\s*\d{4})?/i);
-        const leiNome = leiMatch ? leiMatch[0] : refKey;
-        items.push({ artigo, tipo: group.tipo, referencia: refKey, ano: group.ano, parteModificada, leiNome, linhasModificadas: group.indices });
+  useEffect(() => {
+    if (leiKey) {
+      const hit = getCachedNovidades(leiKey);
+      if (hit && hit.length > 0) {
+        setCachedItems(hit);
       }
     }
-    items.sort((a, b) => b.ano - a.ano);
+  }, [leiKey]);
 
-    // Merge DB alteracoes
-    const parsedKeys = new Set(items.map(i => `${i.artigo.numero}::${i.ano}`));
-    for (const dbItem of dbAlteracoes) {
-      const ano = dbItem.detectado_em ? new Date(dbItem.detectado_em).getFullYear() : 0;
-      const key = `${dbItem.artigo_numero}::${ano}`;
-      if (parsedKeys.has(key)) continue;
-      const matchingArtigo = artigos.find(a => a.numero === dbItem.artigo_numero);
-      const tipoLabel = dbItem.tipo_alteracao === 'artigo_revogado' ? 'Revogado'
-        : dbItem.tipo_alteracao === 'artigo_novo' ? 'Incluído'
-        : dbItem.tipo_alteracao === 'texto_alterado' ? 'Alterada'
-        : 'Alteração';
-      items.push({
-        artigo: matchingArtigo || { id: dbItem.artigo_numero, numero: dbItem.artigo_numero, caput: dbItem.texto_atual || dbItem.texto_anterior || '' } as ArtigoLei,
-        tipo: tipoLabel,
-        referencia: dbItem.fonte_alteracao || 'Monitoramento',
-        ano,
-        parteModificada: 'Artigo atualizado',
-        leiNome: dbItem.fonte_alteracao || 'Atualização Legislativa',
-        linhasModificadas: [],
-        fromMonitor: true
-      });
+  // 2. Quando os artigos estão presentes, calcula e alimenta o cache
+  const computedItems = useMemo(() => {
+    if (!artigos || artigos.length === 0) return null;
+    const items = parseNovidadesFromArtigos(artigos, dbAlteracoes);
+    if (leiKey && items.length > 0) {
+      saveCachedNovidades(leiKey, items);
     }
     return items;
-  }, [artigos, dbAlteracoes]);
+  }, [artigos, dbAlteracoes, leiKey]);
 
-  if (historicoAlteracoes.length === 0) return null;
+  const itemsToRender = computedItems || cachedItems;
+
+  // Se ainda não temos dados mas os artigos estão em carregamento,
+  // renderiza um Skeleton idêntico imediatamente para evitar qualquer salto de layout ("sobe depois")
+  if (itemsToRender.length === 0) {
+    if (!artigos || artigos.length === 0) {
+      return (
+        <div className="space-y-3 pt-6 pb-2 -mx-2 sm:-mx-4 md:-mx-6">
+          <div className="px-4 sm:px-6 md:px-8 flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-display text-foreground text-[16px] sm:text-[18px] font-bold mb-0.5 flex items-center gap-2">
+                <span className="w-1 h-5 rounded-full shrink-0" style={{ backgroundColor: leiAccent }} />
+                <span>Novidades</span>
+              </h3>
+              <p className="font-body text-muted-foreground text-[12px] leading-snug ml-[14px]">
+                Últimos artigos atualizados nesta legislação
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 md:gap-4 overflow-x-hidden pb-3 pt-1 px-[5%] md:px-[4%] lg:px-[3%]">
+            <div className="shrink-0 w-[70%] sm:w-[60%] md:w-[45%] lg:w-[30%]">
+              <div className="w-full h-[140px] rounded-2xl bg-card/60 border border-white/5 p-4 flex flex-col justify-between animate-pulse">
+                <div className="flex justify-between items-center">
+                  <div className="w-24 h-4 rounded-full bg-white/10" />
+                  <div className="w-6 h-6 rounded-full bg-white/5" />
+                </div>
+                <div className="w-24 h-5 rounded bg-white/10" />
+                <div className="w-full h-10 rounded-lg bg-black/20" />
+              </div>
+            </div>
+            <div className="shrink-0 w-[70%] sm:w-[60%] md:w-[45%] lg:w-[30%] opacity-60">
+              <div className="w-full h-[140px] rounded-2xl bg-card/60 border border-white/5 p-4 flex flex-col justify-between animate-pulse">
+                <div className="flex justify-between items-center">
+                  <div className="w-24 h-4 rounded-full bg-white/10" />
+                  <div className="w-6 h-6 rounded-full bg-white/5" />
+                </div>
+                <div className="w-24 h-5 rounded bg-white/10" />
+                <div className="w-full h-10 rounded-lg bg-black/20" />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
     <div className="space-y-3 pt-6 pb-2 -mx-2 sm:-mx-4 md:-mx-6">
@@ -137,7 +131,7 @@ export default function HistoricoAtualizacaoCarousel({ artigos, dbAlteracoes, le
         ref={scrollerRef}
         className="flex gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 pt-1 px-[5%] md:px-[4%] lg:px-[3%] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
-        {historicoAlteracoes.map((item, i) => {
+        {itemsToRender.map((item, i) => {
           const t = item.tipo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
           let typeColor = 'text-muted-foreground border-white/10 bg-white/5';
           if (t.startsWith('revogad') || t.startsWith('vetad') || t.startsWith('suprimid')) typeColor = 'text-red-500 border-red-500/20 bg-red-500/10';
