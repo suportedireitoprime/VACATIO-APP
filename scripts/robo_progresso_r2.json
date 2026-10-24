@@ -1,0 +1,11 @@
+{
+  "leisFinalizadas": {
+    "lci": true
+  },
+  "audiosFinalizados": {
+    "narracoes/leis/lci/Art. 0002.mp3": true,
+    "narracoes/leis/lci/Art. 0001.mp3": true,
+    "narracoes/leis/lci/Art. 0003.mp3": true,
+    "narracoes/leis/lci/Art. 0004.mp3": true
+  }
+}
