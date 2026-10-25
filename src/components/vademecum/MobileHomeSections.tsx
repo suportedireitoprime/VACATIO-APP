@@ -613,16 +613,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           onClick={() => {
             const leiCat = LEIS_CATALOG.find(l => l.id === ultimaLei.leiId);
             const base = leiCat ? leiPath(leiCat) : `/legislacao/${tipoToSlug(ultimaLei.tipo)}/${leiToSlug({ id: ultimaLei.leiId, nome: ultimaLei.nome })}`;
-            const artLimpo = cleanArtigoNumero(ultimaLei.artigoNumero);
-            if (artLimpo) {
-              const numOnly = artLimpo.replace(/^art(?:igo)?\.?\s*/i, '').trim();
-              const dest = base.includes('?') 
-                ? `${base}&artigo=${encodeURIComponent(numOnly)}`
-                : `${base}?artigo=${encodeURIComponent(numOnly)}`;
-              navigate(dest);
-            } else {
-              navigate(base);
-            }
+            navigate(base);
           }}
           style={{
             background: `linear-gradient(to right, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}33, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}0D)`,
@@ -640,6 +631,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               ultimaLei.nome?.toLowerCase().includes('constitui');
             const IconeLei = isCf ? Landmark : (LAW_ICON_MAP[ultimaLei.leiId] || BookOpen);
             const parouTexto = formatParouNoArtigo(ultimaLei.artigoNumero);
+            const displayNome = LEIS_CATALOG.find(l => l.id === ultimaLei.leiId)?.nome || ultimaLei.nome;
             return (
               <>
                 <div className="flex items-center justify-center shrink-0 z-10">
@@ -647,7 +639,9 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                 </div>
                 <div className="flex-1 min-w-0 z-10">
                   <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: shade(bgCor, 0.2) }}>Continuar Leitura</p>
-                  <p className="font-display text-[13px] font-bold text-foreground truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{ultimaLei.nome}</p>
+                  <p className="font-serif italic text-[15px] sm:text-[16px] font-semibold tracking-tight text-white truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] leading-snug">
+                    {displayNome}
+                  </p>
                   {parouTexto ? (
                     <p className="text-[11px] font-semibold truncate flex items-center gap-1.5" style={{ color: shade(bgCor, 0.25) }}>
                       <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: bgCor }} />
