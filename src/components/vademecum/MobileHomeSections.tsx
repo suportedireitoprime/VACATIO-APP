@@ -571,7 +571,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
 
   const filteredCategoryItems = useMemo(() => {
     let base = categoryItems;
-    if (listFilter === 'favoritos') {
+    if (listFilter === 'favoritos' && categoryOpen?.id !== 'cat-cf') {
       base = base.filter(l => favoriteIds.has(l.id));
     }
     const term = categorySearch.trim();
@@ -583,7 +583,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       const haystack = normalizeSearch(`${lei.nome} ${lei.sigla} ${lei.descricao} ${(lei.tags || []).join(' ')} ${extraMeta}`);
       return haystack.includes(needle);
     });
-  }, [categoryItems, categorySearch, listFilter, favoriteIds]);
+  }, [categoryItems, categorySearch, listFilter, favoriteIds, categoryOpen]);
   const CategorySheetIcon = categoryOpen?.icon || BookMarked;
 
   // Lock background scroll while any bottom sheet is open
@@ -953,7 +953,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                 </div>
               </div>
 
-              {categoryOpen?.id !== 'cat-estadual' && (
+              {categoryOpen?.id !== 'cat-estadual' && categoryOpen?.id !== 'cat-cf' && (
                 <div className="px-4 pb-2">
                   <div className="inline-flex w-full sm:w-auto p-1 rounded-xl bg-secondary/50 border border-border/40 gap-1">
                     <button
@@ -1137,33 +1137,35 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                           </p>
                         </div>
 
-                        {/* Ações à direita: Botão de Favoritar + Chevron */}
+                        {/* Ações à direita: Botão de Favoritar (exceto em Constituição) + Chevron */}
                         <div className="flex items-center gap-0.5 shrink-0">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavorito({
-                                leiId: lei.id,
-                                nome: lei.nome,
-                                descricao: lei.descricao,
-                                tipo: lei.tipo,
-                                tabela_nome: lei.tabela_nome,
-                              });
-                            }}
-                            aria-label={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                            title={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                            className="w-10 h-10 min-h-[44px] min-w-[44px] -mr-1 flex items-center justify-center rounded-full hover:bg-white/10 active:scale-90 transition-all cursor-pointer"
-                          >
-                            <Heart
-                              className={`w-5 h-5 transition-all duration-200 ${
-                                isFav
-                                  ? 'fill-red-500 text-red-500 scale-110 drop-shadow-[0_2px_8px_rgba(239,68,68,0.4)]'
-                                  : 'text-muted-foreground/45 hover:text-red-400 hover:scale-105'
-                              }`}
-                              strokeWidth={isFav ? 2 : 1.7}
-                            />
-                          </button>
+                          {!isConstituicaoCat && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorito({
+                                  leiId: lei.id,
+                                  nome: lei.nome,
+                                  descricao: lei.descricao,
+                                  tipo: lei.tipo,
+                                  tabela_nome: lei.tabela_nome,
+                                });
+                              }}
+                              aria-label={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                              title={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                              className="w-10 h-10 min-h-[44px] min-w-[44px] -mr-1 flex items-center justify-center rounded-full hover:bg-white/10 active:scale-90 transition-all cursor-pointer"
+                            >
+                              <Heart
+                                className={`w-5 h-5 transition-all duration-200 ${
+                                  isFav
+                                    ? 'fill-red-500 text-red-500 scale-110 drop-shadow-[0_2px_8px_rgba(239,68,68,0.4)]'
+                                    : 'text-muted-foreground/45 hover:text-red-400 hover:scale-105'
+                                }`}
+                                strokeWidth={isFav ? 2 : 1.7}
+                              />
+                            </button>
+                          )}
                           <ChevronRight className="w-5 h-5 text-muted-foreground/60 shrink-0" />
                         </div>
                       </motion.div>
