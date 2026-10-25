@@ -76,7 +76,14 @@ import { useNarracaoFlutuante } from '@/stores/useNarracaoFlutuante';
 import { useLeituraStore } from '@/stores/useLeituraStore';
 import { useLocation } from 'react-router-dom';
 import { getArtigoExplicadoManual } from '@/data/artigosExplicadosData';
-import { IdeiaTabContent, ExplicacaoTabContent, DesdobramentoTabContent, JurisprudenciaTabContent } from './artigoAbasRenderers';
+import { 
+  IdeiaTabContent, 
+  ExplicacaoTabContent, 
+  DesdobramentoTabContent, 
+  ExemploTabContent, 
+  TermosTabContent, 
+  JurisprudenciaTabContent 
+} from './artigoAbasRenderers';
 
 
 import { LEIS_SUPABASE_URL, LEIS_SUPABASE_ANON_KEY, LEIS_SUPABASE_PROJECT_ID } from "@/lib/legislacaoBackend";
@@ -3361,36 +3368,11 @@ Separe cada julgado com:
                 <p className="text-sm text-muted-foreground font-body">Gerando exemplos práticos com IA...</p>
               </div>
             ) : aiContent.exemplo ? (
-              (() => {
-                const sections = splitSections(aiContent.exemplo, '---EXEMPLO---');
-                if (sections.length <= 1) {
-                  return (
-                    <div className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:!font-card [&_h2]:font-bold [&_h2]:text-base [&_h2]:text-foreground [&_h3]:!font-card [&_h3]:font-bold [&_h3]:text-sm [&_strong]:text-foreground" style={{ fontSize: `${fontSize}px` }}>
-                      <ReactMarkdown>{aiContent.exemplo}</ReactMarkdown>
-                    </div>
-                  );
-                }
-                return (
-                  <Accordion type="single" collapsible className="space-y-2">
-                    {sections.map((sec, i) => {
-                      const borderColors = ['border-l-emerald-500/70', 'border-l-sky-500/70', 'border-l-amber-500/70', 'border-l-violet-500/70'];
-                      const strongColors = ['[&_strong]:text-emerald-400', '[&_strong]:text-sky-400', '[&_strong]:text-amber-400', '[&_strong]:text-violet-400'];
-                      return (
-                      <AccordionItem key={i} value={`ex-${i}`} className={`border border-border rounded-xl overflow-hidden bg-secondary/30 border-l-4 ${borderColors[i % borderColors.length]}`}>
-                        <AccordionTrigger className="px-4 py-4 text-sm sm:text-base !font-card font-bold text-foreground text-left hover:no-underline [&[data-state=open]>svg]:rotate-180">
-                          {sec.title}
-                        </AccordionTrigger>
-                        <AccordionContent className="px-4 pb-4">
-                          <div className={`prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:!font-card [&_h2]:font-bold [&_h3]:!font-card [&_h3]:font-bold ${strongColors[i % strongColors.length]}`} style={{ fontSize: `${fontSize}px` }}>
-                            <ReactMarkdown>{sec.body}</ReactMarkdown>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                      );
-                    })}
-                  </Accordion>
-                );
-              })()
+              <ExemploTabContent
+                content={aiContent.exemplo}
+                artigoNumero={artigo.numero}
+                fontSize={fontSize}
+              />
             ) : (
               <p className="text-muted-foreground text-sm text-center py-8">Clique para gerar exemplos.</p>
             )}
@@ -3403,36 +3385,7 @@ Separe cada julgado com:
                 <p className="text-sm text-muted-foreground font-body">Analisando termos jurídicos com IA...</p>
               </div>
             ) : aiContent.termos ? (
-              (() => {
-                const sections = splitSections(aiContent.termos, '---TERMO---');
-                if (sections.length <= 1) {
-                  return (
-                    <div className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:!font-card [&_h2]:font-bold [&_h2]:text-base [&_h2]:text-foreground [&_h3]:!font-card [&_h3]:font-bold [&_h3]:text-sm [&_strong]:text-foreground" style={{ fontSize: `${fontSize}px` }}>
-                      <ReactMarkdown>{aiContent.termos}</ReactMarkdown>
-                    </div>
-                  );
-                }
-                return (
-                  <Accordion type="single" collapsible className="space-y-2">
-                    {sections.map((sec, i) => {
-                      const borderColors = ['border-l-pink-500/70', 'border-l-orange-500/70', 'border-l-cyan-500/70', 'border-l-red-500/70', 'border-l-indigo-500/70', 'border-l-lime-500/70'];
-                      const strongColors = ['[&_strong]:text-pink-400', '[&_strong]:text-orange-400', '[&_strong]:text-cyan-400', '[&_strong]:text-red-400', '[&_strong]:text-indigo-400', '[&_strong]:text-lime-400'];
-                      return (
-                        <AccordionItem key={i} value={`term-${i}`} className={`border border-border rounded-xl overflow-hidden bg-secondary/30 border-l-4 ${borderColors[i % borderColors.length]}`}>
-                          <AccordionTrigger className="px-4 py-4 text-sm sm:text-base !font-card font-bold text-foreground text-left hover:no-underline [&[data-state=open]>svg]:rotate-180">
-                            {sec.title}
-                          </AccordionTrigger>
-                          <AccordionContent className="px-4 pb-4">
-                            <div className={`prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:!font-card [&_h2]:font-bold [&_h3]:!font-card [&_h3]:font-bold ${strongColors[i % strongColors.length]}`} style={{ fontSize: `${fontSize}px` }}>
-                              <ReactMarkdown>{sec.body}</ReactMarkdown>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      );
-                    })}
-                  </Accordion>
-                );
-              })()
+              <TermosTabContent content={aiContent.termos} fontSize={fontSize} />
             ) : (
               <p className="text-muted-foreground text-sm text-center py-8">Carregando termos...</p>
             )}

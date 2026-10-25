@@ -982,3 +982,263 @@ export const JurisprudenciaTabContent: React.FC<JurisprudenciaTabContentProps> =
     </div>
   );
 };
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. ABA EXEMPLO PRÁTICO (TÍTULO EM NEGRITO COM RISQUINHO VERMELHO À ESQUERDA)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ExemploData {
+  titulo: string;
+  situacao: string;
+  desfecho?: string;
+  rawText: string;
+}
+
+function parseExemploText(text: string): ExemploData[] {
+  if (!text) return [];
+
+  // Remove qualquer variação de marcador no início ou meio: ---EXEMPLO---, --EXEMPLO--, etc.
+  const normalized = text.replace(/^(?:-{2,4}\s*EXEMPLO\s*-{2,4})/gim, '---SPLIT_EXEMPLO---');
+  const parts = normalized.split('---SPLIT_EXEMPLO---').map(p => p.trim()).filter(Boolean);
+
+  if (parts.length === 0) {
+    const cleanText = text.replace(/^(?:-{2,4}\s*EXEMPLO\s*-{2,4})\s*/gim, '').trim();
+    return [{
+      titulo: 'Caso Prático',
+      situacao: cleanText,
+      rawText: cleanText
+    }];
+  }
+
+  return parts.map((part, idx) => {
+    const cleanPart = part.replace(/^(?:-{2,4}\s*EXEMPLO\s*-{2,4})\s*/gim, '').trim();
+    const lines = cleanPart.split('\n');
+
+    let titulo = `Caso Prático ${idx + 1}`;
+    const titleLineIdx = lines.findIndex(l => /^##\s+/i.test(l) || /^\*\*(?:Caso Prático|Exemplo)[^*]*\*\*/i.test(l));
+    
+    let contentLines = lines;
+    if (titleLineIdx !== -1) {
+      const line = lines[titleLineIdx];
+      titulo = line
+        .replace(/^##\s*/, '')
+        .replace(/^\*\*/, '')
+        .replace(/\*\*.*$/, '')
+        .trim();
+      contentLines = lines.filter((_, i) => i !== titleLineIdx);
+    }
+
+    const restOfContent = contentLines.join('\n').trim();
+
+    // Separa a Situação do Desfecho Jurídico se houver "### Desfecho jurídico" ou "**Desfecho jurídico**"
+    const desfechoMatch = restOfContent.match(/(?:###\s*Desfecho\s*[jJ]urídico|\*\*Desfecho\s*[jJ]urídico\*\*:?)\s*([\s\S]*)$/i);
+    let situacao = restOfContent;
+    let desfecho = '';
+
+    if (desfechoMatch) {
+      situacao = restOfContent.substring(0, desfechoMatch.index).trim();
+      desfecho = desfechoMatch[1].trim();
+    }
+
+    return {
+      titulo: titulo || `Caso Prático ${idx + 1}`,
+      situacao: situacao || restOfContent,
+      desfecho: desfecho || undefined,
+      rawText: cleanPart
+    };
+  });
+}
+
+interface ExemploTabContentProps {
+  content: string;
+  artigoNumero?: string;
+  fontSize?: number;
+}
+
+export const ExemploTabContent: React.FC<ExemploTabContentProps> = ({
+  content,
+  artigoNumero,
+  fontSize = 15
+}) => {
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const exemplos = parseExemploText(content);
+
+  const handleCopy = (idx: number, ex: ExemploData) => {
+    const textToCopy = `${ex.titulo}\n\n${ex.situacao}${ex.desfecho ? `\n\nDesfecho Jurídico:\n${ex.desfecho}` : ''}`;
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedIdx(idx);
+    haptic.selection();
+    toast.success('Exemplo prático copiado!');
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  return (
+    <div className="space-y-5 max-w-3xl mx-auto">
+      {exemplos.map((ex, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, delay: idx * 0.05 }}
+          className="rounded-2xl border border-border/80 bg-card/90 shadow-md p-4 sm:p-5 space-y-4"
+        >
+          {/* Título em negrito com o risquinho vermelho do lado esquerdo */}
+          <div className="flex items-start justify-between gap-3 border-l-4 border-l-primary pl-3.5 py-0.5">
+            <h3 className="!font-card font-bold text-foreground text-base sm:text-[17px] leading-snug">
+              {ex.titulo}
+            </h3>
+
+            <button
+              onClick={() => handleCopy(idx, ex)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60 shrink-0"
+              title="Copiar caso prático"
+            >
+              {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span className="text-[11px]">{copiedIdx === idx ? 'Copiado' : 'Copiar'}</span>
+            </button>
+          </div>
+
+          {/* Situação concreta do caso */}
+          <div 
+            className="text-foreground/90 font-body leading-relaxed space-y-2 [&_p]:my-1.5 [&_strong]:text-primary [&_strong]:font-semibold"
+            style={{ fontSize: `${fontSize}px` }}
+          >
+            <ReactMarkdown>{ex.situacao}</ReactMarkdown>
+          </div>
+
+          {/* Desfecho Jurídico em destaque */}
+          {ex.desfecho && (
+            <div className="rounded-xl border border-primary/25 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-3.5 sm:p-4 space-y-2 shadow-sm">
+              <div className="flex items-center gap-2 text-primary border-b border-primary/15 pb-1.5">
+                <Scale className="w-4 h-4 shrink-0" />
+                <span className="!font-card font-bold text-xs uppercase tracking-wider text-primary">
+                  Desfecho Jurídico
+                </span>
+              </div>
+              <div 
+                className="text-foreground/90 font-body leading-relaxed space-y-1.5 [&_p]:my-1 [&_strong]:text-foreground"
+                style={{ fontSize: `${fontSize}px` }}
+              >
+                <ReactMarkdown>{ex.desfecho}</ReactMarkdown>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. ABA TERMOS JURÍDICOS (GLOSSÁRIO LIMPO COM BORDAS E DESTAQUES)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface TermoData {
+  termo: string;
+  simples?: string;
+  tecnica?: string;
+  rawText: string;
+}
+
+function parseTermosText(text: string): TermoData[] {
+  if (!text) return [];
+
+  const normalized = text.replace(/^(?:-{2,4}\s*TERMO\s*-{2,4})/gim, '---SPLIT_TERMO---');
+  const parts = normalized.split('---SPLIT_TERMO---').map(p => p.trim()).filter(Boolean);
+
+  if (parts.length === 0) {
+    const cleanText = text.replace(/^(?:-{2,4}\s*TERMO\s*-{2,4})\s*/gim, '').trim();
+    return [{ termo: 'Termo Jurídico', rawText: cleanText }];
+  }
+
+  return parts.map((part, idx) => {
+    const cleanPart = part.replace(/^(?:-{2,4}\s*TERMO\s*-{2,4})\s*/gim, '').trim();
+    const lines = cleanPart.split('\n');
+
+    let termo = `Termo ${idx + 1}`;
+    const titleLine = lines.find(l => /^##\s+/i.test(l) || /^\*\*/i.test(l));
+    if (titleLine) {
+      termo = titleLine.replace(/^##\s*/, '').replace(/^\*\*/, '').replace(/\*\*.*$/, '').trim();
+    }
+
+    const simplesMatch = cleanPart.match(/-\s*\*\*Definição simples\*\*:\s*([^\n]+(?:\n(?!\s*-\s*\*\*)[^\n]+)*)/i);
+    const tecnicaMatch = cleanPart.match(/-\s*\*\*Definição técnica\*\*:\s*([^\n]+(?:\n(?!\s*-\s*\*\*)[^\n]+)*)/i);
+
+    return {
+      termo: termo || `Termo ${idx + 1}`,
+      simples: simplesMatch ? simplesMatch[1].trim() : undefined,
+      tecnica: tecnicaMatch ? tecnicaMatch[1].trim() : undefined,
+      rawText: cleanPart
+    };
+  });
+}
+
+export const TermosTabContent: React.FC<{ content: string; fontSize?: number }> = ({
+  content,
+  fontSize = 15
+}) => {
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const termos = parseTermosText(content);
+
+  const handleCopy = (idx: number, t: TermoData) => {
+    const textToCopy = `${t.termo}\n\n• Definição simples: ${t.simples || ''}\n• Definição técnica: ${t.tecnica || ''}`;
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedIdx(idx);
+    haptic.selection();
+    toast.success('Termo copiado!');
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  return (
+    <div className="space-y-4 max-w-3xl mx-auto">
+      {termos.map((t, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, delay: idx * 0.04 }}
+          className="rounded-2xl border border-border/80 bg-card/90 shadow-md p-4 sm:p-5 space-y-3.5"
+        >
+          <div className="flex items-center justify-between gap-3 border-l-4 border-l-primary pl-3.5 py-0.5">
+            <span className="!font-card font-bold text-foreground text-base sm:text-[17px]">
+              {t.termo}
+            </span>
+            <button
+              onClick={() => handleCopy(idx, t)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60 shrink-0"
+              title="Copiar termo"
+            >
+              {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span className="text-[11px]">{copiedIdx === idx ? 'Copiado' : 'Copiar'}</span>
+            </button>
+          </div>
+
+          {t.simples && (
+            <div className="rounded-xl bg-secondary/35 border border-border/60 p-3.5 space-y-1">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                Definição Simples (Para Leigos)
+              </span>
+              <p className="text-foreground/90 text-sm sm:text-[15px] font-body leading-relaxed" style={{ fontSize: `${fontSize}px` }}>
+                {t.simples}
+              </p>
+            </div>
+          )}
+
+          {t.tecnica && (
+            <div className="rounded-xl bg-primary/5 border border-primary/20 p-3.5 space-y-1">
+              <span className="text-[11px] font-semibold text-primary uppercase tracking-wider block">
+                Definição Técnica (Jurídica)
+              </span>
+              <p className="text-foreground/90 text-sm sm:text-[15px] font-body leading-relaxed" style={{ fontSize: `${fontSize}px` }}>
+                {t.tecnica}
+              </p>
+            </div>
+          )}
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
