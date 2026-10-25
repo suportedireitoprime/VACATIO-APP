@@ -387,7 +387,7 @@ function parseDesdobramentoText(text: string): TrechoData[] {
   
   if (parts.length === 0) {
     return [{
-      title: 'Desdobramento do Artigo',
+      title: 'Raio-X do Artigo',
       rawText: text,
       palavras: []
     }];

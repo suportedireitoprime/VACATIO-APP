@@ -2866,7 +2866,7 @@ Separe cada julgado com:
                   Explicação
                 </TabsTrigger>
                 <TabsTrigger value="desdobramento" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
-                  Desdobramento
+                  Raio-X
                 </TabsTrigger>
                 {!modificationInfo && (
                   <>
@@ -3345,12 +3345,12 @@ Separe cada julgado com:
             {aiLoading.desdobramento ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground font-body">Destrinchando o artigo trecho a trecho...</p>
+                <p className="text-sm text-muted-foreground font-body">Analisando o Raio-X do artigo trecho a trecho...</p>
               </div>
             ) : aiContent.desdobramento ? (
               <DesdobramentoTabContent content={aiContent.desdobramento} fontSize={fontSize} />
             ) : (
-              <p className="text-muted-foreground text-sm text-center py-8">Clique na aba para desdobrar o artigo.</p>
+              <p className="text-muted-foreground text-sm text-center py-8">Clique na aba para ver o Raio-X do artigo.</p>
             )}
           </TabsContent>
 
@@ -4015,7 +4015,7 @@ Separe cada julgado com:
               titulo={
                 aiGeneratingMode === 'ideia' ? 'Sintetizando a ideia central' :
                 aiGeneratingMode === 'explicacao' ? 'Gerando explicação com IA' :
-                aiGeneratingMode === 'desdobramento' ? 'Destrinchando o artigo' :
+                aiGeneratingMode === 'desdobramento' ? 'Gerando Raio-X do artigo' :
                 aiGeneratingMode === 'exemplo' ? 'Gerando exemplos práticos' :
                 aiGeneratingMode === 'termos' ? 'Analisando termos jurídicos' :
                 aiGeneratingMode === 'jurisprudencia' ? 'Pesquisando jurisprudência' :

@@ -25,7 +25,7 @@ Cada artigo abre com cabeçalho da lei/estatuto, distintivo do artigo, título e
 1. **Artigo** (Texto oficial da lei)
 2. **Ideia** (A síntese mental essencial)
 3. **Explicação** (A anatomia didática em 3 partes + pegadinha)
-4. **Desdobramento** (Análise trecho por trecho, palavra por palavra)
+4. **Raio-X** (Análise cirúrgica trecho por trecho, palavra por palavra)
 5. **Exemplo Prático** (Histórias reais com personagens e desfecho)
 6. **Termos** (Glossário simples vs. técnico)
 7. **Jurisprudência** (3 julgados de tribunais superiores com link real)
@@ -99,7 +99,7 @@ Frase de abertura: "Esta é a explicação detalhada do [Artigo/Lei]."
 
 ---
 
-### 4. Aba "Desdobramento" (Desmembramento)
+### 4. Aba "Raio-X" (Análise Trecho por Trecho)
 - **O que vai dentro**: Um cartão individual para cada trecho do artigo (caput, cada inciso e cada parágrafo isoladamente; nunca em bloco).
 - **Conteúdo de cada trecho**:
   1. **Título do trecho** (ex: "Caput", "Parágrafo único", "Inciso I").
