@@ -115,13 +115,12 @@ async function fetchHtml(url: string): Promise<string> {
 const HIER_RE =
   /^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)(?:\s+(?:[IVXLCDM]+|[ÚU]NICO|[ÚU]NICA|PRELIMINAR|GERAL|ESPECIAL|PRIMEIRA|SEGUNDA|TERCEIRA|QUARTA|QUINTA|SEXTA|S[ÉE]TIMA|OITAVA|NONA|D[ÉE]CIMA|\d+[ºª°]?)\b[\s\S]*|\s*)$/i;
 
-// Aceita "Art. 1", "Art. 1º", "Art. 1.368-C", "Art. 15-A", etc.
-// Exige "Art." com A maiúsculo: referências internas em minúscula
-// ("art. 5º, inciso XV, ...") não podem virar um artigo novo.
-const ART_RE = /^Art\.\s*(\d+(?:\.\d+)*(?:-[A-Z0-9]+)?)/;
+// Aceita "Art. 1", "Art. 1º", "Art 1º" (sem ponto, comum em 1891/1937/1946/1967), "Art. 1.368-C", etc.
+// Exige "Art" com A maiúsculo: referências internas em minúscula ("art. 5º") não viram artigo novo.
+const ART_RE = /^Art\.?\s*(\d+(?:\.\d+)*(?:-[A-Z0-9]+)?)/;
 
-// Início de §/parágrafo/inciso/alínea — usado para cortar o caput (suporta hífen, en-dash, em-dash)
-const CAPUT_STOP_RE = /^(§|Parágrafo\b|[IVXLCDM]+\s*[-–—.)]|[a-z]\s*[\)\-–—.]|[a-z]\))/i;
+// Início de §/parágrafo/inciso/alínea — usado para cortar o caput (suporta grafias históricas Paragrapho)
+const CAPUT_STOP_RE = /^(§|Par[áa]gra(?:fo|pho)\b|[IVXLCDM]+(?:\b|\s|$)|[a-zà-ÿ]\s*[\)\-–—.]|[a-zà-ÿ]\))/i;
 
 const PLANALTO_NOTE_START_RE =
   /^(?:[\(\[]\s*)?(?:Reda[çc][ãa]o\s+dada|Inclu[íi]d[oa]|Acrescid[oa]|Revogad[oa]|Alterad[oa]|Vide|Vig[êe]ncia|Regulamento|Nova\s+reda[çc][ãa]o|Renumerad[oa]|Transformad[oa]|Restabelecid[oa]|Produ[çc][ãa]o\s+de\s+efeito)\b/i;
@@ -148,6 +147,33 @@ function formatPlanaltoAnnotationBlocks(s: string): string {
   return s.replace(PLANALTO_NOTE_BLOCK_RE, (m) => m.replace(/\s+/g, " "));
 }
 
+// Reconhece linhas que funcionam como nomen juris / epígrafe de artigo (comum em Direito Penal: CP, CPM, etc.)
+// e evita falsos positivos em Direito Civil, Administrativo e Constitucional.
+function isPotentialEpigrafe(line: string): boolean {
+  if (!line) return false;
+  const clean = stripPlanaltoAnnotations(line).trim();
+  if (clean.length < 3 || clean.length > 140) return false;
+  if (HIER_RE.test(clean)) return false;
+  if (ART_RE.test(clean)) return false;
+  if (CAPUT_STOP_RE.test(clean)) return false;
+  if (isPlanaltoAnnotationLine(clean)) return false;
+  // Epígrafes / nomen juris são títulos: não começam com hífen/travessão e não terminam com ponto final (.)
+  if (/^[-–—]/.test(clean)) return false;
+  if (/\.$/.test(clean)) return false;
+  // Não começa com minúscula (deve começar com maiúscula)
+  if (/^[a-zà-ÿ]/.test(clean)) return false;
+  // Não começa com dígitos ou numerais romanos isolados / de inciso
+  if (/^\d/.test(clean)) return false;
+  if (/^[IVXLCDM]+(?:\b|\s|$)/i.test(clean)) return false;
+  // Não começa com Do/Da/Dos/Das (títulos de capítulos/seções estruturais)
+  if (/^(?:D[OA]S?)\s+/i.test(clean)) return false;
+  // Não termina com pontuação de continuidade como :, ;, ,
+  if (/[:;,]$/.test(clean)) return false;
+  // Não começa com palavras comuns de texto corrido / atos
+  if (/^(Par[áa]gra|Pena|Multa|Reclusão|Detenção|Brasília|Publicado|Revoga-se|Mensagem|Vigência|Vide|Disposi[çc][õo]es|ATO\b|Emenda\b|Constitui[çc][ãa]o\b)/i.test(clean)) return false;
+  return true;
+}
+
 // Normaliza rótulo de hierarquia para CAIXA ALTA no campo `numero`
 // ("Capítulo II" -> "CAPÍTULO II", "Título Único" -> "TÍTULO ÚNICO")
 function normalizeHierLabel(s: string): string {
@@ -158,6 +184,7 @@ interface Bloco {
   tipo: "hier" | "art";
   numero: string;
   texto: string;
+  epigrafe?: string | null;
 }
 
 const CATEGORIAS_VADE_MECUM = new Set(["codigo", "estatuto", "lei", "sumula"]);
@@ -257,6 +284,9 @@ function extractBlocos(html: string): Bloco[] {
     return inner;
   });
 
+  // Normaliza quebras de linha e tabs internas para espaço simples (evita quebrar frases no meio de <p>)
+  body = body.replace(/[\r\n\t]+/g, " ");
+
   // manter parágrafos como separadores
   body = body
     .replace(/<blockquote[^>]*>/gi, "")
@@ -308,6 +338,7 @@ function extractBlocos(html: string): Bloco[] {
   const finais = endIdx > 0 ? uteis.slice(0, endIdx) : uteis;
 
   const blocos: Bloco[] = [];
+  let pendingEpigrafe: string | null = null;
   let i = 0;
   while (i < finais.length) {
     const linha = finais[i];
@@ -315,6 +346,7 @@ function extractBlocos(html: string): Bloco[] {
     // cabeçalho de hierarquia
     const hm = linha.match(HIER_RE);
     if (hm) {
+      pendingEpigrafe = null; // Hierarquia limpa qualquer candidato anterior a epígrafe
       // Anotações do Planalto que NÃO fazem parte do nome do capítulo/seção
       // Ex.: "(Redação dada pela Lei nº ...)", "(Incluído pela Lei ...)",
       //      "(Vide ...)", "(Revogado pela ...)", "(Vetado)".
@@ -367,6 +399,9 @@ function extractBlocos(html: string): Bloco[] {
     const am = linha.match(ART_RE);
     if (am) {
       const numero = am[1];
+      const epigrafe = pendingEpigrafe;
+      pendingEpigrafe = null;
+
       // normaliza: só números 1..9 SEM ponto/traço/dígito seguinte recebem "º"
       const cabeca = linha
         // remove "º" indevido em números >= 10 (Art. 10º -> Art. 10)
@@ -386,6 +421,14 @@ function extractBlocos(html: string): Bloco[] {
         const l2 = finais[j];
         if (HIER_RE.test(l2) || ART_RE.test(l2)) break;
         if (/^[ºª°oa]$/i.test(l2)) { j += 1; continue; } // ordinal órfão
+        // Se a linha for uma epígrafe/título e a próxima linha útil for outro artigo, interrompe o artigo anterior aqui
+        if (isPotentialEpigrafe(l2)) {
+          let k = j + 1;
+          while (k < finais.length && isPlanaltoAnnotationLine(finais[k])) k++;
+          if (k < finais.length && ART_RE.test(finais[k])) {
+            break;
+          }
+        }
         if (!caputFechado && CAPUT_STOP_RE.test(l2)) caputFechado = true;
         (caputFechado ? restoParts : caputParts).push(l2);
         j += 1;
@@ -425,11 +468,19 @@ function extractBlocos(html: string): Bloco[] {
         .join("\n")
         .replace(/(\d)o(?=[\s.,;:])/g, "$1º")
         .replace(/([0-9])[º°]\s+[º°]/g, "$1º");
-      blocos.push({ tipo: "art", numero, texto });
+      blocos.push({ tipo: "art", numero, texto, ...(epigrafe ? { epigrafe } : {}) });
       i = j;
       continue;
     }
 
+    // Se não é hierarquia nem artigo: pode ser epígrafe (nomen juris) do próximo artigo?
+    if (isPotentialEpigrafe(linha)) {
+      let k = i + 1;
+      while (k < finais.length && isPlanaltoAnnotationLine(finais[k])) k++;
+      if (k < finais.length && ART_RE.test(finais[k])) {
+        pendingEpigrafe = stripPlanaltoAnnotations(linha);
+      }
+    }
 
     i += 1;
   }
@@ -673,12 +724,19 @@ ${rawText}`,
     const hierEsperada = /(?:^|\n)\s*(?:PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O)\s+[IVX]/i.test(html);
     const aviso_hierarquia_vazia = nHier === 0 && hierEsperada;
 
+    const nEpigrafe = blocos.filter((b) => b.tipo === "art" && b.epigrafe).length;
+
     const preview = {
       primeiros: blocos.slice(0, 12).map((b) => ({
         tipo: b.tipo,
         numero: b.numero,
+        epigrafe: b.epigrafe || null,
         texto_head: b.texto.slice(0, 120),
       })),
+      epigrafes_amostra: blocos
+        .filter((b) => b.tipo === "art" && b.epigrafe)
+        .slice(0, 15)
+        .map((b) => `Art. ${b.numero}: ${b.epigrafe}`),
       hierarquia_amostra: blocos
         .filter((b) => b.tipo === "hier")
         .slice(0, 20)
@@ -696,6 +754,7 @@ ${rawText}`,
           total_blocos: blocos.length,
           cabecalhos_hierarquia: nHier,
           artigos: nArt,
+          artigos_com_epigrafe: nEpigrafe,
           aviso_hierarquia_vazia,
           totalmente_revogada: totalmenteRevogada,
           raw_art_matches: rawArtMatches,
@@ -752,12 +811,15 @@ ${rawText}`,
         numero: b.numero,
         texto: b.texto,
         ordem: idx + 1,
+        epigrafe: b.epigrafe || null,
       };
       if (preservarEnriquecimento) {
         const antigo = enriquecimentoPorNumero.get(String(b.numero));
         if (antigo) {
           for (const [k, v] of Object.entries(antigo)) {
             if (k === "numero") continue;
+            // Se o antigo tinha epigrafe nula mas agora extraímos uma, mantém a nova extraída
+            if (k === "epigrafe" && b.epigrafe) continue;
             if (v !== null && v !== undefined) base[k] = v;
           }
         }
@@ -793,6 +855,7 @@ ${rawText}`,
         slug: lei.slug,
         cabecalhos_hierarquia: nHier,
         artigos: nArt,
+        artigos_com_epigrafe: nEpigrafe,
         linhas_gravadas: inserted,
         preservou_enriquecimento: preservarEnriquecimento,
         preservados_count: preservarEnriquecimento
