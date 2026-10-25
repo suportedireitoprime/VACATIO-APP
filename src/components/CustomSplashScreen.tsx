@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import logoVacatioAsset from '@/assets/logo-vacatio-v2.png.asset.json';
 import logoVacatioBundled from '@/assets/bundled/logo-vacatio-v2.webp';
@@ -14,12 +14,18 @@ export function CustomSplashScreen({ onComplete }: { onComplete: () => void }) {
   // Em ambiente nativo (Capacitor), dispensa a splash nativa assim que montado
   useHideSplashScreen(100);
 
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
   useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     let done = false;
     const finish = () => {
       if (done) return;
       done = true;
-      onComplete();
+      onCompleteRef.current();
     };
 
     // Permanece na tela exatamente por 2 segundos antes de transicionar
@@ -27,8 +33,9 @@ export function CustomSplashScreen({ onComplete }: { onComplete: () => void }) {
 
     return () => {
       clearTimeout(splashTimeout);
+      document.body.style.overflow = originalOverflow;
     };
-  }, [onComplete]);
+  }, []);
 
   return (
     <motion.div
@@ -38,7 +45,7 @@ export function CustomSplashScreen({ onComplete }: { onComplete: () => void }) {
         scale: 1.035, 
         transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } 
       }}
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0D0D0D] overflow-hidden select-none will-change-[transform,opacity]"
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0D0D0D] overflow-hidden select-none pointer-events-auto touch-none will-change-[transform,opacity]"
       style={{ transform: 'translateZ(0)' }}
     >
       {/* Iluminação de fundo estética e aprofundada (0ms de custo de GPU) */}

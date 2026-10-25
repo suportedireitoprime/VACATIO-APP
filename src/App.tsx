@@ -1,5 +1,6 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState, useCallback } from "react";
 import { AnimatePresence } from "framer-motion";
+import { CustomSplashScreen } from "@/components/CustomSplashScreen";
 import { initAnalytics, trackPageview, setAnalyticsUserWithProfile } from "@/lib/analytics";
 import { useScreenTracking } from "@/lib/screenTracking";
 import { initNavTelemetry, markRouteChange } from "@/lib/navTelemetry";
@@ -511,15 +512,13 @@ function DeepLinkBootstrap() {
   return null;
 }
 
-const CustomSplashScreen = lazy(() =>
-  import("@/components/CustomSplashScreen").then((m) => ({ default: m.CustomSplashScreen }))
-);
-
 function AppBootSplash() {
   const [show, setShow] = useState(true);
+  const handleComplete = useCallback(() => setShow(false), []);
+
   return (
     <AnimatePresence>
-      {show && <CustomSplashScreen onComplete={() => setShow(false)} />}
+      {show && <CustomSplashScreen onComplete={handleComplete} />}
     </AnimatePresence>
   );
 }
@@ -801,9 +800,7 @@ const App = () => (
         <ScrollToTop />
         <AuthProvider>
           <ThemeProvider>
-            <Suspense fallback={null}>
-              <AppBootSplash />
-            </Suspense>
+            <AppBootSplash />
             <TooltipProvider>
               <SkipToContent />
               <Sonner />

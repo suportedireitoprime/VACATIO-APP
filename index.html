@@ -224,8 +224,24 @@
   <meta name="twitter:description" content="Toda a legislação brasileira comentada, narrada e explicada com IA. Vade Mecum 2026, biblioteca jurídica, radar legislativo ao vivo e biblioteca completa.">
 </head>
 
-  <body>
-    <div id="root"></div>
+  <body style="margin:0;background-color:#0D0D0D;">
+    <div id="root">
+      <!-- Splash inicial instantâneo em HTML/CSS (garante exibição imediata a 0ms no primeiro frame) -->
+      <div id="splash-placeholder" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background-color:#0D0D0D;user-select:none;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at top, rgba(225,29,72,0.18), transparent 60%), radial-gradient(ellipse at bottom, rgba(0,0,0,0.8), transparent 70%);pointer-events:none;"></div>
+        <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;">
+          <div style="width:128px;height:128px;border-radius:9999px;border:2px solid rgba(255,255,255,0.9);background-color:#ac1534;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;">
+            <img src="/favicon.png" alt="Vade Mecum" style="width:100%;height:100%;border-radius:9999px;object-fit:cover;transform:scale(1.06);" />
+          </div>
+          <div style="margin-top:24px;font-family:'Playfair Display',serif;font-style:italic;font-size:28px;font-weight:600;color:#ffffff;letter-spacing:-0.02em;text-shadow:0 4px 16px rgba(0,0,0,0.6);">
+            Vade Mecum
+          </div>
+          <div style="margin-top:10px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);letter-spacing:0.28em;text-transform:uppercase;">
+            Uso Profissional
+          </div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       window.addEventListener('error', function(e) {
