@@ -282,10 +282,10 @@ function generate() {
     }
   }
 
-  // Existing covers in src/assets/
-  const coversInAssets = [
-    'cc', 'cdc', 'ce', 'cf88', 'clt', 'cp', 'cpc', 'cpp', 'ctn', 'ec', 'eca', 'ed', 'ei', 'eir', 'eoab', 'epd'
-  ];
+  // Dynamically load all available covers in src/assets/
+  const coversInAssets = fs.readdirSync(path.join(__dirname, '..', 'src', 'assets'))
+    .filter(f => f.startsWith('lei-cover-') && f.endsWith('.webp') && f !== 'lei-cover-default.webp')
+    .map(f => f.replace(/^lei-cover-/, '').replace(/\.webp$/, ''));
 
   const existingColorMap = {
     cf88: '#059669',

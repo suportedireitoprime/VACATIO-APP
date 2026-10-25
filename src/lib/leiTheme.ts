@@ -1,7 +1,7 @@
 // Central theme (accent color + hero cover) per legislation.
 // Reused by CategoriaLegislacao header and ArtigoCard badge.
 
-import { COVERS } from './coverLoader';
+import { COVERS, getR2CoverUrl } from './coverLoader';
 
 const COLOR_MAP: Record<string, string> = {
   'cf88': '#059669',
@@ -167,55 +167,250 @@ export function getLeiColor(id?: string | null, tipo?: string | null): string {
 }
 
 const COVER_MAP: Record<string, string> = {
-  cf88: COVERS.cf88,
-  cf:   COVERS.cf88,
-  cp:   COVERS.cp,
-  cpm:  COVERS.cp,
-  cc:   COVERS.cc,
-  cpc:  COVERS.cpc,
-  cpp:  COVERS.cpp,
-  cppm: COVERS.cpp,
-  clt:  COVERS.clt,
-  cdc:  COVERS.cdc,
-  ctn:  COVERS.ctn,
-  ctb:  COVERS.default,
-  ce:   COVERS.ce,
-  // Estatutos temáticos (slugs oficiais e aliases)
+  // Códigos Oficiais
+  cp:                            COVERS.cp,
+  'codigo-penal':                COVERS.cp,
+  'codigo_penal':                COVERS.cp,
+  CP_CODIGO_PENAL:               COVERS.cp,
+
+  cpc:                           COVERS.cpc,
+  'codigo-processo-civil':       COVERS.cpc,
+  'codigo_processo_civil':       COVERS.cpc,
+  CPC_CODIGO_PROCESSO_CIVIL:     COVERS.cpc,
+
+  cc:                            COVERS.cc,
+  'codigo-civil':                COVERS.cc,
+  'codigo_civil':                COVERS.cc,
+  CC_CODIGO_CIVIL:               COVERS.cc,
+
+  clt:                           COVERS.clt,
+  'consolidacao-leis-trabalho':  COVERS.clt,
+  CLT_CONSOLIDACAO_LEIS_TRABALHO: COVERS.clt,
+
+  cdc:                           COVERS.cdc,
+  'codigo-defesa-consumidor':    COVERS.cdc,
+  'codigo-consumidor':           COVERS.cdc,
+  CDC_CODIGO_DEFESA_CONSUMIDOR:  COVERS.cdc,
+
+  ctn:                           COVERS.ctn,
+  'codigo-tributario-nacional':  COVERS.ctn,
+  'codigo-tributario':           COVERS.ctn,
+  CTN_CODIGO_TRIBUTARIO_NACIONAL: COVERS.ctn,
+
+  ctb:                           COVERS.ctb,
+  'codigo-transito-brasileiro':  COVERS.ctb,
+  'codigo-transito':             COVERS.ctb,
+  CTB_CODIGO_TRANSITO_BRASILEIRO: COVERS.ctb,
+
+  ce:                            COVERS.ce,
+  'codigo-eleitoral':            COVERS.ce,
+  CE_CODIGO_ELEITORAL:           COVERS.ce,
+
+  cpm:                           COVERS.cpm,
+  'codigo-penal-militar':        COVERS.cpm,
+  CPM_CODIGO_PENAL_MILITAR:      COVERS.cpm,
+
+  cpp:                           COVERS.cpp,
+  'codigo-processo-penal':       COVERS.cpp,
+  CPP_CODIGO_PROCESSO_PENAL:     COVERS.cpp,
+
+  cppm:                          COVERS.cppm,
+  'codigo-processo-penal-militar': COVERS.cppm,
+  CPPM_CODIGO_PROCESSO_PENAL_MILITAR: COVERS.cppm,
+
+  cflor:                         COVERS.cflor,
+  'codigo-florestal':            COVERS.cflor,
+  CFLOR_CODIGO_FLORESTAL:        COVERS.cflor,
+
+  ccom:                          COVERS.ccom,
+  'codigo-comercial':            COVERS.ccom,
+  CCOM_CODIGO_COMERCIAL:         COVERS.ccom,
+
+  cba:                           COVERS.cba,
+  'codigo-brasileiro-aeronautica': COVERS.cba,
+  'codigo-aeronautica':          COVERS.cba,
+  CBA_CODIGO_BRASILEIRO_AERONAUTICA: COVERS.cba,
+
+  cagua:                         COVERS.cagua,
+  'codigo-aguas':                COVERS.cagua,
+  CAGUA_CODIGO_AGUAS:            COVERS.cagua,
+
+  cmin:                          COVERS.cmin,
+  'codigo-minas':                COVERS.cmin,
+  'codigo-mineracao':            COVERS.cmin,
+  CMIN_CODIGO_MINAS:             COVERS.cmin,
+
+  ctel:                          COVERS.ctel,
+  'codigo-telecomunicacoes':     COVERS.ctel,
+  'codigo-brasileiro-telecomunicacoes': COVERS.ctel,
+  CTEL_CODIGO_TELECOMUNICACOES:  COVERS.ctel,
+
+  // Constituições do Brasil
+  cf88:                          COVERS.cf88,
+  cf:                            COVERS.cf88,
+  constituicao:                  COVERS.cf88,
+  'constituicao-federal':        COVERS.cf88,
+  'constituicao-1988':           COVERS.cf88,
+  CF_CONSTITUICAO_FEDERAL:       COVERS.cf88,
+
+  cf1824:                        COVERS.cf1824,
+  'constituicao-1824':           COVERS.cf1824,
+  cf1891:                        COVERS.cf1891,
+  'constituicao-1891':           COVERS.cf1891,
+  cf1934:                        COVERS.cf1934,
+  'constituicao-1934':           COVERS.cf1934,
+  cf1937:                        COVERS.cf1937,
+  'constituicao-1937':           COVERS.cf1937,
+  cf1946:                        COVERS.cf1946,
+  'constituicao-1946':           COVERS.cf1946,
+  cf1967:                        COVERS.cf1967,
+  'constituicao-1967':           COVERS.cf1967,
+  cf1969:                        COVERS.cf1969,
+  'constituicao-1969':           COVERS.cf1969,
+  'ec-01-69':                    COVERS.cf1969,
+
+  // Estatutos Temáticos
   eca:                           COVERS.eca,
   'estatuto-eca':                COVERS.eca,
+  'estatuto-crianca-adolescente': COVERS.eca,
+  ECA_ESTATUTO_CRIANCA_ADOLESCENTE: COVERS.eca,
+
   ei:                            COVERS.ei,
   'estatuto-idoso':              COVERS.ei,
+  'estatuto-pessoa-idosa':       COVERS.ei,
+  EI_ESTATUTO_IDOSO:             COVERS.ei,
+
   epd:                           COVERS.epd,
   'estatuto-pessoa-deficiencia': COVERS.epd,
+  'estatuto-pcd':                COVERS.epd,
+  EPD_ESTATUTO_PESSOA_DEFICIENCIA: COVERS.epd,
+
   eir:                           COVERS.eir,
   'estatuto-igualdade-racial':   COVERS.eir,
+  EIR_ESTATUTO_IGUALDADE_RACIAL: COVERS.eir,
+
   ec:                            COVERS.ec,
   'estatuto-cidade':             COVERS.ec,
+  EC_ESTATUTO_CIDADE:            COVERS.ec,
+
   ed:                            COVERS.ed,
   'estatuto-desarmamento':       COVERS.ed,
+  ED_ESTATUTO_DESARMAMENTO:      COVERS.ed,
+
   eoab:                          COVERS.eoab,
   'estatuto-oab':                COVERS.eoab,
-  'estatuto-militares':          COVERS.cp,
-  'estatuto-indio':              COVERS.eir,
-  'estatuto-juventude':          COVERS.eca,
-  'estatuto-metropole':          COVERS.ec,
-  'estatuto-cancer':             COVERS.epd,
-  'estatuto-refugiado':          COVERS.eir,
+  EOAB_ESTATUTO_OAB:             COVERS.eoab,
+
+  ej:                            COVERS.ej,
+  'estatuto-juventude':          COVERS.ej,
+  EJ_ESTATUTO_JUVENTUDE:         COVERS.ej,
+
+  em:                            COVERS.em,
+  'estatuto-militares':          COVERS.em,
+  EM_ESTATUTO_MILITARES:         COVERS.em,
+
+  eme:                           COVERS.eme,
+  'estatuto-mpe':                COVERS.eme,
+  'estatuto-microempresa':       COVERS.eme,
+  'estatuto-micro-empresa':      COVERS.eme,
+
+  emet:                          COVERS.emet,
+  'estatuto-metropole':          COVERS.emet,
+  EMET_ESTATUTO_METROPOLE:       COVERS.emet,
+
+  emig:                          COVERS.emig,
+  'estatuto-migrante':           COVERS.emig,
+  'lei-migracao':                COVERS.emig,
+  EMIG_ESTATUTO_MIGRANTE:        COVERS.emig,
+
+  emus:                          COVERS.emus,
+  'estatuto-museus':             COVERS.emus,
+  EMUS_ESTATUTO_MUSEUS:          COVERS.emus,
+
+  epc:                           COVERS.epc,
+  'estatuto-cancer':             COVERS.epc,
+  'estatuto-pessoa-cancer':      COVERS.epc,
+  EPC_ESTATUTO_CANCER:           COVERS.epc,
+
+  eref:                          COVERS.eref,
+  'estatuto-refugiado':          COVERS.eref,
+  'estatuto-refugiados':         COVERS.eref,
+  EREF_ESTATUTO_REFUGIADO:       COVERS.eref,
+
+  et:                            COVERS.et,
+  'estatuto-torcedor':           COVERS.et,
+  ET_ESTATUTO_TORCEDOR:          COVERS.et,
+
+  eterra:                        COVERS.eterra,
+  'estatuto-terra':              COVERS.eterra,
+  ETERRA_ESTATUTO_TERRA:         COVERS.eterra,
+
+  eind:                          COVERS.eind,
+  'estatuto-indio':              COVERS.eind,
+  'estatuto-indigena':           COVERS.eind,
+  EIND_ESTATUTO_INDIO:           COVERS.eind,
+
+  // Legislação Específica e Ética
+  ced1995:                       COVERS.ced1995,
+  'codigo-etica-oab-1995':       COVERS.ced1995,
+  'codigo-etica-1995':           COVERS.ced1995,
+
+  ced2015:                       COVERS.ced2015,
+  ced:                           COVERS.ced2015,
+  'codigo-etica-oab-2015':       COVERS.ced2015,
+  'codigo-etica-oab':            COVERS.ced2015,
+  'codigo-etica':                COVERS.ced2015,
+
+  ces:                           COVERS.ces,
+  'codigo-etica-servidor':       COVERS.ces,
+  CES_CODIGO_ETICA_SERVIDOR:     COVERS.ces,
+
+  l8112:                         COVERS.l8112,
+  'lei-8112':                    COVERS.l8112,
+  'lei-servidor':                COVERS.l8112,
+  'estatuto-servidor-uniao':     COVERS.l8112,
+  L8112_SERVIDOR_PUBLICO:        COVERS.l8112,
+
+  la:                            COVERS.la,
+  'lei-arbitragem':              COVERS.la,
+  LA_ARBITRAGEM:                 COVERS.la,
+
+  laa:                           COVERS.laa,
+  'lei-abuso-autoridade':        COVERS.laa,
+  LAA_ABUSO_AUTORIDADE:          COVERS.laa,
+
+  lace:                          COVERS.lace,
+  'lei-anticorrupcao':           COVERS.lace,
+  'lei-anticorrupcao-empresarial': COVERS.lace,
+  LACE_ANTICORRUPCAO:            COVERS.lace,
+
+  // Fallbacks de estatutos com capa compartilhada aproximada
   'estatuto-seguranca-privada':  COVERS.ed,
-  'lei-servidor':                COVERS.eoab,
-  'estatuto-torcedor':           COVERS.ce,
-  'estatuto-terra':              COVERS.ec,
-  'estatuto-mpe':                COVERS.cdc,
+  'estatuto-policial':           COVERS.cp,
   eggm:                          COVERS.ed,
   emot:                          COVERS.default,
 };
 
-
-export function getLeiCover(id?: string | null, _tipo?: string | null): string {
-  if (!id) return COVERS.default;
-  const key = id.toLowerCase().trim();
+export function getLeiCover(id?: string | null, tipo?: string | null): string {
+  if (!id && !tipo) return COVERS.default;
+  const key = (id || tipo || '').toLowerCase().trim();
   if (COVER_MAP[key]) return COVER_MAP[key];
+
+  // Tenta remover prefixos comuns como 'lei-', 'codigo-', 'estatuto-'
+  const cleanKey = key.replace(/^(lei|codigo|estatuto)-/, '');
+  if (COVER_MAP[cleanKey]) return COVER_MAP[cleanKey];
+
   return COVERS.default;
+}
+
+/**
+ * Retorna diretamente a URL pública no Cloudflare R2 para qualquer lei
+ */
+export function getLeiCoverR2Url(id?: string | null, tipo?: string | null): string {
+  if (!id && !tipo) return getR2CoverUrl('default');
+  const key = (id || tipo || '').toLowerCase().trim();
+  const cleanKey = key.replace(/^(lei|codigo|estatuto)-/, '');
+  return getR2CoverUrl(cleanKey);
 }
 
 // Utility: darken/lighten a hex color by amount (-1..1). Used for gradient endpoints.
