@@ -7,6 +7,7 @@ import { limparCacheVisuais } from '@/lib/visuaisJuridicos/cache';
 import { limparTodosOsVisuais } from '@/lib/visuaisJuridicos/prefs';
 import VisualViewer from '@/components/visuais/VisualViewer';
 import { toast } from 'sonner';
+import { formatCapituloDisplay } from '@/lib/capituloFormat';
 
 import hero1 from '@/assets/aprender-hero/hero-1.webp';
 import hero2 from '@/assets/aprender-hero/hero-2.webp';
@@ -283,24 +284,8 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
           <div className="flex-1 min-w-0">
             <h2 className="font-display font-bold text-lg text-white truncate drop-shadow-md">
               {(() => {
-                let raw = '';
-                if (selectedCapitulo.capitulo?.toUpperCase().includes('SEM_CAPITULO')) {
-                  if (selectedCapitulo.titulo && !selectedCapitulo.titulo.toUpperCase().includes('SEM_TITULO') && !selectedCapitulo.titulo.toUpperCase().includes('SEM_CAPITULO')) {
-                    raw = selectedCapitulo.titulo.split(' - ').slice(1).join(' - ') || selectedCapitulo.titulo;
-                  } else {
-                    raw = 'Disposições Gerais';
-                  }
-                } else {
-                  raw = selectedCapitulo.capitulo?.split(' - ').slice(1).join(' - ') || selectedCapitulo.capitulo;
-                }
-                if (raw && raw === raw.toUpperCase() && raw.length > 3) {
-                  const pequenos = ['E', 'OU', 'DE', 'DA', 'DO', 'DAS', 'DOS', 'A', 'O', 'AS', 'OS', 'EM', 'NO', 'NA', 'NOS', 'NAS', 'POR'];
-                  return raw.split(' ').map((word, idx) => {
-                    if (idx > 0 && pequenos.includes(word)) return word.toLowerCase();
-                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                  }).join(' ');
-                }
-                return raw;
+                const f = formatCapituloDisplay(selectedCapitulo.capitulo, selectedCapitulo.titulo);
+                return f.tag ? `${f.tag} - ${f.title}` : f.title;
               })()}
             </h2>
             <p className="text-sm text-white/80 truncate font-body drop-shadow-sm">
@@ -530,46 +515,24 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="text-[11px] font-bold text-white/60 uppercase tracking-wider truncate">
-                      {(() => {
-                        if (cap.capitulo.toUpperCase().includes('SEM_CAPITULO')) {
-                          if (cap.titulo && !cap.titulo.toUpperCase().includes('SEM_TITULO')) {
-                            return cap.titulo.split(' - ')[0].toUpperCase();
-                          }
-                          return 'CAPÍTULO I';
-                        }
-                        return cap.capitulo.split(' - ')[0].toUpperCase();
-                      })()}
-                    </p>
-                    <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-white/10 text-white/80 tabular-nums ml-auto">
-                      {capPct}%
-                    </span>
-                  </div>
-                  <p className="min-w-0 text-[14px] font-bold text-white sm:text-[15px] leading-snug drop-shadow-sm" style={{ fontFamily: "'Barlow', system-ui, sans-serif", letterSpacing: '-0.005em' }}>
-                    {(() => {
-                      let raw = '';
-                      if (cap.capitulo.toUpperCase().includes('SEM_CAPITULO')) {
-                        if (cap.titulo && !cap.titulo.toUpperCase().includes('SEM_TITULO')) {
-                          raw = cap.titulo.split(' - ').slice(1).join(' - ') || cap.titulo;
-                        } else {
-                          raw = 'Disposições Gerais';
-                        }
-                      } else {
-                        raw = cap.capitulo.split(' - ').slice(1).join(' - ') || cap.capitulo;
-                      }
-                      
-                      // Convert ALL CAPS to Title Case, excluding small words optionally (simple title case here)
-                      if (raw && raw === raw.toUpperCase() && raw.length > 3) {
-                        const pequenos = ['E', 'OU', 'DE', 'DA', 'DO', 'DAS', 'DOS', 'A', 'O', 'AS', 'OS', 'EM', 'NO', 'NA', 'NOS', 'NAS', 'POR'];
-                        return raw.split(' ').map((word, idx) => {
-                          if (idx > 0 && pequenos.includes(word)) return word.toLowerCase();
-                          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                        }).join(' ');
-                      }
-                      return raw;
-                    })()}
-                  </p>
+                  {(() => {
+                    const f = formatCapituloDisplay(cap.capitulo, cap.titulo);
+                    return (
+                      <>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="text-[11px] font-bold text-white/60 uppercase tracking-wider truncate">
+                            {f.tag}
+                          </p>
+                          <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-white/10 text-white/80 tabular-nums ml-auto">
+                            {capPct}%
+                          </span>
+                        </div>
+                        <p className="min-w-0 text-[14px] font-bold text-white sm:text-[15px] leading-snug drop-shadow-sm" style={{ fontFamily: "'Barlow', system-ui, sans-serif", letterSpacing: '-0.005em' }}>
+                          {f.title}
+                        </p>
+                      </>
+                    );
+                  })()}
                   <p className="mt-0.5 text-[12px] text-white/60 sm:text-[13px]">
                     {cap.artigos.length} {cap.artigos.length === 1 ? 'artigo' : 'artigos'}
                   </p>

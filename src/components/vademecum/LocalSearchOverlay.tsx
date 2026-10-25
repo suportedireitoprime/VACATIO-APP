@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ChevronDown, Mic, Heart, Clock, PlayCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { formatCapituloDisplay } from '@/lib/capituloFormat';
 
 type ArtigoType = any;
-type CapGroup = { capitulo: string; artigos: ArtigoType[] };
+type CapGroup = { capitulo: string; artigos: ArtigoType[]; titulo?: string };
 type TituloGroup = { titulo: string; capitulos: CapGroup[] };
 
 interface LocalSearchOverlayProps {
@@ -46,7 +47,7 @@ export const LocalSearchOverlay: React.FC<LocalSearchOverlayProps> = ({
 
   // Derivar capítulos válidos (com artigos)
   const allCapitulos = React.useMemo(() => {
-    return capituloGroups.flatMap(t => t.capitulos).filter(c => c.artigos.length > 0);
+    return capituloGroups.flatMap(t => t.capitulos.map(c => ({ ...c, titulo: t.titulo }))).filter(c => c.artigos.length > 0);
   }, [capituloGroups]);
 
   // Aplicar filtros
@@ -149,9 +150,7 @@ export const LocalSearchOverlay: React.FC<LocalSearchOverlayProps> = ({
               </button>
 
               {allCapitulos.map(cap => {
-                const parts = cap.capitulo.split(' - ');
-                const title = parts[0];
-                const subtitle = parts.slice(1).join(' - ');
+                const { tag, title } = formatCapituloDisplay(cap.capitulo, cap.titulo);
                 
                 return (
                   <button
@@ -163,10 +162,10 @@ export const LocalSearchOverlay: React.FC<LocalSearchOverlayProps> = ({
                         : 'bg-transparent text-white/80 border-white/30 hover:bg-white/10'
                     }`}
                   >
-                    <span className="font-bold text-[11px] uppercase tracking-wider">{title}</span>
-                    {subtitle && (
+                    <span className="font-bold text-[11px] uppercase tracking-wider">{tag || title}</span>
+                    {tag && title && (
                       <span className={`text-[9px] max-w-[140px] truncate ${activeTab === cap.capitulo ? 'text-black/70' : 'text-white/60'}`}>
-                        {subtitle}
+                        {title}
                       </span>
                     )}
                   </button>

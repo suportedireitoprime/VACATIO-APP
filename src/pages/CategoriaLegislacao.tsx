@@ -47,6 +47,7 @@ import { warmCoverCache } from '@/lib/coverLoader';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 import { slugToTipo, tipoToSlug, leiToSlug, leiPath, findLeiBySlug, CATEGORIAS_FIXAS } from '@/lib/legislacaoSlugs';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
+import { parseStructuralHeading, formatCapituloDisplay } from '@/lib/capituloFormat';
 import { Navigate } from 'react-router-dom';
 import { track } from '@/lib/analyticsEvents';
 import { toggleArtigoFavorito, listNumerosFavoritosByTabela, ARTIGOS_FAV_EVENT } from '@/lib/artigosFavoritos';
@@ -1003,84 +1004,150 @@ const CategoriaLegislacao = () => {
   }, [artigos]);
 
   // Build hierarchical groups: Título → Capítulo → Artigos
-  // If DB has `titulo`/`capitulo` columns filled, use them.
-  // Otherwise, derive from inline structural rows (numero = "TÍTULO I", "CAPÍTULO II"...).
   const capituloGroups = useMemo(() => {
-    const isTituloRow = (n: string) => /^\s*T[ÍI]TULO\s+[IVXLCDM0-9]/i.test(n || '');
-    const isCapituloRow = (n: string) => /^\s*CAP[ÍI]TULO\s+[IVXLCDM0-9]/i.test(n || '');
-    const isStructuralRow = (n: string) =>
-      /^\s*(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\s+[IVXLCDM0-9]/i.test(n || '');
+    if (!artigos || artigos.length === 0) return [];
 
-    type CapGroup = { capitulo: string; artigos: typeof artigos };
+    type CapGroup = { capitulo: string; titulo?: string; artigos: typeof artigos };
     type TituloGroup = { titulo: string; capitulos: CapGroup[] };
 
-    const groups: TituloGroup[] = [];
-    const tituloMap = new Map<string, TituloGroup>();
-    const ensureTitulo = (key: string) => {
-      if (!tituloMap.has(key)) {
-        const g: TituloGroup = { titulo: key, capitulos: [] };
-        tituloMap.set(key, g);
-        groups.push(g);
-      }
-      return tituloMap.get(key)!;
-    };
-    const ensureCap = (t: TituloGroup, key: string) => {
-      let c = t.capitulos.find(x => x.capitulo === key);
-      if (!c) { c = { capitulo: key, artigos: [] }; t.capitulos.push(c); }
-      return c;
-    };
-
     if (showTitulos) {
+      const titulosMap = new Map<string, { titulo: string; items: Array<{ art: typeof artigos[0]; capitulo: string | null }> }>();
       for (const art of artigos) {
-        const rawTitulo = art.titulo || 'Sem título';
-        const tituloKey = rawTitulo === 'Sem título' ? 'TÍTULO I - DA APLICAÇÃO DA LEI PENAL' : rawTitulo;
-        const capKey = art.capitulo || '__sem_capitulo__';
-        const t = ensureTitulo(tituloKey);
-        ensureCap(t, capKey).artigos.push(art);
+        const rawTitulo = (art.titulo || '').trim() || 'Disposições Preliminares';
+        const rawCap = (art.capitulo || '').trim();
+        const cap = rawCap && !/__(sem_capitulo|no_titulo|sem_titulo)__/i.test(rawCap) ? rawCap : null;
+
+        if (!titulosMap.has(rawTitulo)) {
+          titulosMap.set(rawTitulo, { titulo: rawTitulo, items: [] });
+        }
+        titulosMap.get(rawTitulo)!.items.push({ art, capitulo: cap });
+      }
+
+      const groups: TituloGroup[] = [];
+      for (const [tName, tData] of titulosMap) {
+        const hasAnyRealCap = tData.items.some(x => x.capitulo !== null);
+        const capMap = new Map<string, CapGroup>();
+
+        for (const item of tData.items) {
+          let capKey = item.capitulo;
+          if (!capKey) {
+            capKey = hasAnyRealCap ? 'Disposições Gerais' : tName;
+          }
+          if (!capMap.has(capKey)) {
+            capMap.set(capKey, { capitulo: capKey, titulo: tName, artigos: [] });
+          }
+          capMap.get(capKey)!.artigos.push(item.art);
+        }
+        groups.push({
+          titulo: tName,
+          capitulos: Array.from(capMap.values()),
+        });
       }
       return groups;
     }
 
-    // Derive from inline structural rows
+    // Derive from inline structural rows (PARTE, LIVRO, TÍTULO, CAPÍTULO)
+    const isParteOrLivroRow = (n: string) => /^\s*(PARTE|LIVRO)\b/i.test(n || '');
+    const isTituloRow = (n: string) => /^\s*T[ÍI]TULO\b/i.test(n || '');
+    const isCapituloRow = (n: string) => /^\s*CAP[ÍI]TULO\b/i.test(n || '');
+    const isStructuralRow = (n: string) =>
+      /^\s*(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)\b/i.test(n || '');
+
+    let currentParte: string | null = null;
     let currentTitulo: string | null = null;
     let currentCapitulo: string | null = null;
     let sawStructural = false;
 
+    const rawItems: Array<{
+      art: typeof artigos[0];
+      parte: string | null;
+      titulo: string;
+      capitulo: string | null;
+    }> = [];
+
     for (const art of artigos) {
       const num = (art.numero || '').trim();
+      const txt = (art as any).texto || art.caput || '';
+
+      if (isParteOrLivroRow(num)) {
+        sawStructural = true;
+        currentParte = parseStructuralHeading(num, txt);
+        currentTitulo = null;
+        currentCapitulo = null;
+        continue;
+      }
       if (isTituloRow(num)) {
         sawStructural = true;
-        let sub = (art.caput || '').replace(/<[^>]+>/g, '').trim();
-        // Remove eventual repetição do próprio header no início do subtítulo
-        const dupRe = new RegExp(`^${num.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[-–—:]?\\s*`, 'i');
-        sub = sub.replace(dupRe, '').trim();
-        currentTitulo = sub ? `${num} - ${sub}` : num;
+        currentTitulo = parseStructuralHeading(num, txt);
         currentCapitulo = null;
         continue;
       }
       if (isCapituloRow(num)) {
         sawStructural = true;
-        let sub = (art.caput || '').replace(/<[^>]+>/g, '').trim();
-        const dupRe = new RegExp(`^${num.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[-–—:]?\\s*`, 'i');
-        sub = sub.replace(dupRe, '').trim();
-        currentCapitulo = sub ? `${num} - ${sub}` : num;
-        if (!currentTitulo) currentTitulo = 'TÍTULO ÚNICO';
+        currentCapitulo = parseStructuralHeading(num, txt);
         continue;
       }
-      if (isStructuralRow(num)) continue;
+      if (isStructuralRow(num)) {
+        sawStructural = true;
+        continue;
+      }
 
-      const tKey = currentTitulo || '__no_titulo__';
-      const cKey = currentCapitulo || '__sem_capitulo__';
-      ensureCap(ensureTitulo(tKey), cKey).artigos.push(art);
+      // Artigo regular
+      const tName = currentTitulo || currentParte || 'Disposições Preliminares';
+      rawItems.push({
+        art,
+        parte: currentParte,
+        titulo: tName,
+        capitulo: currentCapitulo,
+      });
     }
 
-    if (!sawStructural && artigos.length > 0) {
-      const t = ensureTitulo('__no_titulo__');
-      ensureCap(t, '__sem_capitulo__').artigos.push(...artigos);
+    if (!sawStructural || rawItems.length === 0) {
+      const defaultName = selectedLeiNome || 'Legislação';
+      return [{
+        titulo: defaultName,
+        capitulos: [{
+          capitulo: `Capítulo Único - ${defaultName}`,
+          titulo: defaultName,
+          artigos: artigos.filter(a => !isStructuralRow((a.numero || '').trim())),
+        }]
+      }];
+    }
+
+    // Pass 2: Agrupa por título e resolve capítulos
+    const titulosMap = new Map<string, { titulo: string; items: typeof rawItems }>();
+    for (const item of rawItems) {
+      if (!titulosMap.has(item.titulo)) {
+        titulosMap.set(item.titulo, { titulo: item.titulo, items: [] });
+      }
+      titulosMap.get(item.titulo)!.items.push(item);
+    }
+
+    const groups: TituloGroup[] = [];
+    for (const [tName, tData] of titulosMap) {
+      const hasAnyRealCap = tData.items.some(x => x.capitulo !== null);
+      const capMap = new Map<string, CapGroup>();
+
+      for (const item of tData.items) {
+        let capKey = item.capitulo;
+        if (!capKey) {
+          capKey = hasAnyRealCap ? 'Disposições Gerais' : tName;
+        }
+
+        if (!capMap.has(capKey)) {
+          capMap.set(capKey, { capitulo: capKey, titulo: tName, artigos: [] });
+        }
+        capMap.get(capKey)!.artigos.push(item.art);
+      }
+
+      groups.push({
+        titulo: tName,
+        capitulos: Array.from(capMap.values()),
+      });
     }
 
     return groups;
-  }, [artigos, showTitulos]);
+  }, [artigos, showTitulos, selectedLeiNome]);
 
   const totalCapitulos = useMemo(() => {
     return capituloGroups.reduce((sum, g) => sum + g.capitulos.length, 0);
@@ -1709,10 +1776,8 @@ const CategoriaLegislacao = () => {
             )}
             {tGroup.capitulos.map((capGroup, ci) => {
               const capKey = `${tGroup.titulo}__${capGroup.capitulo}`;
-              const isExpanded = expandedTitulo === capKey;
-              const displayCap = capGroup.capitulo === '__sem_capitulo__'
-                ? 'Disposições Gerais'
-                : stripRedacaoFn(capGroup.capitulo);
+              const f = formatCapituloDisplay(capGroup.capitulo, tGroup.titulo);
+              const displayCap = f.tag ? `${f.tag} - ${f.title}` : f.title;
               return (
                 <button
                   key={ci}
@@ -1837,10 +1902,7 @@ const CategoriaLegislacao = () => {
               const isCapExpanded = expandedTitulo === capKey;
               const fA = capGroup.artigos[0]?.numero || '';
               const lA = capGroup.artigos[capGroup.artigos.length - 1]?.numero || '';
-              const rawCap = capGroup.capitulo === '__sem_capitulo__' ? 'Disposições Gerais' : stripRedacaoFn(capGroup.capitulo);
-              const cMatch = rawCap.match(splitRe);
-              const capHead = cMatch ? cMatch[1].trim() : rawCap;
-              const capSub = cMatch ? cMatch[2].trim() : '';
+              const f = formatCapituloDisplay(capGroup.capitulo, tGroup.titulo);
               return (
                 <div key={ci}>
                   <motion.button
@@ -1852,10 +1914,10 @@ const CategoriaLegislacao = () => {
                   >
                     <div className="w-2 rounded-l-2xl shrink-0" style={{ background: leiAccent }} />
                     <div className="p-4 md:p-5 flex-1 min-w-0 flex flex-col justify-center">
-                      <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300/90 font-body">{capHead}</p>
-                      {capSub ? (
-                        <p className="font-body text-base md:text-xl font-bold text-foreground leading-snug mt-0.5 tracking-normal">{toTitleCase(capSub)}</p>
+                      {f.tag ? (
+                        <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.22em] text-amber-300/90 font-body">{f.tag}</p>
                       ) : null}
+                      <p className="font-body text-base md:text-xl font-bold text-foreground leading-snug mt-0.5 tracking-normal">{f.title}</p>
                       <p className="text-muted-foreground text-xs md:text-sm mt-1 font-body">
                         {capGroup.artigos.length} artigos{fA && lA ? ` (${fA} – ${lA})` : ''}
                       </p>
@@ -1889,7 +1951,7 @@ const CategoriaLegislacao = () => {
             const allArts = tGroup.capitulos.flatMap(c => c.artigos);
             const firstArt = allArts[0]?.numero || '';
             const lastArt = allArts[allArts.length - 1]?.numero || '';
-            const hasRealCapitulos = tGroup.capitulos.some(c => c.capitulo !== '__sem_capitulo__');
+            const hasRealCapitulos = tGroup.capitulos.some(c => c.capitulo !== tGroup.titulo && !/__(sem_capitulo|no_titulo)__/i.test(c.capitulo));
             const titKey = `titulo__${tGroup.titulo}`;
             const isTitExpanded = expandedTitulo === titKey || (expandedTitulo?.startsWith(`${tGroup.titulo}__`) ?? false);
             return (
@@ -1933,16 +1995,7 @@ const CategoriaLegislacao = () => {
                         const isCapExpanded = expandedTitulo === capKey;
                         const fA = capGroup.artigos[0]?.numero || '';
                         const lA = capGroup.artigos[capGroup.artigos.length - 1]?.numero || '';
-                        const rawCap = capGroup.capitulo === '__sem_capitulo__'
-                          ? 'Disposições Gerais'
-                          : stripRedacaoFn(capGroup.capitulo);
-                        const cMatch = rawCap.match(splitRe);
-                        const capHead = cMatch ? cMatch[1].trim() : rawCap;
-                        let capSub = cMatch ? cMatch[2].trim() : '';
-                        if (capSub && capHead) {
-                          const dupRe = new RegExp(`^${capHead.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\s*[-–—:]?\\s*`, 'i');
-                          capSub = capSub.replace(dupRe, '').trim();
-                        }
+                        const f = formatCapituloDisplay(capGroup.capitulo, tGroup.titulo);
                         return (
                           <div key={ci}>
                             <button
@@ -1950,15 +2003,15 @@ const CategoriaLegislacao = () => {
                               className="w-full text-left rounded-xl bg-card/70 hover:bg-secondary/60 transition-all flex overflow-hidden border border-border/40"
                             >
                               <div className="p-3 md:p-4 flex-1 min-w-0">
-                                {capSub ? (
+                                {f.tag ? (
                                   <>
-                                    <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/80 font-body">{capHead}</p>
+                                    <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/80 font-body">{f.tag}</p>
                                     <p className="font-body text-sm md:text-lg font-bold text-foreground leading-snug mt-0.5 line-clamp-2 tracking-normal">
-                                      {toTitleCase(capSub)}
+                                      {f.title}
                                     </p>
                                   </>
                                 ) : (
-                                  <p className="font-body text-sm md:text-lg font-bold text-foreground leading-snug tracking-normal">{toTitleCase(capHead)}</p>
+                                  <p className="font-body text-sm md:text-lg font-bold text-foreground leading-snug tracking-normal">{f.title}</p>
                                 )}
                                 <p className="text-muted-foreground text-[11px] md:text-xs mt-1 font-body">{capGroup.artigos.length} artigos ({fA} – {lA})</p>
                               </div>
@@ -2030,9 +2083,8 @@ const CategoriaLegislacao = () => {
                 </p>
               )}
               {tGroup.capitulos.map((cap, ci) => {
-                const displayCap = cap.capitulo === '__sem_capitulo__'
-                  ? null
-                  : stripRe(cap.capitulo);
+                const f = formatCapituloDisplay(cap.capitulo, tGroup.titulo);
+                const displayCap = f.tag ? `${f.tag} - ${f.title}` : f.title;
                 return (
                   <div key={ci} className="space-y-2">
                     {displayCap && (

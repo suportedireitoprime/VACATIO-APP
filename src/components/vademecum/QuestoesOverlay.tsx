@@ -12,8 +12,10 @@ import hero6 from '@/assets/aprender-hero/hero-6.webp';
 const HERO_ILLUSTRATIONS = [hero1, hero2, hero3, hero4, hero5, hero6];
 const OFFSETS = [0, 56, 84, 56, 0, -56, -84, -56];
 
+import { formatCapituloDisplay } from '@/lib/capituloFormat';
+
 type ArtigoType = any; // Substitua por import real depois
-type CapGroup = { capitulo: string; artigos: ArtigoType[] };
+type CapGroup = { capitulo: string; titulo?: string; artigos: ArtigoType[] };
 type TituloGroup = { titulo: string; capitulos: CapGroup[] };
 
 interface AulasOverlayProps {
@@ -35,12 +37,13 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
   }, []);
 
   const allCapitulos = useMemo(() => {
-    return capituloGroups.flatMap(t => t.capitulos).filter(c => c.artigos.length > 0);
+    return capituloGroups.flatMap(t => t.capitulos.map(c => ({ ...c, titulo: t.titulo }))).filter(c => c.artigos.length > 0);
   }, [capituloGroups]);
 
   const totalAulas = allCapitulos.reduce((acc, curr) => acc + curr.artigos.length, 0);
 
   if (selectedCapitulo) {
+    const selectedFormatted = formatCapituloDisplay(selectedCapitulo.capitulo, selectedCapitulo.titulo);
     return (
       <div className="flex flex-col h-full bg-background relative w-full rounded-t-[30px] overflow-hidden" style={{ background: 'linear-gradient(180deg, hsl(0 70% 38%) 0%, hsl(0 75% 42%) 40%, hsl(0 72% 36%) 100%)' }}>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_60%)]" />
@@ -53,10 +56,10 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
           </button>
           <div className="flex-1 min-w-0">
             <h2 className="font-display font-bold text-lg text-white truncate drop-shadow-md">
-              {selectedCapitulo.capitulo.split(' - ').slice(1).join(' - ') || selectedCapitulo.capitulo}
+              {selectedFormatted.tag ? `${selectedFormatted.tag} - ${selectedFormatted.title}` : selectedFormatted.title}
             </h2>
             <p className="text-sm text-white/80 truncate font-body drop-shadow-sm">
-              {selectedCapitulo.artigos.length} aulas
+              {selectedCapitulo.artigos.length} questões
             </p>
           </div>
         </div>
@@ -172,19 +175,26 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider truncate">
-                    {cap.capitulo.split(' - ')[0]}
-                  </p>
-                  <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-muted text-muted-foreground tabular-nums ml-auto">
-                    {capPct}%
-                  </span>
-                </div>
-                <p className="min-w-0 text-[14px] font-bold text-foreground sm:text-[15px] leading-snug" style={{ fontFamily: "'Barlow', system-ui, sans-serif", letterSpacing: '-0.005em' }}>
-                  {cap.capitulo.split(' - ').slice(1).join(' - ') || cap.capitulo}
-                </p>
+                {(() => {
+                  const f = formatCapituloDisplay(cap.capitulo, cap.titulo);
+                  return (
+                    <>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider truncate">
+                          {f.tag}
+                        </p>
+                        <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-muted text-muted-foreground tabular-nums ml-auto">
+                          {capPct}%
+                        </span>
+                      </div>
+                      <p className="min-w-0 text-[14px] font-bold text-foreground sm:text-[15px] leading-snug" style={{ fontFamily: "'Barlow', system-ui, sans-serif", letterSpacing: '-0.005em' }}>
+                        {f.title}
+                      </p>
+                    </>
+                  );
+                })()}
                 <p className="mt-0.5 text-[12px] text-muted-foreground sm:text-[13px]">
-                  {cap.artigos.length} {cap.artigos.length === 1 ? 'aula' : 'aulas'}
+                  {cap.artigos.length} {cap.artigos.length === 1 ? 'questão' : 'questões'}
                 </p>
                 <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                   <div
