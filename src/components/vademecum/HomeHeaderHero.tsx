@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, Menu as MenuIcon, Layers, Clock, Eye, Lightbulb, ScrollText, Quote } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfileSummary } from '@/hooks/useProfileSummary';
-import heroEstudanteImg from '@/assets/covers/hero-leiseca-justica.webp';
+import heroEstudanteImg from '@/assets/covers/hero-advogados-tribunal.webp';
 import HeroMotifs from './HeroMotifs';
 import HomeBrandBanner from './HomeBrandBanner';
 import HomeActionShortcuts from './HomeActionShortcuts';
