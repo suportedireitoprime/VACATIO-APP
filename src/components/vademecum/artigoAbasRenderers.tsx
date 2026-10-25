@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Sparkles, 
   Lightbulb, 
   Layers, 
   Scale, 
@@ -10,6 +9,8 @@ import {
   Check, 
   HelpCircle, 
   AlertCircle, 
+  AlertTriangle,
+  CheckCircle2,
   ArrowRight, 
   BookOpen,
   ChevronDown
@@ -36,6 +37,10 @@ export const IdeiaTabContent: React.FC<IdeiaTabContentProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
+  // Escala proporcional confortável para mobile (base 15px-16px, escalável de 13 a 20px)
+  const baseSize = fontSize ? Math.round(fontSize * 0.88) : 15;
+  const computedSize = Math.max(13.5, Math.min(baseSize, 20));
+
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
     setCopied(true);
@@ -44,31 +49,30 @@ export const IdeiaTabContent: React.FC<IdeiaTabContentProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const formattedNumero = artigoNumero 
+    ? (artigoNumero.toLowerCase().startsWith('art') ? artigoNumero : `Art. ${artigoNumero}`)
+    : 'Artigo';
+
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
       <motion.div 
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-        className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/15 via-secondary/50 to-card p-6 shadow-2xl backdrop-blur-md"
+        transition={{ duration: 0.22 }}
+        className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/25 bg-gradient-to-br from-primary/10 via-secondary/40 to-card p-4 sm:p-6 shadow-xl backdrop-blur-md"
       >
-        {/* Glow de fundo */}
-        <div className="absolute -top-12 -right-12 w-40 h-40 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+        {/* Glow suave e discreto */}
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary shadow-sm">
-              <Sparkles className="w-4 h-4" />
-            </span>
-            <div>
-              <span className="text-[11px] font-bold text-primary tracking-wider uppercase block">Porta de Entrada Mental</span>
-              <span className="text-xs text-foreground/60 font-medium">Ideia Central • {artigoNumero || 'Artigo'}</span>
-            </div>
+        <div className="flex items-center justify-between mb-3.5">
+          <div>
+            <span className="text-[10px] sm:text-[11px] font-bold text-primary tracking-wider uppercase block">Porta de Entrada Mental</span>
+            <span className="text-xs text-muted-foreground font-medium">Ideia Central • {formattedNumero}</span>
           </div>
 
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60"
+            className="flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60"
             title="Copiar ideia"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -76,22 +80,284 @@ export const IdeiaTabContent: React.FC<IdeiaTabContentProps> = ({
           </button>
         </div>
 
-        {/* Texto da Ideia */}
+        {/* Texto da Ideia responsivo para mobile */}
         <div 
-          className="font-body text-foreground/95 leading-relaxed font-normal tracking-wide [&_strong]:text-primary [&_strong]:font-bold [&_strong]:drop-shadow-sm space-y-3"
-          style={{ fontSize: `${Math.max(fontSize, 16.5)}px` }}
+          className="font-body text-foreground/90 leading-[1.65] font-normal tracking-normal [&_strong]:text-primary [&_strong]:font-semibold space-y-2.5"
+          style={{ fontSize: `${computedSize}px` }}
         >
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
 
         {/* Rodapé pedagógico */}
-        <div className="mt-6 pt-4 border-t border-primary/15 flex items-start gap-2.5 text-xs text-foreground/70">
+        <div className="mt-4 pt-3.5 border-t border-border/40 flex items-start gap-2.5 text-xs text-muted-foreground">
           <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-          <p className="leading-snug">
-            <strong>Como usar este conceito:</strong> Guarde esta ideia como sua âncora de raciocínio. Ao ler os incisos e parágrafos, veja como cada detalhe serve para colocar este objetivo em prática.
+          <p className="leading-relaxed">
+            <strong className="text-foreground/90 font-medium">Como usar este conceito:</strong> Guarde esta ideia como sua âncora de raciocínio. Ao ler os incisos e parágrafos, veja como cada detalhe serve para colocar este objetivo em prática.
           </p>
         </div>
       </motion.div>
+    </div>
+  );
+};
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1.5. ABA EXPLICAÇÃO (LEITURA FLUIDA DIRETA — SEM ACORDEÃO DE SEÇÃO)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ExplicacaoTabContentProps {
+  content: string;
+  artigoNumero?: string;
+  fontSize?: number;
+}
+
+interface ExplicacaoBloco {
+  tipo: 'decide' | 'distincao' | 'erro' | 'resumo' | 'pegadinha' | 'geral';
+  numero?: string;
+  titulo: string;
+  corpo: string;
+}
+
+export const ExplicacaoTabContent: React.FC<ExplicacaoTabContentProps> = ({ 
+  content, 
+  artigoNumero,
+  fontSize = 16 
+}) => {
+  // Tamanho balanceado para leitura fluida mobile
+  const baseSize = fontSize ? Math.round(fontSize * 0.88) : 15;
+  const computedSize = Math.max(13.5, Math.min(baseSize, 20));
+
+  const { introText, blocos } = React.useMemo(() => {
+    if (!content) return { introText: '', blocos: [] };
+
+    // Parser estruturado quando há delimitadores ---SECAO---
+    if (content.includes('---SECAO---')) {
+      const parts = content.split('---SECAO---').map(s => s.trim()).filter(Boolean);
+      let intro = '';
+      const list: ExplicacaoBloco[] = [];
+
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        const lines = part.split('\n');
+        const titleLine = lines.find(l => l.startsWith('## ') || l.startsWith('### ') || l.startsWith('**'));
+
+        // Se é o primeiro bloco e não tem título ##, é a frase padrão introdutória
+        if (i === 0 && !titleLine) {
+          intro = part;
+          continue;
+        }
+
+        const rawTitle = titleLine 
+          ? titleLine.replace(/^###?\s*/, '').replace(/^\*\*/, '').replace(/\*\*$/, '').trim()
+          : '';
+        const body = lines.filter(l => l !== titleLine).join('\n').trim();
+
+        if (/1\.|o que este artigo decide|decide/i.test(rawTitle)) {
+          list.push({ tipo: 'decide', numero: '1', titulo: rawTitle.replace(/^1\.\s*/, ''), corpo: body || part });
+        } else if (/2\.|a distinção central|distin[çc]/i.test(rawTitle)) {
+          list.push({ tipo: 'distincao', numero: '2', titulo: rawTitle.replace(/^2\.\s*/, ''), corpo: body || part });
+        } else if (/3\.|o erro mais comum|erro/i.test(rawTitle)) {
+          list.push({ tipo: 'erro', numero: '3', titulo: rawTitle.replace(/^3\.\s*/, ''), corpo: body || part });
+        } else if (/resumo/i.test(rawTitle)) {
+          list.push({ tipo: 'resumo', titulo: rawTitle, corpo: body || part });
+        } else if (/pegadinha|prova|armadilha/i.test(rawTitle)) {
+          list.push({ tipo: 'pegadinha', titulo: rawTitle, corpo: body || part });
+        } else {
+          list.push({ tipo: 'geral', titulo: rawTitle || `Parte ${i + 1}`, corpo: body || part });
+        }
+      }
+
+      return { introText: intro, blocos: list };
+    }
+
+    // Fallback se estiver estruturado apenas com títulos ##
+    const sectionsByHeading = content.split(/\n(?=## )/).map(s => s.trim()).filter(Boolean);
+    if (sectionsByHeading.length > 1) {
+      let intro = '';
+      const list: ExplicacaoBloco[] = [];
+      for (let i = 0; i < sectionsByHeading.length; i++) {
+        const part = sectionsByHeading[i];
+        const lines = part.split('\n');
+        const titleLine = lines.find(l => l.startsWith('## '));
+        if (i === 0 && !titleLine) {
+          intro = part;
+          continue;
+        }
+        const rawTitle = titleLine ? titleLine.replace(/^##\s*/, '').trim() : '';
+        const body = lines.filter(l => l !== titleLine).join('\n').trim();
+
+        if (/1\.|decide/i.test(rawTitle)) list.push({ tipo: 'decide', numero: '1', titulo: rawTitle.replace(/^1\.\s*/, ''), corpo: body });
+        else if (/2\.|distin[çc]/i.test(rawTitle)) list.push({ tipo: 'distincao', numero: '2', titulo: rawTitle.replace(/^2\.\s*/, ''), corpo: body });
+        else if (/3\.|erro/i.test(rawTitle)) list.push({ tipo: 'erro', numero: '3', titulo: rawTitle.replace(/^3\.\s*/, ''), corpo: body });
+        else if (/resumo/i.test(rawTitle)) list.push({ tipo: 'resumo', titulo: rawTitle, corpo: body });
+        else if (/pegadinha|prova/i.test(rawTitle)) list.push({ tipo: 'pegadinha', titulo: rawTitle, corpo: body });
+        else list.push({ tipo: 'geral', titulo: rawTitle || `Tópico ${i + 1}`, corpo: body });
+      }
+      return { introText: intro, blocos: list };
+    }
+
+    return { introText: '', blocos: [] };
+  }, [content]);
+
+  // Se o conteúdo é texto puro ou não possui seções identificadas
+  if (blocos.length === 0) {
+    return (
+      <div 
+        className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed text-foreground/90 space-y-3 [&_p]:my-2 [&_ul]:my-2 [&_li]:my-1 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-primary [&_strong]:text-foreground"
+        style={{ fontSize: `${computedSize}px` }}
+      >
+        <ReactMarkdown>{content}</ReactMarkdown>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3.5 max-w-2xl mx-auto" style={{ fontSize: `${computedSize}px` }}>
+      {/* Frase introdutória limpa */}
+      {introText && (
+        <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-secondary/35 border border-border/50 text-xs text-muted-foreground font-body">
+          <BookOpen className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span className="line-clamp-2 leading-relaxed">{introText}</span>
+        </div>
+      )}
+
+      {/* Blocos de leitura aberta e direta */}
+      {blocos.map((bloco, idx) => {
+        if (bloco.tipo === 'decide') {
+          return (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: idx * 0.03 }}
+              className="rounded-2xl border border-sky-500/25 bg-gradient-to-br from-sky-500/10 via-secondary/30 to-card p-4 sm:p-5 shadow-sm space-y-2"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 font-bold text-xs flex items-center justify-center shrink-0 border border-sky-500/30">
+                  1
+                </span>
+                <h3 className="font-heading font-semibold text-foreground text-sm sm:text-base tracking-wide">
+                  {bloco.titulo || 'O que este artigo decide'}
+                </h3>
+              </div>
+              <div className="text-foreground/90 font-body leading-relaxed text-sm sm:text-[15px] space-y-2 [&_strong]:text-sky-300 [&_strong]:font-semibold">
+                <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
+              </div>
+            </motion.div>
+          );
+        }
+
+        if (bloco.tipo === 'distincao') {
+          return (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: idx * 0.03 }}
+              className="rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-secondary/30 to-card p-4 sm:p-5 shadow-sm space-y-2"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-500/30">
+                  2
+                </span>
+                <h3 className="font-heading font-semibold text-foreground text-sm sm:text-base tracking-wide">
+                  {bloco.titulo || 'A distinção central'}
+                </h3>
+              </div>
+              <div className="text-foreground/90 font-body leading-relaxed text-sm sm:text-[15px] space-y-2 [&_strong]:text-emerald-300 [&_strong]:font-semibold">
+                <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
+              </div>
+            </motion.div>
+          );
+        }
+
+        if (bloco.tipo === 'erro') {
+          return (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: idx * 0.03 }}
+              className="rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-secondary/30 to-card p-4 sm:p-5 shadow-sm space-y-2"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-6 h-6 rounded-lg bg-violet-500/20 text-violet-400 font-bold text-xs flex items-center justify-center shrink-0 border border-violet-500/30">
+                  3
+                </span>
+                <h3 className="font-heading font-semibold text-foreground text-sm sm:text-base tracking-wide">
+                  {bloco.titulo || 'O erro mais comum'}
+                </h3>
+              </div>
+              <div className="text-foreground/90 font-body leading-relaxed text-sm sm:text-[15px] space-y-2 [&_strong]:text-violet-300 [&_strong]:font-semibold">
+                <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
+              </div>
+            </motion.div>
+          );
+        }
+
+        if (bloco.tipo === 'resumo') {
+          return (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: idx * 0.03 }}
+              className="rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5 shadow-sm space-y-2.5"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                <h3 className="font-heading font-bold text-primary text-sm sm:text-base tracking-wide">
+                  {bloco.titulo || 'Resumo do Artigo'}
+                </h3>
+              </div>
+              <div className="text-foreground/90 font-body leading-relaxed text-sm sm:text-[15px] space-y-1.5 [&_ul]:space-y-1.5 [&_li]:flex [&_li]:items-start [&_strong]:text-foreground">
+                <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
+              </div>
+            </motion.div>
+          );
+        }
+
+        if (bloco.tipo === 'pegadinha') {
+          return (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: idx * 0.03 }}
+              className="rounded-2xl border border-amber-500/35 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-card p-4 sm:p-5 shadow-sm space-y-2"
+            >
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                <h3 className="font-heading font-bold text-amber-400 text-xs sm:text-sm uppercase tracking-wider">
+                  {bloco.titulo || 'Pegadinha de Prova'}
+                </h3>
+              </div>
+              <div className="text-foreground/95 font-body leading-relaxed text-sm sm:text-[15px] space-y-2 [&_strong]:text-amber-300 [&_strong]:font-semibold">
+                <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
+              </div>
+            </motion.div>
+          );
+        }
+
+        return (
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: idx * 0.03 }}
+            className="rounded-2xl border border-border/60 bg-secondary/20 p-4 sm:p-5 shadow-sm space-y-2"
+          >
+            {bloco.titulo && (
+              <h3 className="font-heading font-semibold text-foreground text-sm sm:text-base">
+                {bloco.titulo}
+              </h3>
+            )}
+            <div className="text-foreground/90 font-body leading-relaxed text-sm sm:text-[15px] space-y-2">
+              <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
+            </div>
+          </motion.div>
+        );
+      })}
     </div>
   );
 };

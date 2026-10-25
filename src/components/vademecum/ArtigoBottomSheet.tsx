@@ -76,7 +76,7 @@ import { useNarracaoFlutuante } from '@/stores/useNarracaoFlutuante';
 import { useLeituraStore } from '@/stores/useLeituraStore';
 import { useLocation } from 'react-router-dom';
 import { getArtigoExplicadoManual } from '@/data/artigosExplicadosData';
-import { IdeiaTabContent, DesdobramentoTabContent, JurisprudenciaTabContent } from './artigoAbasRenderers';
+import { IdeiaTabContent, ExplicacaoTabContent, DesdobramentoTabContent, JurisprudenciaTabContent } from './artigoAbasRenderers';
 
 
 import { LEIS_SUPABASE_URL, LEIS_SUPABASE_ANON_KEY, LEIS_SUPABASE_PROJECT_ID } from "@/lib/legislacaoBackend";
@@ -2859,8 +2859,7 @@ Separe cada julgado com:
                 <TabsTrigger value="artigo" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
                   Artigo
                 </TabsTrigger>
-                <TabsTrigger value="ideia" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
+                <TabsTrigger value="ideia" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start">
                   Ideia
                 </TabsTrigger>
                 <TabsTrigger value="explicacao" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 flex items-center gap-1.5 snap-start">
@@ -3332,36 +3331,11 @@ Separe cada julgado com:
                     <p className="text-sm text-muted-foreground font-body">Gerando explicação com IA...</p>
                   </div>
                 ) : aiContent.explicacao ? (
-                  (() => {
-                    const sections = splitSections(aiContent.explicacao, '---SECAO---');
-                    if (sections.length <= 1) {
-                      return (
-                        <div className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:font-bold [&_h2]:text-foreground [&_h3]:font-bold [&_strong]:text-foreground" style={{ fontSize: `${fontSize}px` }}>
-                          <ReactMarkdown>{aiContent.explicacao}</ReactMarkdown>
-                        </div>
-                      );
-                    }
-                    return (
-                      <Accordion type="multiple" className="space-y-2">
-                        {sections.map((sec, i) => {
-                          const borderColors = ['border-l-red-500/70', 'border-l-amber-500/70', 'border-l-emerald-500/70', 'border-l-sky-500/70', 'border-l-violet-500/70', 'border-l-pink-500/70', 'border-l-orange-500/70'];
-                          const strongColors = ['[&_strong]:text-red-400', '[&_strong]:text-amber-400', '[&_strong]:text-emerald-400', '[&_strong]:text-sky-400', '[&_strong]:text-violet-400', '[&_strong]:text-pink-400', '[&_strong]:text-orange-400'];
-                          return (
-                          <AccordionItem key={i} value={`exp-${i}`} className={`border border-border rounded-xl overflow-hidden bg-secondary/30 border-l-4 ${borderColors[i % borderColors.length]}`}>
-                            <AccordionTrigger className="px-4 py-4 text-base font-semibold text-foreground text-left hover:no-underline [&[data-state=open]>svg]:rotate-180">
-                              {sec.title}
-                            </AccordionTrigger>
-                            <AccordionContent className="px-4 pb-4">
-                              <div className={`prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 ${strongColors[i % strongColors.length]}`} style={{ fontSize: `${fontSize}px` }}>
-                                <ReactMarkdown>{sec.body}</ReactMarkdown>
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                          );
-                        })}
-                      </Accordion>
-                    );
-                  })()
+                  <ExplicacaoTabContent
+                    content={aiContent.explicacao}
+                    artigoNumero={artigo.numero}
+                    fontSize={fontSize}
+                  />
                 ) : (
                   <p className="text-muted-foreground text-sm text-center py-8">Clique para gerar a explicação.</p>
                 )}
