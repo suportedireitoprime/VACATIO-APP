@@ -3365,7 +3365,7 @@ Separe cada julgado com:
                 const sections = splitSections(aiContent.exemplo, '---EXEMPLO---');
                 if (sections.length <= 1) {
                   return (
-                    <div className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:font-bold [&_h2]:text-foreground [&_h3]:font-bold [&_strong]:text-foreground" style={{ fontSize: `${fontSize}px` }}>
+                    <div className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:!font-card [&_h2]:font-bold [&_h2]:text-base [&_h2]:text-foreground [&_h3]:!font-card [&_h3]:font-bold [&_h3]:text-sm [&_strong]:text-foreground" style={{ fontSize: `${fontSize}px` }}>
                       <ReactMarkdown>{aiContent.exemplo}</ReactMarkdown>
                     </div>
                   );
@@ -3377,11 +3377,11 @@ Separe cada julgado com:
                       const strongColors = ['[&_strong]:text-emerald-400', '[&_strong]:text-sky-400', '[&_strong]:text-amber-400', '[&_strong]:text-violet-400'];
                       return (
                       <AccordionItem key={i} value={`ex-${i}`} className={`border border-border rounded-xl overflow-hidden bg-secondary/30 border-l-4 ${borderColors[i % borderColors.length]}`}>
-                        <AccordionTrigger className="px-4 py-4 text-base font-semibold text-foreground text-left hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                        <AccordionTrigger className="px-4 py-4 text-sm sm:text-base !font-card font-bold text-foreground text-left hover:no-underline [&[data-state=open]>svg]:rotate-180">
                           {sec.title}
                         </AccordionTrigger>
                         <AccordionContent className="px-4 pb-4">
-                          <div className={`prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 ${strongColors[i % strongColors.length]}`} style={{ fontSize: `${fontSize}px` }}>
+                          <div className={`prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:!font-card [&_h2]:font-bold [&_h3]:!font-card [&_h3]:font-bold ${strongColors[i % strongColors.length]}`} style={{ fontSize: `${fontSize}px` }}>
                             <ReactMarkdown>{sec.body}</ReactMarkdown>
                           </div>
                         </AccordionContent>
@@ -3407,7 +3407,7 @@ Separe cada julgado com:
                 const sections = splitSections(aiContent.termos, '---TERMO---');
                 if (sections.length <= 1) {
                   return (
-                    <div className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:font-bold [&_h2]:text-foreground [&_h3]:font-bold [&_strong]:text-foreground" style={{ fontSize: `${fontSize}px` }}>
+                    <div className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:!font-card [&_h2]:font-bold [&_h2]:text-base [&_h2]:text-foreground [&_h3]:!font-card [&_h3]:font-bold [&_h3]:text-sm [&_strong]:text-foreground" style={{ fontSize: `${fontSize}px` }}>
                       <ReactMarkdown>{aiContent.termos}</ReactMarkdown>
                     </div>
                   );
@@ -3419,11 +3419,11 @@ Separe cada julgado com:
                       const strongColors = ['[&_strong]:text-pink-400', '[&_strong]:text-orange-400', '[&_strong]:text-cyan-400', '[&_strong]:text-red-400', '[&_strong]:text-indigo-400', '[&_strong]:text-lime-400'];
                       return (
                         <AccordionItem key={i} value={`term-${i}`} className={`border border-border rounded-xl overflow-hidden bg-secondary/30 border-l-4 ${borderColors[i % borderColors.length]}`}>
-                          <AccordionTrigger className="px-4 py-4 text-base font-semibold text-foreground text-left hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                          <AccordionTrigger className="px-4 py-4 text-sm sm:text-base !font-card font-bold text-foreground text-left hover:no-underline [&[data-state=open]>svg]:rotate-180">
                             {sec.title}
                           </AccordionTrigger>
                           <AccordionContent className="px-4 pb-4">
-                            <div className={`prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 ${strongColors[i % strongColors.length]}`} style={{ fontSize: `${fontSize}px` }}>
+                            <div className={`prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed [&_p]:my-2 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-1 [&_h2]:!font-card [&_h2]:font-bold [&_h3]:!font-card [&_h3]:font-bold ${strongColors[i % strongColors.length]}`} style={{ fontSize: `${fontSize}px` }}>
                               <ReactMarkdown>{sec.body}</ReactMarkdown>
                             </div>
                           </AccordionContent>

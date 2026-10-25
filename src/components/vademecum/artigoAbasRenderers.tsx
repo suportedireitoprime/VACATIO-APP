@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   ArrowRight, 
   BookOpen,
-  ChevronDown
+  ChevronDown,
+  FileText
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -569,7 +570,31 @@ export const DesdobramentoTabContent: React.FC<DesdobramentoTabContentProps> = (
   content, 
   fontSize = 15 
 }) => {
+  const [copiedTrechoIdx, setCopiedTrechoIdx] = useState<number | null>(null);
   const trechos = parseDesdobramentoText(content);
+
+  const handleCopyTrecho = (idx: number, trecho: TrechoData) => {
+    const parts: string[] = [trecho.title];
+    if (trecho.textoOficial) parts.push(`Texto Oficial:\n"${trecho.textoOficial}"`);
+    if (trecho.explicacao) parts.push(`Explicação:\n${trecho.explicacao}`);
+    if (trecho.porque) parts.push(`Por que a lei fez assim?:\n${trecho.porque}`);
+    if (trecho.palavras.length > 0) {
+      const palavrasText = trecho.palavras.map(p => {
+        let t = `• Expressão: "${p.termo}"`;
+        if (p.significado) t += `\n  - Significado: ${p.significado}`;
+        if (p.porque) t += `\n  - Por que a lei escolheu: ${p.porque}`;
+        if (p.outra) t += `\n  - E se fosse outra: ${p.outra}`;
+        return t;
+      }).join('\n');
+      parts.push(`Palavra por palavra:\n${palavrasText}`);
+    }
+    const textToCopy = parts.join('\n\n');
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedTrechoIdx(idx);
+    haptic.selection();
+    toast.success('Trecho do Raio-X copiado!');
+    setTimeout(() => setCopiedTrechoIdx(null), 2000);
+  };
 
   const borderColors = [
     'border-l-indigo-500', 
@@ -594,40 +619,64 @@ export const DesdobramentoTabContent: React.FC<DesdobramentoTabContentProps> = (
             className={`rounded-2xl border border-border/70 bg-card/90 shadow-lg overflow-hidden border-l-4 ${borderColor}`}
           >
             {/* Cabeçalho do Trecho */}
-            <div className="p-4 sm:p-5 border-b border-border/50 bg-secondary/30 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-xs font-bold">
+            <div className="p-4 sm:p-5 border-b border-border/50 bg-secondary/30 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0">
                   {idx + 1}
                 </span>
-                <h3 className="font-heading font-semibold text-base text-foreground tracking-wide">
+                <span className="!font-card font-bold text-base sm:text-[17px] text-foreground tracking-normal truncate">
                   {t.title}
-                </h3>
+                </span>
               </div>
+
+              <button
+                onClick={() => handleCopyTrecho(idx, t)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60 shrink-0"
+                title="Copiar análise do trecho"
+              >
+                {copiedTrechoIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                <span className="text-[11px]">{copiedTrechoIdx === idx ? 'Copiado' : 'Copiar'}</span>
+              </button>
             </div>
 
             <div className="p-4 sm:p-5 space-y-4" style={{ fontSize: `${fontSize}px` }}>
               {/* Texto Oficial se identificado */}
               {t.textoOficial && (
-                <div className="rounded-xl bg-secondary/50 border border-border/60 p-3.5 text-foreground/80 italic text-sm font-serif">
-                  "{t.textoOficial}"
+                <div className="rounded-xl bg-secondary/40 border border-border/60 p-3.5 space-y-1">
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                    Texto Oficial da Lei
+                  </span>
+                  <p className="text-foreground/90 italic text-sm sm:text-[15px] font-serif leading-relaxed">
+                    "{t.textoOficial}"
+                  </p>
                 </div>
               )}
 
               {/* Explicação do Trecho */}
               {t.explicacao && (
-                <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 font-body leading-relaxed [&_p]:my-2 [&_strong]:text-primary">
-                  <ReactMarkdown>{t.explicacao}</ReactMarkdown>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-primary pb-1">
+                    <FileText className="w-4 h-4 shrink-0" />
+                    <span className="!font-card font-bold text-sm sm:text-[15px] text-foreground">
+                      Explicação do trecho
+                    </span>
+                  </div>
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 font-body leading-relaxed [&_p]:my-2 [&_strong]:text-primary text-sm sm:text-[15px]">
+                    <ReactMarkdown>{t.explicacao}</ReactMarkdown>
+                  </div>
                 </div>
               )}
 
               {/* Por que a lei fez assim? */}
               {t.porque && (
-                <div className="rounded-2xl bg-amber-500/10 border border-amber-500/25 p-4 space-y-1.5">
-                  <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
-                    <HelpCircle className="w-4 h-4" />
-                    <span>Por que a lei fez assim?</span>
+                <div className="rounded-2xl bg-amber-500/10 border border-amber-500/25 p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-amber-400 pb-1 border-b border-amber-500/20">
+                    <HelpCircle className="w-4 h-4 shrink-0" />
+                    <span className="!font-card font-bold text-sm sm:text-[15px] text-amber-400">
+                      Por que a lei fez assim?
+                    </span>
                   </div>
-                  <p className="text-sm text-foreground/90 leading-relaxed font-body">
+                  <p className="text-sm sm:text-[15px] text-foreground/90 leading-relaxed font-body">
                     {t.porque}
                   </p>
                 </div>
@@ -635,42 +684,55 @@ export const DesdobramentoTabContent: React.FC<DesdobramentoTabContentProps> = (
 
               {/* Seção Palavra por Palavra */}
               {t.palavras.length > 0 && (
-                <div className="space-y-3 pt-2">
-                  <h4 className="text-xs font-bold text-foreground/60 uppercase tracking-wider flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5 text-primary" />
-                    Palavra por palavra deste trecho
-                  </h4>
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-border/40">
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-primary shrink-0" />
+                      <span className="!font-card font-bold text-sm sm:text-[15px] text-foreground">
+                        Palavra por palavra deste trecho
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-medium text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full border border-border/50">
+                      {t.palavras.length} {t.palavras.length === 1 ? 'expressão' : 'expressões'}
+                    </span>
+                  </div>
 
                   <div className="grid grid-cols-1 gap-2.5">
                     {t.palavras.map((p, pIdx) => (
                       <div 
                         key={pIdx}
-                        className="rounded-xl border border-border/80 bg-secondary/25 p-3.5 space-y-2 hover:border-primary/40 transition-colors"
+                        className="rounded-xl border border-border/80 bg-secondary/25 p-3.5 space-y-3 hover:border-primary/40 transition-colors"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded-md bg-primary/20 text-primary text-xs font-bold">
+                          <span className="px-2.5 py-1 rounded-md bg-primary/20 text-primary text-xs sm:text-sm font-bold !font-card">
                             {p.termo}
                           </span>
                         </div>
 
                         {p.significado && (
-                          <div className="text-xs text-foreground/90 leading-relaxed">
-                            <span className="font-semibold text-foreground">O que significa aqui: </span>
-                            {p.significado}
+                          <div className="text-sm text-foreground/90 leading-relaxed space-y-0.5">
+                            <span className="text-[11px] font-semibold text-foreground/60 uppercase tracking-wider block">
+                              O que significa aqui
+                            </span>
+                            <p className="font-body text-foreground/95">{p.significado}</p>
                           </div>
                         )}
 
                         {p.porque && (
-                          <div className="text-xs text-foreground/80 leading-relaxed">
-                            <span className="font-semibold text-amber-400">Por que a lei escolheu esta palavra: </span>
-                            {p.porque}
+                          <div className="text-sm text-foreground/90 leading-relaxed space-y-0.5">
+                            <span className="text-[11px] font-semibold text-amber-400/90 uppercase tracking-wider block">
+                              Por que a lei escolheu esta palavra
+                            </span>
+                            <p className="font-body text-foreground/95">{p.porque}</p>
                           </div>
                         )}
 
                         {p.outra && (
-                          <div className="text-xs text-foreground/70 leading-relaxed italic bg-black/20 p-2 rounded-lg border border-white/5">
-                            <span className="font-semibold text-rose-400 not-italic">E se fosse outra? </span>
-                            {p.outra}
+                          <div className="rounded-xl bg-rose-500/10 border border-rose-500/20 p-3 text-sm leading-relaxed space-y-0.5">
+                            <span className="text-[11px] font-semibold text-rose-400 uppercase tracking-wider block">
+                              E se fosse outra palavra?
+                            </span>
+                            <p className="font-body text-foreground/90 italic">{p.outra}</p>
                           </div>
                         )}
                       </div>
@@ -781,7 +843,22 @@ export const JurisprudenciaTabContent: React.FC<JurisprudenciaTabContentProps> =
   onExploreMore,
   fontSize = 15 
 }) => {
+  const [copiedJulgadoIdx, setCopiedJulgadoIdx] = useState<number | null>(null);
   const julgados = parseJurisprudenciaText(content);
+
+  const handleCopyJulgado = (idx: number, j: JulgadoData) => {
+    const parts: string[] = [`[${j.tribunal}${j.ano ? ` - ${j.ano}` : ''}] ${j.titulo}`];
+    if (j.caso) parts.push(`Caso:\n${j.caso}`);
+    if (j.decisao) parts.push(`Decisão:\n"${j.decisao}"`);
+    if (j.importancia) parts.push(`Impacto Prático:\n${j.importancia}`);
+    if (j.link) parts.push(`Fonte Oficial: ${j.link}`);
+    const textToCopy = parts.join('\n\n');
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedJulgadoIdx(idx);
+    haptic.selection();
+    toast.success('Jurisprudência copiada!');
+    setTimeout(() => setCopiedJulgadoIdx(null), 2000);
+  };
 
   const getBadgeStyle = (tribunal: string) => {
     if (/STF/i.test(tribunal)) return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
@@ -811,7 +888,7 @@ export const JurisprudenciaTabContent: React.FC<JurisprudenciaTabContentProps> =
           className="rounded-2xl border border-border/80 bg-card/90 shadow-xl overflow-hidden hover:border-border transition-all"
         >
           {/* Top banner do Julgado */}
-          <div className="p-4 sm:p-5 border-b border-border/50 bg-secondary/30 flex flex-wrap items-center justify-between gap-2">
+          <div className="p-4 sm:p-5 border-b border-border/50 bg-secondary/30 flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
               <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${getBadgeStyle(j.tribunal)}`}>
                 {j.tribunal}
@@ -823,17 +900,26 @@ export const JurisprudenciaTabContent: React.FC<JurisprudenciaTabContentProps> =
               )}
             </div>
 
-            <h4 className="font-heading font-semibold text-sm sm:text-base text-foreground flex-1 min-w-[200px]">
+            <span className="!font-card font-bold text-sm sm:text-base text-foreground flex-1 min-w-[200px]">
               {j.titulo}
-            </h4>
+            </span>
+
+            <button
+              onClick={() => handleCopyJulgado(idx, j)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60 shrink-0"
+              title="Copiar julgado"
+            >
+              {copiedJulgadoIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span className="text-[11px]">{copiedJulgadoIdx === idx ? 'Copiado' : 'Copiar'}</span>
+            </button>
           </div>
 
           <div className="p-4 sm:p-5 space-y-4" style={{ fontSize: `${fontSize}px` }}>
             {/* O Caso Concreto */}
             {j.caso && (
               <div className="space-y-1">
-                <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider block">O Caso Concreto</span>
-                <p className="text-sm text-foreground/90 leading-relaxed font-body">
+                <span className="text-[11px] font-semibold text-foreground/60 uppercase tracking-wider block">O Caso Concreto</span>
+                <p className="text-sm sm:text-[15px] text-foreground/90 leading-relaxed font-body">
                   {j.caso}
                 </p>
               </div>
@@ -842,8 +928,8 @@ export const JurisprudenciaTabContent: React.FC<JurisprudenciaTabContentProps> =
             {/* A Decisão / Tese */}
             {j.decisao && (
               <div className="rounded-2xl bg-primary/10 border border-primary/25 p-4 space-y-1.5">
-                <span className="text-xs font-bold text-primary uppercase tracking-wider block">A Tese Fixada pelo Tribunal</span>
-                <p className="text-sm font-medium text-foreground leading-relaxed font-body">
+                <span className="text-[11px] font-semibold text-primary uppercase tracking-wider block">A Tese Fixada pelo Tribunal</span>
+                <p className="text-sm sm:text-[15px] font-medium text-foreground leading-relaxed font-body">
                   "{j.decisao}"
                 </p>
               </div>
@@ -852,8 +938,8 @@ export const JurisprudenciaTabContent: React.FC<JurisprudenciaTabContentProps> =
             {/* Por que importa para o artigo */}
             {j.importancia && (
               <div className="rounded-xl bg-secondary/30 border border-border/40 p-3.5 space-y-1">
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">Impacto Prático no Artigo</span>
-                <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed font-body">
+                <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider block">Impacto Prático no Artigo</span>
+                <p className="text-sm sm:text-[15px] text-foreground/80 leading-relaxed font-body">
                   {j.importancia}
                 </p>
               </div>
@@ -881,7 +967,7 @@ export const JurisprudenciaTabContent: React.FC<JurisprudenciaTabContentProps> =
       {onExploreMore && (
         <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div>
-            <h4 className="font-heading font-semibold text-sm text-foreground">Quer ver todos os acórdãos e súmulas?</h4>
+            <span className="!font-card font-bold text-sm text-foreground block">Quer ver todos os acórdãos e súmulas?</span>
             <p className="text-xs text-foreground/70 mt-0.5">Explore a busca completa de jurisprudência deste artigo no aplicativo.</p>
           </div>
           <button
