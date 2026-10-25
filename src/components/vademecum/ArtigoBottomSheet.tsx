@@ -1,7 +1,7 @@
 import { cloneElement, isValidElement, useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronRight, ExternalLink, Volume2, VolumeX, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Layers, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2, Lock } from 'lucide-react';
+import { Search, X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronRight, ExternalLink, Volume2, VolumeX, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2, Lock } from 'lucide-react';
 import { getNarracaoArtigo, getCachedNarracaoUrl, isAudioUrlValida } from '@/services/narracaoArtigosSyncService';
 const LembretesArtigoSheet = lazy(() => import('./LembretesArtigoSheet'));
 const BaixarArtigoSheet = lazy(() => import('./BaixarArtigoSheet'));
@@ -2855,36 +2855,34 @@ Separe cada julgado com:
             const hasHistorico = /\((?:Reda[çc][ãa]o|Inclu[íi]d[oa]|Revogad[oa]|Acrescid[oa]|Alterad[oa])/i.test(articleFullText);
             
             return (
-              <TabsList className="mx-5 bg-secondary/60 rounded-2xl h-11 flex overflow-x-auto w-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden justify-start snap-x snap-mandatory">
+              <TabsList className="ml-5 mr-0 bg-secondary/60 rounded-l-2xl rounded-r-none h-11 flex overflow-x-auto p-1 pr-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden justify-start snap-x snap-mandatory">
                 <TabsTrigger value="artigo" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
                   Artigo
                 </TabsTrigger>
-                <TabsTrigger value="ideia" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start">
+                <TabsTrigger value="ideia" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
                   Ideia
                 </TabsTrigger>
-                <TabsTrigger value="explicacao" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 flex items-center gap-1.5 snap-start">
-                  Explicação {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
+                <TabsTrigger value="explicacao" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
+                  Explicação
                 </TabsTrigger>
-                <TabsTrigger value="desdobramento" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5" />
+                <TabsTrigger value="desdobramento" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
                   Desdobramento
                 </TabsTrigger>
                 {!modificationInfo && (
                   <>
-                    <TabsTrigger value="exemplo" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 flex items-center gap-1.5 snap-start">
-                      Exemplo {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
+                    <TabsTrigger value="exemplo" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
+                      Exemplo
                     </TabsTrigger>
-                    <TabsTrigger value="termos" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start">
+                    <TabsTrigger value="termos" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
                       Termos
                     </TabsTrigger>
-                    <TabsTrigger value="jurisprudencia" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start flex items-center gap-1.5">
-                      <Scale className="w-3.5 h-3.5" />
+                    <TabsTrigger value="jurisprudencia" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
                       Jurisprudência
                     </TabsTrigger>
                   </>
                 )}
                 {hasHistorico && (
-                  <TabsTrigger value="historico" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start flex items-center gap-1">
+                  <TabsTrigger value="historico" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
                     Histórico
                   </TabsTrigger>
                 )}
