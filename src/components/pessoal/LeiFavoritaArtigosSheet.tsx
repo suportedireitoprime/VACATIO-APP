@@ -63,23 +63,28 @@ export default function LeiFavoritaArtigosSheet({ lei, onClose }: Props) {
         </div>
 
         <div className="px-5 pt-2 pb-4 border-b border-white/5">
-          <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-primary/80">
-            Artigos favoritados
-          </p>
-          <h2 className="font-display text-white text-xl font-bold uppercase tracking-wide leading-tight mt-1 truncate">
-            {lei?.nome}
-          </h2>
-          {lei?.descricao && (
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{lei.descricao}</p>
-          )}
-          <button
-            type="button"
-            onClick={abrirLei}
-            className="mt-3 inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-primary/15 text-primary text-[11px] font-semibold hover:bg-primary/25 transition"
-          >
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            Abrir lei completa
-          </button>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold tracking-[0.28em] uppercase text-white/50">
+                Artigos favoritados
+              </p>
+              <h2 className="font-display text-white text-xl font-bold uppercase tracking-wide leading-tight mt-1 truncate">
+                {lei?.nome}
+              </h2>
+              {lei?.descricao && (
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{lei.descricao}</p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={abrirLei}
+              className="shrink-0 mt-1 inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] text-white/90 border border-white/10 text-[11px] font-semibold transition active:scale-95 select-none"
+            >
+              <ArrowUpRight className="w-3.5 h-3.5 text-white/70" />
+              Abrir lei completa
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-4">

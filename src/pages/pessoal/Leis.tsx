@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Scale, ChevronRight, Heart } from "lucide-react";
+import { ChevronRight, Heart, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,6 +9,7 @@ import { buildMinhasLeis, type MinhaLei } from "@/lib/minhasLeis";
 import { PESSOAL_KEYS, fetchPessoalArtigos } from "@/services/pessoalPrefetch";
 import { getCache } from "@/lib/pessoalCache";
 import LeiFavoritaArtigosSheet from "@/components/pessoal/LeiFavoritaArtigosSheet";
+import OrganizarMinhasLeisSheet from "@/components/pessoal/OrganizarMinhasLeisSheet";
 
 const TIPO_LABEL: Record<string, string> = {
   constituicao: "Constituição",
@@ -23,6 +23,7 @@ const TIPO_LABEL: Record<string, string> = {
 export default function MinhasLeisPage() {
   const { user } = useAuth();
   const [openLei, setOpenLei] = useState<LeiFavorita | null>(null);
+  const [organizarOpen, setOrganizarOpen] = useState(false);
   const [localTick, setLocalTick] = useState(0);
 
   const snapArtigos: any[] = Array.isArray(getCache('artigos')) ? (getCache('artigos') as any[]) : [];
@@ -74,8 +75,16 @@ export default function MinhasLeisPage() {
     <PessoalListLayout
       title="Minhas leis"
       count={leis.length}
-      icon={Scale}
-      accentClass="bg-primary/15 text-primary"
+      rightAction={
+        <button
+          type="button"
+          onClick={() => setOrganizarOpen(true)}
+          className="h-9 px-3.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] text-white/90 border border-white/10 text-xs font-semibold inline-flex items-center gap-1.5 transition active:scale-95 select-none"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+          <span>Organizar</span>
+        </button>
+      }
       emptyState={
         isEmpty ? (
           <div className="text-center py-20 space-y-3">
@@ -106,10 +115,10 @@ export default function MinhasLeisPage() {
                     className="w-full flex items-center gap-3 p-3 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all text-left min-h-[64px]"
                   >
                     <div
-                      className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-white font-display font-black text-[13px]"
+                      className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-white font-display font-black text-[12px] px-1 text-center leading-none"
                       style={{ background: f.iconColor || "hsl(var(--primary))" }}
                     >
-                      {f.sigla ? f.sigla.slice(0, 4) : <Scale className="w-5 h-5" />}
+                      {f.sigla || (f.nome ? f.nome.slice(0, 3).toUpperCase() : '')}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[15px] font-semibold text-foreground leading-tight truncate">{f.nome}</p>
@@ -130,6 +139,11 @@ export default function MinhasLeisPage() {
         </div>
       )}
       <LeiFavoritaArtigosSheet lei={openLei} onClose={() => setOpenLei(null)} />
+      <OrganizarMinhasLeisSheet
+        open={organizarOpen}
+        onClose={() => setOrganizarOpen(false)}
+        leis={leis}
+      />
     </PessoalListLayout>
   );
 }

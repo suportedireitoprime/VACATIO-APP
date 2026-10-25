@@ -6,14 +6,14 @@ import { LucideIcon, WifiOff } from "lucide-react";
 interface Props {
   title: string;
   count?: number;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   accentClass?: string; // ex.: "bg-primary/15 text-primary"
   children: ReactNode;
   isOffline?: boolean;
   emptyState?: ReactNode;
-  emptyState?: ReactNode;
   loading?: boolean;
   onClose?: () => void;
+  rightAction?: ReactNode;
 }
 
 export default function PessoalListLayout({
@@ -26,6 +26,7 @@ export default function PessoalListLayout({
   emptyState,
   loading,
   onClose,
+  rightAction,
 }: Props) {
   const navigate = useNavigate();
   return (
@@ -35,16 +36,20 @@ export default function PessoalListLayout({
         subtitle={typeof count === "number" ? `${count} ${count === 1 ? "item" : "itens"}` : undefined}
         onBack={onClose || (() => navigate(-1))}
         leading={
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${accentClass}`}>
-            <Icon className="w-5 h-5" />
-          </div>
-        }
-        rightAction={
-          isOffline ? (
-            <div className="h-9 px-3 rounded-full bg-amber-500/15 text-amber-500 text-[11px] font-semibold inline-flex items-center gap-1">
-              <WifiOff className="w-3.5 h-3.5" /> Offline
+          Icon ? (
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${accentClass}`}>
+              <Icon className="w-5 h-5" />
             </div>
           ) : undefined
+        }
+        rightAction={
+          rightAction ?? (
+            isOffline ? (
+              <div className="h-9 px-3 rounded-full bg-amber-500/15 text-amber-500 text-[11px] font-semibold inline-flex items-center gap-1">
+                <WifiOff className="w-3.5 h-3.5" /> Offline
+              </div>
+            ) : undefined
+          )
         }
       />
       <div className="max-w-2xl mx-auto px-4 pt-4">
