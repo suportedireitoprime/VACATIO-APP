@@ -29,7 +29,7 @@ export const ARTIGOS_EXPLICADOS_SEED: Record<string, ArtigoExplicadoData> = {
     tabela: 'ECA_ESTATUTO_CRIANCA_ADOLESCENTE',
     numero: '1',
     ideia: `O Estatuto consagra a **doutrina da proteção integral**, superando de vez o antigo Código de Menores: crianças e adolescentes deixam de ser "objetos" tutelados em situação irregular e passam a ser **sujeitos plenos de direitos**, cuja proteção é dever incondicional e de prioridade absoluta da família, da sociedade e do Estado.`,
-    explicacao: `Esta é a explicação detalhada do Artigo 1º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
+    explicacao: `Explicação conceitual e fundamentos do Artigo 1º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
 ---SECAO---
 ## 1. O que este artigo decide
 O Artigo 1º é a viga-mestra de todo o sistema da infância e juventude no Brasil. Ele estabelece formalmente que a atuação estatal e social é regida pela **proteção integral**. Isso significa que a criança e o adolescente são compreendidos em sua totalidade (física, psicológica, moral e social), devendo receber amparo prévio, amplo e irrestrito para garantir o desenvolvimento saudável da personalidade humana.
@@ -105,7 +105,7 @@ Com base no Artigo 1º do ECA e na doutrina da proteção integral, o Conselho T
     tabela: 'ECA_ESTATUTO_CRIANCA_ADOLESCENTE',
     numero: '2',
     ideia: `O artigo traça a **fronteira biológica e jurídica** entre infância e adolescência: **criança** é a pessoa até 12 anos incompletos (até o último instante dos 11 anos); **adolescente** é quem tem entre 12 e 18 anos de idade. Essa divisão impõe regimes sancionatórios distintos e admite aplicação excepcional até os 21 anos.`,
-    explicacao: `Esta é a explicação detalhada do Artigo 2º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
+    explicacao: `Explicação conceitual e fundamentos do Artigo 2º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
 ---SECAO---
 ## 1. O que este artigo decide
 O Artigo 2º fixa com precisão matemática os marcos cronológicos que separam a criança do adolescente. O critério adotado pelo Brasil é estritamente objetivo e biológico (idade em certidão civil). Criança é a pessoa humana até doze anos incompletos (isto é, até 11 anos, 11 meses e 29 dias). Ao completar 12 anos, a pessoa passa automaticamente à condição de adolescente, permanecendo nessa categoria até a véspera de completar 18 anos.
@@ -197,7 +197,7 @@ Em relação a Pedro (10 anos), por se tratar de criança, a autoridade policial
     tabela: 'ECA_ESTATUTO_CRIANCA_ADOLESCENTE',
     numero: '3',
     ideia: `Crianças e adolescentes acumulam **duas ordens de direitos**: todos os direitos humanos fundamentais reconhecidos aos adultos somados à **proteção especial para o seu desenvolvimento** biopsicossocial, sob um rigoroso **mandamento de não discriminação** trazido pelo Marco Legal da Primeira Infância.`,
-    explicacao: `Esta é a explicação detalhada do Artigo 3º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
+    explicacao: `Explicação conceitual e fundamentos do Artigo 3º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
 ---SECAO---
 ## 1. O que este artigo decide
 O Artigo 3º estabelece que a menoridade etária jamais diminui os direitos de uma pessoa. Crianças e adolescentes gozam de todos os direitos inerentes à pessoa humana (vida, integridade, honra, imagem, liberdade) e recebem um **plus protetivo**: a garantia estatal, familiar e comunitária de oportunidades e facilidades para seu pleno desenvolvimento físico, mental, moral, espiritual e social.

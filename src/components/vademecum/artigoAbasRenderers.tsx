@@ -123,9 +123,21 @@ export const ExplicacaoTabContent: React.FC<ExplicacaoTabContentProps> = ({
   artigoNumero,
   fontSize = 16 
 }) => {
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
   // Tamanho balanceado para leitura fluida mobile
   const baseSize = fontSize ? Math.round(fontSize * 0.88) : 15;
   const computedSize = Math.max(13.5, Math.min(baseSize, 20));
+
+  const handleCopyBlock = (idx: number, titulo: string, corpo: string) => {
+    const cleanBody = corpo.replace(/---[A-Z]+---/g, '').trim();
+    const textToCopy = `${titulo}\n\n${cleanBody}`;
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedIdx(idx);
+    haptic.selection();
+    toast.success('Trecho copiado!');
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
 
   const { introText, blocos } = React.useMemo(() => {
     if (!content) return { introText: '', blocos: [] };
@@ -199,29 +211,51 @@ export const ExplicacaoTabContent: React.FC<ExplicacaoTabContentProps> = ({
     return { introText: '', blocos: [] };
   }, [content]);
 
+  // Substitui menção de "explicação detalhada" por "explicação conceitual"
+  const displayIntro = introText 
+    ? introText.replace(/explica[çc][ãa]o\s+detalhada/gi, 'explicação conceitual e fundamentos')
+    : '';
+
   // Se o conteúdo é texto puro ou não possui seções identificadas
   if (blocos.length === 0) {
     return (
-      <div 
-        className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed text-foreground/90 space-y-3 [&_p]:my-2 [&_ul]:my-2 [&_li]:my-1 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-primary [&_strong]:text-foreground"
-        style={{ fontSize: `${computedSize}px` }}
-      >
-        <ReactMarkdown>{content}</ReactMarkdown>
+      <div className="space-y-3 max-w-2xl mx-auto" style={{ fontSize: `${computedSize}px` }}>
+        <div className="flex justify-end">
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(content);
+              setCopiedIdx(-1);
+              haptic.selection();
+              toast.success('Explicação copiada!');
+              setTimeout(() => setCopiedIdx(null), 2000);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60"
+            title="Copiar explicação"
+          >
+            {copiedIdx === -1 ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            <span className="text-[11px]">{copiedIdx === -1 ? 'Copiado' : 'Copiar'}</span>
+          </button>
+        </div>
+        <div 
+          className="prose prose-sm dark:prose-invert max-w-none font-body leading-relaxed text-foreground/90 space-y-3 [&_p]:my-2 [&_ul]:my-2 [&_li]:my-1 [&_h2]:text-base [&_h2]:!font-card [&_h2]:font-bold [&_h2]:text-primary [&_strong]:text-foreground"
+        >
+          <ReactMarkdown>{content}</ReactMarkdown>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-3.5 max-w-2xl mx-auto" style={{ fontSize: `${computedSize}px` }}>
-      {/* Frase introdutória limpa */}
-      {introText && (
+      {/* Frase introdutória conceitual limpa */}
+      {displayIntro && (
         <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-secondary/35 border border-border/50 text-xs text-muted-foreground font-body">
           <BookOpen className="w-3.5 h-3.5 text-primary shrink-0" />
-          <span className="line-clamp-2 leading-relaxed">{introText}</span>
+          <span className="line-clamp-2 leading-relaxed">{displayIntro}</span>
         </div>
       )}
 
-      {/* Blocos de leitura aberta e direta */}
+      {/* Blocos de leitura aberta e direta com tipografia normal e botão de copiar */}
       {blocos.map((bloco, idx) => {
         if (bloco.tipo === 'decide') {
           return (
@@ -230,16 +264,28 @@ export const ExplicacaoTabContent: React.FC<ExplicacaoTabContentProps> = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: idx * 0.03 }}
-              className="rounded-2xl border border-sky-500/25 bg-gradient-to-br from-sky-500/10 via-secondary/30 to-card p-4 sm:p-5 shadow-sm space-y-2"
+              className="rounded-2xl border border-sky-500/25 bg-gradient-to-br from-sky-500/10 via-secondary/30 to-card p-4 sm:p-5 shadow-sm space-y-2.5"
             >
-              <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 font-bold text-xs flex items-center justify-center shrink-0 border border-sky-500/30">
-                  1
-                </span>
-                <h3 className="font-heading font-semibold text-foreground text-sm sm:text-base tracking-wide">
-                  {bloco.titulo || 'O que este artigo decide'}
-                </h3>
+              <div className="flex items-center justify-between gap-2.5 pb-2 border-b border-border/30">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-5.5 h-5.5 rounded-lg bg-sky-500/20 text-sky-400 font-bold text-xs flex items-center justify-center shrink-0 border border-sky-500/30">
+                    1
+                  </span>
+                  <span className="!font-card font-bold text-foreground text-sm sm:text-[15px] tracking-normal truncate">
+                    {bloco.titulo || 'O que este artigo decide'}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => handleCopyBlock(idx, bloco.titulo || 'O que este artigo decide', bloco.corpo)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60 shrink-0"
+                  title="Copiar trecho"
+                >
+                  {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span className="text-[11px]">{copiedIdx === idx ? 'Copiado' : 'Copiar'}</span>
+                </button>
               </div>
+
               <div className="text-foreground/90 font-body leading-relaxed text-sm sm:text-[15px] space-y-2 [&_strong]:text-sky-300 [&_strong]:font-semibold">
                 <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
               </div>
@@ -254,16 +300,28 @@ export const ExplicacaoTabContent: React.FC<ExplicacaoTabContentProps> = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: idx * 0.03 }}
-              className="rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-secondary/30 to-card p-4 sm:p-5 shadow-sm space-y-2"
+              className="rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-secondary/30 to-card p-4 sm:p-5 shadow-sm space-y-2.5"
             >
-              <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-500/30">
-                  2
-                </span>
-                <h3 className="font-heading font-semibold text-foreground text-sm sm:text-base tracking-wide">
-                  {bloco.titulo || 'A distinção central'}
-                </h3>
+              <div className="flex items-center justify-between gap-2.5 pb-2 border-b border-border/30">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-5.5 h-5.5 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-500/30">
+                    2
+                  </span>
+                  <span className="!font-card font-bold text-foreground text-sm sm:text-[15px] tracking-normal truncate">
+                    {bloco.titulo || 'A distinção central'}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => handleCopyBlock(idx, bloco.titulo || 'A distinção central', bloco.corpo)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60 shrink-0"
+                  title="Copiar trecho"
+                >
+                  {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span className="text-[11px]">{copiedIdx === idx ? 'Copiado' : 'Copiar'}</span>
+                </button>
               </div>
+
               <div className="text-foreground/90 font-body leading-relaxed text-sm sm:text-[15px] space-y-2 [&_strong]:text-emerald-300 [&_strong]:font-semibold">
                 <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
               </div>
@@ -278,16 +336,28 @@ export const ExplicacaoTabContent: React.FC<ExplicacaoTabContentProps> = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: idx * 0.03 }}
-              className="rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-secondary/30 to-card p-4 sm:p-5 shadow-sm space-y-2"
+              className="rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-secondary/30 to-card p-4 sm:p-5 shadow-sm space-y-2.5"
             >
-              <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-lg bg-violet-500/20 text-violet-400 font-bold text-xs flex items-center justify-center shrink-0 border border-violet-500/30">
-                  3
-                </span>
-                <h3 className="font-heading font-semibold text-foreground text-sm sm:text-base tracking-wide">
-                  {bloco.titulo || 'O erro mais comum'}
-                </h3>
+              <div className="flex items-center justify-between gap-2.5 pb-2 border-b border-border/30">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-5.5 h-5.5 rounded-lg bg-violet-500/20 text-violet-400 font-bold text-xs flex items-center justify-center shrink-0 border border-violet-500/30">
+                    3
+                  </span>
+                  <span className="!font-card font-bold text-foreground text-sm sm:text-[15px] tracking-normal truncate">
+                    {bloco.titulo || 'O erro mais comum'}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => handleCopyBlock(idx, bloco.titulo || 'O erro mais comum', bloco.corpo)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60 shrink-0"
+                  title="Copiar trecho"
+                >
+                  {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span className="text-[11px]">{copiedIdx === idx ? 'Copiado' : 'Copiar'}</span>
+                </button>
               </div>
+
               <div className="text-foreground/90 font-body leading-relaxed text-sm sm:text-[15px] space-y-2 [&_strong]:text-violet-300 [&_strong]:font-semibold">
                 <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
               </div>
@@ -304,12 +374,24 @@ export const ExplicacaoTabContent: React.FC<ExplicacaoTabContentProps> = ({
               transition={{ duration: 0.2, delay: idx * 0.03 }}
               className="rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5 shadow-sm space-y-2.5"
             >
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                <h3 className="font-heading font-bold text-primary text-sm sm:text-base tracking-wide">
-                  {bloco.titulo || 'Resumo do Artigo'}
-                </h3>
+              <div className="flex items-center justify-between gap-2.5 pb-2 border-b border-primary/20">
+                <div className="flex items-center gap-2 min-w-0">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                  <span className="!font-card font-bold text-primary text-sm sm:text-[15px] tracking-normal truncate">
+                    {bloco.titulo || 'Resumo do Artigo'}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => handleCopyBlock(idx, bloco.titulo || 'Resumo do Artigo', bloco.corpo)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60 shrink-0"
+                  title="Copiar resumo"
+                >
+                  {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span className="text-[11px]">{copiedIdx === idx ? 'Copiado' : 'Copiar'}</span>
+                </button>
               </div>
+
               <div className="text-foreground/90 font-body leading-relaxed text-sm sm:text-[15px] space-y-1.5 [&_ul]:space-y-1.5 [&_li]:flex [&_li]:items-start [&_strong]:text-foreground">
                 <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
               </div>
@@ -324,14 +406,26 @@ export const ExplicacaoTabContent: React.FC<ExplicacaoTabContentProps> = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: idx * 0.03 }}
-              className="rounded-2xl border border-amber-500/35 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-card p-4 sm:p-5 shadow-sm space-y-2"
+              className="rounded-2xl border border-amber-500/35 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-card p-4 sm:p-5 shadow-sm space-y-2.5"
             >
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                <h3 className="font-heading font-bold text-amber-400 text-xs sm:text-sm uppercase tracking-wider">
-                  {bloco.titulo || 'Pegadinha de Prova'}
-                </h3>
+              <div className="flex items-center justify-between gap-2.5 pb-2 border-b border-amber-500/20">
+                <div className="flex items-center gap-2 min-w-0">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span className="!font-card font-bold text-amber-400 text-xs sm:text-sm uppercase tracking-wider truncate">
+                    {bloco.titulo || 'Pegadinha de Prova'}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => handleCopyBlock(idx, bloco.titulo || 'Pegadinha de Prova', bloco.corpo)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60 shrink-0"
+                  title="Copiar pegadinha"
+                >
+                  {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span className="text-[11px]">{copiedIdx === idx ? 'Copiado' : 'Copiar'}</span>
+                </button>
               </div>
+
               <div className="text-foreground/95 font-body leading-relaxed text-sm sm:text-[15px] space-y-2 [&_strong]:text-amber-300 [&_strong]:font-semibold">
                 <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
               </div>
@@ -345,12 +439,23 @@ export const ExplicacaoTabContent: React.FC<ExplicacaoTabContentProps> = ({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: idx * 0.03 }}
-            className="rounded-2xl border border-border/60 bg-secondary/20 p-4 sm:p-5 shadow-sm space-y-2"
+            className="rounded-2xl border border-border/60 bg-secondary/20 p-4 sm:p-5 shadow-sm space-y-2.5"
           >
             {bloco.titulo && (
-              <h3 className="font-heading font-semibold text-foreground text-sm sm:text-base">
-                {bloco.titulo}
-              </h3>
+              <div className="flex items-center justify-between gap-2.5 pb-2 border-b border-border/30">
+                <span className="!font-card font-bold text-foreground text-sm sm:text-base tracking-normal truncate">
+                  {bloco.titulo}
+                </span>
+
+                <button
+                  onClick={() => handleCopyBlock(idx, bloco.titulo, bloco.corpo)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-xs font-medium text-foreground/80 hover:text-foreground transition-colors border border-border/60 shrink-0"
+                  title="Copiar trecho"
+                >
+                  {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span className="text-[11px]">{copiedIdx === idx ? 'Copiado' : 'Copiar'}</span>
+                </button>
+              </div>
             )}
             <div className="text-foreground/90 font-body leading-relaxed text-sm sm:text-[15px] space-y-2">
               <ReactMarkdown>{bloco.corpo}</ReactMarkdown>
@@ -361,6 +466,7 @@ export const ExplicacaoTabContent: React.FC<ExplicacaoTabContentProps> = ({
     </div>
   );
 };
+
 
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -161,6 +161,9 @@ jobs:
       - name: Patch @capgo/background-geolocation getPackage() NPE
         run: node scripts/patch-capgo-background-geolocation.mjs
 
+      - name: Patch @codetrix-studio/capacitor-google-auth signOut NPE
+        run: node scripts/patch-capacitor-google-auth.mjs
+
       - name: Bump AGP + Gradle wrapper + force modern Android deps
         run: |
           # ----------------------------------------------------------------
@@ -3054,6 +3057,8 @@ jobs:
         run: |
           node scripts/patch-capgo-background-geolocation.mjs
           node scripts/patch-capgo-background-geolocation.mjs --check
+          node scripts/patch-capacitor-google-auth.mjs
+          node scripts/patch-capacitor-google-auth.mjs --check
 
       - name: Increase Gradle Memory
         working-directory: android

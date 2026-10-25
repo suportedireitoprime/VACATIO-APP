@@ -16,7 +16,7 @@ O Estatuto consagra a **doutrina da proteção integral**, superando de vez o an
 
 ## 3. Explicação
 
-Esta é a explicação detalhada do Artigo 1º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
+Esta é a explicação conceitual e fundamentos do Artigo 1º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
 
 ### 1. O que este artigo decide
 O Artigo 1º é a viga-mestra de todo o sistema da infância e juventude no Brasil. Ele estabelece formalmente que a atuação estatal e social é regida pela **proteção integral**. Isso significa que a criança e o adolescente são compreendidos em sua totalidade (física, psicológica, moral e social), devendo receber amparo prévio, amplo e irrestrito para garantir o desenvolvimento saudável da personalidade humana.
@@ -37,7 +37,7 @@ O erro mais frequente de concurseiros e estudantes é supor que o ECA foi feito 
 
 ---
 
-## 4. Desdobramento
+## 4. Raio-X
 
 ### Caput do Artigo 1º
 **Texto oficial**: *"Esta Lei dispõe sobre a proteção integral à criança e ao adolescente."*

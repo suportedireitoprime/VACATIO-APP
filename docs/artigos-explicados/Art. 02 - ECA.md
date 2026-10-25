@@ -18,7 +18,7 @@ O artigo traça a **fronteira biológica e jurídica** entre infância e adolesc
 
 ## 3. Explicação
 
-Esta é a explicação detalhada do Artigo 2º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
+Esta é a explicação conceitual e fundamentos do Artigo 2º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
 
 ### 1. O que este artigo decide
 O Artigo 2º fixa com precisão matemática os marcos cronológicos que separam a criança do adolescente. O critério adotado pelo Brasil é estritamente objetivo e biológico (idade em certidão civil). Criança é a pessoa humana até doze anos incompletos (isto é, até 11 anos, 11 meses e 29 dias). Ao completar 12 anos, a pessoa passa automaticamente à condição de adolescente, permanecendo nessa categoria até a véspera de completar 18 anos.
@@ -39,7 +39,7 @@ O erro clássico reside no termo "incompletos": muitos acreditam que a pessoa co
 
 ---
 
-## 4. Desdobramento
+## 4. Raio-X
 
 ### Caput do Artigo 2º
 **Texto oficial**: *"Considera-se criança, para os efeitos desta Lei, a pessoa até doze anos de idade incompletos, e adolescente aquela entre doze e dezoito anos de idade."*

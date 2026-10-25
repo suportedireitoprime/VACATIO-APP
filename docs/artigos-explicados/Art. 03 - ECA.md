@@ -18,7 +18,7 @@ Crianças e adolescentes acumulam **duas ordens de direitos**: todos os direitos
 
 ## 3. Explicação
 
-Esta é a explicação detalhada do Artigo 3º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
+Esta é a explicação conceitual e fundamentos do Artigo 3º do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).
 
 ### 1. O que este artigo decide
 O Artigo 3º estabelece que a menoridade etária jamais diminui os direitos de uma pessoa. Crianças e adolescentes gozam de todos os direitos inerentes à pessoa humana (vida, integridade, honra, imagem, liberdade) e recebem um **plus protetivo**: a garantia estatal, familiar e comunitária de oportunidades e facilidades para seu pleno desenvolvimento físico, mental, moral, espiritual e social.
@@ -39,7 +39,7 @@ O erro frequente é acreditar que a discriminação familiar ou econômica pode 
 
 ---
 
-## 4. Desdobramento
+## 4. Raio-X
 
 ### Caput do Artigo 3º
 **Texto oficial**: *"A criança e o adolescente gozam de todos os direitos fundamentais inerentes à pessoa humana, sem prejuízo da proteção integral de que trata esta Lei, assegurando-se-lhes, por lei ou por outros meios, todas as oportunidades e facilidades, a fim de lhes facultar o desenvolvimento físico, mental, moral, espiritual e social, em condições de liberdade e de dignidade."*
