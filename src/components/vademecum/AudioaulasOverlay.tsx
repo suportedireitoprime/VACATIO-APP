@@ -45,21 +45,7 @@ function norm(s: string): string {
     .trim();
 }
 
-/** Formata rótulo e título do capítulo de forma elegante, tratando '__sem_capitulo__' */
-function formatCapituloDisplay(rawCap: string, rawTitulo?: string): { tag: string; title: string } {
-  const isSemCap = !rawCap || rawCap.toUpperCase().includes('SEM_CAPITULO');
-  const isSemTit = !rawTitulo || rawTitulo.toUpperCase().includes('SEM_TITULO');
-
-  if (isSemCap) {
-    const title = !isSemTit ? rawTitulo! : 'Disposições Gerais';
-    return { tag: 'Disposições Gerais', title };
-  }
-
-  const parts = rawCap.split(' - ');
-  const tag = parts[0] || 'Capítulo';
-  const title = parts.slice(1).join(' - ') || rawCap;
-  return { tag, title };
-}
+import { formatCapituloDisplay } from '@/lib/capituloFormat';
 
 /**
  * Verifica se uma audioaula pertence a uma determinada legislação.

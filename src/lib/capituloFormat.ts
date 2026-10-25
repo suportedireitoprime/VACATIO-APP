@@ -47,8 +47,33 @@ export function parseStructuralHeading(num: string, rawText?: string | null): st
 }
 
 /**
+ * Extrai a tag estrutural em caixa alta (ex: 'TÍTULO I', 'CAPÍTULO II', 'LIVRO I', 'PARTE GERAL')
+ */
+export function extractStructuralTag(text?: string | null): string | null {
+  if (!text) return null;
+  const clean = text.replace(/<[^>]+>/g, '').trim();
+  if (!clean || /__(sem_capitulo|no_titulo|sem_titulo)__/i.test(clean)) return null;
+
+  // Se tiver hífen (" - "), o identificador estrutural está antes do hífen
+  const parts = clean.split(' - ');
+  const head = parts[0].trim();
+
+  // Título único/genérico sintético não deve poluir a tag
+  if (/^T[ÍI]TULO\s+[ÚU]NICO$/i.test(head)) return null;
+
+  const match = head.match(/^(PARTE\s+(?:PRIMEIRA|SEGUNDA|TERCEIRA|QUARTA|QUINTA|SEXTA|S[EÉ]TIMA|OITAVA|NONA|D[EÉ]CIMA|GERAL|ESPECIAL|[A-Z0-9]+)|LIVRO\s+[A-Z0-9IVXLCDM]+|T[ÍI]TULO\s+[A-Z0-9IVXLCDM]+|SUBT[ÍI]TULO\s+[A-Z0-9IVXLCDM]+|CAP[ÍI]TULO\s+(?:[ÚU]NICO|[A-Z0-9IVXLCDM]+)|SE[ÇC][ÃA]O\s+[A-Z0-9IVXLCDM]+|SUBSE[ÇC][ÃA]O\s+[A-Z0-9IVXLCDM]+)/i);
+
+  if (match) {
+    return match[0].toUpperCase().trim();
+  }
+
+  return null;
+}
+
+/**
  * Formata um capítulo/título para exibição em cards de Trilha (Lições, Mapas, Flashcards, etc).
- * Retorna { tag, title } (ex: tag: 'TÍTULO I', title: 'Do Tribunal Superior').
+ * Quando há Título pai e Capítulo filho, inclui a hierarquia com setinha:
+ * Ex: 'TÍTULO I → CAPÍTULO I' e título 'Disposições Gerais'.
  */
 export function formatCapituloDisplay(rawCap?: string, rawTitulo?: string): FormattedCapitulo {
   const cap = (rawCap || '').trim();
@@ -76,31 +101,33 @@ export function formatCapituloDisplay(rawCap?: string, rawTitulo?: string): Form
     return s;
   };
 
-  // Se contém delimitador " - " (ex: "TÍTULO I - Do Tribunal Superior" ou "CAPÍTULO I - Da Segunda Via")
-  const parts = cap.split(' - ');
-  if (parts.length >= 2) {
-    const head = parts[0].trim();
-    const rawSub = parts.slice(1).join(' - ').trim();
-    const cleanSub = stripHeadingPrefix(rawSub, head);
-    return {
-      tag: head.toUpperCase(),
-      title: toCleanTitleCase(cleanSub || rawSub || head),
-    };
-  }
+  const capTag = extractStructuralTag(cap);
+  const titTag = extractStructuralTag(tit);
 
-  // Se for "Disposições Gerais" ou similar sem hífen, mas tem título pai com número
-  if (!isInvalid(tit) && tit !== cap) {
-    const tParts = tit.split(' - ');
-    if (tParts.length >= 2) {
-      return {
-        tag: tParts[0].trim().toUpperCase(),
-        title: toCleanTitleCase(stripHeadingPrefix(cap, tParts[0].trim()) || cap),
-      };
-    }
+  // Extrai o texto do título descritivo do capítulo
+  let rawSub = cap;
+  if (cap.includes(' - ')) {
+    const parts = cap.split(' - ');
+    rawSub = parts.slice(1).join(' - ').trim();
+  }
+  let cleanSub = stripHeadingPrefix(rawSub, capTag || titTag || '');
+  if (!cleanSub && tit && tit.includes(' - ')) {
+    cleanSub = stripHeadingPrefix(tit.split(' - ').slice(1).join(' - ').trim(), titTag || '');
+  }
+  if (!cleanSub) cleanSub = rawSub || cap || 'Disposições Gerais';
+
+  // Constrói a tag respeitando a hierarquia Título → Capítulo
+  let tag = 'CAPÍTULO';
+  if (titTag && capTag && titTag !== capTag) {
+    tag = `${titTag} → ${capTag}`;
+  } else if (capTag) {
+    tag = capTag;
+  } else if (titTag) {
+    tag = titTag;
   }
 
   return {
-    tag: 'CAPÍTULO',
-    title: toCleanTitleCase(cap),
+    tag,
+    title: toCleanTitleCase(cleanSub),
   };
 }
