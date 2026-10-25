@@ -188,14 +188,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const isNative = Capacitor.isNativePlatform();
       if (isNative) {
-        const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
-        await GoogleAuth.signOut().catch(() => {});
+        // Verifica se o usuário atual realmente utilizou o provedor Google.
+        // Usuários logados por email/senha, Apple ou sem sessão ativa NÃO chamam GoogleAuth.signOut(),
+        // evitando o crash fatal de NullPointerException em GoogleSignInClient.signOut() no Android.
+        const provider = (user as any)?.app_metadata?.provider;
+        const hasGoogleIdentity = (user as any)?.identities?.some((id: any) => id.provider === 'google');
+        const isGoogleUser = provider === 'google' || hasGoogleIdentity;
+
+        if (isGoogleUser) {
+          try {
+            const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+            // Garante inicialização prévia para que o googleSignInClient nativo não seja nulo
+            await GoogleAuth.initialize({
+              scopes: ['profile', 'email'],
+              grantOfflineAccess: false,
+            }).catch(() => {});
+            await GoogleAuth.signOut().catch(() => {});
+          } catch (e) {
+            console.warn('[useAuth] Falha no signout nativo Google ignorada:', e);
+          }
+        }
       }
     } catch (e) {
       console.error('Erro ao fazer signout nativo', e);
     }
     await supabase.auth.signOut();
-  }, []);
+  }, [user]);
 
   const resetPassword = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
