@@ -80,7 +80,7 @@ import AdminPushSection from "./pages/AdminPushSection.tsx";
 import { supabase } from "@/integrations/supabase/client";
 
 // Lazy loaded
-const CategoriaLegislacao = lazy(() => import("./pages/CategoriaLegislacao.tsx"));
+const CategoriaLegislacao = lazy(routePrefetch.categoriaLegislacao);
 const PaginaLegislacaoHub = lazy(() => import("./pages/PaginaLegislacaoHub.tsx"));
 const Noticias = lazy(routePrefetch.noticias);
 const Novidades = lazy(() => import("./pages/Novidades.tsx"));

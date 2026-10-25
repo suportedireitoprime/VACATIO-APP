@@ -4,6 +4,7 @@
 // visible fallback.
 
 export const routePrefetch = {
+  categoriaLegislacao: () => import("@/pages/CategoriaLegislacao.tsx"),
   radares:  () => import("@/pages/Radares.tsx"),
   radar:    () => import("@/pages/RadarLegislativo.tsx"),
   novidades: () => import("@/pages/Novidades.tsx"),

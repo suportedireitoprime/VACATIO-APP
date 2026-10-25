@@ -541,20 +541,17 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
     navigate(`/legislacao/${tipoToSlug(id)}`);
   }, [navigate]);
 
+  useEffect(() => {
+    // Pré-carrega o chunk da legislação para navegação instantânea (0ms)
+    const t = setTimeout(() => {
+      import('@/pages/CategoriaLegislacao').catch(() => {});
+    }, 400);
+    return () => clearTimeout(t);
+  }, []);
+
   const handleOpenLei = useCallback((leiId: string) => {
     const lei = LEIS_CATALOG.find(l => l.id === leiId);
     if (!lei) return;
-    // Preserva artigo existente se houver
-    const existentes = getRecentes();
-    const prev = existentes.find(l => l.leiId === lei.id);
-    pushRecente({
-      tipo: lei.tipo,
-      leiId: lei.id,
-      nome: lei.nome,
-      descricao: lei.descricao,
-      tabela_nome: lei.tabela_nome,
-      artigoNumero: prev?.artigoNumero,
-    });
     navigate(leiPath(lei));
   }, [navigate]);
 

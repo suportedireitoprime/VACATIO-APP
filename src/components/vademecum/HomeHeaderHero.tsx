@@ -184,7 +184,6 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
             onClose={() => setSearchOpen(false)}
             onSelectLei={(lei) => {
               setSearchOpen(false);
-              pushRecente({ tipo: lei.tipo, leiId: lei.leiId, nome: lei.nome, descricao: lei.descricao, tabela_nome: lei.tabela_nome });
               const slug = leiToSlug({ id: lei.leiId, nome: lei.nome });
               const base = `/legislacao/${tipoToSlug(lei.tipo)}/${slug}`;
               navigate(lei.artigoNumero ? `${base}/${encodeURIComponent(lei.artigoNumero)}` : base);

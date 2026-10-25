@@ -80,7 +80,6 @@ const IndexMobile = () => {
 
   const handleSearchSelectLei = (lei: { tipo: string; leiId: string; nome: string; descricao: string; tabela_nome: string; artigoNumero?: string }) => {
     track('lei_search_selected', { tipo: lei.tipo, lei_id: lei.leiId, lei_nome: lei.nome, has_artigo: Boolean(lei.artigoNumero) });
-    pushRecente({ tipo: lei.tipo, leiId: lei.leiId, nome: lei.nome, descricao: lei.descricao, tabela_nome: lei.tabela_nome });
     const slug = leiToSlug({ id: lei.leiId, nome: lei.nome });
     const base = `/legislacao/${tipoToSlug(lei.tipo)}/${slug}`;
     navigate(lei.artigoNumero ? `${base}/${encodeURIComponent(lei.artigoNumero)}` : base);
@@ -107,7 +106,7 @@ const IndexMobile = () => {
         <HomeHeaderHero onSearchOpenChange={setHeroSearchOpen} />
         <main ref={contentRef} className="max-w-5xl lg:max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-2">
           <img src={vacatioLogo} alt="" aria-hidden="true" loading="eager" decoding="sync" fetchPriority="high" className="absolute w-0 h-0 opacity-0 pointer-events-none" />
-          <MobileHomeSections onTabChange={setHomeTab} onNewsOpenChange={setNewsOpen} />
+          <MobileHomeSections onTabChange={(tab) => setHomeTab(tab as any)} onNewsOpenChange={setNewsOpen} />
         </main>
       </div>
       {!personalizarOpen && !searchOpen && !heroSearchOpen && !newsOpen && !bottomNavHidden && <BottomNav />}

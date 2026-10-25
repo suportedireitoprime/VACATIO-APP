@@ -498,20 +498,8 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
 
               const openThis = () => {
                 const now = Date.now();
-                if (now - lastOpenRef.current < 800) return;
+                if (now - lastOpenRef.current < 250) return;
                 lastOpenRef.current = now;
-                if (!isCenter) {
-                  const el = scrollerRef.current;
-                  if (el) {
-                    const items = el.querySelectorAll<HTMLElement>('[data-cover-item]');
-                    const target = items[index];
-                    if (target) {
-                      const left = target.offsetLeft - (el.clientWidth - target.offsetWidth) / 2;
-                      el.scrollTo({ left, behavior: 'smooth' });
-                      return;
-                    }
-                  }
-                }
                 onOpenLei(lei.id);
               };
 
@@ -520,7 +508,11 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                   key={cardKey}
                   data-cover-item
                   type="button"
+                  onMouseEnter={() => {
+                    import('@/pages/CategoriaLegislacao').catch(() => {});
+                  }}
                   onPointerDown={(e) => {
+                    import('@/pages/CategoriaLegislacao').catch(() => {});
                     const sc = scrollerRef.current;
                     if (sc) sc.scrollTo({ left: sc.scrollLeft, behavior: 'auto' });
                     tapRef.current = {
@@ -545,9 +537,9 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                     if (!t || t.pointerId !== e.pointerId || t.itemIdx !== index) return;
                     const dx = Math.abs(e.clientX - t.x);
                     const dy = Math.abs(e.clientY - t.y);
-                    if (dx > 10 || dy > 10) return;
+                    if (dx > 12 || dy > 12) return;
                     const scrolled = Math.abs((scrollerRef.current?.scrollLeft ?? 0) - t.startScroll);
-                    if (scrolled > 4) return;
+                    if (scrolled > 6) return;
                     if (Date.now() - t.t > 800) return;
                     if ((dragRef.current?.moved ?? 0) > 6) return;
                     e.preventDefault();
