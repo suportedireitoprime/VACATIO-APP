@@ -75,6 +75,8 @@ import { getCachedArtigos } from '@/services/legislacaoService';
 import { useNarracaoFlutuante } from '@/stores/useNarracaoFlutuante';
 import { useLeituraStore } from '@/stores/useLeituraStore';
 import { useLocation } from 'react-router-dom';
+import { getArtigoExplicadoManual } from '@/data/artigosExplicadosData';
+import { IdeiaTabContent, DesdobramentoTabContent, JurisprudenciaTabContent } from './artigoAbasRenderers';
 
 
 import { LEIS_SUPABASE_URL, LEIS_SUPABASE_ANON_KEY, LEIS_SUPABASE_PROJECT_ID } from "@/lib/legislacaoBackend";
@@ -442,7 +444,7 @@ const ArtigoBottomSheet = ({
   const [activeTab, setActiveTab] = useState(initialTab || 'artigo');
   const [aiContent, setAiContent] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
-  const [aiGeneratingMode, setAiGeneratingMode] = useState<null | 'explicacao' | 'exemplo' | 'termos'>(null);
+  const [aiGeneratingMode, setAiGeneratingMode] = useState<null | 'ideia' | 'explicacao' | 'desdobramento' | 'exemplo' | 'termos' | 'jurisprudencia'>(null);
   const [aiGeneratingStep, setAiGeneratingStep] = useState(0);
   const [commentPrompt, setCommentPrompt] = useState<{ id: string; show: boolean; mode: 'create' | 'view' } | null>(null);
   const [commentText, setCommentText] = useState('');
@@ -1882,12 +1884,17 @@ PRECISÃO
     if (!artigo || !tabelaNome) return;
 
     // Pre-fetch all cached modes from DB at once
-    const modes = ['explicacao', 'exemplo', 'termos'];
-    // Hidrata do mirror local primeiro (funciona offline)
+    const modes = ['ideia', 'explicacao', 'desdobramento', 'exemplo', 'termos', 'jurisprudencia'];
+    // Hidrata do mirror local / bundle manual primeiro (funciona offline)
     (async () => {
       const { getLocalAiCache } = await import('@/lib/aiCacheLocal');
       const local: Record<string, string> = {};
       for (const m of modes) {
+        const manual = getArtigoExplicadoManual(tabelaNome, artigo.numero, m);
+        if (manual) {
+          local[m] = manual;
+          continue;
+        }
         const v = getLocalAiCache(tabelaNome, artigo.numero, m);
         if (v) local[m] = v;
       }
@@ -1928,11 +1935,19 @@ PRECISÃO
     });
   }, []);
 
-  // Fetch AI content: check DB cache first, then generate
+  // Fetch AI content: check manual bundle / DB cache first, then generate
   useEffect(() => {
     if (activeTab === 'artigo' || !artigo) return;
     if (aiContent[activeTab] || aiLoading[activeTab]) return;
     if (modificationInfo && activeTab !== 'explicacao') return;
+
+    // Se temos conteúdo verificado no bundle (ex: primeiros artigos do ECA), injeta imediatamente
+    const manual = getArtigoExplicadoManual(tabelaNome, artigo.numero, activeTab);
+    if (manual) {
+      setAiContent(prev => ({ ...prev, [activeTab]: manual }));
+      setAiLoading(prev => ({ ...prev, [activeTab]: false }));
+      return;
+    }
 
     const cacheKey = { tabela: tabelaNome || 'unknown', numero: artigo.numero, modo: activeTab };
 
@@ -1968,7 +1983,7 @@ PRECISÃO
         }
 
         // Generate with AI — mostra overlay animado
-        const mode = activeTab as 'explicacao' | 'exemplo' | 'termos';
+        const mode = activeTab as 'ideia' | 'explicacao' | 'desdobramento' | 'exemplo' | 'termos' | 'jurisprudencia';
         setAiGeneratingMode(mode);
         setAiGeneratingStep(0);
         const stepInterval = setInterval(() => {
@@ -1980,13 +1995,25 @@ PRECISÃO
             const { generateOmniText } = await import('@/lib/omniRouteClient');
             
             let sys = '';
-            if (mode === 'explicacao') {
+            if (mode === 'ideia') {
+              sys = `Você é um jurista e professor que formula a ideia central de artigos de lei para estudantes e concurseiros.
+Sua missão é entregar a PORTA DE ENTRADA MENTAL do artigo em 1 ou 2 frases curtas, profundas e diretas.
+
+REGRAS ABSOLUTAS:
+- Responda em 1 a 2 frases no máximo (60 a 90 palavras).
+- Responda: "No fundo, o que este artigo decide ou garante?"
+- Linguagem acolhedora, humana e de alto impacto pedagógico.
+- NUNCA se apresente, nunca use saudações, nunca use preâmbulos como "Este artigo trata de" ou "Em suma".
+- NUNCA use travessão (—). Use vírgula, dois-pontos ou parênteses.
+- Destaque em **negrito** os 2 ou 3 conceitos-chave.`;
+            } else if (mode === 'explicacao') {
               sys = `Você é um jurista brasileiro que explica artigos de lei de forma direta, técnica e didática — o mesmo método usado no chat jurídico do app.
 
 REGRAS ABSOLUTAS DE ESTILO (NUNCA VIOLE):
 - NUNCA se apresente. NUNCA use saudações como "Olá", "Oi", "Bem-vindo", "Prazer", "meus caros alunos", "pessoal", "galera".
 - NUNCA fale sobre você mesmo, sobre "hoje vamos aprender", "vamos descomplicar", "professor aqui". Vá DIRETO ao conteúdo.
 - A primeira linha de cada seção já entra na explicação do dispositivo, sem preâmbulo.
+- NUNCA use travessão (—).
 - Tom técnico-didático, sem enrolação, sem "espero ter ajudado" no final. Como o chat jurídico do app.
 - Português brasileiro, com markdown (negrito, listas) quando ajudar a leitura.
 - CITE ARTIGOS NO FORMATO CANÔNICO quando referir outra norma: "art. N do CP", "art. N da CF", "art. N da Lei nº 8.429/1992".
@@ -1998,35 +2025,74 @@ ESTRUTURA:
 - Para cada parágrafo: "## Parágrafo único" ou "## § 1º", "## § 2º", etc.
 - Alíneas ficam dentro do inciso correspondente.
 - Cada seção explica aquela parte com clareza; não repita o texto do artigo, apenas explique.`;
+            } else if (mode === 'desdobramento') {
+              sys = `Você é um jurista analítico especialista em hermenêutica legislativa.
+Você deve destrinchar o artigo trecho por trecho (Caput, cada Parágrafo, cada Inciso).
+NUNCA agrupe incisos ou parágrafos. Cada um tem seu próprio trecho.
+NUNCA use travessão (—).
+
+Para CADA trecho presente no artigo, use rigorosamente o marcador:
+---TRECHO---
+## [Nome do Trecho: ex: Caput, Parágrafo único, Inciso I]
+**Texto oficial**: [reprodução exata daquele trecho]
+
+### Explicação do trecho
+[Explicação humana, didática e clara da regra deste trecho]
+
+### Por que a lei fez assim?
+[A justificativa e razão de ser da escolha do legislador]
+
+### Palavra por palavra deste trecho
+---PALAVRA---
+**Palavra**: [termo decisivo]
+- **O que significa aqui**: [significado no contexto]
+- **Por que a lei escolheu esta palavra**: [razão técnica da escolha]
+- **E se fosse outra?**: [efeito prático e perigo se fosse utilizado sinônimo inadequado]`;
             } else if (mode === 'exemplo') {
               sys = `Você é um jurista brasileiro que ilustra artigos de lei com exemplos práticos — mesmo método direto e técnico do chat jurídico do app.
 
 REGRAS ABSOLUTAS DE ESTILO (NUNCA VIOLE):
 - NUNCA se apresente. NUNCA use saudações como "Olá, meus caros alunos e alunas", "pessoal", "galera", "professor aqui".
 - NUNCA fale sobre si mesmo nem sobre o que "vamos aprender". Vá DIRETO ao exemplo.
+- NUNCA use travessão (—).
 - Cada exemplo abre com a situação em si (nome fictício + fato), sem preâmbulo. Sem "espero ter ajudado" no final.
 - Tom técnico-didático, direto ao ponto, igual ao chat jurídico. Português brasileiro, markdown quando ajudar.
 - CITE ARTIGOS NO FORMATO CANÔNICO quando referir a norma explicada ou outras: "art. N do CP", "art. N da CF".
 
 ESTRUTURA:
-- Crie exatamente 3 exemplos práticos, realistas e diferentes entre si.
+- Crie histórias práticas, realistas e diferentes entre si.
 - Use nomes fictícios (Maria, João, empresa XYZ).
 - Separe os exemplos com o marcador "---EXEMPLO---" em uma linha sozinha antes de cada título.
-- Cada exemplo tem título "## Exemplo 1: Título", "## Exemplo 2: Título", "## Exemplo 3: Título".
+- Cada exemplo tem título "## Exemplo 1: Título", "## Exemplo 2: Título", etc.
 - Cada exemplo contém: a situação narrada de forma objetiva e como o artigo se aplica (com o dispositivo citado).`;
-            } else {
+            } else if (mode === 'termos') {
               sys = `Você é um glossarista jurídico que traduz termos técnicos do Direito para linguagem popular. Analise o texto do artigo e identifique TODOS os termos jurídicos ou técnicos que um leigo não entenderia.
 
 Regras:
 - Responda SEMPRE em português brasileiro
+- NUNCA use travessão (—).
 - Identifique cada termo técnico presente no artigo
 - IMPORTANTE: Separe cada termo com o marcador "---TERMO---" em uma linha sozinha antes do termo
 - Para cada termo, use como título o próprio termo: "## República Federativa", "## Estado Democrático de Direito", etc.
-- Depois do título, dê uma explicação simples, direta e acessível
-- Use analogias do dia a dia quando possível
-- Se houver expressões latinas, explique também
-- Não pule nenhum termo técnico, mesmo os que pareçam simples
-- Use formatação markdown`;
+- Depois do título, forneça:
+  - **Definição simples**: [Em palavras cotidianas, acessíveis para qualquer pessoa]
+  - **Definição técnica**: [Rigor doutrinário e jurisprudencial exato]`;
+            } else { // mode === 'jurisprudencia'
+              sys = `Você é um pesquisador sênior de jurisprudência dos Tribunais Superiores (STF e STJ).
+Sua missão é apresentar até 3 precedentes judiciais REAIS, HISTÓRICOS ou SÚMULAS vinculados diretamente ao artigo legal informado.
+
+REGRAS ABSOLUTAS:
+- Apenas julgados reais e verificáveis do STF ou STJ (Súmulas, Temas de Repercussão Geral, Recursos Repetitivos, ADIs, REsps marcantes).
+- NUNCA invente números de processos. Se houver súmula do tribunal sobre o artigo, cite-a.
+- NUNCA use travessão (—).
+
+Separe cada julgado com:
+---JULGADO---
+## [Tribunal] - [Processo / Súmula / Tema] ([Ano])
+- **O Caso**: [Resumo em linguagem simples do conflito que chegou ao tribunal]
+- **A Decisão**: [A tese jurídica fixada pelo tribunal]
+- **Por que importa para o artigo**: [Como esse precedente orienta a aplicação prática deste artigo]
+- **Fonte oficial**: [URL oficial do STF/STJ ou termo de busca oficial]`;
             }
 
             const fullTextForAI = [artigo.caput, ...(artigo.incisos || []), ...(artigo.paragrafos || [])].filter(Boolean).join('\n');
@@ -2790,22 +2856,38 @@ Regras:
             
             return (
               <TabsList className="mx-5 bg-secondary/60 rounded-2xl h-11 flex overflow-x-auto w-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden justify-start snap-x snap-mandatory">
-                <TabsTrigger value="artigo" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">Artigo</TabsTrigger>
-                {hasHistorico && (
-                  <TabsTrigger value="historico" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start flex items-center gap-1">
-                    Histórico
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="explicacao" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1 snap-start">
+                <TabsTrigger value="artigo" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">
+                  Artigo
+                </TabsTrigger>
+                <TabsTrigger value="ideia" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Ideia
+                </TabsTrigger>
+                <TabsTrigger value="explicacao" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 flex items-center gap-1.5 snap-start">
                   Explicação {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
+                </TabsTrigger>
+                <TabsTrigger value="desdobramento" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5" />
+                  Desdobramento
                 </TabsTrigger>
                 {!modificationInfo && (
                   <>
-                    <TabsTrigger value="exemplo" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 flex items-center gap-1 snap-start">
+                    <TabsTrigger value="exemplo" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 flex items-center gap-1.5 snap-start">
                       Exemplo {!isPremium && <Lock className="w-3 h-3 text-muted-foreground/70" />}
                     </TabsTrigger>
-                    <TabsTrigger value="termos" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 snap-start">Termos</TabsTrigger>
+                    <TabsTrigger value="termos" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start">
+                      Termos
+                    </TabsTrigger>
+                    <TabsTrigger value="jurisprudencia" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start flex items-center gap-1.5">
+                      <Scale className="w-3.5 h-3.5" />
+                      Jurisprudência
+                    </TabsTrigger>
                   </>
+                )}
+                {hasHistorico && (
+                  <TabsTrigger value="historico" className="rounded-xl flex-shrink-0 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3.5 py-2 snap-start flex items-center gap-1">
+                    Histórico
+                  </TabsTrigger>
                 )}
               </TabsList>
             );
@@ -3175,6 +3257,18 @@ Regras:
 
           </TabsContent>
 
+          <TabsContent value="ideia" className="px-5 pb-[calc(8rem+var(--sai-bottom,var(--sai-bottom)))] pt-4">
+            {aiLoading.ideia ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground font-body">Sintetizando a ideia central com IA...</p>
+              </div>
+            ) : aiContent.ideia ? (
+              <IdeiaTabContent content={aiContent.ideia} artigoNumero={artigo.numero} fontSize={fontSize} />
+            ) : (
+              <p className="text-muted-foreground text-sm text-center py-8">Clique na aba para gerar a ideia central.</p>
+            )}
+          </TabsContent>
 
           <TabsContent value="explicacao" className="px-5 pb-[calc(8rem+var(--sai-bottom,var(--sai-bottom)))] pt-4">
             {modificationInfo ? (
@@ -3275,6 +3369,19 @@ Regras:
             )}
           </TabsContent>
 
+          <TabsContent value="desdobramento" className="px-5 pb-[calc(8rem+var(--sai-bottom,var(--sai-bottom)))] pt-4">
+            {aiLoading.desdobramento ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground font-body">Destrinchando o artigo trecho a trecho...</p>
+              </div>
+            ) : aiContent.desdobramento ? (
+              <DesdobramentoTabContent content={aiContent.desdobramento} fontSize={fontSize} />
+            ) : (
+              <p className="text-muted-foreground text-sm text-center py-8">Clique na aba para desdobrar o artigo.</p>
+            )}
+          </TabsContent>
+
           <TabsContent value="exemplo" className="px-5 pb-[calc(8rem+var(--sai-bottom,var(--sai-bottom)))] pt-4">
             {aiLoading.exemplo ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3">
@@ -3356,6 +3463,29 @@ Regras:
               })()
             ) : (
               <p className="text-muted-foreground text-sm text-center py-8">Carregando termos...</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="jurisprudencia" className="px-5 pb-[calc(8rem+var(--sai-bottom,var(--sai-bottom)))] pt-4">
+            {aiLoading.jurisprudencia ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground font-body">Pesquisando julgados dos Tribunais Superiores...</p>
+              </div>
+            ) : aiContent.jurisprudencia ? (
+              <JurisprudenciaTabContent
+                content={aiContent.jurisprudencia}
+                tabelaNome={tabelaNome}
+                artigoNumero={artigo.numero}
+                onExploreMore={() => {
+                  if (tabelaNome && artigo?.numero) {
+                    navigate(`/jurisprudencia/${tabelaNome}/${encodeURIComponent(String(artigo.numero))}`);
+                  }
+                }}
+                fontSize={fontSize}
+              />
+            ) : (
+              <p className="text-muted-foreground text-sm text-center py-8">Clique na aba para carregar a jurisprudência.</p>
             )}
           </TabsContent>
 
@@ -3911,9 +4041,12 @@ Regras:
             <GeracaoAnimacaoOverlay
               open={aiGeneratingMode !== null}
               titulo={
+                aiGeneratingMode === 'ideia' ? 'Sintetizando a ideia central' :
                 aiGeneratingMode === 'explicacao' ? 'Gerando explicação com IA' :
+                aiGeneratingMode === 'desdobramento' ? 'Destrinchando o artigo' :
                 aiGeneratingMode === 'exemplo' ? 'Gerando exemplos práticos' :
                 aiGeneratingMode === 'termos' ? 'Analisando termos jurídicos' :
+                aiGeneratingMode === 'jurisprudencia' ? 'Pesquisando jurisprudência' :
                 'Gerando conteúdo'
               }
               steps={[
@@ -4460,7 +4593,7 @@ Regras:
             </button>
             <span className="w-px h-5 bg-white/10" />
             <button
-              onClick={() => setActiveActionMenu('anotacoes')}
+              onClick={() => setShowAnotacoesSheet(true)}
               className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-sky-400 hover:bg-sky-400/10 transition-colors"
             >
               <StickyNote className="w-4 h-4" />
