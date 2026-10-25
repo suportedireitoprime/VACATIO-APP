@@ -38,6 +38,18 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const oabProvimentosData = require('./data/oab-provimentos.cjs');
+
+// Mapeia slug dos provimentos da OAB já curados
+const OAB_PROVIMENTOS_MAP = new Map();
+for (const [key, val] of Object.entries(oabProvimentosData)) {
+  if (val?.lei?.slug && Array.isArray(val?.artigos)) {
+    OAB_PROVIMENTOS_MAP.set(val.lei.slug, val);
+  }
+}
 
 // Configuração do Supabase (Backend de Legislação Vade Mecum)
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://tlpxubeagmxapkysgobk.supabase.co';
@@ -128,9 +140,9 @@ async function fetchHtml(url) {
 const HIER_RE =
   /^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)(?:\s+(?:[IVXLCDM]+|[ÚU]NICO|[ÚU]NICA|PRELIMINAR|GERAL|ESPECIAL|PRIMEIRA|SEGUNDA|TERCEIRA|QUARTA|QUINTA|SEXTA|S[ÉE]TIMA|OITAVA|NONA|D[ÉE]CIMA|\d+[ºª°]?)\b[\s\S]*|\s*)$/i;
 
-// Aceita "Art. 1", "Art. 1º", "Art 1º" (sem ponto, comum em 1891/1937/1946/1967), "Art. 1.368-C", etc.
+// Aceita "Art. 1", "Art. 1º", "Art 1º", "Artigo 1", "ARTIGO 1", "Art. 1.368-C", etc.
 // Exige "Art" com A maiúsculo: referências internas em minúscula ("art. 5º") não viram artigo novo.
-const ART_RE = /^Art\.?\s*(\d+(?:\.\d+)*(?:-[A-Z0-9]+)?)/;
+const ART_RE = /^(?:Art(?:igo)?|ART(?:IGO)?)\.?\s*(\d+(?:\.\d+)*(?:-[A-Z0-9]+)?)/;
 
 // Início de §/parágrafo/inciso/alínea — aceita também grafias históricas (Paragrapho / Parágrapho)
 const CAPUT_STOP_RE = /^(§|Par[áa]gra(?:fo|pho)\b|[IVXLCDM]+(?:\b|\s|$)|[a-zà-ÿ]\s*[\)\-–—.]|[a-zà-ÿ]\))/i;
@@ -274,7 +286,7 @@ function extractBlocos(html) {
   for (let k = 0; k < linhasBrutas.length; k++) {
     const atual = linhasBrutas[k];
     const proxima = linhasBrutas[k + 1];
-    if (/^Art\.?$/.test(atual) && proxima && /^\d/.test(proxima)) {
+    if (/^(?:Art(?:igo)?|ART(?:IGO)?)\.?$/.test(atual) && proxima && /^\d/.test(proxima)) {
       linhas.push(`Art. ${proxima}`);
       k += 1;
       continue;
@@ -288,8 +300,12 @@ function extractBlocos(html) {
   let endIdx = -1;
   for (let k = uteis.length - 1; k >= 0; k--) {
     if (/Este texto não substitui/i.test(uteis[k])) {
-      endIdx = k;
-      break;
+      // Só corta se NÃO houver nenhum artigo depois dessa linha (evita cortar anexos de tratados)
+      const hasArticlesAfter = uteis.slice(k + 1).some((l) => ART_RE.test(l));
+      if (!hasArticlesAfter) {
+        endIdx = k;
+        break;
+      }
     }
   }
   const finais = endIdx > 0 ? uteis.slice(0, endIdx) : uteis;
@@ -352,9 +368,9 @@ function extractBlocos(html) {
       pendingEpigrafe = null;
 
       const cabeca = linha
-        .replace(/^Art\.?\s*(\d{2,})[º°]/i, (_, n) => `Art. ${n}`)
-        .replace(/^Art\.?\s*(\d+)[º°](?=\.\d)/i, (_, n) => `Art. ${n}`)
-        .replace(/^Art\.?\s*([1-9])(?![\dº°\w\-.])/i, (_, n) => `Art. ${n}º`);
+        .replace(/^(?:Art(?:igo)?|ART(?:IGO)?)\.?\s*(\d{2,})[º°]/i, (_, n) => `Art. ${n}`)
+        .replace(/^(?:Art(?:igo)?|ART(?:IGO)?)\.?\s*(\d+)[º°](?=\.\d)/i, (_, n) => `Art. ${n}`)
+        .replace(/^(?:Art(?:igo)?|ART(?:IGO)?)\.?\s*([1-9])(?![\dº°\w\-.])/i, (_, n) => `Art. ${n}º`);
 
       const caputParts = [cabeca];
       const restoParts = [];
@@ -381,7 +397,7 @@ function extractBlocos(html) {
 
       const rawCaput = caputParts.join(' ').replace(/\s+/g, ' ').trim();
       const caputLinha = rawCaput.replace(
-        /^Art\.?\s*(\d+(?:\.\d+)*(?:-[A-Za-z0-9]+)?)[º°]?\s*[.:–—]*\s*/i,
+        /^(?:Art(?:igo)?|ART(?:IGO)?)\.?\s*(\d+(?:\.\d+)*(?:-[A-Za-z0-9]+)?)[º°]?\s*[.:–—]*\s*/i,
         (_, num) => {
           const isOrdinal = /^[1-9]$/.test(num);
           return `Art. ${num}${isOrdinal ? 'º' : ''}. `;
@@ -501,8 +517,54 @@ async function main() {
     const pct = Math.round((n / total) * 100);
     const label = `[${n}/${total}] (${pct}%)`;
 
+    // Caso especial: Provimentos da OAB já catalogados em scripts/data/oab-provimentos.cjs
+    if (OAB_PROVIMENTOS_MAP.has(lei.slug)) {
+      const provData = OAB_PROVIMENTOS_MAP.get(lei.slug);
+      process.stdout.write(`${clr.bold}${label} Sincronizando ${lei.nome_curto || lei.nome} (${lei.slug}) [OAB Curado]...${clr.reset} `);
+      const provArtigos = provData.artigos || [];
+      const blocos = provArtigos.map((a, idx) => ({
+        tipo: 'art',
+        numero: String(a.numero),
+        texto: a.texto,
+        epigrafe: a.epigrafe || null,
+      }));
+      const nArt = blocos.length;
+      totalArtigosExtraidos += nArt;
+
+      if (dryRun) {
+        console.log(`${clr.green}OK (DRY-RUN)${clr.reset} ➔ ${nArt} artigos curados da OAB`);
+        sucessos++;
+        continue;
+      }
+
+      await supa.from('vade_mecum_artigos').delete().eq('lei_id', lei.id);
+      const rows = blocos.map((b, idx) => ({
+        lei_id: lei.id,
+        numero: b.numero,
+        texto: b.texto,
+        ordem: idx + 1,
+        epigrafe: b.epigrafe || null,
+      }));
+      await supa.from('vade_mecum_artigos').insert(rows);
+      await supa.from('vade_mecum_leis').update({
+        total_artigos: nArt,
+        updated_at: new Date().toISOString(),
+        ultima_reextracao_em: new Date().toISOString(),
+      }).eq('id', lei.id);
+
+      console.log(`${clr.green}✔ OK!${clr.reset} ➔ ${nArt} artigos curados da OAB gravados`);
+      sucessos++;
+      continue;
+    }
+
     if (!lei.planalto_url) {
       console.log(`${clr.yellow}${label} ⚠️  ${lei.nome_curto || lei.nome} (${lei.slug}): Sem planalto_url cadastrada. Pulando.${clr.reset}`);
+      continue;
+    }
+
+    // Se for URL apenas da raiz do portal da OAB sem texto de norma
+    if (/^https?:\/\/(?:www\.)?oab\.org\.br\/?$/i.test(lei.planalto_url)) {
+      console.log(`${clr.yellow}${label} ⚠️  ${lei.nome_curto || lei.nome} (${lei.slug}): URL aponta para a raiz de oab.org.br. Pulando.${clr.reset}`);
       continue;
     }
 
@@ -518,8 +580,8 @@ async function main() {
       const nArt = blocos.filter((b) => b.tipo === 'art').length;
       const nEpigrafe = blocos.filter((b) => b.tipo === 'art' && b.epigrafe).length;
 
-      if (nArt < 5) {
-        throw new Error(`Extração encontrou apenas ${nArt} artigo(s) (mínimo 5). Possível página de layout especial ou desafio.`);
+      if (nArt === 0) {
+        throw new Error(`Nenhum artigo encontrado em ${lei.planalto_url}. Possível página de layout especial ou desafio.`);
       }
 
       totalArtigosExtraidos += nArt;

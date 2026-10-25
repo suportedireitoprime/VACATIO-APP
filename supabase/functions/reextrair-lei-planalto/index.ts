@@ -115,9 +115,9 @@ async function fetchHtml(url: string): Promise<string> {
 const HIER_RE =
   /^(PARTE|LIVRO|T[ÍI]TULO|CAP[ÍI]TULO|SE[ÇC][ÃA]O|SUBSE[ÇC][ÃA]O)(?:\s+(?:[IVXLCDM]+|[ÚU]NICO|[ÚU]NICA|PRELIMINAR|GERAL|ESPECIAL|PRIMEIRA|SEGUNDA|TERCEIRA|QUARTA|QUINTA|SEXTA|S[ÉE]TIMA|OITAVA|NONA|D[ÉE]CIMA|\d+[ºª°]?)\b[\s\S]*|\s*)$/i;
 
-// Aceita "Art. 1", "Art. 1º", "Art 1º" (sem ponto, comum em 1891/1937/1946/1967), "Art. 1.368-C", etc.
+// Aceita "Art. 1", "Art. 1º", "Art 1º", "Artigo 1", "ARTIGO 1", "Art. 1.368-C", etc.
 // Exige "Art" com A maiúsculo: referências internas em minúscula ("art. 5º") não viram artigo novo.
-const ART_RE = /^Art\.?\s*(\d+(?:\.\d+)*(?:-[A-Z0-9]+)?)/;
+const ART_RE = /^(?:Art(?:igo)?|ART(?:IGO)?)\.?\s*(\d+(?:\.\d+)*(?:-[A-Z0-9]+)?)/;
 
 // Início de §/parágrafo/inciso/alínea — usado para cortar o caput (suporta grafias históricas Paragrapho)
 const CAPUT_STOP_RE = /^(§|Par[áa]gra(?:fo|pho)\b|[IVXLCDM]+(?:\b|\s|$)|[a-zà-ÿ]\s*[\)\-–—.]|[a-zà-ÿ]\))/i;
@@ -315,7 +315,7 @@ function extractBlocos(html: string): Bloco[] {
   for (let k = 0; k < linhasBrutas.length; k++) {
     const atual = linhasBrutas[k];
     const proxima = linhasBrutas[k + 1];
-    if (/^Art\.?$/.test(atual) && proxima && /^\d/.test(proxima)) {
+    if (/^(?:Art(?:igo)?|ART(?:IGO)?)\.?$/.test(atual) && proxima && /^\d/.test(proxima)) {
       linhas.push(`Art. ${proxima}`);
       k += 1;
       continue;
@@ -329,11 +329,16 @@ function extractBlocos(html: string): Bloco[] {
   );
   const uteis = startIdx > 0 ? linhas.slice(startIdx) : linhas;
 
-  // cortar "Este texto não substitui" — mas só se aparecer DEPOIS de algum artigo,
-  // e usar a ÚLTIMA ocorrência (versão compilada tem várias)
+  // cortar "Este texto não substitui" — mas só se NÃO houver nenhum artigo depois dessa linha (evita cortar anexos de tratados)
   let endIdx = -1;
   for (let k = uteis.length - 1; k >= 0; k--) {
-    if (/Este texto não substitui/i.test(uteis[k])) { endIdx = k; break; }
+    if (/Este texto não substitui/i.test(uteis[k])) {
+      const hasArticlesAfter = uteis.slice(k + 1).some((l) => ART_RE.test(l));
+      if (!hasArticlesAfter) {
+        endIdx = k;
+        break;
+      }
+    }
   }
   const finais = endIdx > 0 ? uteis.slice(0, endIdx) : uteis;
 
@@ -402,14 +407,10 @@ function extractBlocos(html: string): Bloco[] {
       const epigrafe = pendingEpigrafe;
       pendingEpigrafe = null;
 
-      // normaliza: só números 1..9 SEM ponto/traço/dígito seguinte recebem "º"
       const cabeca = linha
-        // remove "º" indevido em números >= 10 (Art. 10º -> Art. 10)
-        .replace(/^Art\.\s*(\d{2,})[º°]/i, (_, n) => `Art. ${n}`)
-        // remove "º" indevido antes de "." (Art. 1º.368 -> Art. 1.368)
-        .replace(/^Art\.\s*(\d+)[º°](?=\.\d)/i, (_, n) => `Art. ${n}`)
-        // adiciona "º" em 1..9 quando NÃO seguido por ., dígito, - ou letra
-        .replace(/^Art\.\s*([1-9])(?![\dº°\w\-.])/i, (_, n) => `Art. ${n}º`);
+        .replace(/^(?:Art(?:igo)?|ART(?:IGO)?)\.?\s*(\d{2,})[º°]/i, (_, n) => `Art. ${n}`)
+        .replace(/^(?:Art(?:igo)?|ART(?:IGO)?)\.?\s*(\d+)[º°](?=\.\d)/i, (_, n) => `Art. ${n}`)
+        .replace(/^(?:Art(?:igo)?|ART(?:IGO)?)\.?\s*([1-9])(?![\dº°\w\-.])/i, (_, n) => `Art. ${n}º`);
 
       // Junta o caput em UMA linha até o primeiro §/parágrafo/inciso/alínea.
       // Depois disso, cada § / inciso ocupa a sua própria linha.
@@ -435,9 +436,8 @@ function extractBlocos(html: string): Bloco[] {
       }
 
       const rawCaput = caputParts.join(" ").replace(/\s+/g, " ").trim();
-      // Padroniza início do caput: Art. Xº. ou Art. X. sem duplicar pontos/hífens
       const caputLinha = rawCaput.replace(
-        /^Art\.\s*(\d+(?:\.\d+)*(?:-[A-Za-z0-9]+)?)[º°]?\s*[.:–—]*\s*/i,
+        /^(?:Art(?:igo)?|ART(?:IGO)?)\.?\s*(\d+(?:\.\d+)*(?:-[A-Za-z0-9]+)?)[º°]?\s*[.:–—]*\s*/i,
         (_, num) => {
           const isOrdinal = /^[1-9]$/.test(num);
           return `Art. ${num}${isOrdinal ? 'º' : ''}. `;
@@ -764,12 +764,12 @@ ${rawText}`,
       );
     }
 
-    if (nArt < 5) {
+    if (nArt === 0) {
       const motivo = totalmenteRevogada
         ? `Lei totalmente revogada: o HTML do Planalto tem ${rawArtMatches} artigos, mas todos estão tachados (revogados). Aponte para a URL "compilada" ou para a lei substituta.`
         : rawArtMatches === 0
         ? `Nenhum "Art." foi encontrado em ${lei.planalto_url}. A página pode ter mudado de layout, exigir JavaScript ou ter retornado um desafio de segurança.`
-        : `Extração encontrou só ${nArt} artigo(s) (mín. 5). O HTML tem ${rawArtMatches} referências a "Art.", mas o parser não conseguiu casá-las — provável mudança de layout.`;
+        : `Nenhum artigo válido foi extraído de ${lei.planalto_url}. O HTML tem ${rawArtMatches} referências brutas, mas o parser não conseguiu casá-las.`;
       return new Response(
         JSON.stringify({
           error: motivo,
