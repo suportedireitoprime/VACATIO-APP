@@ -42,8 +42,31 @@ const brasaoImg = brasaoImgAsset;
 import { useIsDesktop } from '@/hooks/use-desktop';
 import RadarLegislacaoContent, { prefetchRadarData } from '@/components/vademecum/RadarLegislacaoContent';
 import { getLeiColor, getLeiCover, shade } from '@/lib/leiTheme';
-import { pushRecente, getRecentes } from '@/lib/leisRecentes';
+import { pushRecente, getRecentes, registrarArtigoRecente, getArtigosRecentesDaLei } from '@/lib/leisRecentes';
 import { warmCoverCache } from '@/lib/coverLoader';
+
+function findArtigoInList(artigos: ArtigoLei[], identifier: string): ArtigoLei | undefined {
+  if (!identifier || !artigos || artigos.length === 0) return undefined;
+  const strId = String(identifier).trim();
+  
+  // 1. Match exato por id
+  const byId = artigos.find(a => String(a.id) === strId);
+  if (byId) return byId;
+
+  // 2. Match exato por numero
+  const byNumero = artigos.find(a => a.numero.trim() === strId);
+  if (byNumero) return byNumero;
+
+  // 3. Match normalizado (remove "Art.", "º", "°", pontuação e espaços)
+  const norm = (s: string) => s.toLowerCase().replace(/^art\.?\s*/i, '').replace(/[º°\s]/g, '').trim();
+  const targetNorm = norm(strId);
+  if (targetNorm) {
+    const byNorm = artigos.find(a => norm(a.numero) === targetNorm);
+    if (byNorm) return byNorm;
+  }
+
+  return undefined;
+}
 import ShapeGrid from '@/components/ui/ShapeGrid';
 import { slugToTipo, tipoToSlug, leiToSlug, leiPath, findLeiBySlug, CATEGORIAS_FIXAS } from '@/lib/legislacaoSlugs';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
@@ -465,14 +488,32 @@ const CategoriaLegislacao = () => {
     setPlaylistNarracoes({});
   }, [selectedTabelaNome]);
 
-  // Load recent articles per tabela
+  // Load recent articles per tabela / lei
   useEffect(() => {
-    if (!selectedTabelaNome) { setRecentIds([]); return; }
+    if (!selectedTabelaNome && !selectedLeiId) { setRecentIds([]); return; }
+    
+    // 1) Leitura instantânea síncrona do cache local
+    const initialKey = selectedTabelaNome || selectedLeiId;
     try {
-      const raw = localStorage.getItem(`recentes_artigos_${selectedTabelaNome}`);
-      setRecentIds(raw ? JSON.parse(raw) : []);
+      const raw = localStorage.getItem(`recentes_artigos_${initialKey}`) ||
+                  (selectedLeiId ? localStorage.getItem(`recentes_artigos_${selectedLeiId}`) : null);
+      if (raw) setRecentIds(JSON.parse(raw));
+      else setRecentIds([]);
     } catch { setRecentIds([]); }
-  }, [selectedTabelaNome]);
+
+    // 2) Sincroniza do Supabase para manter os artigos recentes atualizados na conta do usuário
+    let cancelled = false;
+    getArtigosRecentesDaLei(selectedTabelaNome, selectedLeiId).then((numeros) => {
+      if (!cancelled && numeros && numeros.length > 0) {
+        setRecentIds(prev => {
+          const merged = [...numeros, ...prev.filter(p => !numeros.includes(p))].slice(0, 30);
+          return merged;
+        });
+      }
+    }).catch(() => {});
+
+    return () => { cancelled = true; };
+  }, [selectedTabelaNome, selectedLeiId]);
 
   const openArtigoWithRecent = useCallback((artigo: ArtigoLei) => {
     track('legislacao_artigo_opened', { lei_id: selectedLeiId, lei_nome: selectedLeiNome, tabela: selectedTabelaNome, artigo_id: artigo.id, artigo_numero: artigo.numero });
@@ -491,16 +532,25 @@ const CategoriaLegislacao = () => {
       });
     }
 
-    if (selectedTabelaNome) {
+    const key = selectedTabelaNome || selectedLeiId;
+    if (key) {
       try {
-        localStorage.setItem(`ultimo_artigo_numero_${selectedTabelaNome}`, artigo.numero);
+        if (selectedTabelaNome) localStorage.setItem(`ultimo_artigo_numero_${selectedTabelaNome}`, artigo.numero);
         if (selectedLeiId) localStorage.setItem(`ultimo_artigo_numero_${selectedLeiId}`, artigo.numero);
       } catch {}
+
+      // Atualiza o estado da tela de forma imediata
       setRecentIds(prev => {
-        const next = [String(artigo.id), ...prev.filter(id => id !== String(artigo.id))].slice(0, 30);
-        try { localStorage.setItem(`recentes_artigos_${selectedTabelaNome}`, JSON.stringify(next)); } catch {}
+        const next = [artigo.numero, ...prev.filter(id => id !== artigo.numero && id !== String(artigo.id))].slice(0, 30);
         return next;
       });
+
+      // Persiste no Supabase e no cache local
+      registrarArtigoRecente({
+        tabelaCodigo: selectedTabelaNome || selectedLeiId || '',
+        leiId: selectedLeiId,
+        numeroArtigo: artigo.numero,
+      }).catch(() => {});
     }
   }, [selectedTabelaNome, selectedLeiId, selectedLeiNome, selectedLeiDescricao, tipo]);
 
@@ -2754,8 +2804,14 @@ const CategoriaLegislacao = () => {
         leiThemeColor={leiAccent || '#c2274a'}
         artigos={artigos}
         capituloGroups={capituloGroups}
-        recentes={recentIds.map(id => artigos.find(a => a.id === id)).filter(Boolean) as typeof artigos}
-        onClearRecentes={() => setRecentIds([])}
+        recentes={recentIds.map(id => findArtigoInList(artigos, id)).filter(Boolean) as typeof artigos}
+        onClearRecentes={() => {
+          setRecentIds([]);
+          try {
+            if (selectedTabelaNome) localStorage.removeItem(`recentes_artigos_${selectedTabelaNome}`);
+            if (selectedLeiId) localStorage.removeItem(`recentes_artigos_${selectedLeiId}`);
+          } catch {}
+        }}
         onArtigoSelect={(artigo) => {
           setIsLocalSearchOpen(false);
           openArtigoWithRecent(artigo);
@@ -3035,7 +3091,7 @@ const CategoriaLegislacao = () => {
                 <div className="mb-3 px-4 sm:px-6 md:px-8 flex items-center justify-between">
                   <div className="min-w-0 flex-1">
                     <h3 className="font-display text-foreground text-[16px] sm:text-[18px] font-black uppercase mb-0 flex items-center gap-2">
-                      <span className="w-1 h-5 rounded-full shrink-0" style={{ backgroundColor: '#60a5fa' }} />
+                      <span className="w-1 h-5 rounded-full shrink-0" style={{ backgroundColor: leiAccent }} />
                       <span className="truncate">Recentes</span>
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5 ml-3">
@@ -3045,7 +3101,7 @@ const CategoriaLegislacao = () => {
                 </div>
                 <div className="flex gap-2.5 overflow-x-auto pb-2 px-4 sm:px-6 md:px-8 snap-x snap-mandatory no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
                   {recentIds.slice(0, 15).map(id => {
-                    const artigo = artigos.find(a => a.id === id);
+                    const artigo = findArtigoInList(artigos, id);
                     if (!artigo) return null;
                     
                     const numText = artigo.numero.toLowerCase().includes('art') ? artigo.numero : `Art. ${artigo.numero}`;
@@ -3054,9 +3110,13 @@ const CategoriaLegislacao = () => {
                       <button
                         key={id}
                         onClick={() => openArtigoWithRecent(artigo)}
-                        className="snap-start shrink-0 flex items-center justify-center active:scale-95 transition-transform bg-[#60a5fa]/10 hover:bg-[#60a5fa]/20 border border-[#60a5fa]/20 rounded-xl px-4 py-2.5"
+                        className="snap-start shrink-0 flex items-center justify-center active:scale-95 transition-all rounded-xl px-4 py-2.5 border group hover:brightness-110 shadow-sm"
+                        style={{
+                          backgroundColor: `${leiAccent}18`,
+                          borderColor: `${leiAccent}35`,
+                        }}
                       >
-                        <span className="text-[#93c5fd] font-display font-bold text-[14px] whitespace-nowrap">
+                        <span className="font-display font-bold text-[14px] whitespace-nowrap" style={{ color: leiAccent }}>
                           {numText}
                         </span>
                       </button>

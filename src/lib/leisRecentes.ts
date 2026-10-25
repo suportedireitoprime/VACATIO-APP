@@ -70,10 +70,10 @@ export async function syncRecentesFromSupabase() {
     .select('tabela_codigo, numero_artigo, visualizado_em')
     .eq('user_id', session.session.user.id)
     .order('visualizado_em', { ascending: false })
-    .limit(50);
+    .limit(150);
     
   if (data && data.length > 0) {
-    // Mescla com o local priorizando as datas mais recentes
+    // 1) Mescla com o local priorizando as datas mais recentes para as Leis na Home ("Continuar Leitura")
     const local = getRecentes();
     const map = new Map<string, LeiRecente>();
     
@@ -107,7 +107,148 @@ export async function syncRecentesFromSupabase() {
       
     localStorage.setItem(KEY, JSON.stringify(merged));
     notifyRecentesUpdated();
+
+    // 2) Sincroniza os artigos recentes específicos de cada legislação (alimenta o carrossel RECENTES dentro da lei)
+    try {
+      const { LEIS_CATALOG } = await import('@/data/leisCatalog');
+      const tabelaMap = new Map<string, string[]>();
+
+      data.forEach(row => {
+        const artClean = cleanArtigoNumero(row.numero_artigo);
+        if (artClean && row.tabela_codigo) {
+          const list = tabelaMap.get(row.tabela_codigo) || [];
+          if (!list.includes(artClean)) {
+            list.push(artClean);
+            tabelaMap.set(row.tabela_codigo, list);
+          }
+        }
+      });
+
+      tabelaMap.forEach((numeros, tabela) => {
+        try {
+          const localRaw = localStorage.getItem(`recentes_artigos_${tabela}`);
+          const localList = localRaw ? (JSON.parse(localRaw) as string[]) : [];
+          const mergedList = [...numeros, ...localList.filter(l => !numeros.includes(l))].slice(0, 30);
+          localStorage.setItem(`recentes_artigos_${tabela}`, JSON.stringify(mergedList));
+
+          const cat = LEIS_CATALOG.find(l => l.tabela_nome === tabela || l.id === tabela);
+          if (cat) {
+            if (cat.id && cat.id !== tabela) {
+              localStorage.setItem(`recentes_artigos_${cat.id}`, JSON.stringify(mergedList));
+            }
+            if (cat.tabela_nome && cat.tabela_nome !== tabela) {
+              localStorage.setItem(`recentes_artigos_${cat.tabela_nome}`, JSON.stringify(mergedList));
+            }
+          }
+        } catch {}
+      });
+    } catch {}
   }
+}
+
+/**
+ * Salva a visualização de um artigo de lei no Supabase e no cache local
+ */
+export async function registrarArtigoRecente(params: {
+  tabelaCodigo: string;
+  leiId?: string;
+  numeroArtigo: string;
+}) {
+  const { tabelaCodigo, leiId, numeroArtigo } = params;
+  if (!numeroArtigo) return;
+
+  const cleanNum = cleanArtigoNumero(numeroArtigo) || numeroArtigo;
+
+  // 1. Salva localmente para resposta imediata
+  try {
+    const keys = Array.from(new Set([tabelaCodigo, leiId].filter(Boolean) as string[]));
+    for (const key of keys) {
+      const raw = localStorage.getItem(`recentes_artigos_${key}`);
+      const list = raw ? (JSON.parse(raw) as string[]) : [];
+      const updated = [cleanNum, ...list.filter(x => x !== cleanNum)].slice(0, 30);
+      localStorage.setItem(`recentes_artigos_${key}`, JSON.stringify(updated));
+    }
+  } catch {}
+
+  // 2. Persiste no Supabase para sincronização na conta do usuário
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    const user = session?.session?.user;
+    if (user) {
+      await supabase.from('artigos_visualizacoes').insert({
+        user_id: user.id,
+        tabela_codigo: tabelaCodigo || leiId || '',
+        numero_artigo: cleanNum,
+        origem: 'artigo_recente',
+        visualizado_em: new Date().toISOString()
+      });
+    }
+  } catch {}
+}
+
+/**
+ * Busca artigos recentes de uma legislação no Supabase (com cache local)
+ */
+export async function getArtigosRecentesDaLei(
+  tabelaCodigo?: string | null,
+  leiId?: string | null
+): Promise<string[]> {
+  const codigos = Array.from(new Set([tabelaCodigo, leiId].filter(Boolean) as string[]));
+  if (codigos.length === 0) return [];
+
+  // Primeiro lê do cache local síncrono
+  let localResult: string[] = [];
+  try {
+    for (const key of codigos) {
+      const raw = localStorage.getItem(`recentes_artigos_${key}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          localResult = parsed;
+          break;
+        }
+      }
+    }
+  } catch {}
+
+  // Busca no Supabase
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    const user = session?.session?.user;
+    if (!user) return localResult;
+
+    const { data, error } = await supabase
+      .from('artigos_visualizacoes')
+      .select('numero_artigo, visualizado_em')
+      .eq('user_id', user.id)
+      .in('tabela_codigo', codigos)
+      .neq('numero_artigo', 'CAPA')
+      .neq('numero_artigo', 'BUSCA')
+      .order('visualizado_em', { ascending: false })
+      .limit(40);
+
+    if (error || !data) return localResult;
+
+    const remoteNumeros: string[] = [];
+    for (const row of data) {
+      const num = cleanArtigoNumero(row.numero_artigo) || row.numero_artigo?.trim();
+      if (num && !remoteNumeros.includes(num)) {
+        remoteNumeros.push(num);
+      }
+    }
+
+    if (remoteNumeros.length > 0) {
+      const merged = [...remoteNumeros, ...localResult.filter(l => !remoteNumeros.includes(l))].slice(0, 30);
+      try {
+        for (const key of codigos) {
+          localStorage.setItem(`recentes_artigos_${key}`, JSON.stringify(merged));
+        }
+      } catch {}
+      return merged;
+    }
+  } catch {}
+
+  return localResult;
 }
 
 export const LEIS_RECENTES_EVENT = 'LEIS_RECENTES_UPDATED';
