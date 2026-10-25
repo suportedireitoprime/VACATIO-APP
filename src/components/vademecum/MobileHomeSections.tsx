@@ -686,7 +686,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
 
 
       {/* 2. LEGISLAÇÃO BRASILEIRA — ÁREAS DO DIREITO (COM ABAS) */}
-      <section className="space-y-3 px-1 pt-1">
+      <section className="space-y-3 px-1 pt-1 pb-12 sm:pb-16">
         {/* Menu de Alternância (Tabs) */}
         <div className="flex overflow-x-auto no-scrollbar gap-2 pb-1 -mr-4 pr-6">
           {[
