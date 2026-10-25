@@ -261,18 +261,16 @@ export function AudioaulasOverlay({
 
   return (
     <div
-      className="flex flex-col h-full relative w-full overflow-hidden bg-[#0c0c10] select-none"
+      className="flex flex-col h-full relative w-full overflow-hidden select-none"
       style={{
+        background:
+          'linear-gradient(180deg, hsl(351 86% 36%) 0%, hsl(351 82% 42%) 45%, hsl(351 80% 24%) 100%)',
         paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 16px)'
       }}
     >
-      {/* ──────────────── HEADER SUPERIOR COM O VERMELHO MARCANTE DAS AUDIOAULAS ──────────────── */}
+      {/* ──────────────── HEADER SUPERIOR COM O VERMELHO MARCANTE DAS AUDIOLEIS ──────────────── */}
       <section
         className="relative shrink-0 overflow-hidden pb-4 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+8px)] border-b border-white/[0.08]"
-        style={{
-          background:
-            'linear-gradient(180deg, hsl(351 86% 36%) 0%, hsl(351 82% 42%) 45%, hsl(351 80% 24%) 100%)'
-        }}
       >
         {/* Glow e radiais elegantes */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.22),transparent_65%)]" />
@@ -305,7 +303,7 @@ export function AudioaulasOverlay({
             <div className="flex-1 min-w-0 text-center">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/30 border border-white/15 text-[10px] font-black uppercase tracking-wider text-white/90 shadow-sm">
                 <Headphones className="w-3 h-3 text-red-200 animate-pulse" />
-                Audioaulas
+                Audioleis
               </div>
               <h1 className="font-card font-bold text-lg sm:text-xl text-white truncate drop-shadow-md mt-0.5">
                 {selectedCapitulo
@@ -314,7 +312,7 @@ export function AudioaulasOverlay({
               </h1>
               <p className="text-[11px] sm:text-xs text-white/80 font-medium truncate">
                 {selectedCapitulo
-                  ? `${selectedCapitulo.aulas.length} audioaulas disponíveis neste capítulo`
+                  ? `${selectedCapitulo.aulas.length} audioleis disponíveis neste capítulo`
                   : 'Aprenda e revise ouvindo por capítulos'}
               </p>
             </div>
@@ -350,7 +348,7 @@ export function AudioaulasOverlay({
                 </div>
                 <div className="rounded-xl bg-black/30 backdrop-blur-md border border-white/15 p-2.5 text-center flex flex-col items-center justify-center shadow-sm">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-white/70">
-                    Aulas em Áudio
+                    Audioleis
                   </span>
                   <span className="font-display text-lg sm:text-xl font-black text-white leading-none mt-0.5 flex items-center gap-1">
                     {totalAulasDisponiveis > 0 ? (
@@ -407,8 +405,8 @@ export function AudioaulasOverlay({
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between px-1">
                   <h4 className="text-xs font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
-                    <ListMusic className="w-3.5 h-3.5 text-red-400" />
-                    Audioaulas deste capítulo ({selectedCapitulo.aulas.length})
+                    <ListMusic className="w-3.5 h-3.5 text-red-300" />
+                    Audioleis deste capítulo ({selectedCapitulo.aulas.length})
                   </h4>
                   <button
                     onClick={() => handlePlayAula(selectedCapitulo.aulas[0], selectedCapitulo.aulas)}
@@ -497,10 +495,10 @@ export function AudioaulasOverlay({
                     Em Gravação no Estúdio
                   </span>
                   <h4 className="font-display font-bold text-base text-white mt-2">
-                    Aulas deste capítulo em produção
+                    Audioleis deste capítulo em produção
                   </h4>
                   <p className="text-xs text-white/60 mt-1 max-w-sm mx-auto leading-relaxed">
-                    Nossa equipe de professores e narradores jurídicos está finalizando a gravação das aulas deste capítulo.
+                    Nossa equipe de professores e narradores jurídicos está finalizando a gravação das audioleis deste capítulo.
                   </p>
                 </div>
 
@@ -513,7 +511,7 @@ export function AudioaulasOverlay({
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:bg-red-600 active:scale-95 transition"
                   >
                     <Headphones className="w-4 h-4" />
-                    Ver todas as {totalAulasDisponiveis} aulas disponíveis
+                    Ver todas as {totalAulasDisponiveis} audioleis disponíveis
                   </button>
                 )}
               </div>
@@ -571,13 +569,13 @@ export function AudioaulasOverlay({
                 }`}
               >
                 <Headphones className="w-3.5 h-3.5" />
-                <span>Todas as Aulas ({totalAulasDisponiveis})</span>
+                <span>Todas as Audioleis ({totalAulasDisponiveis})</span>
               </button>
             </div>
 
             {/* ABA 1: LISTAGEM DE CAPÍTULOS */}
             {activeTab === 'capitulos' && (
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {capitulosFiltrados.map((cap, idx) => {
                   const qtdAulas = cap.aulas.length;
                   const temAulas = qtdAulas > 0;
@@ -589,56 +587,42 @@ export function AudioaulasOverlay({
                         haptic.selection();
                         setSelectedCapitulo(cap);
                       }}
-                      className={`w-full p-3.5 rounded-2xl border text-left transition-all flex items-center gap-3.5 active:scale-[0.99] group shadow-sm ${
-                        temAulas
-                          ? 'bg-white/[0.04] border-white/10 hover:border-red-500/40 hover:bg-white/[0.07]'
-                          : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04]'
-                      }`}
+                      className="group flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-md p-3 text-left transition-all hover:bg-black/30 active:scale-[0.99] sm:p-3.5 shadow-sm"
                     >
-                      {/* Ícone de Fones ou Pasta */}
-                      <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-all ${
-                          temAulas
-                            ? 'bg-gradient-to-br from-red-600 to-rose-700 text-white border-red-500/30 shadow-md shadow-red-500/20'
-                            : 'bg-white/5 text-white/40 border-white/10'
-                        }`}
-                      >
-                        {temAulas ? (
-                          <Headphones className="w-6 h-6 drop-shadow-sm" />
-                        ) : (
-                          <Clock className="w-5 h-5 text-white/40" />
-                        )}
+                      {/* Ícone de Fones no estilo transparente padronizado */}
+                      <div className="relative h-14 w-14 shrink-0 flex items-center justify-center sm:h-16 sm:w-16">
+                        <Headphones className="h-9 w-9 text-[#F87171] drop-shadow-sm transition-transform group-hover:scale-110" strokeWidth={1.5} />
                       </div>
 
                       {/* Textos do Capítulo */}
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         {(() => {
                           const { tag, title } = formatCapituloDisplay(cap.capitulo, cap.tituloNome);
                           return (
                             <>
                               <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-[10px] font-black uppercase tracking-wider text-red-400">
+                                <span className="text-[11px] font-bold text-white/60 uppercase tracking-wider truncate">
                                   {tag}
                                 </span>
-                                <span className="text-[10px] text-white/40 truncate">
+                                <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-white/10 text-white/80 tabular-nums ml-auto">
                                   {cap.artigos.length} artigos
                                 </span>
                               </div>
-                              <h4 className="font-card font-medium text-sm text-white leading-snug line-clamp-2">
+                              <p className="min-w-0 text-[14px] font-bold text-white sm:text-[15px] leading-snug drop-shadow-sm" style={{ fontFamily: "'Barlow', system-ui, sans-serif", letterSpacing: '-0.005em' }}>
                                 {title}
-                              </h4>
+                              </p>
                             </>
                           );
                         })()}
 
                         <div className="mt-2 flex items-center gap-2">
                           {temAulas ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
-                              <Volume2 className="w-3 h-3" />
-                              {qtdAulas} {qtdAulas === 1 ? 'audioaula' : 'audioaulas'}
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/10 text-white/90 border border-white/15">
+                              <Volume2 className="w-3 h-3 text-[#F87171]" />
+                              {qtdAulas} {qtdAulas === 1 ? 'audiolei' : 'audioleis'}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-white/5 text-white/45 border border-white/10">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-white/5 text-white/50 border border-white/10">
                               <Mic className="w-3 h-3" />
                               Em gravação
                             </span>
@@ -646,7 +630,7 @@ export function AudioaulasOverlay({
                         </div>
                       </div>
 
-                      <ChevronRight className="w-5 h-5 text-white/30 group-hover:text-white group-hover:translate-x-0.5 transition shrink-0" />
+                      <ChevronRight className="h-5 w-5 shrink-0 text-white/40 transition-transform group-hover:translate-x-0.5" />
                     </button>
                   );
                 })}

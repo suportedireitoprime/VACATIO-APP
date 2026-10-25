@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { BookOpen, ChevronRight, GraduationCap, ArrowLeft, PlayCircle } from 'lucide-react';
+import { BookOpen, ChevronRight, GraduationCap, ArrowLeft, PlayCircle, Layers } from 'lucide-react';
 
 // Fallbacks caso não exista o diretório em vacatio app
 import hero1 from '@/assets/aprender-hero/hero-1.webp';
@@ -168,10 +168,10 @@ export function FlashcardsOverlay({ capituloGroups, leiNome, onClose, onArtigoSe
             <button
               key={i}
               onClick={() => setSelectedCapitulo(cap)}
-              className="group flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left transition-all hover:border-primary/40 active:scale-[0.99] sm:p-3.5 shadow-sm"
+              className="group flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-md p-3 text-left transition-all hover:bg-black/30 active:scale-[0.99] sm:p-3.5 shadow-sm"
             >
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl sm:h-16 sm:w-16 bg-gradient-to-br from-[#c2274a] to-red-600 flex items-center justify-center border border-black/10">
-                <GraduationCap className="h-7 w-7 text-white drop-shadow-sm" />
+              <div className="relative h-14 w-14 shrink-0 flex items-center justify-center sm:h-16 sm:w-16">
+                <Layers className="h-9 w-9 text-[#34D399] drop-shadow-sm transition-transform group-hover:scale-110" strokeWidth={1.5} />
               </div>
 
               <div className="min-w-0 flex-1">
@@ -180,31 +180,31 @@ export function FlashcardsOverlay({ capituloGroups, leiNome, onClose, onArtigoSe
                   return (
                     <>
                       <div className="flex items-center gap-2 mb-0.5">
-                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider truncate">
+                        <p className="text-[11px] font-bold text-white/60 uppercase tracking-wider truncate">
                           {f.tag}
                         </p>
-                        <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-muted text-muted-foreground tabular-nums ml-auto">
+                        <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-white/10 text-white/80 tabular-nums ml-auto">
                           {capPct}%
                         </span>
                       </div>
-                      <p className="min-w-0 text-[14px] font-bold text-foreground sm:text-[15px] leading-snug" style={{ fontFamily: "'Barlow', system-ui, sans-serif", letterSpacing: '-0.005em' }}>
+                      <p className="min-w-0 text-[14px] font-bold text-white sm:text-[15px] leading-snug drop-shadow-sm" style={{ fontFamily: "'Barlow', system-ui, sans-serif", letterSpacing: '-0.005em' }}>
                         {f.title}
                       </p>
                     </>
                   );
                 })()}
-                <p className="mt-0.5 text-[12px] text-muted-foreground sm:text-[13px]">
+                <p className="mt-0.5 text-[12px] text-white/60 sm:text-[13px]">
                   {cap.artigos.length} {cap.artigos.length === 1 ? 'flashcard' : 'flashcards'}
                 </p>
-                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-black/40">
                   <div
-                    className="h-full rounded-full bg-[hsl(var(--aprender-accent))] transition-all"
+                    className="h-full rounded-full bg-emerald-400 transition-all"
                     style={{ width: `${capPct}%` }}
                   />
                 </div>
               </div>
 
-              <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              <ChevronRight className="h-5 w-5 shrink-0 text-white/40 transition-transform group-hover:translate-x-0.5" />
             </button>
           );
         })}

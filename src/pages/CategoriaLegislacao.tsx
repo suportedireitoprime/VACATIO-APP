@@ -2929,7 +2929,7 @@ const CategoriaLegislacao = () => {
               <div className="relative z-10 px-3 sm:px-5 pb-4 pt-3 flex justify-center w-full">
                 <div className="flex items-center gap-1.5 w-full max-w-2xl bg-black/40 backdrop-blur-md rounded-3xl p-2 border border-white/10 shadow-2xl overflow-x-auto hide-scrollbar snap-x snap-mandatory">
                   {[
-                    { key: 'audioaulas' as const, icon: Headphones, label: 'Audioaulas', color: '#EF4444' },
+                    { key: 'audioaulas' as const, icon: Headphones, label: 'Audioleis', color: '#EF4444' },
                     { key: 'licoes' as const, icon: Pencil, label: 'Lições', color: '#38BDF8' },
                     { key: 'flashcards' as const, icon: Layers, label: 'Flashcards', color: '#34D399' },
                     { key: 'questoes' as const, icon: Target, label: 'Questões', color: '#FACC15' },
