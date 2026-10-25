@@ -16,6 +16,7 @@
     "export:laws": "node scripts/export-laws.mjs",
     "export:offline": "node scripts/export-offline-bundle.mjs",
     "robo:ctresb": "node scripts/robo-ctresb-populador.mjs",
+    "robo:constituicoes": "node scripts/robo-ctresb-populador.mjs --target=constituicoes",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

@@ -166,7 +166,88 @@ const DIRECT_MAPPINGS = [
   },
 ];
 
-// Parser avançado de artigos em Markdown
+// 3. Constituições Históricas do Brasil (ctresb/leis -> federal/constituicoes-historicas)
+const HISTORICAL_CONSTITUTIONS = [
+  {
+    path: 'federal/constituicoes-historicas/1824/constituicao-1824.md',
+    slugs: ['constituicao-1824'],
+    nome: 'Constituição Política do Império do Brasil de 1824',
+    nome_curto: 'CF 1824',
+    categoria: 'constituicao',
+    ano_lei: 1824,
+    numero_lei: '1824',
+    planalto_url: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao24.htm',
+    ementa: 'Constituição Política do Império do Brasil, outorgada em 25 de março de 1824.',
+  },
+  {
+    path: 'federal/constituicoes-historicas/1891/constituicao-1891.md',
+    slugs: ['constituicao-1891'],
+    nome: 'Constituição da República dos Estados Unidos do Brasil de 1891',
+    nome_curto: 'CF 1891',
+    categoria: 'constituicao',
+    ano_lei: 1891,
+    numero_lei: '1891',
+    planalto_url: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao91.htm',
+    ementa: 'Constituição da República dos Estados Unidos do Brasil, de 24 de fevereiro de 1891.',
+  },
+  {
+    path: 'federal/constituicoes-historicas/1934/constituicao-1934.md',
+    slugs: ['constituicao-1934'],
+    nome: 'Constituição da República dos Estados Unidos do Brasil de 1934',
+    nome_curto: 'CF 1934',
+    categoria: 'constituicao',
+    ano_lei: 1934,
+    numero_lei: '1934',
+    planalto_url: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao34.htm',
+    ementa: 'Constituição da República dos Estados Unidos do Brasil, de 16 de julho de 1934.',
+  },
+  {
+    path: 'federal/constituicoes-historicas/1937/constituicao-1937.md',
+    slugs: ['constituicao-1937'],
+    nome: 'Constituição dos Estados Unidos do Brasil de 1937 (Polaca)',
+    nome_curto: 'CF 1937',
+    categoria: 'constituicao',
+    ano_lei: 1937,
+    numero_lei: '1937',
+    planalto_url: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao37.htm',
+    ementa: 'Constituição dos Estados Unidos do Brasil, outorgada em 10 de novembro de 1937.',
+  },
+  {
+    path: 'federal/constituicoes-historicas/1946/constituicao-1946.md',
+    slugs: ['constituicao-1946'],
+    nome: 'Constituição dos Estados Unidos do Brasil de 1946',
+    nome_curto: 'CF 1946',
+    categoria: 'constituicao',
+    ano_lei: 1946,
+    numero_lei: '1946',
+    planalto_url: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao46.htm',
+    ementa: 'Constituição dos Estados Unidos do Brasil, promulgada em 18 de setembro de 1946.',
+  },
+  {
+    path: 'federal/constituicoes-historicas/1967/constituicao-1967.md',
+    slugs: ['constituicao-1967'],
+    nome: 'Constituição da República Federativa do Brasil de 1967',
+    nome_curto: 'CF 1967',
+    categoria: 'constituicao',
+    ano_lei: 1967,
+    numero_lei: '1967',
+    planalto_url: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao67.htm',
+    ementa: 'Constituição da República Federativa do Brasil, promulgada em 24 de janeiro de 1967.',
+  },
+  {
+    path: 'federal/constituicoes-historicas/1969/constituicao-1967-emenda-1-1969.md',
+    slugs: ['constituicao-1969'],
+    nome: 'Constituição da República de 1967 (Emenda Constitucional nº 1/1969)',
+    nome_curto: 'EC 01/1969',
+    categoria: 'constituicao',
+    ano_lei: 1969,
+    numero_lei: '1/1969',
+    planalto_url: 'https://www.planalto.gov.br/ccivil_03/constituicao/constituicao67emc69.htm',
+    ementa: 'Texto constitucional de 1967 com a redação dada pela Emenda Constitucional nº 1, de 17 de outubro de 1969.',
+  },
+];
+
+// Parser avançado de artigos em Markdown com suporte a leis modernas e históricas
 function parseMarkdownArticles(markdown) {
   let yamlMeta = {};
   let body = markdown;
@@ -184,12 +265,76 @@ function parseMarkdownArticles(markdown) {
     body = markdown.substring(yamlMatch[0].length);
   }
 
-  // Regex para captura de artigos (aceita **Art. X**, Art. X, Artigo X)
-  const artRegex = /(?:\n|^)(?:\*\*Art(?:igo)?\.?\s*(\d+[ºo°]?|[A-Za-z0-9\-]+)\.?\*\*\s*[-–—.]?\s*(.*?)(?=\n|$)|Art(?:igo)?\.?\s*(\d+[ºo°]?|[A-Za-z0-9\-]+)\.?\s*[-–—.]?\s*(.*?)(?=\n|$))([\s\S]*?)(?=(?:\n(?:\*\*Art(?:igo)?\.?\s*\d+|\bArt(?:igo)?\.?\s*\d+))|$)/gi;
+  // Correção de inconsistências OCR comuns das fontes oficiais
+  body = body.replace(/Art\.\s*14I\./g, 'Art. 141.');
 
+  const lines = body.split('\n');
+  const articles = [];
+  let currentArt = null;
+  let inAdct = false;
+
+  // Regex para captura da linha de cabeçalho do artigo
+  // Exemplos suportados:
+  //   **Art. 1.** O IMPERIO...
+  //   Art 1º - A Nação...
+  //   **Art. 1º** A Nação...
+  //   **Art.6º** - O Governo...
+  //   Art - 184 - O patrimônio...
+  //   Art.. 81. Estes Conselhos...
+  const artHeaderRegex = /^(?:\*{0,2}Art(?:\.{1,2}|igo)?\s*[-–—.]?\s*(\d+[º°ª\w\-]*)\.?\*{0,2}(?:\s*[-–—.]\s*|\s*))([\s\S]*)$/i;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Detecção contextual do ADCT após os artigos regulares já terem iniciado
+    if (articles.length >= 20 && /^\s*#{0,4}\s*(?:disposiç[õo]es transit[óo]rias|ato das disposiç[õo]es)/i.test(line.trim())) {
+      inAdct = true;
+    }
+
+    const match = line.match(artHeaderRegex);
+    if (match) {
+      if (currentArt) {
+        articles.push(currentArt);
+      }
+      const rawNum = match[1].replace(/[º°ª\.]/g, '').trim();
+      const numInt = parseInt(rawNum, 10);
+      const isAdctNumber = inAdct && !isNaN(numInt) && numInt < 50;
+      const prefix = isAdctNumber ? 'ADCT ' : '';
+      const numero = prefix + rawNum;
+      const epigrafe = (isAdctNumber ? 'ADCT ' : '') + 'Art. ' + match[1];
+      const initialText = match[2].trim();
+      currentArt = {
+        numero,
+        epigrafe,
+        lines: initialText ? [initialText] : []
+      };
+    } else if (currentArt) {
+      currentArt.lines.push(line);
+    }
+  }
+  if (currentArt) {
+    articles.push(currentArt);
+  }
+
+  // Se o parser linha-a-linha capturou artigos, formata e retorna
+  if (articles.length > 0) {
+    const blocos = articles.map((a) => {
+      const corpo = a.lines.join('\n').trim();
+      const textoCompleto = `${a.epigrafe}\n\n${corpo}`.trim();
+      return {
+        numero: a.numero,
+        epigrafe: a.epigrafe,
+        texto: textoCompleto,
+      };
+    });
+    return { yamlMeta, blocos, bodyLength: body.length };
+  }
+
+  // Fallback para regex contínuo se necessário
+  const artRegexFallback = /(?:\n|^)(?:\*\*Art(?:igo)?\.?\s*(\d+[ºo°]?|[A-Za-z0-9\-]+)\.?\*\*\s*[-–—.]?\s*(.*?)(?=\n|$)|Art(?:igo)?\.?\s*(\d+[ºo°]?|[A-Za-z0-9\-]+)\.?\s*[-–—.]?\s*(.*?)(?=\n|$))([\s\S]*?)(?=(?:\n(?:\*\*Art(?:igo)?\.?\s*\d+|\bArt(?:igo)?\.?\s*\d+))|$)/gi;
   const blocos = [];
   let m;
-  while ((m = artRegex.exec(body)) !== null) {
+  while ((m = artRegexFallback.exec(body)) !== null) {
     const rawNum = m[1] || m[3];
     const epigrafe = (m[2] || m[4] || '').trim();
     const corpo = (m[5] || '').trim();
@@ -230,7 +375,22 @@ async function findOrCreateLei(leiInfo) {
     const res = await supaFetch(`vade_mecum_leis?slug=eq.${encodeURIComponent(slug)}&select=id,slug,nome,total_artigos`);
     if (res.ok) {
       const rows = await res.json();
-      if (rows && rows[0]) return rows[0];
+      if (rows && rows[0]) {
+        // Atualiza metadados complementares se existirem
+        if (leiInfo.planalto_url || leiInfo.ano_lei || leiInfo.ementa) {
+          await supaFetch(`vade_mecum_leis?id=eq.${rows[0].id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+              planalto_url: leiInfo.planalto_url || undefined,
+              ano_lei: leiInfo.ano_lei || undefined,
+              numero_lei: leiInfo.numero_lei || undefined,
+              ementa: leiInfo.ementa || undefined,
+              categoria: leiInfo.categoria || undefined,
+            }),
+          });
+        }
+        return rows[0];
+      }
     }
   }
 
@@ -240,6 +400,10 @@ async function findOrCreateLei(leiInfo) {
     nome: leiInfo.nome,
     nome_curto: leiInfo.nome_curto || leiInfo.nome,
     categoria: leiInfo.categoria || 'lei',
+    planalto_url: leiInfo.planalto_url || null,
+    ano_lei: leiInfo.ano_lei || null,
+    numero_lei: leiInfo.numero_lei || null,
+    ementa: leiInfo.ementa || null,
     total_artigos: 0,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -423,9 +587,11 @@ async function main() {
     console.log(`${c.yellow}${c.bold}*** MODO DRY-RUN ATIVADO (NENHUMA GRAVAÇÃO NO BANCO) ***${c.reset}\n`);
   }
 
+  const allCatalogItems = [...DIRECT_MAPPINGS, ...HISTORICAL_CONSTITUTIONS];
+
   if (slugArg) {
     const slug = slugArg.split('=')[1];
-    const item = DIRECT_MAPPINGS.find((m) => m.slugs.includes(slug));
+    const item = allCatalogItems.find((m) => m.slugs.includes(slug));
     if (!item) {
       console.log(`${c.red}Lei com slug "${slug}" não encontrada nos mapeamentos diretos.${c.reset}`);
       return;
@@ -434,15 +600,19 @@ async function main() {
     return;
   }
 
-  if (target === 'tratados') {
+  if (target === 'constituicoes' || target === 'constituicoes-historicas') {
+    console.log(`${c.yellow}${c.bold}[MODO: CONSTITUIÇÕES HISTÓRICAS DO BRASIL (1824 - 1969)]${c.reset}\n`);
+    await runList(HISTORICAL_CONSTITUTIONS, dryRun);
+  } else if (target === 'tratados') {
     const tratadosItems = DIRECT_MAPPINGS.filter((m) => m.path.startsWith('tratados/'));
     await runList(tratadosItems, dryRun);
   } else if (target === 'leis-zeradas') {
     await runLeisZeradas(dryRun);
   } else if (target === 'todas-mapeadas') {
-    await runList(DIRECT_MAPPINGS, dryRun);
+    await runList(allCatalogItems, dryRun);
   } else {
     console.log(`${c.yellow}Alvo "${target}" desconhecido. Alvos válidos:${c.reset}`);
+    console.log(`  --target=constituicoes    (Popula as 7 Constituições Históricas do Brasil: 1824 a 1969)`);
     console.log(`  --target=tratados         (Popula todos os 12 Tratados de Direitos Humanos)`);
     console.log(`  --target=leis-zeradas     (Audita e preenche as leis vazias do Supabase)`);
     console.log(`  --target=todas-mapeadas   (Popula todas as leis mapeadas do ctresb/leis)`);
