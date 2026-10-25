@@ -67,11 +67,11 @@ const JurisprudenciaSheet = ({ open, onClose }: Props) => {
         className="fixed bottom-0 left-0 right-0 z-[1401] bg-card border-t border-border rounded-t-3xl pb-[calc(1rem+var(--sai-bottom,var(--sai-bottom)))] h-[90dvh] flex flex-col overflow-y-auto md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-6 md:top-auto md:w-[92vw] md:max-w-2xl md:rounded-3xl md:border md:border-border md:shadow-2xl"
       >
         {/* Cabeçalho */}
-        <div className="shrink-0 pt-2 pb-1 bg-card">
-          <div className="flex items-center justify-center">
-            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+        <div className="shrink-0 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.5rem)] pb-1 bg-card">
+          <div className="flex items-center justify-center pt-1 pb-3">
+            <div className="w-10 h-1.5 rounded-full bg-muted-foreground/35" />
           </div>
-          <div className="flex items-center justify-between px-5 pb-4">
+          <div className="flex items-center justify-between px-5 pb-3.5 pt-1">
             <div className="flex items-center gap-3 min-w-0">
               <div
                 className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"

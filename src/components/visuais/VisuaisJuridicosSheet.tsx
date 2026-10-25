@@ -494,10 +494,10 @@ export default function VisuaisJuridicosSheet({ open, onClose, tipoInicial, modo
                 />
               ) : (
                 <>
-                  <div className="flex items-center justify-center pt-2 pb-1">
-                    <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+                  <div className="flex items-center justify-center pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.75rem)] pb-3">
+                    <div className="w-10 h-1.5 rounded-full bg-muted-foreground/35" />
                   </div>
-                  <div className="flex items-center justify-between gap-3 px-5 pb-3">
+                  <div className="flex items-center justify-between gap-3 px-5 pb-3.5 pt-1">
                     <div className="min-w-0">
                       <h3 className="font-display text-xl font-bold uppercase tracking-[0.04em] leading-none text-foreground truncate">
                         Visuais jurídicos

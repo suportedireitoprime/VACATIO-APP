@@ -116,12 +116,12 @@ export function SumulaVinculanteSheet({ sumula, isFavorita = false, onToggleFavo
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          className="absolute inset-x-0 bottom-0 top-4 bg-background rounded-t-3xl flex flex-col"
+          className="absolute inset-x-0 bottom-0 top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.75rem)] bg-background rounded-t-3xl flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="shrink-0 border-b border-border/60 px-4 pt-3 pb-4">
-            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted-foreground/30" />
+          <div className="shrink-0 border-b border-border/60 px-4 pt-2.5 pb-4">
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted-foreground/35" />
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">

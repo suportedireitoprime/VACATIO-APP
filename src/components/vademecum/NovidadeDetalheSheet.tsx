@@ -84,7 +84,7 @@ Mantenha o texto bem formatado, didático e vá direto ao ponto, não fique enro
   return (
     <Sheet open={open} onOpenChange={(val) => !val && onClose()}>
       <SheetContent side="bottom" className="h-[100dvh] z-[99999] rounded-none px-0 pb-0 pt-0 flex flex-col gap-0 border-none bg-background">
-        <SheetHeader className="px-4 py-3 border-b border-border text-left flex flex-row items-center gap-3 space-y-0 sticky top-0 bg-background/80 backdrop-blur-xl z-20">
+        <SheetHeader className="px-4 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.75rem)] pb-3.5 border-b border-border text-left flex flex-row items-center gap-3 space-y-0 sticky top-0 bg-background/80 backdrop-blur-xl z-20">
           <button onClick={onClose} className="w-10 h-10 rounded-full bg-secondary/30 flex items-center justify-center shrink-0">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>

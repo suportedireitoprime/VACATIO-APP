@@ -90,7 +90,7 @@ export const LocalSearchOverlay: React.FC<LocalSearchOverlayProps> = ({
         >
           {/* Header customizado com a cor da lei */}
           <div 
-            className="pt-[calc(1rem+var(--sai-top,var(--sai-top)))] pb-3 px-4 flex flex-col gap-3 rounded-b-3xl shadow-lg relative z-20"
+            className="pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+1.25rem)] pb-3.5 px-4 flex flex-col gap-3 rounded-b-3xl shadow-lg relative z-20"
             style={{ backgroundColor: leiThemeColor || '#c2274a' }}
           >
             <div className="flex items-center gap-3">

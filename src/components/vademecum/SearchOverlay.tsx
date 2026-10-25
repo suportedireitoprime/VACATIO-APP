@@ -262,9 +262,9 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
           className="fixed z-50 inset-0 bg-background flex flex-col lg:top-[10%] lg:bottom-auto lg:h-[80vh] lg:max-w-[800px] lg:mx-auto lg:rounded-2xl lg:shadow-2xl"
         >
           {/* Header estilizado (layout APP.PRIME) */}
-          <div className="bg-gradient-to-br from-primary to-primary/80 px-4 pb-4 pt-[calc(0.5rem+var(--sai-top,var(--sai-top)))] shrink-0 shadow-md">
-            <div className="flex items-center justify-center pb-2">
-              <div className="w-10 h-1 rounded-full bg-white/30" />
+          <div className="bg-gradient-to-br from-primary to-primary/80 px-4 pb-4 pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.75rem)] shrink-0 shadow-md">
+            <div className="flex items-center justify-center pt-1 pb-3">
+              <div className="w-10 h-1.5 rounded-full bg-white/30" />
             </div>
             <div className="flex items-center gap-2.5">
               <button

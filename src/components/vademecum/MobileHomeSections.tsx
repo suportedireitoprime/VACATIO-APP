@@ -876,12 +876,12 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
-              className="fixed inset-0 z-[1401] flex h-[100dvh] w-full flex-col bg-background pt-[max(0.5rem,var(--sai-top,0px))] pb-[calc(1rem+var(--sai-bottom,0px))]"
+              className="fixed inset-0 z-[1401] flex h-[100dvh] w-full flex-col bg-background pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.75rem)] pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]"
             >
-              <div className="flex items-center justify-center pt-1.5 pb-1">
-                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+              <div className="flex items-center justify-center pt-1 pb-3 shrink-0">
+                <div className="w-10 h-1.5 rounded-full bg-muted-foreground/35" />
               </div>
-              <div className="flex items-center justify-between px-4 pb-3 pt-1 gap-3">
+              <div className="flex items-center justify-between px-4 pb-3.5 pt-1.5 sm:pt-2 gap-3 shrink-0">
                 {/* Lado esquerdo: Ícone da categoria (sem fundo cinza) + Título e Subtítulo */}
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <CategorySheetIcon

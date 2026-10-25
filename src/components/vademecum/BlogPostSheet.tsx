@@ -169,7 +169,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                 <button
                   onClick={onClose}
                   aria-label="Fechar"
-                  className="absolute top-4 left-4 w-11 h-11 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-lg hover:bg-white/30 active:scale-95 transition-all"
+                  className="absolute top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.75rem)] left-4 w-11 h-11 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-lg hover:bg-white/30 active:scale-95 transition-all z-10"
                 >
                   <ChevronDown className="w-5 h-5" strokeWidth={2.5} />
                 </button>
@@ -178,7 +178,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                   onClick={toggleLike}
                   aria-label={liked ? 'Descurtir' : 'Curtir'}
                   aria-pressed={liked}
-                  className={`absolute top-4 right-4 w-11 h-11 flex items-center justify-center rounded-full shadow-lg active:scale-95 transition-all z-10 ${
+                  className={`absolute top-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.75rem)] right-4 w-11 h-11 flex items-center justify-center rounded-full shadow-lg active:scale-95 transition-all z-10 ${
                     liked
                       ? 'bg-rose-500 text-white'
                       : 'bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30'
