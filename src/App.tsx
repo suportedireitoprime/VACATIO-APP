@@ -77,7 +77,6 @@ import Onboarding from "./pages/Onboarding.tsx";
 import AdminFuncoes from "./pages/AdminFuncoes.tsx";
 import AdminPush from "./pages/AdminPush.tsx";
 import AdminPushSection from "./pages/AdminPushSection.tsx";
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Lazy loaded
