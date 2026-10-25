@@ -15,6 +15,7 @@
     "electron:pack": "bun run build:electron && electron-builder",
     "export:laws": "node scripts/export-laws.mjs",
     "export:offline": "node scripts/export-offline-bundle.mjs",
+    "robo:ctresb": "node scripts/robo-ctresb-populador.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
