@@ -1776,6 +1776,7 @@ const CategoriaLegislacao = () => {
             )}
             {tGroup.capitulos.map((capGroup, ci) => {
               const capKey = `${tGroup.titulo}__${capGroup.capitulo}`;
+              const isExpanded = expandedTitulo === capKey;
               const f = formatCapituloDisplay(capGroup.capitulo, tGroup.titulo);
               const displayCap = f.tag ? `${f.tag} - ${f.title}` : f.title;
               return (
