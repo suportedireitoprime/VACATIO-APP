@@ -1475,3 +1475,26 @@ body::-webkit-scrollbar,
   -webkit-appearance: none !important;
 }
 
+/* Animations for CustomSplashScreen (moved to CSS for 60-120fps GPU acceleration) */
+@keyframes splash-logo-anim {
+  0% { transform: scale(0.65); opacity: 0; }
+  60% { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes splash-content-anim {
+  0% { transform: translateY(16px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.anim-splash-logo-gpu {
+  animation: splash-logo-anim 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+.anim-splash-content-gpu {
+  opacity: 0;
+  animation: splash-content-anim 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.25s;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+

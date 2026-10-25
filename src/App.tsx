@@ -1,11 +1,9 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { initAnalytics, trackPageview, setAnalyticsUserWithProfile } from "@/lib/analytics";
 import { useScreenTracking } from "@/lib/screenTracking";
 import { initNavTelemetry, markRouteChange } from "@/lib/navTelemetry";
 import { prefetchNearby } from "@/lib/nearbyPrefetch";
-
-// IntroOverlay desativado: o app agora usa apenas o splash nativo estático.
-// import { IntroOverlay } from "@/components/IntroOverlay";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
 
 
@@ -514,6 +512,19 @@ function DeepLinkBootstrap() {
   return null;
 }
 
+const CustomSplashScreen = lazy(() =>
+  import("@/components/CustomSplashScreen").then((m) => ({ default: m.CustomSplashScreen }))
+);
+
+function AppBootSplash() {
+  const [show, setShow] = useState(true);
+  return (
+    <AnimatePresence>
+      {show && <CustomSplashScreen onComplete={() => setShow(false)} />}
+    </AnimatePresence>
+  );
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
   const { user } = useAuth();
@@ -791,6 +802,9 @@ const App = () => (
         <ScrollToTop />
         <AuthProvider>
           <ThemeProvider>
+            <Suspense fallback={null}>
+              <AppBootSplash />
+            </Suspense>
             <TooltipProvider>
               <SkipToContent />
               <Sonner />
@@ -803,7 +817,6 @@ const App = () => (
               <GeofencePresenceBanner />
               <ReminderInAppBanner />
               <HorusTakeoverNoticeDialog />
-              {/* <IntroOverlay /> — desativado por preferência (splash estático) */}
               <AudioaulasPlayerProvider>
                 <RecordingProvider>
                   <AnimatedRoutes />

@@ -225,26 +225,11 @@
 </head>
 
   <body>
-    <div id="root">
-      <div id="vacatio-boot-splash" style="position:fixed;inset:0;background:radial-gradient(circle at center, #240a18 0%, #0d0408 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-user-select:none;user-select:none;">
-        <div style="position:relative;width:96px;height:96px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;">
-          <div style="position:absolute;inset:-8px;border-radius:50%;background:radial-gradient(circle, rgba(225,29,72,0.35) 0%, transparent 70%);animation:vacatio-pulse 2s infinite ease-in-out;"></div>
-          <img src="/favicon.png" alt="Vacatio" style="width:84px;height:84px;object-fit:contain;border-radius:20px;position:relative;z-index:1;box-shadow:0 10px 25px rgba(0,0,0,0.5);" onerror="this.style.display='none'" />
-        </div>
-        <div style="font-size:22px;font-weight:700;letter-spacing:0.5px;color:#f8fafc;margin-bottom:6px;">Vade Mecum</div>
-        <div style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#c9a84c;opacity:0.95;margin-bottom:28px;">Direito Prime</div>
-        <div style="width:32px;height:32px;border:3px solid rgba(225,29,72,0.2);border-top-color:#e11d48;border-radius:50%;animation:vacatio-spin 0.8s linear infinite;"></div>
-        <style>
-          @keyframes vacatio-spin { to { transform: rotate(360deg); } }
-          @keyframes vacatio-pulse { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.15); opacity: 1; } }
-        </style>
-      </div>
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       window.addEventListener('error', function(e) {
-        var splash = document.getElementById('vacatio-boot-splash');
-        if (splash && (!window.__REACT_MOUNTED__)) {
+        if (!window.__REACT_MOUNTED__) {
           var errDiv = document.getElementById('vacatio-fatal-error');
           if (!errDiv) {
             errDiv = document.createElement('div');
