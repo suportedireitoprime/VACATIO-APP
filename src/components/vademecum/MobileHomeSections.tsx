@@ -1060,12 +1060,6 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                             Atual
                           </span>
                         );
-                      } else {
-                        badge = (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25 shrink-0">
-                            {constMeta.ano}
-                          </span>
-                        );
                       }
                     } else if (lei.tipo === 'estatuto') {
                       if (lei.id === 'eca') {
@@ -1115,11 +1109,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                             navigate(leiPath(lei));
                           }
                         }}
-                        className={`w-full flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 min-h-[82px] rounded-2xl border active:scale-[0.99] transition cursor-pointer select-none ${
-                          isCf88
-                            ? 'bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/40 shadow-sm shadow-amber-500/10'
-                            : 'bg-secondary/40 hover:bg-secondary/60 border-border/50'
-                        }`}
+                        className="w-full flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 min-h-[82px] rounded-2xl bg-secondary/40 hover:bg-secondary/60 border border-border/50 active:scale-[0.99] transition cursor-pointer select-none"
                       >
                         <div className="relative overflow-hidden rounded-xl shrink-0">
                           <LawIcon
@@ -1137,9 +1127,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
 
                         <div className="flex-1 min-w-0 text-left">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className={`font-card text-[15px] sm:text-[15.5px] leading-snug line-clamp-1 tracking-[-0.01em] ${
-                              isCf88 ? 'text-amber-300 font-bold' : 'text-foreground font-medium'
-                            }`}>
+                            <p className="font-card text-foreground font-medium text-[15px] sm:text-[15.5px] leading-snug line-clamp-1 tracking-[-0.01em]">
                               {displayLabel}
                             </p>
                             {badge}
