@@ -284,7 +284,7 @@ export const LEIS: Lei[] = [
   {
     id: '18',
     nome: 'Estatuto da Pessoa com Deficiência',
-    sigla: 'EPD',
+    sigla: 'PCD',
     categoria: 'Civil',
     tipo: 'estatuto',
     descricao: 'Lei nº 13.146, de 6 de julho de 2015',

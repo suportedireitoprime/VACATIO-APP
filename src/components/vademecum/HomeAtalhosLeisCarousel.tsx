@@ -493,7 +493,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
               else if (lei.id === 'ctn') ilustracao = '/assets/ctn-taxes.webp';
               else if (lei.id === 'eca') ilustracao = '/assets/eca-kids.webp';
               else if (lei.id === 'eoab') ilustracao = '/assets/eoab-woman.webp';
-              else if (lei.id === 'epd') ilustracao = '/assets/epd-wheelchair.webp';
+              else if (lei.id === 'epd') ilustracao = '/assets/pcd-wheelchair.webp';
               else if (lei.id === 'ce') ilustracao = '/assets/ce-vote.webp';
 
               const openThis = () => {
