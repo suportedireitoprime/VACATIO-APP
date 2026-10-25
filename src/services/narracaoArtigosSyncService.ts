@@ -1,6 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { getR2PublicUrl, uploadToR2 } from '@/lib/r2Storage';
+import { leisSupabase } from '@/lib/legislacaoBackend';
+import { getAllAudioAulasConfigs } from '@/services/audioAulasService';
 
 
 
@@ -931,6 +933,59 @@ export function invalidateStorageAudiosCache(slug?: string): void {
  */
 const resolvedNarracoesCache = new Map<string, string>();
 
+const R2_PUBLIC_BASE = 'https://pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev';
+
+// Mapeamento direto de slugs para pastas de estatutos no R2
+const R2_ESTATUTOS_FOLDERS: Record<string, string> = {
+  'estatuto-eca': 'estatuto-eca',
+  'eca': 'estatuto-eca',
+  'eca_estatuto_crianca_adolescente': 'estatuto-eca',
+  'estatuto-idoso': 'estatuto-idoso',
+  'ei_estatuto_idoso': 'estatuto-idoso',
+  'idoso': 'estatuto-idoso',
+  'estatuto-oab': 'estatuto-oab',
+  'eoab_estatuto_oab': 'estatuto-oab',
+  'oab': 'estatuto-oab',
+  'estatuto-cidade': 'estatuto-cidade',
+  'ec_estatuto_cidade': 'estatuto-cidade',
+  'cidade': 'estatuto-cidade',
+  'estatuto-desarmamento': 'estatuto-desarmamento',
+  'ed_estatuto_desarmamento': 'estatuto-desarmamento',
+  'estatuto-pessoa-deficiencia': 'estatuto-pessoa-deficiencia',
+  'epd_estatuto_pessoa_deficiencia': 'estatuto-pessoa-deficiencia',
+  'estatuto-igualdade-racial': 'estatuto-igualdade-racial',
+  'eir_estatuto_igualdade_racial': 'estatuto-igualdade-racial',
+  'estatuto-juventude': 'estatuto-juventude',
+  'ej_estatuto_juventude': 'estatuto-juventude',
+  'estatuto-metropole': 'estatuto-metropole',
+  'emet_estatuto_metropole': 'estatuto-metropole',
+  'estatuto-militares': 'estatuto-militares',
+  'em_estatuto_militares': 'estatuto-militares',
+  'estatuto-indio': 'estatuto-indio',
+  'eind_estatuto_indio': 'estatuto-indio',
+  'estatuto-refugiado': 'estatuto-refugiado',
+  'eref_estatuto_refugiado': 'estatuto-refugiado',
+  'estatuto-seguranca-privada': 'estatuto-seguranca-privada',
+  'estatuto-terra': 'estatuto-terra',
+  'eterra_estatuto_terra': 'estatuto-terra',
+  'estatuto-torcedor': 'estatuto-torcedor',
+  'et_estatuto_torcedor': 'estatuto-torcedor',
+  'estatuto-cancer': 'estatuto-cancer',
+  'epc_estatuto_pessoa_cancer': 'estatuto-cancer',
+  'estatuto-mpe': 'estatuto-mpe',
+  'eme_estatuto_microempresa': 'estatuto-mpe',
+  'lei-servidor': 'lei-servidor',
+};
+
+function formatR2ArtigoUrl(pasta: string, key: string): string | null {
+  const match = key.match(/^(\d+)(?:-([a-z]))?$/i);
+  if (!match) return null;
+  const numInt = parseInt(match[1], 10);
+  const padded = String(numInt).padStart(4, '0');
+  const sufixo = match[2] ? `-${match[2].toUpperCase()}` : '';
+  return `${R2_PUBLIC_BASE}/narracoes/estatutos/${pasta}/Art.%20${padded}${sufixo}.mp3`;
+}
+
 /**
  * Consulta síncrona instantânea ao cache de narração
  */
@@ -952,6 +1007,16 @@ export function getCachedNarracaoUrl(params: {
     const compositeKey = `${slug}::${key}`;
     if (resolvedNarracoesCache.has(compositeKey)) {
       return resolvedNarracoesCache.get(compositeKey)!;
+    }
+    // Resolução direta em 0ms para estatutos gravados no R2 (incluindo ECA)
+    const pastaEstatuto = R2_ESTATUTOS_FOLDERS[slug];
+    if (pastaEstatuto) {
+      const url = formatR2ArtigoUrl(pastaEstatuto, key);
+      if (url) {
+        resolvedNarracoesCache.set(compositeKey, url);
+        if (artigoId) resolvedNarracoesCache.set(artigoId, url);
+        return url;
+      }
     }
   }
   return null;
@@ -976,7 +1041,7 @@ export async function getNarracaoArtigo(params: {
     return { audioUrl: url };
   }
 
-  // 2. Checar no cache em memória
+  // 2. Checar no cache em memória (ou gerador instantâneo R2)
   const cached = getCachedNarracaoUrl(params);
   if (cached) {
     return { audioUrl: cached };
@@ -985,10 +1050,10 @@ export async function getNarracaoArtigo(params: {
   const key = normalizeArtigoKey(artigoNumero);
   const slug = (leiSlug || tabelaNome || '').trim().toLowerCase();
 
-  // 3. Checar em vade_mecum_artigos diretamente pelo artigoId (tabela principal e mais rápida)
+  // 3. Checar em vade_mecum_artigos diretamente no banco unificado de leis (leisSupabase)
   if (artigoId) {
     try {
-      const { data: artRow } = await supabase
+      const { data: artRow } = await leisSupabase
         .from('vade_mecum_artigos')
         .select('narracao_url')
         .eq('id', artigoId)

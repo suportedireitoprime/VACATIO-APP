@@ -11,7 +11,16 @@ export const LEIS_SUPABASE_PROJECT_ID = 'tlpxubeagmxapkysgobk';
 export const LEIS_SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRscHh1YmVhZ214YXBreXNnb2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTMzOTYsImV4cCI6MjEwNzA2OTM5Nn0.3qKySrhlG6Kw1ZQYEaK4cELtzG2JlIi_CNHH4FV2ELo';
 
+import { createClient } from '@supabase/supabase-js';
+
 export const leisAuthHeaders = () => ({
   apikey: LEIS_SUPABASE_ANON_KEY,
   Authorization: `Bearer ${LEIS_SUPABASE_ANON_KEY}`,
+});
+
+export const leisSupabase = createClient(LEIS_SUPABASE_URL, LEIS_SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  }
 });
