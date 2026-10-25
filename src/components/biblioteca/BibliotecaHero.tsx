@@ -19,7 +19,7 @@ const BibliotecaHero = ({ children }: Props) => {
 
   return (
     <div
-      className="bg-hero-panel relative overflow-hidden rounded-b-[36px] shadow-2xl shadow-black/60 pt-[var(--sai-top)] flex flex-col z-20"
+      className="bg-hero-panel relative overflow-hidden rounded-b-[2rem] shadow-2xl shadow-black/60 pt-[var(--sai-top,0px)] flex flex-col z-20 min-h-[calc(300px+var(--sai-top,0px))] sm:min-h-[calc(315px+var(--sai-top,0px))]"
       style={{
         transform: 'translateZ(0)',
         backgroundColor: '#050505',
