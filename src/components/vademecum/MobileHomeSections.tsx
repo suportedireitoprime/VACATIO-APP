@@ -12,7 +12,7 @@ import {
   Landmark, LandPlot, LayoutGrid, Leaf, List, Map, Mic, MicOff, Network, NotebookPen,
   PiggyBank, Plane, PocketKnife, RadioTower, ReceiptText, Scale, Scroll, ScrollText, Search,
   Shield, ShieldAlert, ShieldCheck, ShieldX, Ship, ShoppingCart, Siren, Sprout, Stamp, Store,
-  Tractor, TreePine, Users, Vote, Wallet, Wifi, X, MessageCircle, BookOpen, Heart, ArrowRight, Sparkles, type LucideIcon,
+  Tractor, TreePine, Users, Vote, Wallet, Wifi, X, MessageCircle, BookOpen, Heart, ArrowRight, Sparkles, Crown, History, type LucideIcon,
 } from 'lucide-react';
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { ESTADOS } from '@/pages/LegislacaoEstadual';
@@ -223,10 +223,10 @@ const JURI_OPCOES = [
 ];
 
 const LAW_ICON_MAP: Record<string, LucideIcon> = {
-  cf: Landmark,
-  cf88: Landmark,
-  constituicao: Landmark,
-  'constituicao-federal': Landmark,
+  cf: Crown,
+  cf88: Crown,
+  constituicao: Crown,
+  'constituicao-federal': Crown,
   ced2015: Scale,
   ced1995: Scale,
   reg_oab: ScrollText,
@@ -1038,7 +1038,12 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                 ) : (
                 <div className="space-y-2">
                   {filteredCategoryItems.map((lei, i) => {
-                    const LawIcon = LAW_ICON_MAP[lei.id] || (CategorySheetIcon === Sparkles ? BookMarked : CategorySheetIcon);
+                    const isConstituicaoCat = categoryOpen?.id === 'cat-cf';
+                    const isCf88 = lei.id === 'cf88';
+                    const isFirstHistorica = isConstituicaoCat && !isCf88 && (i === 1 || filteredCategoryItems[i - 1]?.id === 'cf88');
+
+                    const LawIcon = isCf88 ? Crown : (LAW_ICON_MAP[lei.id] || (CategorySheetIcon === Sparkles ? BookMarked : CategorySheetIcon));
+                    const iconColor = isCf88 ? '#FACC15' : (lei.iconColor || categoryOpen.color);
                     
                     const constMeta = CONSTITUICAO_META[lei.id];
                     let displayLabel = lei.nome;
@@ -1079,80 +1084,102 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                     const isFav = favoriteIds.has(lei.id);
 
                     return (
-                    <motion.div
-                      key={lei.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: Math.min(i * 0.025, 0.25), duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => {
-                        setCategoryOpen(null);
-                        navigate(leiPath(lei));
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
+                    <div key={lei.id} className="space-y-2">
+                      {isFirstHistorica && (
+                        <div className="pt-4 pb-1.5 px-1">
+                          <div className="flex items-center gap-2.5">
+                            <div className="h-px flex-1 bg-border/60" />
+                            <span className="text-[11.5px] font-bold tracking-wider uppercase text-muted-foreground/80 font-card flex items-center gap-1.5">
+                              <History className="w-3.5 h-3.5 text-muted-foreground/70" />
+                              Demais Constituições
+                            </span>
+                            <div className="h-px flex-1 bg-border/60" />
+                          </div>
+                        </div>
+                      )}
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: Math.min(i * 0.025, 0.25), duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
                           setCategoryOpen(null);
                           navigate(leiPath(lei));
-                        }
-                      }}
-                      className="w-full flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 min-h-[82px] rounded-2xl bg-secondary/40 hover:bg-secondary/60 border border-border/50 active:scale-[0.99] transition cursor-pointer select-none"
-                    >
-                      <div className="relative overflow-hidden rounded-xl shrink-0">
-                        <LawIcon
-                          className="w-8 h-8 relative"
-                          style={{
-                            color: lei.iconColor || categoryOpen.color,
-                            filter: 'saturate(1.5) brightness(1.2) drop-shadow(0 2px 8px rgba(0,0,0,0.5))',
-                          }}
-                          strokeWidth={1.3}
-                        />
-                        <span aria-hidden className="pointer-events-none absolute inset-0 icon-shine" />
-                      </div>
-
-                      <div className="flex-1 min-w-0 text-left">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-card text-foreground text-[15px] sm:text-[15.5px] font-medium leading-snug line-clamp-1 tracking-[-0.01em]">
-                            {displayLabel}
-                          </p>
-                          {badge}
-                        </div>
-                        <p className="font-body text-muted-foreground text-[12px] leading-snug mt-1 line-clamp-1 truncate">
-                          {displaySublabel}
-                        </p>
-                      </div>
-
-                      {/* Ações à direita: Botão de Favoritar (coração vazado quando não favoritado) + Chevron */}
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavorito({
-                              leiId: lei.id,
-                              nome: lei.nome,
-                              descricao: lei.descricao,
-                              tipo: lei.tipo,
-                              tabela_nome: lei.tabela_nome,
-                            });
-                          }}
-                          aria-label={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                          title={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                          className="w-10 h-10 min-h-[44px] min-w-[44px] -mr-1 flex items-center justify-center rounded-full hover:bg-white/10 active:scale-90 transition-all cursor-pointer"
-                        >
-                          <Heart
-                            className={`w-5 h-5 transition-all duration-200 ${
-                              isFav
-                                ? 'fill-red-500 text-red-500 scale-110 drop-shadow-[0_2px_8px_rgba(239,68,68,0.4)]'
-                                : 'text-muted-foreground/45 hover:text-red-400 hover:scale-105'
-                            }`}
-                            strokeWidth={isFav ? 2 : 1.7}
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setCategoryOpen(null);
+                            navigate(leiPath(lei));
+                          }
+                        }}
+                        className={`w-full flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 min-h-[82px] rounded-2xl border active:scale-[0.99] transition cursor-pointer select-none ${
+                          isCf88
+                            ? 'bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/40 shadow-sm shadow-amber-500/10'
+                            : 'bg-secondary/40 hover:bg-secondary/60 border-border/50'
+                        }`}
+                      >
+                        <div className="relative overflow-hidden rounded-xl shrink-0">
+                          <LawIcon
+                            className="w-8 h-8 relative"
+                            style={{
+                              color: iconColor,
+                              filter: isCf88
+                                ? 'saturate(1.7) brightness(1.3) drop-shadow(0 2px 10px rgba(250,204,21,0.5))'
+                                : 'saturate(1.5) brightness(1.2) drop-shadow(0 2px 8px rgba(0,0,0,0.5))',
+                            }}
+                            strokeWidth={isCf88 ? 1.6 : 1.3}
                           />
-                        </button>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground/60 shrink-0" />
-                      </div>
-                    </motion.div>
+                          <span aria-hidden className="pointer-events-none absolute inset-0 icon-shine" />
+                        </div>
+
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className={`font-card text-[15px] sm:text-[15.5px] leading-snug line-clamp-1 tracking-[-0.01em] ${
+                              isCf88 ? 'text-amber-300 font-bold' : 'text-foreground font-medium'
+                            }`}>
+                              {displayLabel}
+                            </p>
+                            {badge}
+                          </div>
+                          <p className="font-body text-muted-foreground text-[12px] leading-snug mt-1 line-clamp-1 truncate">
+                            {displaySublabel}
+                          </p>
+                        </div>
+
+                        {/* Ações à direita: Botão de Favoritar + Chevron */}
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorito({
+                                leiId: lei.id,
+                                nome: lei.nome,
+                                descricao: lei.descricao,
+                                tipo: lei.tipo,
+                                tabela_nome: lei.tabela_nome,
+                              });
+                            }}
+                            aria-label={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                            title={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                            className="w-10 h-10 min-h-[44px] min-w-[44px] -mr-1 flex items-center justify-center rounded-full hover:bg-white/10 active:scale-90 transition-all cursor-pointer"
+                          >
+                            <Heart
+                              className={`w-5 h-5 transition-all duration-200 ${
+                                isFav
+                                  ? 'fill-red-500 text-red-500 scale-110 drop-shadow-[0_2px_8px_rgba(239,68,68,0.4)]'
+                                  : 'text-muted-foreground/45 hover:text-red-400 hover:scale-105'
+                              }`}
+                              strokeWidth={isFav ? 2 : 1.7}
+                            />
+                          </button>
+                          <ChevronRight className="w-5 h-5 text-muted-foreground/60 shrink-0" />
+                        </div>
+                      </motion.div>
+                    </div>
                   );})}
                   {filteredCategoryItems.length === 0 && (
                     <div className="py-8 text-center font-body text-sm text-muted-foreground">
