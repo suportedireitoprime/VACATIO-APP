@@ -21,7 +21,7 @@ import { PillarIcon } from '@/components/icons/PillarIcon';
 import { leiPath, tipoToSlug, leiToSlug } from '@/lib/legislacaoSlugs';
 import { getLeiColor, shade } from '@/lib/leiTheme';
 
-import { getFavoritos, LEIS_FAVORITOS_EVENT } from '@/lib/leisFavoritos';
+import { getFavoritos, toggleFavorito, LEIS_FAVORITOS_EVENT } from '@/lib/leisFavoritos';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import VoiceCaptureOverlay from './VoiceCaptureOverlay';
 
@@ -108,8 +108,60 @@ const CATEGORIA_CATS: CategoriaFormal[] = [
   { id: 'cat-decretos',      label: 'Decretos',            sublabel: 'Regulamentos do Poder Executivo',   icon: Stamp,      color: '#FBBF24', route: '/normas/decretos' },
 ];
 
+/** Metadados enriquecidos para as Constituições do Brasil */
+const CONSTITUICAO_META: Record<string, { ano: string; titulo: string; subtitulo: string; isAtual?: boolean }> = {
+  cf88: {
+    ano: '1988',
+    titulo: 'Constituição de 1988',
+    subtitulo: 'Constituição Cidadã · Promulgada em 5 de outubro',
+    isAtual: true,
+  },
+  cf1969: {
+    ano: '1969',
+    titulo: 'Constituição de 1969',
+    subtitulo: 'Emenda Constitucional nº 1/1969 · Regime Militar',
+  },
+  cf1967: {
+    ano: '1967',
+    titulo: 'Constituição de 1967',
+    subtitulo: 'Constituição do Brasil de 1967 · Regime Militar',
+  },
+  cf1946: {
+    ano: '1946',
+    titulo: 'Constituição de 1946',
+    subtitulo: 'Estados Unidos do Brasil · Redemocratização',
+  },
+  cf1937: {
+    ano: '1937',
+    titulo: 'Constituição de 1937',
+    subtitulo: 'A "Polaca" · Estado Novo de Getúlio Vargas',
+  },
+  cf1934: {
+    ano: '1934',
+    titulo: 'Constituição de 1934',
+    subtitulo: 'Segunda República · Voto feminino e direitos sociais',
+  },
+  cf1891: {
+    ano: '1891',
+    titulo: 'Constituição de 1891',
+    subtitulo: 'Primeira República · Marechal Deodoro da Fonseca',
+  },
+  cf1824: {
+    ano: '1824',
+    titulo: 'Constituição de 1824',
+    subtitulo: 'Constituição Política do Império · Dom Pedro I',
+  },
+};
+
 const CATEGORIA_CARDS: AreaCat[] = [
-  { id: 'cat-cf', label: 'Constituição', sublabel: 'Constituição de 1988', icon: Landmark, color: '#FACC15', leiIds: ['cf88'] },
+  {
+    id: 'cat-cf',
+    label: 'Constituição',
+    sublabel: 'Constituições do Brasil (1824 a 1988)',
+    icon: Landmark,
+    color: '#FACC15',
+    leiIds: LEIS_CATALOG.filter(l => l.tipo === 'constituicao').map(l => l.id),
+  },
   { id: 'cat-codigo', label: 'Códigos', sublabel: 'Principais códigos nacionais', icon: BookOpen, color: '#3B82F6', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'codigo').map(l => l.id) },
   { id: 'cat-estatuto', label: 'Estatutos', sublabel: 'Principais estatutos nacionais', icon: Shield, color: '#10B981', leiIds: LEIS_CATALOG.filter(l => l.tipo === 'estatuto').map(l => l.id) },
   { id: 'cat-oab', label: 'OAB & Advocacia', sublabel: 'Normas e ética da advocacia', icon: Scale, color: '#1D4ED8', leiIds: ['ced2015', 'ced1995', 'eoab', 'reg_oab', 'prov205', 'prov188', 'prov112', 'prov144', 'res02', 'res01'] },
@@ -526,7 +578,9 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
     if (!term) return base;
     const needle = normalizeSearch(term);
     return base.filter((lei) => {
-      const haystack = normalizeSearch(`${lei.nome} ${lei.sigla} ${lei.descricao} ${(lei.tags || []).join(' ')}`);
+      const constMeta = CONSTITUICAO_META[lei.id];
+      const extraMeta = constMeta ? `${constMeta.ano} ${constMeta.titulo} ${constMeta.subtitulo} ${constMeta.isAtual ? 'atual vigente' : 'historica'}` : '';
+      const haystack = normalizeSearch(`${lei.nome} ${lei.sigla} ${lei.descricao} ${(lei.tags || []).join(' ')} ${extraMeta}`);
       return haystack.includes(needle);
     });
   }, [categoryItems, categorySearch, listFilter, favoriteIds]);
@@ -986,11 +1040,28 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                   {filteredCategoryItems.map((lei, i) => {
                     const LawIcon = LAW_ICON_MAP[lei.id] || (CategorySheetIcon === Sparkles ? BookMarked : CategorySheetIcon);
                     
+                    const constMeta = CONSTITUICAO_META[lei.id];
                     let displayLabel = lei.nome;
                     let displaySublabel = lei.descricao;
+                    let badge = null;
                     
-                    if (lei.id === 'cf88') {
-                      displayLabel = 'Constituição';
+                    if (constMeta) {
+                      displayLabel = constMeta.titulo;
+                      displaySublabel = constMeta.subtitulo;
+                      if (constMeta.isAtual) {
+                        badge = (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            Atual
+                          </span>
+                        );
+                      } else {
+                        badge = (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25 shrink-0">
+                            {constMeta.ano}
+                          </span>
+                        );
+                      }
                     } else if (lei.tipo === 'estatuto') {
                       if (lei.id === 'eca') {
                         displayLabel = 'ECA';
@@ -1005,17 +1076,28 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                       displaySublabel = lei.descricao;
                     }
 
+                    const isFav = favoriteIds.has(lei.id);
+
                     return (
-                    <motion.button
+                    <motion.div
                       key={lei.id}
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: Math.min(i * 0.025, 0.25), duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => {
                         setCategoryOpen(null);
                         navigate(leiPath(lei));
                       }}
-                      className="w-full flex items-center gap-4 p-4 min-h-[84px] rounded-2xl bg-secondary/40 border border-border/50 active:scale-[0.99] transition"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setCategoryOpen(null);
+                          navigate(leiPath(lei));
+                        }
+                      }}
+                      className="w-full flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 min-h-[82px] rounded-2xl bg-secondary/40 hover:bg-secondary/60 border border-border/50 active:scale-[0.99] transition cursor-pointer select-none"
                     >
                       <div className="relative overflow-hidden rounded-xl shrink-0">
                         <LawIcon
@@ -1030,18 +1112,47 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                       </div>
 
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="font-card text-foreground text-[15px] sm:text-[15.5px] font-medium leading-snug line-clamp-1 tracking-[-0.01em]">
-                          {displayLabel}
-                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-card text-foreground text-[15px] sm:text-[15.5px] font-medium leading-snug line-clamp-1 tracking-[-0.01em]">
+                            {displayLabel}
+                          </p>
+                          {badge}
+                        </div>
                         <p className="font-body text-muted-foreground text-[12px] leading-snug mt-1 line-clamp-1 truncate">
                           {displaySublabel}
                         </p>
                       </div>
-                      {favoriteIds.has(lei.id) && (
-                        <Heart className="w-5 h-5 fill-red-500 text-red-500 shrink-0" />
-                      )}
-                      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                    </motion.button>
+
+                      {/* Ações à direita: Botão de Favoritar (coração vazado quando não favoritado) + Chevron */}
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorito({
+                              leiId: lei.id,
+                              nome: lei.nome,
+                              descricao: lei.descricao,
+                              tipo: lei.tipo,
+                              tabela_nome: lei.tabela_nome,
+                            });
+                          }}
+                          aria-label={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                          title={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                          className="w-10 h-10 min-h-[44px] min-w-[44px] -mr-1 flex items-center justify-center rounded-full hover:bg-white/10 active:scale-90 transition-all cursor-pointer"
+                        >
+                          <Heart
+                            className={`w-5 h-5 transition-all duration-200 ${
+                              isFav
+                                ? 'fill-red-500 text-red-500 scale-110 drop-shadow-[0_2px_8px_rgba(239,68,68,0.4)]'
+                                : 'text-muted-foreground/45 hover:text-red-400 hover:scale-105'
+                            }`}
+                            strokeWidth={isFav ? 2 : 1.7}
+                          />
+                        </button>
+                        <ChevronRight className="w-5 h-5 text-muted-foreground/60 shrink-0" />
+                      </div>
+                    </motion.div>
                   );})}
                   {filteredCategoryItems.length === 0 && (
                     <div className="py-8 text-center font-body text-sm text-muted-foreground">

@@ -75,16 +75,17 @@ export function findLeiBySlug(
   return (
     candidates.find((l) => leiToSlug(l) === s) ||
     candidates.find((l) => l.id.toLowerCase() === s) ||
+    candidates.find((l) => l.tabela_nome?.toLowerCase() === s) ||
     candidates.find((l) => toSlug(l.sigla) === s)
   );
 }
 
 /** Constrói o caminho canônico de uma lei. */
 export function leiPath(lei: Pick<LeiCatalogItem, 'id' | 'nome' | 'tipo'>): string {
-  // A Constituição é única no seu tipo — evita rota duplicada
-  // /legislacao/constituicao/constituicao-federal.
-  if (lei.tipo === 'constituicao') {
+  // Apenas a CF/88 vigente cai na rota raiz direta /legislacao/constituicao
+  if (lei.tipo === 'constituicao' && lei.id === 'cf88') {
     return `/legislacao/${tipoToSlug(lei.tipo)}`;
   }
   return `/legislacao/${tipoToSlug(lei.tipo)}/${leiToSlug(lei)}`;
 }
+
