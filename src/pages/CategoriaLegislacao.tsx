@@ -3139,18 +3139,19 @@ const CategoriaLegislacao = () => {
                     if (!artigo) return null;
                     
                     const numText = artigo.numero.toLowerCase().includes('art') ? artigo.numero : `Art. ${artigo.numero}`;
+                    const lightColor = shade(leiAccent || '#EF4444', 0.65);
                     
                     return (
                       <button
                         key={id}
                         onClick={() => openArtigoWithRecent(artigo)}
-                        className="snap-start shrink-0 flex items-center justify-center active:scale-95 transition-all rounded-xl px-4 py-2.5 border group hover:brightness-110 shadow-sm"
+                        className="snap-start shrink-0 flex items-center justify-center active:scale-95 transition-all rounded-xl px-4 py-2.5 border group hover:brightness-125 shadow-sm"
                         style={{
-                          backgroundColor: `${leiAccent}18`,
-                          borderColor: `${leiAccent}35`,
+                          backgroundColor: `${leiAccent}22`,
+                          borderColor: `${leiAccent}45`,
                         }}
                       >
-                        <span className="font-display font-bold text-[14px] whitespace-nowrap" style={{ color: leiAccent }}>
+                        <span className="font-display font-bold text-[14px] whitespace-nowrap tracking-wide" style={{ color: lightColor }}>
                           {numText}
                         </span>
                       </button>
