@@ -426,6 +426,48 @@ function TypewriterText({ hints }: { hints: string[] }) {
   );
 }
 
+function resolveUltimaLeiSnapshot(): ReturnType<typeof getRecentes>[0] | null {
+  try {
+    const recentes = getRecentes();
+    if (recentes.length > 0) {
+      const top = { ...recentes[0] };
+      const cleanTop = cleanArtigoNumero(top.artigoNumero);
+      if (!cleanTop) {
+        top.artigoNumero = undefined;
+        const salvo = localStorage.getItem(`ultimo_artigo_numero_${top.tabela_nome || top.leiId}`) ||
+                      localStorage.getItem(`ultimo_artigo_numero_${top.leiId}`);
+        const cleanSalvo = cleanArtigoNumero(salvo);
+        if (cleanSalvo) {
+          top.artigoNumero = cleanSalvo;
+        } else {
+          const raw = localStorage.getItem(`recentes_artigos_${top.tabela_nome || top.leiId}`);
+          if (raw) {
+            const arr = JSON.parse(raw);
+            if (arr && arr[0]) {
+              const first = String(arr[0]);
+              const cleanFirst = cleanArtigoNumero(first);
+              if (cleanFirst) {
+                top.artigoNumero = cleanFirst;
+              } else if (isUuidLike(first) && top.tabela_nome) {
+                const cached = getCachedArtigos(top.tabela_nome);
+                const hit = cached?.find(a => a.id === first);
+                if (hit?.numero) {
+                  const cleanHit = cleanArtigoNumero(hit.numero);
+                  if (cleanHit) top.artigoNumero = cleanHit;
+                }
+              }
+            }
+          }
+        }
+      } else {
+        top.artigoNumero = cleanTop;
+      }
+      return top;
+    }
+  } catch {}
+  return null;
+}
+
 interface Props {
   onTabChange?: (tab: string) => void;
   onNewsOpenChange?: (open: boolean) => void;
@@ -439,54 +481,19 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const [categoryOpen, setCategoryOpen] = useState<Cat | AreaCat | CategoriaFormal | null>(null);
   const [categorySearch, setCategorySearch] = useState('');
   const [listFilter, setListFilter] = useState<'todos' | 'favoritos'>('todos');
-  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => {
+    try {
+      return new Set(getFavoritos().map(f => f.leiId));
+    } catch {
+      return new Set();
+    }
+  });
 
-  // #41 — Continuar Leitura: última lei visitada (atualização instantânea ao navegar ou alternar abas)
-  const [ultimaLei, setUltimaLei] = useState<ReturnType<typeof getRecentes>[0] | null>(null);
+  // #41 — Continuar Leitura: inicialização síncrona imediata (zero layout shift na abertura)
+  const [ultimaLei, setUltimaLei] = useState<ReturnType<typeof getRecentes>[0] | null>(resolveUltimaLeiSnapshot);
   useEffect(() => {
     const carregarUltima = () => {
-      const recentes = getRecentes();
-      if (recentes.length > 0) {
-        const top = { ...recentes[0] };
-        const cleanTop = cleanArtigoNumero(top.artigoNumero);
-        if (!cleanTop) {
-          top.artigoNumero = undefined;
-          try {
-            // 1. Tenta pegar o último número de artigo salvo diretamente
-            const salvo = localStorage.getItem(`ultimo_artigo_numero_${top.tabela_nome || top.leiId}`) ||
-                          localStorage.getItem(`ultimo_artigo_numero_${top.leiId}`);
-            const cleanSalvo = cleanArtigoNumero(salvo);
-            if (cleanSalvo) {
-              top.artigoNumero = cleanSalvo;
-            } else {
-              // 2. Se houver recentes_artigos (que contém UUIDs), tenta resolver o número do artigo no cache
-              const raw = localStorage.getItem(`recentes_artigos_${top.tabela_nome || top.leiId}`);
-              if (raw) {
-                const arr = JSON.parse(raw);
-                if (arr && arr[0]) {
-                  const first = String(arr[0]);
-                  const cleanFirst = cleanArtigoNumero(first);
-                  if (cleanFirst) {
-                    top.artigoNumero = cleanFirst;
-                  } else if (isUuidLike(first) && top.tabela_nome) {
-                    const cached = getCachedArtigos(top.tabela_nome);
-                    const hit = cached?.find(a => a.id === first);
-                    if (hit?.numero) {
-                      const cleanHit = cleanArtigoNumero(hit.numero);
-                      if (cleanHit) top.artigoNumero = cleanHit;
-                    }
-                  }
-                }
-              }
-            }
-          } catch {}
-        } else {
-          top.artigoNumero = cleanTop;
-        }
-        setUltimaLei(top);
-      } else {
-        setUltimaLei(null);
-      }
+      setUltimaLei(resolveUltimaLeiSnapshot());
     };
 
     carregarUltima();

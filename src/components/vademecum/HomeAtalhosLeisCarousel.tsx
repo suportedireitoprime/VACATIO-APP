@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -254,8 +254,8 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
     }
   }, [activeIdx, BASE_LEN]);
 
-  // Inicializa o scroll no meio (bloco central) assim que os itens montarem
-  useEffect(() => {
+  // Inicializa o scroll no meio (bloco central) antes da pintura do browser para evitar snap visual
+  useLayoutEffect(() => {
     const el = scrollerRef.current;
     if (!el || !BASE_LEN || didInitRef.current) return;
     const items = el.querySelectorAll<HTMLElement>('[data-cover-item]');

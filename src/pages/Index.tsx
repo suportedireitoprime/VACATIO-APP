@@ -1,26 +1,27 @@
 // Seletor de rotas por dispositivo — mobile/tablet e desktop têm árvores de
-// componentes isoladas (chunks separados), evitando que celulares carreguem
-// código exclusivo do desktop e vice-versa. Ver: split de rotas mobile/desktop.
+// componentes isoladas. IndexMobile é carregado de forma síncrona/eager no mobile
+// para eliminar completamente spinners e cascatas de carregamento na tela inicial.
 import { lazy, Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
 import { useIsDesktop } from '@/hooks/use-desktop';
+import IndexMobile from './IndexMobile';
 
 const IndexDesktop = lazy(() => import('./IndexDesktop'));
-const IndexMobile = lazy(() => import('./IndexMobile'));
 
 const IndexFallback = () => (
-  <div className="min-h-dvh flex items-center justify-center bg-background">
-    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-  </div>
+  <div className="min-h-dvh flex items-center justify-center bg-background" />
 );
 
 const Index = () => {
   const isDesktop = useIsDesktop();
+  if (!isDesktop) {
+    return <IndexMobile />;
+  }
   return (
     <Suspense fallback={<IndexFallback />}>
-      {isDesktop ? <IndexDesktop /> : <IndexMobile />}
+      <IndexDesktop />
     </Suspense>
   );
 };
 
 export default Index;
+

@@ -79,6 +79,7 @@ import AdminFuncoes from "./pages/AdminFuncoes.tsx";
 import AdminPush from "./pages/AdminPush.tsx";
 import AdminPushSection from "./pages/AdminPushSection.tsx";
 import { supabase } from "@/integrations/supabase/client";
+import { markAppReady } from "@/lib/appReadyState";
 
 // Lazy loaded
 const CategoriaLegislacao = lazy(routePrefetch.categoriaLegislacao);
@@ -363,6 +364,12 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
     return () => { cancelled = true; };
   }, [user, cacheKey, cachedDone]);
 
+  useEffect(() => {
+    if (!loading && user && initialCheckDone) {
+      markAppReady();
+    }
+  }, [loading, user, initialCheckDone]);
+
   if (loading) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-background">
@@ -525,8 +532,15 @@ function AppBootSplash() {
 
 function AnimatedRoutes() {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { data: profile } = useProfileSummary();
+
+  // Se não houver usuário após o término da verificação de auth, app está pronto para rotas públicas (Landing/Auth)
+  useEffect(() => {
+    if (!loading && !user) {
+      markAppReady();
+    }
+  }, [loading, user]);
 
   // Screen tracking unificado (page_view + screen_view + scroll + screen_exit).
   useScreenTracking();

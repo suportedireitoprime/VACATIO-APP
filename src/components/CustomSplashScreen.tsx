@@ -4,6 +4,7 @@ import logoVacatioAsset from '@/assets/logo-vacatio-v2.png.asset.json';
 import logoVacatioBundled from '@/assets/bundled/logo-vacatio-v2.webp';
 import { pickAsset, srcOf } from '@/lib/assetUrl';
 import { useHideSplashScreen } from '@/hooks/useHideSplashScreen';
+import { isAppReady, subscribeAppReady } from '@/lib/appReadyState';
 
 const logoVacatio = pickAsset(logoVacatioBundled, srcOf(logoVacatioAsset) || (logoVacatioAsset as any)?.url);
 
@@ -22,17 +23,43 @@ export function CustomSplashScreen({ onComplete }: { onComplete: () => void }) {
     document.body.style.overflow = 'hidden';
 
     let done = false;
-    const finish = () => {
+    let minTimeElapsed = false;
+    let appIsReady = isAppReady();
+
+    const tryFinish = () => {
       if (done) return;
-      done = true;
-      onCompleteRef.current();
+      if (minTimeElapsed && appIsReady) {
+        done = true;
+        onCompleteRef.current();
+      }
     };
 
-    // Permanece na tela exatamente por 2 segundos antes de transicionar
-    const splashTimeout = setTimeout(finish, 2000);
+    // 1. Duração mínima elegante para apreciar a logo e branding (1800ms)
+    const minTimer = setTimeout(() => {
+      minTimeElapsed = true;
+      tryFinish();
+    }, 1800);
+
+    // 2. Ouvinte de prontidão do app (Auth resolvida + montagem da tela inicial)
+    const unsubscribe = subscribeAppReady((ready) => {
+      if (ready) {
+        appIsReady = true;
+        tryFinish();
+      }
+    });
+
+    // 3. Fallback de segurança máxima (3500ms): nunca trava o usuário na splash
+    const safetyTimer = setTimeout(() => {
+      if (!done) {
+        done = true;
+        onCompleteRef.current();
+      }
+    }, 3500);
 
     return () => {
-      clearTimeout(splashTimeout);
+      clearTimeout(minTimer);
+      clearTimeout(safetyTimer);
+      unsubscribe();
       document.body.style.overflow = originalOverflow;
     };
   }, []);

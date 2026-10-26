@@ -28,6 +28,7 @@ import { prefetchNoticias } from '@/services/noticiasService';
 import { pushRecente } from '@/lib/leisRecentes';
 import { warmCoverCache } from '@/lib/coverLoader';
 import { track } from '@/lib/analyticsEvents';
+import { markAppReady } from '@/lib/appReadyState';
 
 const HERO_CONFIG = { radar: camaraHero, legislacao: heroImage, noticias: senadoHero } as const;
 
@@ -57,7 +58,10 @@ const IndexMobile = () => {
     return () => window.removeEventListener('vacatio:bottom-nav-visibility', handler as EventListener);
   }, []);
 
-  useEffect(() => { warmCoverCache(); }, []);
+  useEffect(() => { 
+    warmCoverCache(); 
+    markAppReady();
+  }, []);
 
   useEffect(() => {
     const ric: (cb: () => void) => number = (window as any).requestIdleCallback
