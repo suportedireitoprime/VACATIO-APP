@@ -331,6 +331,7 @@ const LandingScreen = ({ onStart }: { onStart: () => void }) => (
 
 /* ─── Auth Form Screen ─── */
 const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
+  const isDesktop = useIsDesktop();
   const { signIn, signUp, resetPassword, signInWithGoogle, signInWithApple } = useAuth();
   const navigateForm = useNavigate();
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
@@ -432,8 +433,6 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   };
 
   const inputCls = "w-full pl-5 pr-14 py-4 bg-white/[0.04] border border-white/10 rounded-2xl text-base font-body text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/40 transition-all";
-
-  const isDesktop = useIsDesktop();
 
   /* ── Shared form content ── */
   const formContent = (
