@@ -2585,7 +2585,7 @@ Separe cada julgado com:
         )}
         {isFirst && !isRevogado && artLabel && (
           <>
-            <span className="font-bold text-primary">{artLabel}</span>
+            <span className="font-bold text-primary-light">{artLabel}</span>
             <span className="text-foreground/60"> — </span>
           </>
         )}
