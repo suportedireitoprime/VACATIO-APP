@@ -4214,9 +4214,6 @@ Separe cada julgado com:
                               <span className="w-1.5 h-4 rounded-full bg-amber-500" />
                               Modos de Estudo
                             </h4>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
-                              Prioridade
-                            </span>
                           </div>
 
                           <div className="space-y-3">

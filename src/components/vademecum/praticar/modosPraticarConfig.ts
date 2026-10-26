@@ -67,7 +67,7 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Fixação da lei: complete o artigo, quebra-cabeça e desafios em sequência',
     icon: Pencil,
     color: '#38BDF8',
-    badge: 'Interativo',
+    badge: 'Super Interativo',
     fase: 1,
   },
 
