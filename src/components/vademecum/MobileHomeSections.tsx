@@ -479,6 +479,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   const [activeTab, setActiveTab] = useState('categorias');
   const [juriOpen, setJuriOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState<Cat | AreaCat | CategoriaFormal | null>(null);
+  const [sheetAnimationComplete, setSheetAnimationComplete] = useState(false);
   const [categorySearch, setCategorySearch] = useState('');
   const [listFilter, setListFilter] = useState<'todos' | 'favoritos'>('todos');
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => {
@@ -488,6 +489,18 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       return new Set();
     }
   });
+
+  const openCategory = useCallback((cat: Cat | AreaCat | CategoriaFormal) => {
+    setCategorySearch('');
+    setListFilter('todos');
+    setSheetAnimationComplete(false);
+    setCategoryOpen(cat);
+  }, []);
+
+  const closeCategory = useCallback(() => {
+    setSheetAnimationComplete(false);
+    setCategoryOpen(null);
+  }, []);
 
   // #41 — Continuar Leitura: inicialização síncrona imediata (zero layout shift na abertura)
   const [ultimaLei, setUltimaLei] = useState<ReturnType<typeof getRecentes>[0] | null>(resolveUltimaLeiSnapshot);
@@ -515,12 +528,20 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!categoryOpen) return;
-    setListFilter('todos');
+    if (!categoryOpen) {
+      setSheetAnimationComplete(false);
+      return;
+    }
     const update = () => setFavoriteIds(new Set(getFavoritos().map(f => f.leiId)));
-    update();
     window.addEventListener(LEIS_FAVORITOS_EVENT, update);
-    return () => window.removeEventListener(LEIS_FAVORITOS_EVENT, update);
+    // Dispara reflexo nos ícones com segurança após a subida completa (duração da transição 320ms)
+    const timer = setTimeout(() => {
+      setSheetAnimationComplete(true);
+    }, 340);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener(LEIS_FAVORITOS_EVENT, update);
+    };
   }, [categoryOpen]);
 
   const handleVoiceSearch = useCallback((text: string) => {
@@ -534,8 +555,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
     if (cat) {
       const leisDaCategoria = LEIS_CATALOG.filter(l => l.tipo === id);
       if (leisDaCategoria.length > 1) {
-        setCategorySearch('');
-        setCategoryOpen(cat);
+        openCategory(cat);
         return;
       }
       if (leisDaCategoria.length === 1) {
@@ -546,7 +566,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
       return;
     }
     navigate(`/legislacao/${tipoToSlug(id)}`);
-  }, [navigate]);
+  }, [navigate, openCategory]);
 
   useEffect(() => {
     // Pré-carrega o chunk da legislação para navegação instantânea (0ms)
@@ -745,10 +765,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               sublabel={c.sublabel}
               color={c.color}
               delay={i * 0.04}
-              onClick={() => {
-                setCategorySearch('');
-                setCategoryOpen(c);
-              }}
+              onClick={() => openCategory(c)}
               data-track="home_card_click"
               data-track-name={c.label}
               data-track-section="oab"
@@ -763,10 +780,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               sublabel={`${c.leiIds.length} leis disponíveis`}
               color={c.color}
               delay={i * 0.04}
-              onClick={() => {
-                setCategorySearch('');
-                setCategoryOpen(c);
-              }}
+              onClick={() => openCategory(c)}
               data-track="home_card_click"
               data-track-name={c.label}
               data-track-section="areas"
@@ -781,10 +795,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               sublabel={c.sublabel}
               color={c.color}
               delay={i * 0.04}
-              onClick={() => {
-                setCategorySearch('');
-                setCategoryOpen(c);
-              }}
+              onClick={() => openCategory(c)}
               data-track="home_card_click"
               data-track-name={c.label}
               data-track-section="categorias"
@@ -868,12 +879,25 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           <>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setCategoryOpen(null)}
+              onClick={closeCategory}
               className="fixed inset-0 z-[1400] bg-black/85"
             />
             <motion.div
-              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-              transition={{ duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              onAnimationComplete={(def) => {
+                if (def === 'animate' || (typeof def === 'object' && def !== null && (def as any).y === 0) || categoryOpen) {
+                  setSheetAnimationComplete(true);
+                }
+              }}
+              style={{
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+                WebkitBackfaceVisibility: 'hidden',
+                backfaceVisibility: 'hidden',
+              }}
               className="fixed inset-0 z-[1401] flex h-[100dvh] w-full flex-col bg-background pt-[calc(var(--sai-top,env(safe-area-inset-top,0px))+0.75rem)] pb-[calc(1rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]"
             >
               <div className="flex items-center justify-center pt-1 pb-3 shrink-0">
@@ -900,7 +924,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                 {/* Lado direito: Botão de abaixar a tela (ChevronDown), tamanho padrão Apple/Google */}
                 <button
                   type="button"
-                  onClick={() => setCategoryOpen(null)}
+                  onClick={closeCategory}
                   aria-label="Abaixar e fechar"
                   className="w-11 h-11 sm:w-12 sm:h-12 min-h-[44px] min-w-[44px] rounded-full bg-secondary/80 hover:bg-secondary active:scale-95 flex items-center justify-center shrink-0 transition-all text-foreground shadow-sm cursor-pointer"
                 >
@@ -986,17 +1010,15 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                       : estados;
                     return (
                       <div className="space-y-2">
-                        {filtered.map((estado, i) => (
-                          <motion.button
+                        {filtered.map((estado) => (
+                          <button
                             key={estado.uf}
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: Math.min(i * 0.02, 0.2), duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+                            type="button"
                             onClick={() => {
-                              setCategoryOpen(null);
+                              closeCategory();
                               navigate(`/legislacao-estadual/${estado.uf.toLowerCase()}`);
                             }}
-                            className="w-full flex items-center gap-4 p-4 min-h-[76px] rounded-2xl bg-secondary/40 border border-border/50 active:scale-[0.99] transition"
+                            className="w-full flex items-center gap-4 p-4 min-h-[76px] rounded-2xl bg-secondary/40 border border-border/50 active:scale-[0.99] transition cursor-pointer"
                           >
                             <div className="w-12 h-12 shrink-0 rounded-xl bg-secondary/80 border border-border/60 flex items-center justify-center overflow-hidden">
                               <img
@@ -1023,7 +1045,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                               </p>
                             </div>
                             <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                          </motion.button>
+                          </button>
                         ))}
                         {filtered.length === 0 && (
                           <div className="py-8 text-center font-body text-sm text-muted-foreground">
@@ -1090,20 +1112,17 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                         </div>
                       )}
 
-                      <motion.div
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: Math.min(i * 0.025, 0.25), duration: 0.28, ease: [0.22, 0.61, 0.36, 1] }}
+                      <div
                         role="button"
                         tabIndex={0}
                         onClick={() => {
-                          setCategoryOpen(null);
+                          closeCategory();
                           navigate(leiPath(lei));
                         }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            setCategoryOpen(null);
+                            closeCategory();
                             navigate(leiPath(lei));
                           }
                         }}
@@ -1120,7 +1139,15 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                             }}
                             strokeWidth={isCf88 ? 1.6 : 1.3}
                           />
-                          <span aria-hidden className="pointer-events-none absolute inset-0 icon-shine" />
+                          {sheetAnimationComplete && (
+                            <span
+                              aria-hidden
+                              className="pointer-events-none absolute inset-0 icon-shine"
+                              style={{
+                                animationDelay: `${Math.min(i * 60, 480)}ms`,
+                              }}
+                            />
+                          )}
                         </div>
 
                         <div className="flex-1 min-w-0 text-left">
@@ -1166,7 +1193,7 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
                           )}
                           <ChevronRight className="w-5 h-5 text-muted-foreground/60 shrink-0" />
                         </div>
-                      </motion.div>
+                      </div>
                     </div>
                   );})}
                   {filteredCategoryItems.length === 0 && (
