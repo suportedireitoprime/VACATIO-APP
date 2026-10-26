@@ -1875,9 +1875,14 @@ PRECISÃO
   // Lock body scroll when sheet is open
   useEffect(() => {
     if (!artigo) return;
-    const prev = document.body.style.overflow;
+    const prevOverflow = document.body.style.overflow;
+    const prevTouchAction = document.body.style.touchAction;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    return () => {
+      document.body.style.overflow = prevOverflow === 'hidden' ? '' : prevOverflow;
+      document.body.style.touchAction = prevTouchAction === 'none' ? '' : prevTouchAction;
+      document.documentElement.style.overflow = '';
+    };
   }, [artigo]);
 
   // Auto-scroll to first modified line when opening from novidades
@@ -2154,8 +2159,6 @@ Separe cada julgado com:
 
   useEffect(() => {
     if (!artigo) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -2165,7 +2168,6 @@ Separe cada julgado com:
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [artigo, onClose]);

@@ -23,9 +23,9 @@ const release = () => {
   const b = document.body;
   const h = document.documentElement;
   if (lockCount === 0 && saved) {
-    b.style.overflow = saved.overflow;
-    b.style.touchAction = saved.touchAction;
-    b.style.overscrollBehavior = saved.overscroll;
+    b.style.overflow = saved.overflow === 'hidden' ? '' : saved.overflow;
+    b.style.touchAction = saved.touchAction === 'none' ? '' : saved.touchAction;
+    b.style.overscrollBehavior = saved.overscroll === 'none' ? '' : saved.overscroll;
     h.style.overflow = '';
     saved = null;
   }

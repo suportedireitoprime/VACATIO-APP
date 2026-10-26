@@ -253,6 +253,40 @@ const CategoriaLegislacao = () => {
   const [showSearchRecents, setShowSearchRecents] = useState(false);
   
   const { focusMode, setFocusMode, fontSizeScale, setFontSizeScale } = useLeituraStore();
+
+  // Garante que o scroll do body/html esteja sempre liberado quando nenhum modal ou sheet estiver aberto
+  useEffect(() => {
+    const isAnyModalActive = Boolean(
+      openArtigo ||
+      overlayPanel ||
+      isLicoesOpen ||
+      isFlashcardsOpen ||
+      isQuestoesOpen ||
+      isAudioaulasOpen ||
+      isMapasOpen ||
+      isResumosOpen ||
+      isLocalSearchOpen ||
+      showEmentaDialog ||
+      ocrOpen
+    );
+    if (!isAnyModalActive) {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.documentElement.style.overflow = '';
+    }
+  }, [
+    openArtigo,
+    overlayPanel,
+    isLicoesOpen,
+    isFlashcardsOpen,
+    isQuestoesOpen,
+    isAudioaulasOpen,
+    isMapasOpen,
+    isResumosOpen,
+    isLocalSearchOpen,
+    showEmentaDialog,
+    ocrOpen,
+  ]);
   
   // Coreografia de entrada: search+abas → lista → rodapé
   const [showFooter, setShowFooter] = useState(false);
