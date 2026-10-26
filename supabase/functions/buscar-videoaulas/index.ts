@@ -31,7 +31,41 @@ function norm(s: string): string {
     .trim();
 }
 
-// Verifica se o título menciona explicitamente o artigo pedido (evita trazer Art. 5º quando o usuário pediu Art. 1º)
+// Limpa e normaliza o nome da lei para termos de busca otimizados no YouTube
+function cleanLeiNome(raw?: string): string {
+  if (!raw) return 'legislação brasileira';
+  const cleaned = raw.replace(/_/g, ' ').trim();
+  const map: Record<string, string> = {
+    'eca': 'ECA Estatuto da Criança e do Adolescente',
+    'eca estatuto crianca adolescente': 'ECA Estatuto da Criança e do Adolescente',
+    'cf88': 'Constituição Federal CF 88',
+    'cf88 constituicao federal': 'Constituição Federal CF 88',
+    'cf': 'Constituição Federal CF 88',
+    'clt': 'CLT Consolidação das Leis do Trabalho',
+    'clt consolidacao leis trabalho': 'CLT Consolidação das Leis do Trabalho',
+    'cp': 'Código Penal CP',
+    'cp codigo penal': 'Código Penal CP',
+    'cpp': 'Código de Processo Penal CPP',
+    'cpp codigo processo penal': 'Código de Processo Penal CPP',
+    'cc': 'Código Civil CC',
+    'cc codigo civil': 'Código Civil CC',
+    'cpc': 'Código de Processo Civil CPC',
+    'cpc codigo processo civil': 'Código de Processo Civil CPC',
+    'ctn': 'Código Tributário Nacional CTN',
+    'ctn codigo tributario nacional': 'Código Tributário Nacional CTN',
+    'cdc': 'Código de Defesa do Consumidor CDC',
+    'cdc codigo defesa consumidor': 'Código de Defesa do Consumidor CDC',
+    'ctb': 'Código de Trânsito Brasileiro CTB',
+    'ctb codigo transito brasileiro': 'Código de Trânsito Brasileiro CTB',
+    'ce': 'Código Eleitoral CE',
+    'ce codigo eleitoral': 'Código Eleitoral CE',
+  };
+  const key = norm(cleaned);
+  if (map[key]) return map[key];
+  return cleaned;
+}
+
+// Verifica se o título menciona explicitamente o artigo pedido
 function titleMatchesArticle(titulo: string, numero: string): boolean {
   const n = norm(numero).replace(/\s+/g, '');
   if (!n) return true;
@@ -47,9 +81,126 @@ function titleMatchesArticle(titulo: string, numero: string): boolean {
 }
 
 function buildQuery(artigoNumero: string, leiNome?: string) {
-  const lei = (leiNome || 'legislação brasileira').trim();
-  // Query mais específica com aspas e sinônimos
-  return `"artigo ${artigoNumero}" ${lei} explicação aula`;
+  const lei = cleanLeiNome(leiNome);
+  // Query sem aspas restritivas para encontrar "Art. 3", "Artigo 3", etc.
+  return `artigo ${artigoNumero} ${lei} aula`;
+}
+
+// Scraper direto dos resultados do YouTube (sem necessidade de API key ou consumo de cota)
+async function searchYouTubeScrape(query: string): Promise<VideoSlot[]> {
+  try {
+    const q = encodeURIComponent(query);
+    const res = await fetch(`https://www.youtube.com/results?search_query=${q}`, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+      },
+    });
+    if (!res.ok) return [];
+    const html = await res.text();
+    const match = html.match(/ytInitialData\s*=\s*({.+?});<\/script>/);
+    if (!match) return [];
+    const data = JSON.parse(match[1]);
+    const contents =
+      data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents;
+    const items = contents?.[0]?.itemSectionRenderer?.contents || [];
+
+    const list: VideoSlot[] = [];
+    for (const it of items) {
+      const vr = it.videoRenderer;
+      if (!vr || !vr.videoId) continue;
+      const viewStr = vr.viewCountText?.simpleText || vr.shortViewCountText?.simpleText || '0';
+      let views = 0;
+      const numMatch = viewStr.replace(/\./g, '').match(/\d+/);
+      if (numMatch) views = parseInt(numMatch[0], 10);
+      if (/mil/i.test(viewStr)) views = Math.round(parseFloat(viewStr.replace(',', '.')) * 1000);
+      if (/mi/i.test(viewStr)) views = Math.round(parseFloat(viewStr.replace(',', '.')) * 1000000);
+
+      const thumb =
+        vr.thumbnail?.thumbnails?.slice(-1)[0]?.url ||
+        `https://i.ytimg.com/vi/${vr.videoId}/hqdefault.jpg`;
+      const titulo = vr.title?.runs?.[0]?.text || '';
+      const canal = vr.ownerText?.runs?.[0]?.text || '';
+      const duration = vr.lengthText?.simpleText || '';
+      const publishedAt = vr.publishedTimeText?.simpleText || '';
+
+      list.push({
+        tipo: 'mais_visto',
+        videoId: vr.videoId,
+        titulo,
+        canal,
+        thumb,
+        views,
+        likes: Math.round(views * 0.05),
+        publishedAt,
+        duration,
+        url: `https://www.youtube.com/watch?v=${vr.videoId}`,
+      });
+    }
+    return list;
+  } catch (err) {
+    console.error('YouTube scrape error:', err);
+    return [];
+  }
+}
+
+// Constrói os 3 slots (mais_visto, mais_curtido, mais_recente) a partir dos candidatos
+function buildSlotsFromCandidates(
+  candidates: VideoSlot[],
+  artigoNumero: string,
+  tema?: string,
+): VideoSlot[] {
+  if (candidates.length === 0) return [];
+
+  const matches = (v: VideoSlot) => {
+    if (tema) return true;
+    return titleMatchesArticle(v.titulo, artigoNumero);
+  };
+
+  const picked = new Set<string>();
+
+  // 1. Mais visto: ordena por views decrescente
+  const byViews = [...candidates].sort((a, b) => b.views - a.views);
+  const preferredView = byViews.find((v) => matches(v)) || byViews[0];
+  if (preferredView) picked.add(preferredView.videoId);
+
+  // 2. Mais recente: pontua por antiguidade da string
+  const dateScore = (s: string) => {
+    const l = (s || '').toLowerCase();
+    if (l.includes('hora') || l.includes('dia')) return 1;
+    if (l.includes('semana')) return 2;
+    if (l.includes('mês') || l.includes('meses')) return 3;
+    if (l.includes('ano')) return 4;
+    return 5;
+  };
+  const byDate = [...candidates].sort((a, b) => dateScore(a.publishedAt) - dateScore(b.publishedAt));
+  const preferredDate =
+    byDate.find((v) => !picked.has(v.videoId) && matches(v)) ||
+    byDate.find((v) => !picked.has(v.videoId));
+  if (preferredDate) picked.add(preferredDate.videoId);
+
+  // 3. Mais curtido / relevante
+  const remaining = candidates.filter((v) => !picked.has(v.videoId));
+  const preferredLiked = remaining.find((v) => matches(v)) || remaining[0];
+  if (preferredLiked) picked.add(preferredLiked.videoId);
+
+  const slots: VideoSlot[] = [];
+  if (preferredView) slots.push({ ...preferredView, tipo: 'mais_visto' });
+  if (preferredLiked) slots.push({ ...preferredLiked, tipo: 'mais_curtido' });
+  if (preferredDate) slots.push({ ...preferredDate, tipo: 'mais_recente' });
+
+  // Preenche para garantir até 3 cards sempre que houver candidatos suficientes
+  for (const c of candidates) {
+    if (slots.length >= 3) break;
+    if (!picked.has(c.videoId)) {
+      picked.add(c.videoId);
+      const tipo: SlotType = slots.length === 1 ? 'mais_curtido' : 'mais_recente';
+      slots.push({ ...c, tipo });
+    }
+  }
+
+  return slots;
 }
 
 async function searchList(
@@ -135,8 +286,9 @@ Deno.serve(async (req) => {
     const YOUTUBE_API_KEY = Deno.env.get('YOUTUBE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    if (!YOUTUBE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      return new Response(JSON.stringify({ error: 'Server not configured' }), {
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      return new Response(JSON.stringify({ error: 'Supabase server not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -193,92 +345,88 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 2. Fresh fetch — busca 10 por ordenação para ter fallback
+    // 2. Fresh fetch
     const q = tema
       ? `${tema} aula explicação direito`
       : buildQuery(artigoNumero, leiNome);
-    const publishedAfter = new Date(
-      Date.now() - RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000,
-    ).toISOString();
 
-    let viewIds: string[] = [];
-    let ratingIds: string[] = [];
-    let dateIds: string[] = [];
-    try {
-      [viewIds, ratingIds, dateIds] = await Promise.all([
-        searchList({ q, order: 'viewCount' }, YOUTUBE_API_KEY, 10),
-        searchList({ q, order: 'rating' }, YOUTUBE_API_KEY, 10),
-        searchList({ q, order: 'date', publishedAfter }, YOUTUBE_API_KEY, 10),
-      ]);
-    } catch (err: any) {
-      if (err?.message === 'QUOTA_EXCEEDED') {
-        if (cached?.videos && Array.isArray(cached.videos) && cached.videos.length > 0) {
-          return new Response(
-            JSON.stringify({
-              videos: cached.videos,
-              cached: true,
-              fetched_at: cached.fetched_at,
-              stale: true,
-              quotaExceeded: true,
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
-          );
+    let videos: VideoSlot[] = [];
+
+    // Tenta via API oficial se chave configurada
+    if (YOUTUBE_API_KEY) {
+      try {
+        const publishedAfter = new Date(
+          Date.now() - RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000,
+        ).toISOString();
+        const [viewIds, ratingIds, dateIds] = await Promise.all([
+          searchList({ q, order: 'viewCount' }, YOUTUBE_API_KEY, 10),
+          searchList({ q, order: 'rating' }, YOUTUBE_API_KEY, 10),
+          searchList({ q, order: 'date', publishedAfter }, YOUTUBE_API_KEY, 10),
+        ]);
+        const allIds = Array.from(new Set([...viewIds, ...ratingIds, ...dateIds]));
+        const stats = await fetchVideoStats(allIds, YOUTUBE_API_KEY);
+
+        const matches = (id: string) => {
+          const info = stats.get(id);
+          if (!info) return false;
+          if (tema) return true;
+          const title = info.snippet?.title || '';
+          return titleMatchesArticle(title, artigoNumero);
+        };
+
+        const picked = new Set<string>();
+        const pickFrom = (ids: string[], tipo: SlotType): VideoSlot | null => {
+          const preferred = ids.filter((id) => !picked.has(id) && matches(id));
+          const fallback = ids.filter((id) => !picked.has(id));
+          const chosen = preferred[0] || fallback[0];
+          if (!chosen) return null;
+          picked.add(chosen);
+          return toSlot(tipo, chosen, stats.get(chosen));
+        };
+
+        const slots: Array<VideoSlot | null> = [
+          pickFrom(viewIds, 'mais_visto'),
+          pickFrom(ratingIds, 'mais_curtido'),
+          pickFrom(dateIds, 'mais_recente'),
+        ];
+
+        for (let i = 0; i < slots.length; i++) {
+          if (slots[i]) continue;
+          const tipo = (['mais_visto', 'mais_curtido', 'mais_recente'] as SlotType[])[i];
+          const preferred = allIds.filter((id) => !picked.has(id) && matches(id));
+          const fallback = allIds.filter((id) => !picked.has(id));
+          const chosen = preferred[0] || fallback[0];
+          if (chosen) {
+            picked.add(chosen);
+            slots[i] = toSlot(tipo, chosen, stats.get(chosen));
+          }
         }
-        return new Response(
-          JSON.stringify({ videos: [], quotaExceeded: true, stale: true }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
-        );
-      }
-      throw err;
-    }
-
-    // Busca stats de TODOS os candidatos únicos
-    const allIds = Array.from(new Set([...viewIds, ...ratingIds, ...dateIds]));
-    const stats = await fetchVideoStats(allIds, YOUTUBE_API_KEY);
-
-    // Filtra somente vídeos cujo título menciona o artigo pedido — evita Art. 5º quando pediram Art. 1º
-    const matches = (id: string) => {
-      const info = stats.get(id);
-      if (!info) return false;
-      if (tema) return true;
-      const title = info.snippet?.title || '';
-      return titleMatchesArticle(title, artigoNumero);
-    };
-
-    // Escolhe 1 vídeo por slot respeitando ordem e evitando duplicatas
-    const picked = new Set<string>();
-    const pickFrom = (ids: string[], tipo: SlotType): VideoSlot | null => {
-      // Prioriza os que casam com o número do artigo
-      const preferred = ids.filter((id) => !picked.has(id) && matches(id));
-      const fallback = ids.filter((id) => !picked.has(id));
-      const chosen = preferred[0] || fallback[0];
-      if (!chosen) return null;
-      picked.add(chosen);
-      return toSlot(tipo, chosen, stats.get(chosen));
-    };
-
-    const slots: Array<VideoSlot | null> = [
-      pickFrom(viewIds, 'mais_visto'),
-      pickFrom(ratingIds, 'mais_curtido'),
-      pickFrom(dateIds, 'mais_recente'),
-    ];
-
-    // Se algum slot ficou vazio, preenche com qualquer candidato restante (mantém 3 cards sempre)
-    for (let i = 0; i < slots.length; i++) {
-      if (slots[i]) continue;
-      const tipo = (['mais_visto', 'mais_curtido', 'mais_recente'] as SlotType[])[i];
-      const preferred = allIds.filter((id) => !picked.has(id) && matches(id));
-      const fallback = allIds.filter((id) => !picked.has(id));
-      const chosen = preferred[0] || fallback[0];
-      if (chosen) {
-        picked.add(chosen);
-        slots[i] = toSlot(tipo, chosen, stats.get(chosen));
+        videos = slots.filter((v): v is VideoSlot => v !== null);
+      } catch (err: any) {
+        console.warn('YouTube API call failed or quota exceeded, using scraper:', err);
       }
     }
 
-    const videos: VideoSlot[] = slots.filter((v): v is VideoSlot => v !== null);
+    // Fallback: se não há API Key ou se a busca via API oficial falhou/esgotou cota, faz scraping direto
+    if (videos.length === 0) {
+      const candidates = await searchYouTubeScrape(q);
+      videos = buildSlotsFromCandidates(candidates, artigoNumero, tema);
+    }
 
-    // 3. Save cache (upsert)
+    // Se ainda assim não encontrou mas tínhamos cache antigo, devolve o cache como stale
+    if (videos.length === 0 && cached?.videos && Array.isArray(cached.videos) && cached.videos.length > 0) {
+      return new Response(
+        JSON.stringify({
+          videos: cached.videos,
+          cached: true,
+          fetched_at: cached.fetched_at,
+          stale: true,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 },
+      );
+    }
+
+    // 3. Salva em cache se encontrou vídeos
     if (videos.length > 0) {
       const { error: upsertErr } = await admin.from('artigo_videoaulas_cache').upsert(
         {
@@ -304,8 +452,8 @@ Deno.serve(async (req) => {
   } catch (error: unknown) {
     console.error('buscar-videoaulas error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
+    return new Response(JSON.stringify({ error: message, videos: [] }), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

@@ -54,8 +54,9 @@ function formatCount(n: number): string {
 
 function formatDuration(iso: string): string {
   if (!iso) return '';
+  if (/^\d+:\d+(:\d+)?$/.test(iso)) return iso;
   const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-  if (!m) return '';
+  if (!m) return iso;
   const h = Number(m[1] || 0);
   const min = Number(m[2] || 0);
   const s = Number(m[3] || 0);
@@ -65,7 +66,10 @@ function formatDuration(iso: string): string {
 
 function relativeDays(iso: string): string {
   if (!iso) return '';
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24));
+  if (iso.startsWith('há ') || iso === 'hoje' || iso === 'ontem') return iso;
+  const ts = new Date(iso).getTime();
+  if (isNaN(ts)) return iso;
+  const days = Math.floor((Date.now() - ts) / (1000 * 60 * 60 * 24));
   if (days <= 0) return 'hoje';
   if (days === 1) return 'ontem';
   if (days < 30) return `há ${days} dias`;

@@ -47,7 +47,7 @@ const GeracaoAnimacaoOverlay = lazy(() =>
   import('./GeracaoAnimacaoOverlay').then((m) => ({ default: m.GeracaoAnimacaoOverlay })),
 );
 import { supabase } from '@/integrations/supabase/client';
-import { buildPlanaltoArticleUrl } from '@/services/legislacaoService';
+import { buildPlanaltoArticleUrl, getLeisCatalog } from '@/services/legislacaoService';
 import ShareButtons from './ShareButtons';
 const VideoaulaSheet = lazy(() => import('./VideoaulaSheet'));
 const VideoaulasListSheet = lazy(() => import('./VideoaulasListSheet'));
@@ -391,6 +391,16 @@ const ArtigoBottomSheet = ({
   isFromNovidades = false,
 }: ArtigoBottomSheetProps) => {
   const [showRedacao, setShowRedacao] = useState(forceShowRedacao ?? false);
+
+  const friendlyLeiNome = useMemo(() => {
+    if (!tabelaNome) return '';
+    try {
+      const cat = getLeisCatalog();
+      const found = cat.find(l => l.tabela_nome === tabelaNome);
+      if (found?.nome) return found.nome;
+    } catch {}
+    return tabelaNome.replace(/_/g, ' ');
+  }, [tabelaNome]);
 
   // Reset showRedacao when forceShowRedacao changes (e.g. opening from novidades)
   useEffect(() => {
@@ -4220,7 +4230,7 @@ Separe cada julgado com:
               onClose={() => setShowVideoaulasListSheet(false)}
               tabelaNome={tabelaNome || ''}
               artigoNumero={artigo?.numero || ''}
-              leiNome={tabelaNome}
+              leiNome={friendlyLeiNome || tabelaNome}
               onSelectVideo={(v) => {
                 setVideoaula({ titulo: v.titulo, url: v.url, canal: v.canal, videoId: v.videoId });
                 setShowVideoaulasListSheet(false);
