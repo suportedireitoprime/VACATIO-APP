@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { LEIS_SUPABASE_URL } from "@/lib/legislacaoBackend";
+import { LEIS_SUPABASE_URL, leisAuthHeaders, leisSupabase } from "@/lib/legislacaoBackend";
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { LEIS_CATALOG } from '@/data/leisCatalog';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -126,26 +127,48 @@ export default function JurisprudenciaArtigo() {
 
   const descobrirLei = async (): Promise<{ corpus_lei_id: number; nome_exibicao: string } | null> => {
     if (!slugLei) return null;
-    const { data: lei } = await supabase
+    const { data: lei } = await leisSupabase
       .from('vade_mecum_leis')
       .select('slug, nome, numero_lei, ano_lei')
-      .eq('slug', slugLei)
+      .or(`slug.eq.${slugLei},tabela_nome.eq.${slugLei}`)
       .maybeSingle();
-    const resp = await fetch(`${SB_URL}/functions/v1/corpus927-descobrir`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        slug_local: slugLei,
-        nome: lei?.nome || slugLei,
-        numero_lei: lei?.numero_lei || null,
-        ano_lei: lei?.ano_lei || null,
-        apply: true,
-      }),
-    });
-    const json = await resp.json();
-    if (!resp.ok) throw new Error(json?.error || 'Falha na descoberta');
-    if (!json.confident || !json.matched) return null;
-    return { corpus_lei_id: json.matched.corpus_lei_id, nome_exibicao: lei?.nome || json.matched.nome };
+
+    const catalogHit = LEIS_CATALOG.find(
+      (l) =>
+        l.id.toLowerCase() === slugLei.toLowerCase() ||
+        l.tabela_nome.toLowerCase() === slugLei.toLowerCase() ||
+        l.sigla.toLowerCase() === slugLei.toLowerCase()
+    );
+
+    const nomeBusca = lei?.nome || catalogHit?.nome || slugLei;
+    const numeroLei = lei?.numero_lei || catalogHit?.descricao?.match(/\d[\d.]*/)?.[0] || null;
+
+    try {
+      const resp = await fetch(`${SB_URL}/functions/v1/corpus927-descobrir`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...leisAuthHeaders(),
+        },
+        body: JSON.stringify({
+          slug_local: slugLei,
+          nome: nomeBusca,
+          numero_lei: numeroLei,
+          ano_lei: lei?.ano_lei || null,
+          apply: true,
+        }),
+      });
+      const json = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        console.warn('[descobrirLei] Response error:', resp.status, json);
+        return null;
+      }
+      if (!json.confident || !json.matched) return null;
+      return { corpus_lei_id: json.matched.corpus_lei_id, nome_exibicao: nomeBusca || json.matched.nome };
+    } catch (e) {
+      console.warn('[descobrirLei] Network/fetch error:', e);
+      return null;
+    }
   };
 
   const buscarJurisprudencia = async (corpus_lei_id: number, force: boolean) => {
@@ -158,15 +181,21 @@ export default function JurisprudenciaArtigo() {
     }
     const resp = await fetch(`${SB_URL}/functions/v1/corpus927-fetch`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...leisAuthHeaders(),
+      },
       body: JSON.stringify({
         corpus_lei_id,
         numero_artigo: decodeURIComponent(numeroArtigo!),
         force,
       }),
     });
-    const json = await resp.json();
-    if (!resp.ok) throw new Error(json?.error || 'Erro ao consultar jurisprudência');
+    const json = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      const msg = json?.error || (resp.status >= 500 ? 'Corpus927 temporariamente indisponível' : 'Erro ao consultar jurisprudência');
+      throw new Error(msg);
+    }
     setCategorias(json.categorias || []);
     setTotalItens(json.total_itens || 0);
   };
@@ -188,19 +217,42 @@ export default function JurisprudenciaArtigo() {
     }
     try {
       let usouDescoberta = false;
-      const mapaPromise = supabase
+
+      // Resolver apelidos e variações de slug (ex.: ECA_ESTATUTO_CRIANCA_ADOLESCENTE -> estatuto-eca, eca)
+      const catalogHit = LEIS_CATALOG.find(
+        (l) =>
+          l.id.toLowerCase() === slugLei.toLowerCase() ||
+          l.tabela_nome.toLowerCase() === slugLei.toLowerCase() ||
+          l.sigla.toLowerCase() === slugLei.toLowerCase()
+      );
+
+      const candidateSlugs = Array.from(
+        new Set(
+          [
+            slugLei,
+            slugLei.toLowerCase(),
+            catalogHit?.id,
+            catalogHit?.tabela_nome,
+            catalogHit ? `estatuto-${catalogHit.id}` : null,
+            catalogHit ? `lei-${catalogHit.id}` : null,
+            catalogHit ? `codigo-${catalogHit.id}` : null,
+          ].filter(Boolean) as string[]
+        )
+      );
+
+      const mapaPromise = leisSupabase
         .from('jurisprudencia_leis_map')
         .select('corpus_lei_id, nome_exibicao, ativo')
-        .eq('slug_local', slugLei)
-        .maybeSingle();
+        .in('slug_local', candidateSlugs);
+
       const favPromise = supabase
         .from('jurisprudencia_favoritos')
         .select('corpus_item_id')
         .eq('slug_local', slugLei)
         .eq('numero_artigo', numeroDec);
 
-      let { data: mapa, error: errMapa } = await mapaPromise;
-      if (errMapa) throw errMapa;
+      let { data: maps } = await mapaPromise;
+      let mapa = maps?.find((m) => m.ativo) || null;
 
       // Auto-descoberta se não mapeada ou inativa — só mostra overlay se não há cache
       if (!mapa || !mapa.ativo) {
@@ -213,25 +265,28 @@ export default function JurisprudenciaArtigo() {
         try {
           const descoberta = await descobrirLei();
           if (!descoberta) {
-            if (!cache) setError('Não foi possível localizar esta lei automaticamente no Corpus927. Peça ao admin para mapear.');
-            setDescobrindo(false);
-            setRevalidating(false);
-            return;
+            // Em vez de falhar a tela, usa busca externa nos portais do STF e STJ
+            mapa = { corpus_lei_id: -1, nome_exibicao: catalogHit?.nome || slugLei, ativo: true };
+          } else {
+            setStepIdx(1);
+            mapa = { corpus_lei_id: descoberta.corpus_lei_id, nome_exibicao: descoberta.nome_exibicao, ativo: true };
           }
-          setStepIdx(1);
-          mapa = { corpus_lei_id: descoberta.corpus_lei_id, nome_exibicao: descoberta.nome_exibicao, ativo: true };
-        } catch (e: any) {
-          if (!cache) setError(String(e?.message || e));
+        } catch {
+          mapa = { corpus_lei_id: -1, nome_exibicao: catalogHit?.nome || slugLei, ativo: true };
+        } finally {
           setDescobrindo(false);
-          setRevalidating(false);
-          return;
         }
       }
 
       setLeiInfo({ corpus_lei_id: mapa.corpus_lei_id, nome_exibicao: mapa.nome_exibicao });
       if (usouDescoberta && !cache) setStepIdx(2);
 
-      await buscarJurisprudencia(mapa.corpus_lei_id, force);
+      try {
+        await buscarJurisprudencia(mapa.corpus_lei_id, force);
+      } catch (err: any) {
+        console.warn('[buscarJurisprudencia] Falha ao consultar Corpus927:', err);
+        setError(err?.message || 'Servidor do Corpus927 instável no momento.');
+      }
 
       const { data: fav } = await favPromise;
       setFavoritos(new Set((fav || []).map((f: any) => String(f.corpus_item_id))));
@@ -324,13 +379,25 @@ export default function JurisprudenciaArtigo() {
 
   const isUnsupported = leiInfo?.corpus_lei_id === -1;
   const artigoNumero = numeroArtigo ? decodeURIComponent(numeroArtigo) : '';
-  const leiNomeBusca = leiInfo?.nome_exibicao || slugLei || '';
-  const buildBuscaExterna = (base: 'stf' | 'stj') => {
-    const q = `"art. ${artigoNumero}" ${leiNomeBusca}`.trim();
+  const catalogHit = useMemo(() => {
+    if (!slugLei) return null;
+    return LEIS_CATALOG.find(
+      (l) =>
+        l.id.toLowerCase() === slugLei.toLowerCase() ||
+        l.tabela_nome.toLowerCase() === slugLei.toLowerCase() ||
+        l.sigla.toLowerCase() === slugLei.toLowerCase()
+    );
+  }, [slugLei]);
+  const leiNomeExibicao = leiInfo?.nome_exibicao || catalogHit?.nome || slugLei || '';
+  const buildBuscaExterna = (base: 'stf' | 'stj' | 'jusbrasil') => {
+    const q = `"art. ${artigoNumero}" ${leiNomeExibicao}`.trim();
     if (base === 'stf') {
       return `https://jurisprudencia.stf.jus.br/pages/search?base=acordaos&sinonimo=true&plural=true&page=1&pageSize=10&queryString=${encodeURIComponent(q)}&sort=_score&sortBy=desc`;
     }
-    return `https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=${encodeURIComponent(q)}`;
+    if (base === 'stj') {
+      return `https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=${encodeURIComponent(q)}`;
+    }
+    return `https://www.jusbrasil.com.br/jurisprudencia/busca?q=${encodeURIComponent(q)}`;
   };
 
   return (
@@ -345,7 +412,7 @@ export default function JurisprudenciaArtigo() {
       />
       <PageHeader
         title="Jurisprudência"
-        subtitle={leiInfo ? `${prettyLeiName(leiInfo.nome_exibicao)} — ${numeroLabel}` : numeroLabel}
+        subtitle={leiNomeExibicao ? `${prettyLeiName(leiNomeExibicao)} — ${numeroLabel}` : numeroLabel}
         onBack={handleBack}
         rightAction={
           <Button variant="ghost" size="icon" onClick={() => carregar(true)} disabled={refreshing} title="Atualizar cache">
@@ -360,8 +427,69 @@ export default function JurisprudenciaArtigo() {
             <Loader2 className="w-6 h-6 animate-spin mr-2" /> Consultando Corpus927…
           </div>
         ) : error ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-            {error}
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
+              <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Scale className="w-5 h-5 text-amber-500 shrink-0" />
+                  <span className="font-semibold text-foreground">
+                    {leiNomeExibicao} — {numeroLabel}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => carregar(true)}
+                  disabled={refreshing}
+                  className="gap-1.5 shrink-0"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                  Tentar novamente
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                O portal oficial do Corpus927 (ENFAM/STJ) está temporariamente instável ou fora do ar.
+                Consulte as decisões e acórdãos para este artigo diretamente nos tribunais:
+              </p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <a
+                  href={buildBuscaExterna('stf')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors ${tribunalClasses('STF')} hover:opacity-90`}
+                >
+                  <div>
+                    <div className="font-bold text-base">STF</div>
+                    <div className="text-xs opacity-80">Pesquisar acórdãos no STF</div>
+                  </div>
+                  <ExternalLink className="w-5 h-5" />
+                </a>
+                <a
+                  href={buildBuscaExterna('stj')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center justify-between gap-3 rounded-xl border p-4 transition-colors ${tribunalClasses('STJ')} hover:opacity-90`}
+                >
+                  <div>
+                    <div className="font-bold text-base">STJ</div>
+                    <div className="text-xs opacity-80">Pesquisar acórdãos no STJ</div>
+                  </div>
+                  <ExternalLink className="w-5 h-5" />
+                </a>
+                <a
+                  href={buildBuscaExterna('jusbrasil')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-card p-4 transition-colors hover:bg-muted/50 sm:col-span-2"
+                >
+                  <div>
+                    <div className="font-bold text-base text-foreground">Jusbrasil</div>
+                    <div className="text-xs text-muted-foreground">Pesquisa unificada em todos os tribunais</div>
+                  </div>
+                  <ExternalLink className="w-5 h-5 text-muted-foreground" />
+                </a>
+              </div>
+            </div>
           </div>
         ) : isUnsupported ? (
           <div className="space-y-4">
@@ -369,7 +497,7 @@ export default function JurisprudenciaArtigo() {
               <div className="flex items-center gap-2 mb-2">
                 <Scale className="w-5 h-5 text-primary" />
                 <span className="font-semibold text-foreground">
-                  {leiInfo?.nome_exibicao} — {numeroLabel}
+                  {leiNomeExibicao} — {numeroLabel}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mb-4">

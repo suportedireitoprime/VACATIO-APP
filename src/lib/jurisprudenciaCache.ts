@@ -1,5 +1,6 @@
-import { LEIS_SUPABASE_URL } from '@/lib/legislacaoBackend';
+import { LEIS_SUPABASE_URL, leisAuthHeaders, leisSupabase } from '@/lib/legislacaoBackend';
 import { supabase } from '@/integrations/supabase/client';
+import { LEIS_CATALOG } from '@/data/leisCatalog';
 
 export interface JurisCategoriaCache {
   codigo: string;
@@ -46,13 +47,35 @@ export function writeJurisCache(slug: string, numero: string, entry: JurisCacheE
 }
 
 async function resolveMapa(slug: string) {
-  const { data } = await supabase
+  const catalogHit = LEIS_CATALOG.find(
+    (l) =>
+      l.id.toLowerCase() === slug.toLowerCase() ||
+      l.tabela_nome.toLowerCase() === slug.toLowerCase() ||
+      l.sigla.toLowerCase() === slug.toLowerCase()
+  );
+
+  const candidateSlugs = Array.from(
+    new Set(
+      [
+        slug,
+        slug.toLowerCase(),
+        catalogHit?.id,
+        catalogHit?.tabela_nome,
+        catalogHit ? `estatuto-${catalogHit.id}` : null,
+        catalogHit ? `lei-${catalogHit.id}` : null,
+        catalogHit ? `codigo-${catalogHit.id}` : null,
+      ].filter(Boolean) as string[]
+    )
+  );
+
+  const { data: maps } = await leisSupabase
     .from('jurisprudencia_leis_map')
     .select('corpus_lei_id, nome_exibicao, ativo')
-    .eq('slug_local', slug)
-    .maybeSingle();
-  if (data && data.ativo) {
-    return { corpus_lei_id: data.corpus_lei_id as number, nome_exibicao: data.nome_exibicao as string };
+    .in('slug_local', candidateSlugs);
+
+  const active = maps?.find((m) => m.ativo);
+  if (active) {
+    return { corpus_lei_id: active.corpus_lei_id as number, nome_exibicao: active.nome_exibicao as string };
   }
   return null;
 }
@@ -61,10 +84,13 @@ async function fetchCorpus(corpus_lei_id: number, numero: string, force = false)
   if (corpus_lei_id === -1) return { categorias: [], total_itens: 0 };
   const resp = await fetch(`${LEIS_SUPABASE_URL}/functions/v1/corpus927-fetch`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...leisAuthHeaders(),
+    },
     body: JSON.stringify({ corpus_lei_id, numero_artigo: numero, force }),
   });
-  const json = await resp.json();
+  const json = await resp.json().catch(() => ({}));
   if (!resp.ok) throw new Error(json?.error || 'Erro ao consultar jurisprudência');
   return json;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { LEIS_SUPABASE_URL } from "@/lib/legislacaoBackend";
+import { LEIS_SUPABASE_URL, leisAuthHeaders } from "@/lib/legislacaoBackend";
 import { useNavigate } from 'react-router-dom';
 import { Scale, ShieldAlert, Plus, ExternalLink, Trash2, Check, X, Pencil, Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -156,7 +156,10 @@ export default function AdminJurisprudencia() {
   const descobrirUma = async (lei: Lei): Promise<boolean> => {
     const resp = await fetch(`${SB_URL}/functions/v1/corpus927-descobrir`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...leisAuthHeaders(),
+      },
       body: JSON.stringify({
         slug_local: lei.slug,
         nome: lei.nome || lei.nome_curto || lei.slug,
