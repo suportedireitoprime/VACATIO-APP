@@ -28,6 +28,7 @@ const RelacioneColunasView = lazy(() => import('./praticar/RelacioneColunasView'
 const IdentifiqueErroView = lazy(() => import('./praticar/IdentifiqueErroView').then(m => ({ default: m.IdentifiqueErroView })));
 const OucaReciteView = lazy(() => import('./praticar/OucaReciteView').then(m => ({ default: m.OucaReciteView })));
 const ComboPraticarView = lazy(() => import('./praticar/ComboPraticarView').then(m => ({ default: m.ComboPraticarView })));
+const LicoesArtigoView = lazy(() => import('./praticar/LicoesArtigoView').then(m => ({ default: m.LicoesArtigoView })));
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -3987,6 +3988,8 @@ Separe cada julgado com:
                         ? 'Ouça e Recite por Voz'
                         : activePraticarMode === 'combo'
                         ? 'Combo Desafio Total'
+                        : activePraticarMode === 'licoes'
+                        ? 'Lições de Fixação'
                         : 'Praticar'}
                     </h3>
                   </div>
@@ -4007,6 +4010,17 @@ Separe cada julgado com:
 
                 {/* Se um modo interativo estiver ativo, renderiza sua tela dedicada em tela cheia */}
                 <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
+                  {activePraticarMode === 'licoes' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60 flex items-center justify-center gap-2"><Loader2 className="w-5 h-5 animate-spin text-primary" />Carregando lições de fixação...</div>}>
+                      <LicoesArtigoView
+                        artigoNumero={String(artigo?.numero || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onVoltar={() => setActivePraticarMode(null)}
+                      />
+                    </Suspense>
+                  )}
+
                   {activePraticarMode === 'complete' && (
                     <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60">Carregando exercício...</div>}>
                       <CompleteArtigoView
@@ -4108,26 +4122,16 @@ Separe cada julgado com:
 
                   {/* Menu de seleção dos Modos de Prática organizado por seções */}
                   {!activePraticarMode && (() => {
-                    const grupos = [
-                      {
-                        titulo: 'Em Alta',
-                        badge: 'Prioridade',
-                        accent: '#F59E0B',
-                        itens: MODOS_PRATICAR.filter((m) => m.id === 'questoes' || m.id === 'flashcards'),
-                      },
-                      {
-                        titulo: 'Texto e Fixação da Lei',
-                        itens: MODOS_PRATICAR.filter((m) => ['complete', 'monte', 'verdadeiro_falso'].includes(m.id)),
-                      },
-                      {
-                        titulo: 'Gamificação e Análise',
-                        itens: MODOS_PRATICAR.filter((m) => ['caca_palavras', 'relacione', 'identifique_erro'].includes(m.id)),
-                      },
-                      {
-                        titulo: 'Desafios Avançados',
-                        itens: MODOS_PRATICAR.filter((m) => ['casos_praticos', 'contra_relogio', 'ouca_recite', 'combo'].includes(m.id)),
-                      },
-                    ];
+                    const itensPrincipais = [
+                      MODOS_PRATICAR.find((m) => m.id === 'questoes'),
+                      MODOS_PRATICAR.find((m) => m.id === 'flashcards'),
+                      MODOS_PRATICAR.find((m) => m.id === 'licoes'),
+                    ].filter(Boolean) as (typeof MODOS_PRATICAR)[number][];
+
+                    const outrosModos = MODOS_PRATICAR.filter(
+                      (m) =>
+                        !['questoes', 'flashcards', 'licoes', 'complete', 'monte', 'verdadeiro_falso'].includes(m.id)
+                    );
 
                     const handleItemClick = (item: (typeof MODOS_PRATICAR)[number]) => {
                       if (item.id === 'questoes') {
@@ -4149,56 +4153,117 @@ Separe cada julgado com:
                           </p>
                         </div>
 
-                        {grupos.map((grupo) => {
-                          if (grupo.itens.length === 0) return null;
-                          return (
-                            <div key={grupo.titulo} className="space-y-2.5">
-                              <div className="flex items-center justify-between px-1">
-                                <h4 className="font-display text-[13px] sm:text-[14px] font-bold text-foreground/90 uppercase tracking-wider flex items-center gap-2">
-                                  <span
-                                    className="w-1.5 h-4 rounded-full"
-                                    style={{ backgroundColor: grupo.accent || 'hsl(var(--primary))' }}
-                                  />
-                                  {grupo.titulo}
-                                </h4>
-                                {grupo.badge && (
-                                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
-                                    {grupo.badge}
-                                  </span>
-                                )}
-                              </div>
+                        {/* Modos Principais Juntos: Questões, Flashcards e Lições */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between px-1">
+                            <h4 className="font-display text-[13px] sm:text-[14px] font-bold text-foreground/90 uppercase tracking-wider flex items-center gap-2">
+                              <span className="w-1.5 h-4 rounded-full bg-amber-500" />
+                              Modos de Estudo
+                            </h4>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
+                              Prioridade
+                            </span>
+                          </div>
 
-                              <div className="rounded-2xl border border-border/60 bg-secondary/30 divide-y divide-border/50 overflow-hidden shadow-sm">
-                                {grupo.itens.map((item) => {
-                                  const Icon = item.icon;
-                                  return (
-                                    <button
-                                      key={item.id}
-                                      onClick={() => handleItemClick(item)}
-                                      className="w-full flex items-center gap-4 px-4 py-4 min-h-[82px] text-left hover:bg-secondary/60 active:bg-secondary transition-colors"
-                                    >
-                                      <div
-                                        className="w-12 h-12 rounded-xl bg-background/80 border border-white/5 flex items-center justify-center shrink-0 shadow-sm"
-                                        style={{ color: item.color }}
-                                      >
-                                        <Icon className="w-6 h-6" strokeWidth={2.2} />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="font-body text-[15px] sm:text-base font-semibold text-foreground truncate">
-                                          {item.label}
-                                        </div>
-                                        <div className="font-body text-[12px] sm:text-[12.5px] text-muted-foreground line-clamp-2 mt-0.5 leading-snug">
-                                          {item.desc}
-                                        </div>
-                                      </div>
-                                      <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                          <div className="space-y-3">
+                            {itensPrincipais.map((item) => {
+                              const Icon = item.icon;
+                              return (
+                                <button
+                                  key={item.id}
+                                  onClick={() => handleItemClick(item)}
+                                  className="w-full flex items-center gap-4 p-4 min-h-[82px] rounded-2xl bg-secondary/30 hover:bg-secondary/60 active:scale-[0.99] border border-border/60 hover:border-border transition-all text-left shadow-sm group"
+                                >
+                                  {/* Ícone com fundo colorido translúcido, sem o fundo preto */}
+                                  <div
+                                    className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
+                                    style={{
+                                      backgroundColor: `${item.color}18`,
+                                      borderColor: `${item.color}35`,
+                                      borderWidth: 1.5,
+                                      borderStyle: 'solid',
+                                      color: item.color,
+                                    }}
+                                  >
+                                    <Icon className="w-6 h-6" strokeWidth={2.2} />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-body text-[15px] sm:text-base font-bold text-foreground">
+                                        {item.label}
+                                      </span>
+                                      {item.badge && (
+                                        <span
+                                          className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full"
+                                          style={{
+                                            backgroundColor: `${item.color}20`,
+                                            color: item.color,
+                                            borderColor: `${item.color}40`,
+                                            borderWidth: 1,
+                                            borderStyle: 'solid',
+                                          }}
+                                        >
+                                          {item.badge}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="font-body text-[12px] sm:text-[12.5px] text-muted-foreground line-clamp-2 mt-0.5 leading-snug">
+                                      {item.desc}
+                                    </div>
+                                  </div>
+                                  <ChevronRight className="w-5 h-5 text-muted-foreground/60 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Outros desafios e mini-games disponíveis */}
+                        {outrosModos.length > 0 && (
+                          <div className="pt-2 space-y-3">
+                            <div className="flex items-center justify-between px-1">
+                              <h4 className="font-display text-[12px] sm:text-[13px] font-bold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
+                                <span className="w-1.5 h-3.5 rounded-full bg-primary/50" />
+                                Outros Desafios e Mini-Games
+                              </h4>
                             </div>
-                          );
-                        })}
+
+                            <div className="rounded-2xl border border-border/60 bg-secondary/20 divide-y divide-border/50 overflow-hidden shadow-sm">
+                              {outrosModos.map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                  <button
+                                    key={item.id}
+                                    onClick={() => handleItemClick(item)}
+                                    className="w-full flex items-center gap-4 px-4 py-3.5 min-h-[72px] text-left hover:bg-secondary/50 active:bg-secondary/70 transition-colors group"
+                                  >
+                                    <div
+                                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
+                                      style={{
+                                        backgroundColor: `${item.color}18`,
+                                        borderColor: `${item.color}35`,
+                                        borderWidth: 1.5,
+                                        borderStyle: 'solid',
+                                        color: item.color,
+                                      }}
+                                    >
+                                      <Icon className="w-5 h-5" strokeWidth={2.2} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-body text-[14px] sm:text-[15px] font-semibold text-foreground truncate">
+                                        {item.label}
+                                      </div>
+                                      <div className="font-body text-[11.5px] sm:text-[12px] text-muted-foreground line-clamp-1 mt-0.5 leading-snug">
+                                        {item.desc}
+                                      </div>
+                                    </div>
+                                    <ChevronRight className="w-4 h-4 text-muted-foreground/60 shrink-0" />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })()}

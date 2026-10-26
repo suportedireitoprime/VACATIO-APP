@@ -82,7 +82,7 @@ const IndexDesktop = () => {
   const [recentes, setRecentes] = useState<LeiRecente[]>([]);
 
   useEffect(() => {
-    const carregar = () => setRecentes(getRecentes().slice(0, 3));
+    const carregar = () => setRecentes(getRecentes());
     carregar();
     window.addEventListener(LEIS_RECENTES_EVENT, carregar);
     window.addEventListener('storage', carregar);
@@ -93,6 +93,19 @@ const IndexDesktop = () => {
       window.removeEventListener('focus', carregar);
     };
   }, [location.pathname]);
+
+  // Limita estritamente a 3 leis recentes únicas para desktop
+  const ultimasRecentes = useMemo(() => {
+    const seen = new Set<string>();
+    const unique: LeiRecente[] = [];
+    for (const r of recentes) {
+      if (!r.leiId || seen.has(r.leiId)) continue;
+      seen.add(r.leiId);
+      unique.push(r);
+      if (unique.length >= 3) break;
+    }
+    return unique;
+  }, [recentes]);
   useHotkeys('mod+k', (e) => { e.preventDefault(); setSearchOpen(true); }, { enableOnFormTags: true });
   useHotkeys('escape', () => { setSearchOpen(false); setAssistenteOpen(false); });
 
@@ -352,15 +365,15 @@ const IndexDesktop = () => {
 
           {/* CATÁLOGO ABAIXO DO HERO */}
           <main className="max-w-7xl mx-auto px-8 py-8 space-y-10">
-            {/* CONTINUAR DE ONDE PAROU */}
-            {recentes.length > 0 && !searchQuery && activeTab === 'todos' && !activeArea && (
+            {/* CONTINUAR DE ONDE PAROU (MÁXIMO 3 ITENS ÚNICOS) */}
+            {ultimasRecentes.length > 0 && !searchQuery && activeTab === 'todos' && !activeArea && (
               <div>
                 <h2 className="font-display font-bold text-xl text-white mb-4 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-primary" />
                   Continuar de onde parou
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {recentes.map((rec) => {
+                  {ultimasRecentes.map((rec) => {
                     const leiCat = LEIS_CATALOG.find(l => l.id === rec.leiId || l.tabela_nome === rec.tabela_nome);
                     const bgCor = getLeiColor(rec.leiId, rec.tipo);
                     const isCf =

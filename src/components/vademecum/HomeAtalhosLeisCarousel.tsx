@@ -48,6 +48,37 @@ import {
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 import { getLeiColor, shade } from '@/lib/leiTheme';
 
+import cdcGirlImg from '@/assets/leis-figures/cdc-girl.webp';
+import cdcWorkerImg from '@/assets/leis-figures/cdc-worker.webp';
+import cppCourtImg from '@/assets/leis-figures/cpp-court.webp';
+import cpcLawyerImg from '@/assets/leis-figures/cpc-lawyer.webp';
+import ccCoupleImg from '@/assets/leis-figures/cc-couple.webp';
+import cf88CoverImg from '@/assets/leis-figures/cf88-cover.webp';
+import homemPresoImg from '@/assets/leis-figures/homem-preso-novo.webp';
+import ctnTaxesImg from '@/assets/leis-figures/ctn-taxes.webp';
+import ecaKidsImg from '@/assets/leis-figures/eca-kids.webp';
+import eoabWomanImg from '@/assets/leis-figures/eoab-woman.webp';
+import pcdWheelchairImg from '@/assets/leis-figures/pcd-wheelchair.webp';
+import ceVoteImg from '@/assets/leis-figures/ce-vote.webp';
+
+const ILUSTRACOES_LEIS: Record<string, string> = {
+  cdc: cdcGirlImg,
+  clt: cdcWorkerImg,
+  cpp: cppCourtImg,
+  cpc: cpcLawyerImg,
+  cc: ccCoupleImg,
+  cf88: cf88CoverImg,
+  cf: cf88CoverImg,
+  constituicao: cf88CoverImg,
+  cp: homemPresoImg,
+  lep: homemPresoImg,
+  ctn: ctnTaxesImg,
+  eca: ecaKidsImg,
+  eoab: eoabWomanImg,
+  epd: pcdWheelchairImg,
+  ce: ceVoteImg,
+};
+
 const STORAGE_KEY = 'home_atalhos_leis_v5';
 const MAX_ATALHOS = 13;
 
@@ -523,19 +554,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
               const isCenter = index === activeIdx;
               const cardKey = `${lei.id}-${index}`;
 
-              let ilustracao = null;
-              if (lei.id === 'cdc') ilustracao = '/assets/cdc-girl.webp';
-              else if (lei.id === 'clt') ilustracao = '/assets/cdc-worker.webp';
-              else if (lei.id === 'cpp') ilustracao = '/assets/cpp-court.webp';
-              else if (lei.id === 'cpc') ilustracao = '/assets/cpc-lawyer.webp';
-              else if (lei.id === 'cc') ilustracao = '/assets/cc-couple.webp';
-              else if (['cf88', 'cf'].includes(lei.id)) ilustracao = '/assets/cf88-cover.webp';
-              else if (['cp', 'lep'].includes(lei.id)) ilustracao = '/assets/homem-preso-novo.webp';
-              else if (lei.id === 'ctn') ilustracao = '/assets/ctn-taxes.webp';
-              else if (lei.id === 'eca') ilustracao = '/assets/eca-kids.webp';
-              else if (lei.id === 'eoab') ilustracao = '/assets/eoab-woman.webp';
-              else if (lei.id === 'epd') ilustracao = '/assets/pcd-wheelchair.webp';
-              else if (lei.id === 'ce') ilustracao = '/assets/ce-vote.webp';
+              const ilustracao = ILUSTRACOES_LEIS[lei.id] || null;
 
               const openThis = () => {
                 const now = Date.now();

@@ -13,12 +13,14 @@ import {
   Mic,
   Flame,
   ChevronRight,
+  GraduationCap,
   LucideIcon
 } from 'lucide-react';
 
 export type ModoPraticarId =
   | 'questoes'
   | 'flashcards'
+  | 'licoes'
   | 'complete'
   | 'monte'
   | 'verdadeiro_falso'
@@ -41,7 +43,7 @@ export interface ModoPraticarItem {
 }
 
 export const MODOS_PRATICAR: ModoPraticarItem[] = [
-  // Modos Existentes
+  // Modos Principais de Prática
   {
     id: 'questoes',
     label: 'Questões',
@@ -56,6 +58,15 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     desc: 'Cards com flip animado, síntese e exemplos práticos',
     icon: Layers,
     color: '#EAB308',
+    fase: 1,
+  },
+  {
+    id: 'licoes',
+    label: 'Lições',
+    desc: 'Fixação da lei: complete o artigo, quebra-cabeça e desafios em sequência',
+    icon: GraduationCap,
+    color: '#3B82F6',
+    badge: 'Interativo',
     fase: 1,
   },
 

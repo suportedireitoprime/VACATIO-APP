@@ -29,14 +29,14 @@ export default function DesktopNewsGrid() {
 
   if (noticias.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-8 py-8 border-t border-border/40">
-        <Skeleton className="w-48 h-6 mb-6" />
-        <div className="grid grid-cols-3 gap-6 h-[400px]">
-          <Skeleton className="col-span-2 h-full rounded-2xl" />
-          <div className="flex flex-col gap-4">
-            <Skeleton className="flex-1 rounded-2xl" />
-            <Skeleton className="flex-1 rounded-2xl" />
-            <Skeleton className="flex-1 rounded-2xl" />
+      <div className="max-w-7xl mx-auto px-8 py-6 border-t border-border/40">
+        <Skeleton className="w-48 h-5 mb-4" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-auto lg:h-[280px]">
+          <Skeleton className="lg:col-span-7 h-[220px] lg:h-full rounded-2xl" />
+          <div className="lg:col-span-5 flex flex-col gap-3">
+            <Skeleton className="flex-1 rounded-xl" />
+            <Skeleton className="flex-1 rounded-xl" />
+            <Skeleton className="flex-1 rounded-xl" />
           </div>
         </div>
       </div>
@@ -47,28 +47,28 @@ export default function DesktopNewsGrid() {
   const sideNews = noticias.slice(1, 4);
 
   return (
-    <div className="max-w-7xl mx-auto px-8 py-8 border-t border-border/40 mt-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display font-bold text-2xl text-foreground flex items-center gap-3">
-          <Newspaper className="w-6 h-6 text-primary" />
+    <div className="max-w-7xl mx-auto px-8 py-6 border-t border-border/40 mt-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-display font-bold text-xl text-foreground flex items-center gap-2.5">
+          <Newspaper className="w-5 h-5 text-primary" />
           Notícias em Destaque
         </h2>
         <button
           onClick={() => navigate('/noticias')}
-          className="flex items-center gap-1 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
+          className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 transition-colors"
         >
-          Ver todas <ChevronRight className="w-4 h-4" />
+          Ver todas <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
-        {/* Notícia Principal */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-auto lg:h-[280px]">
+        {/* Notícia Principal — compacta e responsiva */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           onClick={() => navigate('/noticias', { state: { noticiaId: mainNews.id } })}
-          className="lg:col-span-2 rounded-3xl overflow-hidden relative group cursor-pointer border border-border/40 shadow-lg"
+          className="lg:col-span-7 h-[220px] lg:h-full rounded-2xl overflow-hidden relative group cursor-pointer border border-border/40 shadow-md"
         >
           {mainNews.imagem_url && (
             <img
@@ -78,17 +78,17 @@ export default function DesktopNewsGrid() {
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
-          <div className="absolute bottom-0 left-0 right-0 p-8">
+          <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
             {mainNews.categoria && (
-              <span className="inline-block px-3 py-1 mb-4 rounded-full bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-wider">
+              <span className="inline-block px-2.5 py-0.5 mb-2 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
                 {mainNews.categoria}
               </span>
             )}
-            <h3 className="font-display font-bold text-3xl md:text-4xl text-white leading-tight mb-2 group-hover:text-primary transition-colors">
+            <h3 className="font-display font-bold text-lg md:text-xl text-white leading-snug mb-1.5 group-hover:text-primary transition-colors line-clamp-2">
               {mainNews.titulo}
             </h3>
             {mainNews.data_publicacao && (
-              <p className="text-white/60 text-sm">
+              <p className="text-white/60 text-xs">
                 {new Date(mainNews.data_publicacao).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
               </p>
             )}
@@ -96,32 +96,32 @@ export default function DesktopNewsGrid() {
         </motion.div>
 
         {/* Notícias Menores */}
-        <div className="flex flex-col gap-4">
+        <div className="lg:col-span-5 flex flex-col gap-3 h-full">
           {sideNews.map((news, i) => (
             <motion.div
               key={news.id}
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 * (i + 1) }}
+              transition={{ duration: 0.3, delay: 0.08 * (i + 1) }}
               onClick={() => navigate('/noticias', { state: { noticiaId: news.id } })}
-              className="flex-1 rounded-2xl overflow-hidden relative group cursor-pointer border border-border/40 shadow-md flex items-center bg-card hover:bg-secondary/40 transition-colors"
+              className="flex-1 rounded-xl overflow-hidden relative group cursor-pointer border border-border/40 shadow-xs flex items-center bg-card hover:bg-secondary/40 transition-colors p-1"
             >
               {news.imagem_url && (
-                <div className="w-1/3 h-full shrink-0 overflow-hidden">
+                <div className="w-24 md:w-28 h-full shrink-0 overflow-hidden rounded-lg">
                   <img
                     src={directImg(news.imagem_url, 300)}
                     alt={news.titulo}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
               )}
-              <div className="p-4 flex-1">
+              <div className="px-3 py-2 flex-1 min-w-0">
                 {news.categoria && (
-                  <span className="text-primary text-[10px] font-bold uppercase tracking-wider mb-1 block">
+                  <span className="text-primary text-[9.5px] font-bold uppercase tracking-wider mb-0.5 block truncate">
                     {news.categoria}
                   </span>
                 )}
-                <h4 className="font-display font-bold text-[14px] leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-3">
+                <h4 className="font-display font-bold text-[12.5px] md:text-[13px] leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-2">
                   {news.titulo}
                 </h4>
               </div>
