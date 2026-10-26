@@ -6,6 +6,7 @@ import {
   BookOpen, Share2, Scale, Mic, Camera, Music, Brain, ChevronDown, ArrowLeft,
 } from 'lucide-react';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
+import { haptic } from '@/lib/nativeHaptics';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '@/integrations/supabase/client';
 import { generateOmniChat, generateOmniChatStream } from '@/lib/omniRouteClient';
@@ -1035,36 +1036,58 @@ REGRAS DE ESTILO E FORMATO:
                     }
                   }}
                   rows={1}
-                  placeholder={voice.listening ? 'Ouvindo…' : 'Pergunte sobre leis, artigos...'}
-                  className="flex-1 min-h-[44px] max-h-36 bg-transparent px-2 py-2.5 text-[15.5px] leading-relaxed font-body text-foreground placeholder:text-muted-foreground/60 focus:outline-none resize-none"
+                  placeholder={voice.listening ? 'Ouvindo… fale agora' : 'Pergunte sobre leis, artigos...'}
+                  className="flex-1 min-w-0 min-h-[44px] max-h-36 bg-transparent px-2 py-2.5 text-[15.5px] leading-relaxed font-body text-foreground placeholder:text-muted-foreground/60 focus:outline-none resize-none"
                 />
 
-                {/* Send / Mic button */}
-                {(input.trim() || attachment) ? (
-                  <button
-                    type="button"
-                    onClick={sendMessage}
-                    disabled={loading || !!streamingId}
-                    aria-label="Enviar mensagem"
-                    className="w-11 h-11 sm:w-12 sm:h-12 min-w-[44px] min-h-[44px] rounded-full bg-accent text-accent-foreground flex items-center justify-center shrink-0 active:scale-95 transition-all disabled:opacity-40 shadow-md cursor-pointer"
-                  >
-                    <Send className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={2.2} />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={toggleMic}
-                    aria-label={voice.listening ? 'Parar gravação' : 'Falar'}
-                    className={`relative w-11 h-11 sm:w-12 sm:h-12 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center shrink-0 transition-all active:scale-95 shadow-md cursor-pointer ${
-                      voice.listening ? 'bg-red-500 text-white' : 'bg-muted/80 text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <Mic className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={2.2} />
-                    {voice.listening && (
-                      <span className="absolute inset-0 rounded-full ring-4 ring-red-400/40 animate-ping" />
+                {/* Send / Mic button (estilo WhatsApp) */}
+                <div className="shrink-0 flex items-center justify-center">
+                  <AnimatePresence mode="wait" initial={false}>
+                    {(!voice.listening && (input.trim() || attachment)) ? (
+                      <motion.button
+                        key="send"
+                        type="button"
+                        initial={{ scale: 0.7, opacity: 0, rotate: -20 }}
+                        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                        exit={{ scale: 0.7, opacity: 0, rotate: 20 }}
+                        transition={{ duration: 0.15 }}
+                        onClick={() => {
+                          haptic.medium();
+                          sendMessage();
+                        }}
+                        disabled={loading || !!streamingId}
+                        aria-label="Enviar mensagem"
+                        className="w-11 h-11 sm:w-12 sm:h-12 min-w-[44px] min-h-[44px] rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 active:scale-95 transition-transform disabled:opacity-40 shadow-md cursor-pointer"
+                      >
+                        <Send className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={2.2} />
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        key="mic"
+                        type="button"
+                        initial={{ scale: 0.7, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.7, opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        onClick={() => {
+                          haptic.light();
+                          toggleMic();
+                        }}
+                        aria-label={voice.listening ? 'Parar gravação' : 'Gravar áudio para transcrever em texto'}
+                        className={`relative w-11 h-11 sm:w-12 sm:h-12 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center shrink-0 transition-all active:scale-95 shadow-md cursor-pointer ${
+                          voice.listening
+                            ? 'bg-red-500 text-white shadow-red-500/40 ring-4 ring-red-400/30 animate-pulse'
+                            : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        }`}
+                      >
+                        <Mic className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={2.2} />
+                        {voice.listening && (
+                          <span className="absolute inset-0 rounded-full ring-4 ring-red-400/40 animate-ping pointer-events-none" />
+                        )}
+                      </motion.button>
                     )}
-                  </button>
-                )}
+                  </AnimatePresence>
+                </div>
               </div>
 
               <input
