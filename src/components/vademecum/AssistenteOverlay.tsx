@@ -123,60 +123,141 @@ function saveSessions(s: Session[]) { localStorage.setItem(HIST_KEY, JSON.string
 
 interface Props { open: boolean; onClose: () => void; }
 
+const VORTEX_TERMS = [
+  { text: 'STF', angle: 0, delay: 0, duration: 4.6, color: '#38BDF8' },
+  { text: 'Jurisprudência', angle: 45, delay: 0.7, duration: 5.2, color: '#EC4899' },
+  { text: 'STJ', angle: 90, delay: 1.4, duration: 4.8, color: '#FACC15' },
+  { text: 'Leis', angle: 135, delay: 2.1, duration: 4.4, color: '#34D399' },
+  { text: 'Súmulas', angle: 180, delay: 2.8, duration: 5.0, color: '#A78BFA' },
+  { text: 'Constituição', angle: 225, delay: 3.5, duration: 5.4, color: '#F43F5E' },
+  { text: 'Doutrina', angle: 270, delay: 4.2, duration: 4.7, color: '#FB923C' },
+  { text: 'Precedentes', angle: 315, delay: 4.9, duration: 5.1, color: '#60A5FA' },
+];
+
+function VortexBrain() {
+  const radius = 126;
+
+  return (
+    <div className="relative w-72 h-72 sm:w-80 sm:h-80 flex items-center justify-center my-2 select-none pointer-events-none overflow-visible">
+      {/* Cosmic background glow */}
+      <div className="absolute inset-8 rounded-full bg-gradient-to-tr from-accent/25 via-primary/20 to-accent/30 blur-2xl animate-pulse" />
+
+      {/* Gravitational Event Horizon Rings (ondas sugadas para dentro do cérebro) */}
+      {[0, 1.4, 2.8].map((delay, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ scale: 1.5, opacity: 0, rotate: 0 }}
+          animate={{
+            scale: [1.5, 0.9, 0.3],
+            opacity: [0, 0.45, 0],
+            rotate: [0, 60, 140],
+          }}
+          transition={{
+            duration: 4.2,
+            repeat: Infinity,
+            delay,
+            ease: [0.4, 0, 0.2, 1],
+          }}
+          className="absolute w-44 h-44 rounded-full border border-accent/35 border-dashed"
+        />
+      ))}
+
+      {/* Anel de órbita pontilhada */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
+        className="absolute w-56 h-56 rounded-full border border-accent/15 border-t-accent/40 border-b-primary/40 border-dotted"
+      />
+
+      {/* Palavras-chave sendo sugadas em espiral gravitacional para o centro do cérebro */}
+      {VORTEX_TERMS.map((term) => {
+        const rad = (term.angle * Math.PI) / 180;
+        const spiralRad = rad + 0.65; // Curvatura em espiral em direção ao centro
+        const startX = Math.round(radius * Math.cos(rad));
+        const startY = Math.round(radius * Math.sin(rad));
+        const midX = Math.round(radius * 0.48 * Math.cos(spiralRad));
+        const midY = Math.round(radius * 0.48 * Math.sin(spiralRad));
+
+        return (
+          <motion.div
+            key={term.text}
+            initial={{
+              x: startX,
+              y: startY,
+              scale: 0.95,
+              opacity: 0,
+            }}
+            animate={{
+              x: [startX, startX, midX, 0],
+              y: [startY, startY, midY, 0],
+              scale: [0.95, 0.95, 0.62, 0.12],
+              opacity: [0, 0.95, 0.8, 0],
+            }}
+            transition={{
+              duration: term.duration,
+              repeat: Infinity,
+              delay: term.delay,
+              ease: [0.35, 0, 0.25, 1],
+            }}
+            className="absolute z-20 flex items-center justify-center pointer-events-none"
+          >
+            <span
+              className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-card font-bold tracking-wider uppercase border shadow-md backdrop-blur-md whitespace-nowrap"
+              style={{
+                backgroundColor: 'rgba(10, 10, 14, 0.88)',
+                borderColor: `${term.color}50`,
+                color: term.color,
+                boxShadow: `0 0 14px ${term.color}35`,
+              }}
+            >
+              {term.text}
+            </span>
+          </motion.div>
+        );
+      })}
+
+      {/* Núcleo Central: O Cérebro com pulsação estelar */}
+      <motion.div
+        animate={{
+          scale: [1, 1.05, 1],
+          boxShadow: [
+            '0 0 25px hsl(var(--primary)/0.25)',
+            '0 0 45px hsl(var(--primary)/0.5)',
+            '0 0 25px hsl(var(--primary)/0.25)',
+          ],
+        }}
+        transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+        className="relative z-30 w-24 h-24 rounded-full bg-accent/15 border-2 border-accent/40 flex items-center justify-center backdrop-blur-md shadow-2xl"
+      >
+        <Brain className="w-12 h-12 text-accent drop-shadow-[0_0_12px_hsl(var(--primary))]" strokeWidth={1.6} />
+      </motion.div>
+    </div>
+  );
+}
+
 function BrainEmptyState({ suggestions, onSelect }: { suggestions: string[], onSelect: (q: string) => void }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center pb-8 pt-10 md:pt-16">
-      {/* Brain Animation Container */}
-      <div className="relative w-40 h-40 mb-6 flex items-center justify-center">
-        {/* Animated Lines / Particles coming into the brain */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 60, opacity: [0, 1, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
-            className="absolute top-0 w-[1.5px] bg-gradient-to-b from-transparent via-accent to-transparent"
-          />
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 60, opacity: [0, 1, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-            className="absolute left-0 h-[1.5px] bg-gradient-to-r from-transparent via-accent to-transparent"
-          />
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 60, opacity: [0, 1, 0] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-            className="absolute right-0 h-[1.5px] bg-gradient-to-l from-transparent via-accent to-transparent"
-          />
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 60, opacity: [0, 1, 0] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut', delay: 0.1 }}
-            className="absolute bottom-0 w-[1.5px] bg-gradient-to-t from-transparent via-accent to-transparent"
-          />
-        </div>
+    <div className="flex flex-col items-center justify-center min-h-[500px] text-center pb-8 pt-4 md:pt-8 select-none">
+      {/* Vórtice gravitacional do Cérebro sugando termos jurídicos */}
+      <VortexBrain />
 
-        {/* The Brain Icon */}
-        <div className="relative z-10 w-24 h-24 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shadow-[0_0_30px_hsl(var(--primary)/0.25)] backdrop-blur-sm">
-           <Brain className="w-12 h-12 text-accent" strokeWidth={1.5} />
-        </div>
-        
-        {/* Glow behind the brain */}
-        <div className="absolute inset-0 bg-accent/5 rounded-full blur-3xl animate-pulse" />
-      </div>
-
-      <h2 className="font-display text-[22px] font-bold text-foreground mb-2 tracking-tight">Como posso ajudar hoje?</h2>
-      <p className="font-body text-[14.5px] text-muted-foreground max-w-[320px] mb-10 leading-snug">
+      <h2 className="font-display text-[23px] sm:text-[25px] font-bold text-foreground mb-2 tracking-tight">
+        Como posso ajudar hoje?
+      </h2>
+      <p className="font-body text-[15.5px] text-muted-foreground max-w-[340px] mb-8 leading-snug">
         Faça perguntas sobre leis, artigos, súmulas ou envie um documento para análise.
       </p>
 
-      {/* Suggestions Flex Wrap (Compact Style) */}
+      {/* Sugestões Rápidas */}
       <div className="w-full max-w-2xl flex flex-wrap justify-center gap-2 px-2 md:px-4">
         {suggestions.map(q => (
-          <button key={q} onClick={() => onSelect(q)}
-            className="px-3.5 py-2 md:px-4 md:py-2.5 rounded-full bg-secondary/40 text-[12px] md:text-[13px] font-body text-foreground border border-border/60 text-center hover:bg-accent/10 hover:border-accent/40 active:scale-[0.99] transition-all flex items-center gap-2 group">
+          <button
+            key={q}
+            onClick={() => onSelect(q)}
+            className="px-4 py-2.5 md:px-4.5 md:py-3 rounded-full bg-secondary/50 text-[13px] md:text-[14px] font-body text-foreground border border-border/70 text-center hover:bg-accent/10 hover:border-accent/40 active:scale-[0.99] transition-all flex items-center gap-2 group cursor-pointer shadow-xs"
+          >
             <span>{q}</span>
-            <Send className="w-3 h-3 text-muted-foreground group-hover:text-accent transition-colors hidden sm:block" />
+            <Send className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors hidden sm:block" />
           </button>
         ))}
       </div>
@@ -928,19 +1009,19 @@ REGRAS DE ESTILO E FORMATO:
               )}
 
               {/* Unified modern capsule */}
-              <div className="flex items-end gap-1.5 bg-secondary/70 hover:bg-secondary/90 border border-border/80 focus-within:border-accent/60 focus-within:ring-1 focus-within:ring-accent/40 rounded-[24px] p-1.5 transition-all shadow-sm">
+              <div className="flex items-end gap-2 bg-secondary/80 hover:bg-secondary/95 border border-border/80 focus-within:border-accent/60 focus-within:ring-2 focus-within:ring-accent/30 rounded-[28px] p-2 transition-all shadow-md">
                 <button
                   type="button"
                   onClick={() => abrirAnexos()}
                   aria-label="Anexar arquivo"
                   aria-expanded={attachOpen}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform ${
+                  className={`w-11 h-11 sm:w-12 sm:h-12 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center shrink-0 transition-transform cursor-pointer ${
                     attachOpen
                       ? 'bg-accent text-accent-foreground rotate-45'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/60 active:scale-95'
                   }`}
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.2} />
                 </button>
 
                 <textarea
@@ -955,7 +1036,7 @@ REGRAS DE ESTILO E FORMATO:
                   }}
                   rows={1}
                   placeholder={voice.listening ? 'Ouvindo…' : 'Pergunte sobre leis, artigos...'}
-                  className="flex-1 min-h-[38px] max-h-36 bg-transparent px-1.5 py-2 text-[14.5px] leading-relaxed font-body text-foreground placeholder:text-muted-foreground/60 focus:outline-none resize-none"
+                  className="flex-1 min-h-[44px] max-h-36 bg-transparent px-2 py-2.5 text-[15.5px] leading-relaxed font-body text-foreground placeholder:text-muted-foreground/60 focus:outline-none resize-none"
                 />
 
                 {/* Send / Mic button */}
@@ -965,20 +1046,20 @@ REGRAS DE ESTILO E FORMATO:
                     onClick={sendMessage}
                     disabled={loading || !!streamingId}
                     aria-label="Enviar mensagem"
-                    className="w-9 h-9 rounded-full bg-accent text-accent-foreground flex items-center justify-center shrink-0 active:scale-95 transition-all disabled:opacity-40 shadow-sm"
+                    className="w-11 h-11 sm:w-12 sm:h-12 min-w-[44px] min-h-[44px] rounded-full bg-accent text-accent-foreground flex items-center justify-center shrink-0 active:scale-95 transition-all disabled:opacity-40 shadow-md cursor-pointer"
                   >
-                    <Send className="w-4.5 h-4.5" />
+                    <Send className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={2.2} />
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={toggleMic}
                     aria-label={voice.listening ? 'Parar gravação' : 'Falar'}
-                    className={`relative w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-95 shadow-sm ${
+                    className={`relative w-11 h-11 sm:w-12 sm:h-12 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center shrink-0 transition-all active:scale-95 shadow-md cursor-pointer ${
                       voice.listening ? 'bg-red-500 text-white' : 'bg-muted/80 text-foreground hover:bg-muted'
                     }`}
                   >
-                    <Mic className="w-4.5 h-4.5" />
+                    <Mic className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={2.2} />
                     {voice.listening && (
                       <span className="absolute inset-0 rounded-full ring-4 ring-red-400/40 animate-ping" />
                     )}
