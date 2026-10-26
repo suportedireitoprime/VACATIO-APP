@@ -2150,8 +2150,23 @@ Separe cada julgado com:
     });
   }, [activeTab, artigo?.id]);
 
+  useEffect(() => {
+    if (!artigo) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [artigo, onClose]);
 
   if (!artigo) return null;
 
@@ -2628,21 +2643,43 @@ Separe cada julgado com:
 
   return (
     <>
-      <Sheet open={Boolean(artigo)} onOpenChange={(open) => { if (!open) handleSheetClose(); }}>
-        <SheetContent
-          side={isDesktop ? "center" : "bottom"}
-          className={
-            isDesktop
-              ? "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border border-white/10 bg-background p-0 shadow-2xl [&>button:last-child]:hidden rounded-2xl h-[85vh] w-[640px] max-w-[90vw]"
-              : "z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-t-3xl border-t border-white/5 bg-background p-0 [&>button:last-child]:hidden top-auto bottom-0 h-[96dvh] max-h-[96dvh]"
-          }
+      {createPortal(
+        <AnimatePresence>
+          {Boolean(artigo) && (
+            <>
+              {/* Backdrop suave */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                onClick={handleSheetClose}
+                className="fixed inset-0 z-[9998] bg-black/80 backdrop-blur-[2px]"
+              />
 
-        >
-        {!isDesktop && (
-          <div className="shrink-0 flex justify-center pt-3 pb-1 bg-background">
-            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-          </div>
-        )}
+              {/* Sheet com mecânica nativa ultra fluida idêntica a Códigos */}
+              <motion.div
+                initial={isDesktop ? { opacity: 0, scale: 0.95 } : { y: '100%' }}
+                animate={isDesktop ? { opacity: 1, scale: 1 } : { y: 0 }}
+                exit={isDesktop ? { opacity: 0, scale: 0.95 } : { y: '100%' }}
+                transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  willChange: 'transform',
+                  transform: 'translateZ(0)',
+                  WebkitBackfaceVisibility: 'hidden',
+                  backfaceVisibility: 'hidden',
+                }}
+                className={
+                  isDesktop
+                    ? "fixed inset-0 m-auto z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border border-white/10 bg-background p-0 shadow-2xl rounded-2xl h-[85vh] w-[640px] max-w-[90vw]"
+                    : "fixed inset-x-0 bottom-0 z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-t-3xl border-t border-white/5 bg-background p-0 h-[96dvh] max-h-[96dvh]"
+                }
+              >
+                {!isDesktop && (
+                  <div className="shrink-0 flex justify-center pt-3 pb-1 bg-background">
+                    <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+                  </div>
+                )}
 
         {/* Scrollable content area: header, tabs and article content scroll up; bottom nav stays fixed */}
         <div 
@@ -4390,8 +4427,12 @@ Separe cada julgado com:
               isFavorito={false}
             />
           )}
-        </SheetContent>
-        </Sheet>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
         {/* Paywall rigoroso (sem limites gratuitos) */}
         <PremiumGate 

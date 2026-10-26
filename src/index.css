@@ -65,6 +65,43 @@ body {
   padding-bottom: calc(5.5rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + var(--active-mini-player-offset, 0px));
 }
 
+/* ============================================================
+ * Ultra-smooth 60/120fps Bottom Sheet Keyframes & Utilities
+ * Mecânica idêntica ao padrão de Códigos e Apple HIG / M3
+ * ============================================================ */
+@keyframes sheetSlideInBottom {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes sheetSlideOutBottom {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+
+.sheet-slide-bottom {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sheet-slide-bottom[data-state="open"] {
+  animation: sheetSlideInBottom 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.sheet-slide-bottom[data-state="closed"] {
+  animation: sheetSlideOutBottom 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
 /* Tablet: a navegação agora é uma barra inferior flutuante (BottomNav),
  * portanto o body ocupa a largura total sem reservar espaço lateral. */
 
