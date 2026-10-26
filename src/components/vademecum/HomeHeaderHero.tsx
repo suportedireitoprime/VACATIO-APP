@@ -91,7 +91,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
           aria-hidden="true"
         />
 
-        {/* Imagem de Capa do Painel do Início (lado direito) — Altura total original sem corte */}
+        {/* Imagem de Capa do Painel do Início (lado direito) — Enquadramento exibindo ambos os advogados e alinhando a maleta à borda direita */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <img
             src={heroEstudanteImg}
@@ -100,7 +100,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
             loading="eager"
             decoding="async"
             fetchPriority="high"
-            className="absolute top-0 bottom-0 right-0 h-full w-auto max-w-none object-contain object-right select-none"
+            className="absolute top-0 bottom-0 right-0 h-full w-auto max-w-none object-contain object-right select-none translate-x-[17%] sm:translate-x-[10%] md:translate-x-0"
           />
         </div>
 
@@ -111,7 +111,7 @@ const HomeHeaderHero = ({ onSearchOpenChange, onOpenMenu, onOpenSearch }: HomeHe
         >
           <div
             className="absolute inset-0 overflow-hidden"
-            style={{ clipPath: 'polygon(0 0, 47% 0, 36% 100%, 0% 100%)' }}
+            style={{ clipPath: 'polygon(0 0, 44% 0, 34% 100%, 0% 100%)' }}
           >
             <div
               className="absolute inset-0"
