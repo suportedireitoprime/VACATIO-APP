@@ -19,6 +19,7 @@ interface IdentifiqueErroViewProps {
   artigoTexto: string;
   leiNome: string;
   onVoltar: () => void;
+  hideHeader?: boolean;
 }
 
 interface DadosErroArtigo {
@@ -113,6 +114,7 @@ export const IdentifiqueErroView: React.FC<IdentifiqueErroViewProps> = ({
   artigoTexto,
   leiNome,
   onVoltar,
+  hideHeader,
 }) => {
   const dados = useMemo(() => gerarArtigoAdulterado(artigoTexto), [artigoTexto]);
   const [palavraSelecionadaId, setPalavraSelecionadaId] = useState<number | null>(null);
@@ -148,7 +150,8 @@ export const IdentifiqueErroView: React.FC<IdentifiqueErroViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-card text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
         <div>
           <span className="text-[11px] font-semibold text-rose-500 uppercase tracking-wider block">
             Praticar • Identifique o Erro
@@ -177,6 +180,7 @@ export const IdentifiqueErroView: React.FC<IdentifiqueErroViewProps> = ({
           </Button>
         </div>
       </div>
+      )}
 
       {/* Conteúdo com Scroll */}
       <div className="flex-1 overflow-y-auto p-5 sm:p-7 max-w-2xl mx-auto w-full space-y-6">

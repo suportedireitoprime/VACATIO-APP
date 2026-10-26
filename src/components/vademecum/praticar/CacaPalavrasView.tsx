@@ -18,6 +18,7 @@ interface CacaPalavrasViewProps {
   artigoTexto: string;
   leiNome: string;
   onVoltar: () => void;
+  hideHeader?: boolean;
 }
 
 const TAMANHO_GRADE = 10; // Grade 10x10
@@ -117,6 +118,7 @@ export const CacaPalavrasView: React.FC<CacaPalavrasViewProps> = ({
   artigoTexto,
   leiNome,
   onVoltar,
+  hideHeader,
 }) => {
   const dadosIniciais = useMemo(() => gerarGradeCacaPalavras(artigoTexto), [artigoTexto]);
   const [grade, setGrade] = useState<string[][]>(dadosIniciais.grade);
@@ -186,7 +188,8 @@ export const CacaPalavrasView: React.FC<CacaPalavrasViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-card text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
         <div>
           <span className="text-[11px] font-semibold text-cyan-500 uppercase tracking-wider block">
             Praticar • Caça-Palavras Jurídico
@@ -215,6 +218,7 @@ export const CacaPalavrasView: React.FC<CacaPalavrasViewProps> = ({
           </Button>
         </div>
       </div>
+      )}
 
       {/* Conteúdo */}
       <div className="flex-1 overflow-y-auto p-5 sm:p-7 max-w-2xl mx-auto w-full space-y-6 flex flex-col items-center">

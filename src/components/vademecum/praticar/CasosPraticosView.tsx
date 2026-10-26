@@ -29,6 +29,7 @@ interface CasosPraticosViewProps {
   artigoTexto: string;
   leiNome: string;
   onVoltar: () => void;
+  hideHeader?: boolean;
 }
 
 // Gera cenários fáticos e casos práticos de aplicação do artigo
@@ -109,6 +110,7 @@ export const CasosPraticosView: React.FC<CasosPraticosViewProps> = ({
   artigoTexto,
   leiNome,
   onVoltar,
+  hideHeader,
 }) => {
   const casos = useMemo(() => gerarCasosPraticosArtigo(artigoNumero, artigoTexto, leiNome), [artigoNumero, artigoTexto, leiNome]);
   const [indexAtual, setIndexAtual] = useState(0);
@@ -160,7 +162,8 @@ export const CasosPraticosView: React.FC<CasosPraticosViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-card text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
         <div>
           <span className="text-[11px] font-semibold text-indigo-500 uppercase tracking-wider block">
             Praticar • Casos Práticos
@@ -189,6 +192,7 @@ export const CasosPraticosView: React.FC<CasosPraticosViewProps> = ({
           </Button>
         </div>
       </div>
+      )}
 
       {/* Conteúdo */}
       <div className="flex-1 overflow-y-auto p-5 sm:p-7 max-w-3xl mx-auto w-full space-y-6">

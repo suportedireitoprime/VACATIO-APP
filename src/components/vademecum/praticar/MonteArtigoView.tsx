@@ -26,6 +26,7 @@ interface MonteArtigoViewProps {
   artigoTexto: string;
   leiNome: string;
   onVoltar: () => void;
+  hideHeader?: boolean;
 }
 
 // Fragmenta o artigo em blocos lógicos (orações ou incisos/parágrafos)
@@ -59,6 +60,7 @@ export const MonteArtigoView: React.FC<MonteArtigoViewProps> = ({
   artigoTexto,
   leiNome,
   onVoltar,
+  hideHeader,
 }) => {
   const blocosOriginais = useMemo(() => fragmentarArtigoEmBlocos(artigoTexto), [artigoTexto]);
 
@@ -121,7 +123,8 @@ export const MonteArtigoView: React.FC<MonteArtigoViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-card text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
         <div>
           <span className="text-[11px] font-semibold text-purple-500 uppercase tracking-wider block">
             Praticar • Monte o Artigo
@@ -150,6 +153,7 @@ export const MonteArtigoView: React.FC<MonteArtigoViewProps> = ({
           </Button>
         </div>
       </div>
+      )}
 
       {/* Conteúdo com Scroll */}
       <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">

@@ -27,6 +27,7 @@ interface VerdadeiroFalsoViewProps {
   artigoTexto: string;
   leiNome: string;
   onVoltar: () => void;
+  hideHeader?: boolean;
 }
 
 // Gera afirmativas de Certo ou Errado baseadas no artigo
@@ -96,6 +97,7 @@ export const VerdadeiroFalsoView: React.FC<VerdadeiroFalsoViewProps> = ({
   artigoTexto,
   leiNome,
   onVoltar,
+  hideHeader,
 }) => {
   const questoes = useMemo(() => gerarAfirmativasArtigo(artigoNumero, artigoTexto), [artigoNumero, artigoTexto]);
   const [indexAtual, setIndexAtual] = useState(0);
@@ -141,7 +143,8 @@ export const VerdadeiroFalsoView: React.FC<VerdadeiroFalsoViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-card text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
         <div>
           <span className="text-[11px] font-semibold text-emerald-500 uppercase tracking-wider block">
             Praticar • Certo ou Errado
@@ -170,6 +173,7 @@ export const VerdadeiroFalsoView: React.FC<VerdadeiroFalsoViewProps> = ({
           </Button>
         </div>
       </div>
+      )}
 
       {/* Conteúdo Principal */}
       <div className="flex-1 overflow-y-auto p-5 sm:p-7 flex flex-col justify-center max-w-2xl mx-auto w-full">

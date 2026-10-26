@@ -14,6 +14,7 @@ import {
   Flame,
   ChevronRight,
   GraduationCap,
+  Pencil,
   LucideIcon
 } from 'lucide-react';
 
@@ -43,13 +44,13 @@ export interface ModoPraticarItem {
 }
 
 export const MODOS_PRATICAR: ModoPraticarItem[] = [
-  // Modos Principais de Prática
+  // Modos Principais de Prática (Cores e ícones idênticos ao início da lei)
   {
     id: 'questoes',
     label: 'Questões',
     desc: 'Múltipla escolha com comentários, gabarito e exemplos',
     icon: Target,
-    color: '#F59E0B',
+    color: '#FACC15',
     fase: 1,
   },
   {
@@ -57,15 +58,15 @@ export const MODOS_PRATICAR: ModoPraticarItem[] = [
     label: 'Flashcards',
     desc: 'Cards com flip animado, síntese e exemplos práticos',
     icon: Layers,
-    color: '#EAB308',
+    color: '#34D399',
     fase: 1,
   },
   {
     id: 'licoes',
     label: 'Lições',
     desc: 'Fixação da lei: complete o artigo, quebra-cabeça e desafios em sequência',
-    icon: GraduationCap,
-    color: '#3B82F6',
+    icon: Pencil,
+    color: '#38BDF8',
     badge: 'Interativo',
     fase: 1,
   },

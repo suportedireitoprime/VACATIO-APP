@@ -27,6 +27,7 @@ interface ContraRelogioViewProps {
   artigoTexto: string;
   leiNome: string;
   onVoltar: () => void;
+  hideHeader?: boolean;
 }
 
 const TEMPO_POR_QUESTAO = 15; // 15 segundos por pergunta rápida
@@ -88,6 +89,7 @@ export const ContraRelogioView: React.FC<ContraRelogioViewProps> = ({
   artigoTexto,
   leiNome,
   onVoltar,
+  hideHeader,
 }) => {
   const perguntas = useMemo(() => gerarPerguntasBlitz(artigoNumero, artigoTexto), [artigoNumero, artigoTexto]);
   const [indexAtual, setIndexAtual] = useState(0);
@@ -170,7 +172,8 @@ export const ContraRelogioView: React.FC<ContraRelogioViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-card text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
         <div>
           <span className="text-[11px] font-semibold text-orange-500 uppercase tracking-wider block">
             Praticar • Desafio Contra o Relógio
@@ -199,6 +202,7 @@ export const ContraRelogioView: React.FC<ContraRelogioViewProps> = ({
           </Button>
         </div>
       </div>
+      )}
 
       {/* Conteúdo */}
       <div className="flex-1 overflow-y-auto p-5 sm:p-7 max-w-2xl mx-auto w-full flex flex-col justify-center">

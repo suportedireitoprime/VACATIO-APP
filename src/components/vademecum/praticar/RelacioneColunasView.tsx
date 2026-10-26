@@ -24,6 +24,7 @@ interface RelacioneColunasViewProps {
   artigoTexto: string;
   leiNome: string;
   onVoltar: () => void;
+  hideHeader?: boolean;
 }
 
 // Extrai elementos do artigo para montar duas colunas correlacionadas
@@ -93,6 +94,7 @@ export const RelacioneColunasView: React.FC<RelacioneColunasViewProps> = ({
   artigoTexto,
   leiNome,
   onVoltar,
+  hideHeader,
 }) => {
   const paresOriginais = useMemo(() => gerarParesColunas(artigoNumero, artigoTexto), [artigoNumero, artigoTexto]);
 
@@ -154,7 +156,8 @@ export const RelacioneColunasView: React.FC<RelacioneColunasViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-card text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
         <div>
           <span className="text-[11px] font-semibold text-pink-500 uppercase tracking-wider block">
             Praticar • Relacione as Colunas
@@ -183,6 +186,7 @@ export const RelacioneColunasView: React.FC<RelacioneColunasViewProps> = ({
           </Button>
         </div>
       </div>
+      )}
 
       {/* Conteúdo */}
       <div className="flex-1 overflow-y-auto p-5 sm:p-7 max-w-3xl mx-auto w-full space-y-6">

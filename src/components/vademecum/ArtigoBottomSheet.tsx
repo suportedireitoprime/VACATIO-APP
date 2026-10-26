@@ -1,7 +1,7 @@
 import { cloneElement, isValidElement, useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronRight, ExternalLink, Volume2, VolumeX, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2, Lock } from 'lucide-react';
+import { Search, X, Eye, EyeOff, Star, Heart, Highlighter, Copy, Plus, Minus, Type, MessageSquare, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, Volume2, VolumeX, Pause, Target, StickyNote, MessageCircle, Loader2, Share2, Network, BookOpen, Sparkles, GraduationCap, Play, Camera, Feather, History, LayoutGrid, Mic, Square, Bell, Scale, Download, Trash2, Lock, Pencil, Layers } from 'lucide-react';
 import { getNarracaoArtigo, getCachedNarracaoUrl, isAudioUrlValida } from '@/services/narracaoArtigosSyncService';
 const LembretesArtigoSheet = lazy(() => import('./LembretesArtigoSheet'));
 const BaixarArtigoSheet = lazy(() => import('./BaixarArtigoSheet'));
@@ -29,6 +29,8 @@ const IdentifiqueErroView = lazy(() => import('./praticar/IdentifiqueErroView').
 const OucaReciteView = lazy(() => import('./praticar/OucaReciteView').then(m => ({ default: m.OucaReciteView })));
 const ComboPraticarView = lazy(() => import('./praticar/ComboPraticarView').then(m => ({ default: m.ComboPraticarView })));
 const LicoesArtigoView = lazy(() => import('./praticar/LicoesArtigoView').then(m => ({ default: m.LicoesArtigoView })));
+const QuizView = lazy(() => import('@/components/estudar/QuizView'));
+const FlashcardView = lazy(() => import('@/components/estudar/FlashcardView'));
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -4002,43 +4004,49 @@ Separe cada julgado com:
                 className="fixed inset-0 z-[61] bg-card flex flex-col w-full h-full max-h-screen overflow-hidden pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]"
               >
                 <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border/80 bg-background/50 backdrop-blur-md shrink-0 pt-[max(0.875rem,env(safe-area-inset-top))]">
-                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                    <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
-                    <h3 className="font-heading text-base sm:text-lg font-bold text-foreground truncate">
-                      {activePraticarMode === 'complete'
-                        ? 'Complete o Artigo'
-                        : activePraticarMode === 'monte'
-                        ? 'Monte o Artigo'
-                        : activePraticarMode === 'verdadeiro_falso'
-                        ? 'Certo ou Errado'
-                        : activePraticarMode === 'caca_palavras'
-                        ? 'Caça-Palavras Jurídico'
-                        : activePraticarMode === 'relacione'
-                        ? 'Relacione as Colunas'
-                        : activePraticarMode === 'identifique_erro'
-                        ? 'Identifique o Erro'
-                        : activePraticarMode === 'casos_praticos'
-                        ? 'Casos Práticos'
-                        : activePraticarMode === 'contra_relogio'
-                        ? 'Contra o Relógio'
-                        : activePraticarMode === 'ouca_recite'
-                        ? 'Ouça e Recite por Voz'
-                        : activePraticarMode === 'combo'
-                        ? 'Combo Desafio Total'
-                        : activePraticarMode === 'licoes'
-                        ? 'Lições de Fixação'
-                        : 'Praticar'}
-                    </h3>
-                  </div>
+                  {activePraticarMode ? (
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                      <button
+                        onClick={() => setActivePraticarMode(null)}
+                        className="h-9 px-3 rounded-xl bg-secondary/80 hover:bg-secondary active:scale-95 transition-all flex items-center gap-1.5 text-foreground shrink-0 border border-border/50 text-xs font-semibold shadow-sm"
+                        aria-label="Voltar para opções de estudo"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span>Voltar</span>
+                      </button>
+                      <div className="flex items-center gap-2 min-w-0">
+                        {activePraticarMode === 'questoes' && <Target className="w-5 h-5 text-[#FACC15] shrink-0" strokeWidth={2.2} />}
+                        {activePraticarMode === 'flashcards' && <Layers className="w-5 h-5 text-[#34D399] shrink-0" strokeWidth={2.2} />}
+                        {activePraticarMode === 'licoes' && <Pencil className="w-5 h-5 text-[#38BDF8] shrink-0" strokeWidth={2.2} />}
+                        <h3 className="font-heading text-base sm:text-lg font-bold text-foreground truncate">
+                          {activePraticarMode === 'questoes'
+                            ? `Questões • Art. ${artigo?.numero}`
+                            : activePraticarMode === 'flashcards'
+                            ? `Flashcards • Art. ${artigo?.numero}`
+                            : activePraticarMode === 'licoes'
+                            ? `Lições • Art. ${artigo?.numero}`
+                            : activePraticarMode === 'complete'
+                            ? `Complete o Artigo • Art. ${artigo?.numero}`
+                            : activePraticarMode === 'monte'
+                            ? `Monte o Artigo • Art. ${artigo?.numero}`
+                            : activePraticarMode === 'verdadeiro_falso'
+                            ? `Certo ou Errado • Art. ${artigo?.numero}`
+                            : 'Praticar'}
+                        </h3>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                      <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
+                      <h3 className="font-heading text-base sm:text-lg font-bold text-foreground truncate">
+                        Praticar • Art. {artigo?.numero}
+                      </h3>
+                    </div>
+                  )}
+
                   <button
-                    onClick={() => {
-                      if (activePraticarMode) {
-                        setActivePraticarMode(null);
-                      } else {
-                        setShowPraticarSheet(false);
-                      }
-                    }}
-                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-secondary/80 hover:bg-secondary active:scale-95 transition-all flex items-center justify-center text-foreground/80 hover:text-foreground shrink-0 border border-border/50 shadow-sm"
+                    onClick={() => setShowPraticarSheet(false)}
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-secondary/80 hover:bg-secondary active:scale-95 transition-all flex items-center justify-center text-foreground/80 hover:text-foreground shrink-0 border border-border/50 shadow-sm"
                     aria-label="Fechar"
                   >
                     <X className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -4047,8 +4055,32 @@ Separe cada julgado com:
 
                 {/* Se um modo interativo estiver ativo, renderiza sua tela dedicada em tela cheia */}
                 <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
+                  {activePraticarMode === 'questoes' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60 flex items-center justify-center gap-2"><Loader2 className="w-5 h-5 animate-spin text-[#FACC15]" />Carregando questões do artigo...</div>}>
+                      <QuizView
+                        tabelaNome={String(tabelaNome || '')}
+                        artigoNumero={String(artigo?.numero || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onBack={() => setActivePraticarMode(null)}
+                        hideHeader={true}
+                      />
+                    </Suspense>
+                  )}
+
+                  {activePraticarMode === 'flashcards' && (
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60 flex items-center justify-center gap-2"><Loader2 className="w-5 h-5 animate-spin text-[#34D399]" />Carregando flashcards do artigo...</div>}>
+                      <FlashcardView
+                        tabelaNome={String(tabelaNome || '')}
+                        artigoNumero={String(artigo?.numero || '')}
+                        leiNome={String(tabelaNome || '')}
+                        onBack={() => setActivePraticarMode(null)}
+                        hideHeader={true}
+                      />
+                    </Suspense>
+                  )}
+
                   {activePraticarMode === 'licoes' && (
-                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60 flex items-center justify-center gap-2"><Loader2 className="w-5 h-5 animate-spin text-primary" />Carregando lições de fixação...</div>}>
+                    <Suspense fallback={<div className="p-8 text-center text-sm text-foreground/60 flex items-center justify-center gap-2"><Loader2 className="w-5 h-5 animate-spin text-[#38BDF8]" />Carregando lições de fixação...</div>}>
                       <LicoesArtigoView
                         artigoNumero={String(artigo?.numero || '')}
                         artigoTexto={String(artigo?.texto || artigo?.caput || '')}
@@ -4157,30 +4189,13 @@ Separe cada julgado com:
                     </Suspense>
                   )}
 
-                  {/* Menu de seleção dos Modos de Prática organizado por seções */}
+                  {/* Menu de seleção dos Modos de Prática: Questões, Flashcards e Lições */}
                   {!activePraticarMode && (() => {
                     const itensPrincipais = [
                       MODOS_PRATICAR.find((m) => m.id === 'questoes'),
                       MODOS_PRATICAR.find((m) => m.id === 'flashcards'),
                       MODOS_PRATICAR.find((m) => m.id === 'licoes'),
                     ].filter(Boolean) as (typeof MODOS_PRATICAR)[number][];
-
-                    const outrosModos = MODOS_PRATICAR.filter(
-                      (m) =>
-                        !['questoes', 'flashcards', 'licoes', 'complete', 'monte', 'verdadeiro_falso'].includes(m.id)
-                    );
-
-                    const handleItemClick = (item: (typeof MODOS_PRATICAR)[number]) => {
-                      if (item.id === 'questoes') {
-                        setShowPraticarSheet(false);
-                        navigate(`/estudos?mode=questoes&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
-                      } else if (item.id === 'flashcards') {
-                        setShowPraticarSheet(false);
-                        navigate(`/estudos?mode=flashcards&tabela=${tabelaNome}&artigo=${artigo?.numero}`);
-                      } else {
-                        setActivePraticarMode(item.id);
-                      }
-                    };
 
                     return (
                       <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col p-4 sm:p-6 overflow-y-auto space-y-6">
@@ -4190,7 +4205,7 @@ Separe cada julgado com:
                           </p>
                         </div>
 
-                        {/* Modos Principais Juntos: Questões, Flashcards e Lições */}
+                        {/* Modos Principais: Questões, Flashcards e Lições */}
                         <div className="space-y-3">
                           <div className="flex items-center justify-between px-1">
                             <h4 className="font-display text-[13px] sm:text-[14px] font-bold text-foreground/90 uppercase tracking-wider flex items-center gap-2">
@@ -4208,22 +4223,15 @@ Separe cada julgado com:
                               return (
                                 <button
                                   key={item.id}
-                                  onClick={() => handleItemClick(item)}
+                                  onClick={() => setActivePraticarMode(item.id)}
                                   className="w-full flex items-center gap-4 p-4 min-h-[82px] rounded-2xl bg-secondary/30 hover:bg-secondary/60 active:scale-[0.99] border border-border/60 hover:border-border transition-all text-left shadow-sm group"
                                 >
-                                  {/* Ícone com fundo colorido translúcido, sem o fundo preto */}
-                                  <div
-                                    className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
-                                    style={{
-                                      backgroundColor: `${item.color}18`,
-                                      borderColor: `${item.color}35`,
-                                      borderWidth: 1.5,
-                                      borderStyle: 'solid',
-                                      color: item.color,
-                                    }}
-                                  >
-                                    <Icon className="w-6 h-6" strokeWidth={2.2} />
-                                  </div>
+                                  {/* Ícone direto sem fundo ou moldura quadrada */}
+                                  <Icon
+                                    className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                                    style={{ color: item.color }}
+                                    strokeWidth={2.2}
+                                  />
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
                                       <span className="font-body text-[15px] sm:text-base font-bold text-foreground">
@@ -4254,53 +4262,6 @@ Separe cada julgado com:
                             })}
                           </div>
                         </div>
-
-                        {/* Outros desafios e mini-games disponíveis */}
-                        {outrosModos.length > 0 && (
-                          <div className="pt-2 space-y-3">
-                            <div className="flex items-center justify-between px-1">
-                              <h4 className="font-display text-[12px] sm:text-[13px] font-bold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
-                                <span className="w-1.5 h-3.5 rounded-full bg-primary/50" />
-                                Outros Desafios e Mini-Games
-                              </h4>
-                            </div>
-
-                            <div className="rounded-2xl border border-border/60 bg-secondary/20 divide-y divide-border/50 overflow-hidden shadow-sm">
-                              {outrosModos.map((item) => {
-                                const Icon = item.icon;
-                                return (
-                                  <button
-                                    key={item.id}
-                                    onClick={() => handleItemClick(item)}
-                                    className="w-full flex items-center gap-4 px-4 py-3.5 min-h-[72px] text-left hover:bg-secondary/50 active:bg-secondary/70 transition-colors group"
-                                  >
-                                    <div
-                                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
-                                      style={{
-                                        backgroundColor: `${item.color}18`,
-                                        borderColor: `${item.color}35`,
-                                        borderWidth: 1.5,
-                                        borderStyle: 'solid',
-                                        color: item.color,
-                                      }}
-                                    >
-                                      <Icon className="w-5 h-5" strokeWidth={2.2} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="font-body text-[14px] sm:text-[15px] font-semibold text-foreground truncate">
-                                        {item.label}
-                                      </div>
-                                      <div className="font-body text-[11.5px] sm:text-[12px] text-muted-foreground line-clamp-1 mt-0.5 leading-snug">
-                                        {item.desc}
-                                      </div>
-                                    </div>
-                                    <ChevronRight className="w-4 h-4 text-muted-foreground/60 shrink-0" />
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     );
                   })()}

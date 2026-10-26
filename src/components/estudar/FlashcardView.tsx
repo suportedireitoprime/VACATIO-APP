@@ -17,9 +17,10 @@ interface Props {
   artigoNumero: string;
   leiNome: string;
   onBack: () => void;
+  hideHeader?: boolean;
 }
 
-const FlashcardView = ({ tabelaNome, artigoNumero, leiNome, onBack }: Props) => {
+const FlashcardView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }: Props) => {
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,17 +70,19 @@ const FlashcardView = ({ tabelaNome, artigoNumero, leiNome, onBack }: Props) => 
   const current = cards[index];
 
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        title="Flashcards"
-        subtitle={`${leiNome} · Art. ${artigoNumero}`}
-        onBack={onBack}
-        leading={
-          <div className="w-10 h-10 rounded-full bg-amber-500/15 flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-amber-500" />
-          </div>
-        }
-      />
+    <div className={hideHeader ? "flex-1 w-full bg-background overflow-y-auto" : "min-h-dvh bg-background"}>
+      {!hideHeader && (
+        <PageHeader
+          title="Flashcards"
+          subtitle={`${leiNome} · Art. ${artigoNumero}`}
+          onBack={onBack}
+          leading={
+            <div className="w-10 h-10 rounded-full bg-amber-500/15 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-amber-500" />
+            </div>
+          }
+        />
+      )}
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6">
         <GeracaoAnimacaoOverlay

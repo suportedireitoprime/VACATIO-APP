@@ -39,6 +39,7 @@ interface CompleteArtigoViewProps {
   artigoTexto: string;
   leiNome: string;
   onVoltar: () => void;
+  hideHeader?: boolean;
 }
 
 // Extrai palavras-chave jurídicas substantivas do texto para criar as lacunas
@@ -141,6 +142,7 @@ export const CompleteArtigoView: React.FC<CompleteArtigoViewProps> = ({
   artigoTexto,
   leiNome,
   onVoltar,
+  hideHeader,
 }) => {
   const data = useMemo(() => gerarDadosCompleteArtigo(artigoTexto), [artigoTexto]);
   const [respostas, setRespostas] = useState<Record<number, string>>({});
@@ -175,7 +177,8 @@ export const CompleteArtigoView: React.FC<CompleteArtigoViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-card text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/60 backdrop-blur-sm">
         <div>
           <span className="text-[11px] font-semibold text-blue-500 uppercase tracking-wider block">
             Praticar • Complete o Artigo
@@ -204,6 +207,7 @@ export const CompleteArtigoView: React.FC<CompleteArtigoViewProps> = ({
           </Button>
         </div>
       </div>
+      )}
 
       {/* Conteúdo Principal com Scroll */}
       <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">

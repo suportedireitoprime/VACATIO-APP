@@ -83,7 +83,7 @@ export function normalizeArtigoKey(numero?: string | null): string {
   const withoutDots = trimmed.replace(/\./g, '');
   const match = withoutDots.match(/(?:art(?:igo)?\s*)?(\d+)(?:[º°o])?(?:-([a-z]))?/i);
   if (match) {
-    const num = match[1];
+    const num = parseInt(match[1], 10);
     const suf = match[2] ? `-${match[2]}` : '';
     return `${num}${suf}`;
   }
@@ -96,32 +96,53 @@ export function normalizeArtigoKey(numero?: string | null): string {
  * - "art_1.mp3" -> "1"
  * - "artigo_2_v2.wav" -> "2"
  * - "Art. 3º-A.mp3" -> "3-a"
+ * - "Art. 0003.mp3" -> "3"
+ * - "Art. 0003-F.mp3" -> "3-f"
+ * - "art_3-f_1791941969503.mp3" -> "3-f"
  * - "CPP_Art_57.mp3" -> "57"
  * - "art_1000.mp3" ou "art_1.000.mp3" -> "1000"
  * - "art_3__A_v2_1783361822923.wav" -> "3-a"
  * - "12.mp3" -> "12"
  */
 export function matchArtigoKeyFromFilename(filename: string): string | null {
-  let clean = filename.replace(/\.(mp3|wav|m4a|ogg|opus)$/i, '').trim();
+  let clean = decodeURIComponent(filename).replace(/\.(mp3|wav|m4a|ogg|opus)$/i, '').trim();
   // Remove timestamp no final (ex: _1791935156084)
   clean = clean.replace(/_\d{10,}$/, '');
   const cleanNoDots = clean.replace(/\./g, '');
 
-  // Caso com sufixo letra (ex: art_3-a, art_3__A, Artigo 3-A, art_91-a)
+  // Caso com sufixo letra (ex: art_3-a, art_3__A, Artigo 3-A, art_91-a, Art. 0003-F)
   const regexComLetra = /(?:art(?:igo)?|_art)?[\s_.-]*(\d+)[\s_.-]*(?:[º°o]|\.º)?[\s_.-]*([a-zA-Z])(?:\b|_|$)/i;
   const matchLetra = cleanNoDots.match(regexComLetra);
   if (matchLetra) {
-    return `${matchLetra[1]}-${matchLetra[2].toLowerCase()}`;
+    const num = parseInt(matchLetra[1], 10);
+    return `${num}-${matchLetra[2].toLowerCase()}`;
   }
 
-  // Caso simples: art_57 ou Artigo 12 ou CPP_Art_5 ou art_1000
+  // Caso simples: art_57 ou Artigo 12 ou CPP_Art_5 ou Art. 0003 ou art_1000
   const regexSimples = /(?:art(?:igo)?|_art)?[\s_.-]*(\d+)(?:[º°o]|\.º)?/i;
   const matchSimples = cleanNoDots.match(regexSimples);
   if (matchSimples) {
-    return matchSimples[1];
+    const num = parseInt(matchSimples[1], 10);
+    return String(num);
   }
 
   return null;
+}
+
+/**
+ * Garante que uma URL de narração realmente corresponde ao artigo sendo reproduzido.
+ * Evita casos onde o banco ou cache associa erroneamente "art_3-f.mp3" ao Artigo 3.
+ */
+export function isAudioUrlCorrespondenteArtigo(url?: string | null, artigoNumero?: string | null): boolean {
+  if (!url || !artigoNumero) return true;
+  const key = normalizeArtigoKey(artigoNumero);
+  if (!key) return true;
+  const filename = url.split('/').pop()?.toLowerCase() || '';
+  const fileKey = matchArtigoKeyFromFilename(filename);
+  if (fileKey && fileKey !== key) {
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -977,13 +998,33 @@ const R2_ESTATUTOS_FOLDERS: Record<string, string> = {
   'lei-servidor': 'lei-servidor',
 };
 
-function formatR2ArtigoUrl(pasta: string, key: string): string | null {
+// Mapeamento direto de slugs para pastas de códigos no R2
+const R2_CODIGOS_FOLDERS: Record<string, string> = {
+  cp: 'cp',
+  cp_codigo_penal: 'cp',
+  'codigo-penal': 'cp',
+  cpp: 'cpp',
+  cpp_codigo_processo_penal: 'cpp',
+  'codigo-processo-penal': 'cpp',
+  cc: 'cc',
+  cc_codigo_civil: 'cc',
+  'codigo-civil': 'cc',
+  cpc: 'cpc',
+  cpc_codigo_processo_civil: 'cpc',
+  'codigo-processo-civil': 'cpc',
+  clt: 'clt',
+  clt_consolidacao_leis_trabalho: 'clt',
+  ctb: 'ctb',
+  ctb_codigo_transito_brasileiro: 'ctb',
+};
+
+function formatR2ArtigoUrl(categoria: 'estatutos' | 'codigos', pasta: string, key: string): string | null {
   const match = key.match(/^(\d+)(?:-([a-z]))?$/i);
   if (!match) return null;
   const numInt = parseInt(match[1], 10);
   const padded = String(numInt).padStart(4, '0');
   const sufixo = match[2] ? `-${match[2].toUpperCase()}` : '';
-  return `${R2_PUBLIC_BASE}/narracoes/estatutos/${pasta}/Art.%20${padded}${sufixo}.mp3`;
+  return `${R2_PUBLIC_BASE}/narracoes/${categoria}/${pasta}/Art.%20${padded}${sufixo}.mp3`;
 }
 
 /**
@@ -997,21 +1038,43 @@ export function getCachedNarracaoUrl(params: {
   narracaoUrl?: string | null;
 }): string | null {
   const { artigoId, tabelaNome, leiSlug, artigoNumero, narracaoUrl } = params;
-  if (isAudioUrlValida(narracaoUrl)) return narracaoUrl!.trim();
+  if (isAudioUrlValida(narracaoUrl) && isAudioUrlCorrespondenteArtigo(narracaoUrl, artigoNumero)) {
+    return narracaoUrl!.trim();
+  }
   if (artigoId && resolvedNarracoesCache.has(artigoId)) {
-    return resolvedNarracoesCache.get(artigoId)!;
+    const cachedUrl = resolvedNarracoesCache.get(artigoId)!;
+    if (isAudioUrlCorrespondenteArtigo(cachedUrl, artigoNumero)) {
+      return cachedUrl;
+    } else {
+      resolvedNarracoesCache.delete(artigoId);
+    }
   }
   const key = normalizeArtigoKey(artigoNumero);
   const slug = (leiSlug || tabelaNome || '').trim().toLowerCase();
   if (slug && key) {
     const compositeKey = `${slug}::${key}`;
     if (resolvedNarracoesCache.has(compositeKey)) {
-      return resolvedNarracoesCache.get(compositeKey)!;
+      const cachedUrl = resolvedNarracoesCache.get(compositeKey)!;
+      if (isAudioUrlCorrespondenteArtigo(cachedUrl, artigoNumero)) {
+        return cachedUrl;
+      } else {
+        resolvedNarracoesCache.delete(compositeKey);
+      }
     }
     // Resolução direta em 0ms para estatutos gravados no R2 (incluindo ECA)
     const pastaEstatuto = R2_ESTATUTOS_FOLDERS[slug];
     if (pastaEstatuto) {
-      const url = formatR2ArtigoUrl(pastaEstatuto, key);
+      const url = formatR2ArtigoUrl('estatutos', pastaEstatuto, key);
+      if (url) {
+        resolvedNarracoesCache.set(compositeKey, url);
+        if (artigoId) resolvedNarracoesCache.set(artigoId, url);
+        return url;
+      }
+    }
+    // Resolução direta em 0ms para códigos gravados no R2 (CP, CPP, CC, CPC, CLT, CTB)
+    const pastaCodigo = R2_CODIGOS_FOLDERS[slug];
+    if (pastaCodigo) {
+      const url = formatR2ArtigoUrl('codigos', pastaCodigo, key);
       if (url) {
         resolvedNarracoesCache.set(compositeKey, url);
         if (artigoId) resolvedNarracoesCache.set(artigoId, url);
@@ -1034,8 +1097,8 @@ export async function getNarracaoArtigo(params: {
 }): Promise<{ audioUrl: string; wordTimings?: Array<{ word: string; start: number; end: number }> } | null> {
   const { tabelaNome, leiSlug, artigoNumero, artigoId, narracaoUrl } = params;
 
-  // 1. Se já fornecida URL válida
-  if (isAudioUrlValida(narracaoUrl)) {
+  // 1. Se já fornecida URL válida e correspondente ao artigo solicitado
+  if (isAudioUrlValida(narracaoUrl) && isAudioUrlCorrespondenteArtigo(narracaoUrl, artigoNumero)) {
     const url = narracaoUrl!.trim();
     if (artigoId) resolvedNarracoesCache.set(artigoId, url);
     return { audioUrl: url };
@@ -1059,7 +1122,11 @@ export async function getNarracaoArtigo(params: {
         .eq('id', artigoId)
         .maybeSingle();
 
-      if (artRow?.narracao_url && isAudioUrlValida(artRow.narracao_url)) {
+      if (
+        artRow?.narracao_url &&
+        isAudioUrlValida(artRow.narracao_url) &&
+        isAudioUrlCorrespondenteArtigo(artRow.narracao_url, artigoNumero)
+      ) {
         const url = artRow.narracao_url.trim();
         resolvedNarracoesCache.set(artigoId, url);
         if (slug && key) resolvedNarracoesCache.set(`${slug}::${key}`, url);
@@ -1089,7 +1156,11 @@ export async function getNarracaoArtigo(params: {
 
       if (rows && rows.length > 0) {
         for (const r of rows) {
-          if (r.audio_url && isAudioUrlValida(r.audio_url)) {
+          if (
+            r.audio_url &&
+            isAudioUrlValida(r.audio_url) &&
+            isAudioUrlCorrespondenteArtigo(r.audio_url, artigoNumero)
+          ) {
             const rKey = normalizeArtigoKey(r.artigo_numero);
             if (rKey === key) {
               const url = r.audio_url.trim();
@@ -1110,3 +1181,4 @@ export async function getNarracaoArtigo(params: {
 
   return null;
 }
+

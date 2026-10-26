@@ -21,11 +21,12 @@ interface Props {
   artigoNumero: string;
   leiNome: string;
   onBack: () => void;
+  hideHeader?: boolean;
 }
 
 interface HistoryEntry { total: number; correct: number; created_at: string }
 
-const QuizView = ({ tabelaNome, artigoNumero, leiNome, onBack }: Props) => {
+const QuizView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }: Props) => {
   const { user } = useAuth();
   const [questions, setQuestions] = useState<QuestionMC[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,26 +144,28 @@ const QuizView = ({ tabelaNome, artigoNumero, leiNome, onBack }: Props) => {
   }, [history]);
 
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        title="Questões"
-        subtitle={`${leiNome} · Art. ${artigoNumero}`}
-        onBack={onBack}
-        leading={
-          <div className="w-10 h-10 rounded-full bg-rose-500/15 flex items-center justify-center">
-            <Target className="w-5 h-5 text-rose-500" />
-          </div>
-        }
-        rightAction={
-          <button
-            onClick={() => setShowHistory(v => !v)}
-            className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:bg-muted"
-            aria-label="Histórico"
-          >
-            <BarChart3 className="w-4 h-4 text-muted-foreground" />
-          </button>
-        }
-      />
+    <div className={hideHeader ? "flex-1 w-full bg-background overflow-y-auto" : "min-h-dvh bg-background"}>
+      {!hideHeader && (
+        <PageHeader
+          title="Questões"
+          subtitle={`${leiNome} · Art. ${artigoNumero}`}
+          onBack={onBack}
+          leading={
+            <div className="w-10 h-10 rounded-full bg-rose-500/15 flex items-center justify-center">
+              <Target className="w-5 h-5 text-rose-500" />
+            </div>
+          }
+          rightAction={
+            <button
+              onClick={() => setShowHistory(v => !v)}
+              className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:bg-muted"
+              aria-label="Histórico"
+            >
+              <BarChart3 className="w-4 h-4 text-muted-foreground" />
+            </button>
+          }
+        />
+      )}
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6">
         {/* Painel histórico */}
