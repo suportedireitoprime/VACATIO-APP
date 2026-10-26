@@ -49,7 +49,6 @@ const toastErroAuth = (raw?: string) =>
     style: { minWidth: '320px', maxWidth: '92vw' },
   });
 import { useIsDesktop } from '@/hooks/use-desktop';
-import DesktopQrLogin from '@/components/auth/DesktopQrLogin';
 const isElectronApp =
   typeof window !== 'undefined' && Boolean((window as any).desktopApp?.isElectron);
 import { LEIS_CATALOG } from '@/data/leisCatalog';
@@ -347,10 +346,10 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
 
-  // Reseta o form de e-mail ao fechar o drawer ou mudar de aba
+  // Reseta o form de e-mail ao fechar o drawer no mobile
   useEffect(() => {
-    if (!drawerOpen) setShowEmailForm(false);
-  }, [drawerOpen, mode]);
+    if (!isDesktop && !drawerOpen) setShowEmailForm(false);
+  }, [drawerOpen, isDesktop]);
 
   // Pré-carrega o bundle da triagem para abrir sem delay logo após signup.
   useEffect(() => {
@@ -648,6 +647,16 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             </button>
           )}
 
+          {showEmailForm && mode !== 'forgot' && (
+            <button
+              type="button"
+              onClick={() => setShowEmailForm(false)}
+              className="w-full text-center text-xs font-body text-white/50 hover:text-white/80 transition-colors pt-2"
+            >
+              ← Outras opções (Google / Apple)
+            </button>
+          )}
+
           {mode === 'forgot' && (
             <button type="button" onClick={() => { setMode('login'); setResetEmailSent(false); }} className="w-full text-center text-xs font-body text-primary hover:underline">
               {resetEmailSent ? 'Entendi, voltar ao login' : 'Voltar ao login'}
@@ -687,17 +696,17 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             loading="eager"
             decoding="sync"
             fetchPriority="high"
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            className="absolute inset-0 w-full h-full object-cover object-[15%_center]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-black/55" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/80" />
 
-          {/* Big title — bottom-left, hierarquia harmônica */}
+          {/* Big title — bottom-left, hierarquia harmônica e sem corte de texto */}
           <motion.div
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6, ease: 'easeOut' }}
-            className="absolute bottom-[16%] left-10 right-10 z-10 max-w-xl"
+            className="absolute bottom-[10%] xl:bottom-[14%] left-8 xl:left-12 max-w-[min(420px,calc(50vw-250px))] z-10"
           >
             <div className="flex items-center gap-3 mb-4">
               <img
@@ -709,15 +718,15 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             </div>
 
             {/* Hierarquia principal */}
-            <h1 className="font-display text-[clamp(2.5rem,4.4vw,3.75rem)] font-black text-primary leading-[0.9] tracking-tight drop-shadow-2xl">
+            <h1 className="font-display text-[clamp(2.2rem,3.6vw,3.5rem)] font-black text-primary leading-[0.92] tracking-tight drop-shadow-2xl">
               VADE MECUM
             </h1>
-            <h2 className="font-display text-[clamp(1rem,1.5vw,1.5rem)] font-semibold text-white/85 leading-tight mt-2 tracking-wide">
+            <h2 className="font-display text-[clamp(1rem,1.35vw,1.4rem)] font-semibold text-white/85 leading-tight mt-2 tracking-wide">
               Jurídico Profissional
             </h2>
 
-            {/* Subheadline única, mais respiro */}
-            <p className="mt-4 font-display text-[clamp(0.95rem,1.25vw,1.25rem)] font-medium text-white/90 leading-snug max-w-md">
+            {/* Subheadline completa e visível */}
+            <p className="mt-4 font-display text-sm xl:text-base font-medium text-white/90 leading-snug">
               Domine a legislação brasileira como um{' '}
               <span className="text-primary font-bold">verdadeiro profissional do Direito</span>.
             </p>
@@ -791,15 +800,14 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
 
-        {/* Form / QR card */}
+        {/* Form card (Google, Apple, Email) */}
         <motion.div
           initial={{ scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 24 }}
-          className={`relative z-20 mx-4 my-4 bg-neutral-950/85 backdrop-blur-xl border border-primary/20 rounded-3xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.9)] w-full max-w-[440px] max-h-[calc(100dvh-2rem)] overflow-hidden p-6 xl:p-7`}
+          className="relative z-20 mx-4 my-4 bg-neutral-950/85 backdrop-blur-xl border border-primary/20 rounded-3xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.9)] w-full max-w-[440px] max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 xl:p-7"
         >
-          <DesktopQrLogin />
-
+          {formContent}
         </motion.div>
       </motion.main>
     );
