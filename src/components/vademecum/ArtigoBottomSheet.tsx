@@ -2715,22 +2715,6 @@ Separe cada julgado com:
           </div>
         </div>
 
-        {/* Breadcrumb: PARTE > TÍTULO / descrição */}
-        {(breadcrumb?.parte || breadcrumb?.titulo) && (
-          <div className="px-5 pb-1">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              {breadcrumb?.parte && <span>{breadcrumb.parte}</span>}
-              {breadcrumb?.parte && breadcrumb?.titulo && <ChevronRight className="w-3 h-3" />}
-              {breadcrumb?.titulo && <span>{breadcrumb.titulo}</span>}
-            </div>
-            {breadcrumb?.tituloDesc && (
-              <p className="text-[11px] uppercase tracking-wide text-foreground/70 font-body leading-snug mt-0.5">
-                {breadcrumb.tituloDesc}
-              </p>
-            )}
-          </div>
-        )}
-
         {/* Big Art. Nº + Ver no Planalto */}
         <div className="px-5 pt-1 pb-3 flex items-center justify-between gap-3">
           <h3 className="font-display text-3xl font-bold text-foreground">
@@ -2767,42 +2751,6 @@ Separe cada julgado com:
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Título (fallback if no breadcrumb prop) */}
-        {!breadcrumb && artigo.titulo && (() => {
-          const parts = artigo.titulo.match(/^(T[IÍ]TULO\s+[IVXLC\d]+)\s*[-–]?\s*(.*)/i);
-          if (parts) {
-            return (
-              <div className="px-5 pb-1">
-                <p className="text-[11px] text-foreground/70 font-body uppercase tracking-wide">{parts[1]}</p>
-                <p className="text-[11px] text-foreground font-body leading-snug">{parts[2]}</p>
-              </div>
-            );
-          }
-          return (
-            <div className="px-5 pb-1">
-              <p className="text-[11px] text-foreground font-body leading-snug">{artigo.titulo}</p>
-            </div>
-          );
-        })()}
-
-        {/* Capítulo (fallback if no breadcrumb prop) */}
-        {!breadcrumb && artigo.capitulo && (() => {
-          const parts = artigo.capitulo.match(/^(CAP[IÍ]TULO\s+[IVXLC\d]+)\s*[-–]?\s*(.*)/i);
-          if (parts) {
-            return (
-              <div className="px-5 pb-2">
-                <p className="text-[11px] text-foreground/70 font-body uppercase tracking-wide">{parts[1]}</p>
-                <p className="text-[11px] text-foreground font-body leading-snug">{parts[2]}</p>
-              </div>
-            );
-          }
-          return (
-            <div className="px-5 pb-2">
-              <p className="text-[11px] text-foreground font-body leading-snug">{artigo.capitulo}</p>
-            </div>
-          );
-        })()}
 
         <AnimatePresence>
           {(highlightMode || voiceGrifoActive) && (
