@@ -186,7 +186,7 @@ export const LicoesArtigoView: React.FC<LicoesArtigoViewProps> = ({
         </div>
 
         {/* Resumo das etapas completadas */}
-        <div className="w-full max-w-md bg-secondary/30 rounded-2xl border border-border/60 p-4 space-y-2 text-left max-h-60 overflow-y-auto">
+        <div className="w-full max-w-md bg-[#18181b] rounded-2xl border border-white/10 p-4 space-y-2 text-left max-h-60 overflow-y-auto">
           {ETAPAS_LICAO.map((etapa) => {
             const Icon = etapa.icon;
             return (

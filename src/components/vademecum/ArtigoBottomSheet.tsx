@@ -4226,7 +4226,7 @@ Separe cada julgado com:
                                 <button
                                   key={item.id}
                                   onClick={() => setActivePraticarMode(item.id)}
-                                  className="w-full flex items-center gap-4 p-4 min-h-[82px] rounded-2xl bg-secondary/30 hover:bg-secondary/60 active:scale-[0.99] border border-border/60 hover:border-border transition-all text-left shadow-sm group"
+                                  className="w-full flex items-center gap-4 p-4 min-h-[82px] rounded-2xl bg-[#18181b] hover:bg-[#202024] active:scale-[0.99] border border-white/10 hover:border-white/20 transition-all text-left shadow-sm group"
                                 >
                                   {/* Ícone direto sem fundo ou moldura quadrada */}
                                   <Icon
@@ -4236,7 +4236,7 @@ Separe cada julgado com:
                                   />
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-body text-[15px] sm:text-base font-bold text-foreground">
+                                      <span className="font-body text-[15px] sm:text-base font-bold text-white">
                                         {item.label}
                                       </span>
                                       {item.badge && (
@@ -4254,11 +4254,11 @@ Separe cada julgado com:
                                         </span>
                                       )}
                                     </div>
-                                    <div className="font-body text-[12px] sm:text-[12.5px] text-muted-foreground line-clamp-2 mt-0.5 leading-snug">
+                                    <div className="font-body text-[12px] sm:text-[12.5px] text-zinc-400 line-clamp-2 mt-0.5 leading-snug">
                                       {item.desc}
                                     </div>
                                   </div>
-                                  <ChevronRight className="w-5 h-5 text-muted-foreground/60 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
+                                  <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0" />
                                 </button>
                               );
                             })}
