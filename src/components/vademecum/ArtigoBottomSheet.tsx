@@ -3995,15 +3995,15 @@ Separe cada julgado com:
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm"
+                className="fixed inset-0 bg-black/80 z-[10001] backdrop-blur-sm"
                 onClick={() => setShowPraticarSheet(false)}
               />
               <motion.div
-                initial={{ y: '100%', opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: '100%', opacity: 0 }}
-                transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                className="fixed inset-0 z-[61] bg-card flex flex-col w-full h-full max-h-screen overflow-hidden pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="fixed inset-0 z-[10002] bg-card flex flex-col w-full h-full max-h-screen overflow-hidden pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]"
               >
                 <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border/80 bg-background/50 backdrop-blur-md shrink-0 pt-[max(0.875rem,env(safe-area-inset-top))]">
                   {activePraticarMode ? (
