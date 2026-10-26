@@ -8,6 +8,7 @@ import {
   Check,
   Plus,
   RotateCcw,
+  ChevronLeft,
   ChevronRight,
   ChevronUp,
   ChevronDown,
@@ -116,7 +117,7 @@ const CATEGORY_MAP: Record<string, string[]> = {
   ],
 };
 
-const LAW_ICON_MAP: Record<string, React.ElementType> = {
+export const LAW_ICON_MAP: Record<string, React.ElementType> = {
   // Constituição
   cf88: Landmark,
   // Códigos — ícone representativo do tema
@@ -162,7 +163,7 @@ const LAW_ICON_MAP: Record<string, React.ElementType> = {
   estatuto: BookMarked,
 };
 
-function getLawIcon(id: string, tipo?: string): React.ElementType {
+export function getLawIcon(id: string, tipo?: string): React.ElementType {
   if (LAW_ICON_MAP[id]) return LAW_ICON_MAP[id];
   if (tipo && LAW_ICON_MAP[tipo]) return LAW_ICON_MAP[tipo];
   return Scale;
@@ -444,18 +445,58 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setSearchTerm('');
-            setModalOpen(true);
-          }}
-          aria-label="Personalizar atalhos de leis"
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-card hover:bg-neutral-800 px-3.5 py-1.5 text-[12px] font-semibold text-foreground active:scale-[0.96] transition-all shadow-sm cursor-pointer"
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
-          <span>Personalizar</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Controles de navegação para Desktop */}
+          <div className="hidden md:flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                const el = scrollerRef.current;
+                if (!el || lista.length === 0) return;
+                const prev = (activeIdx - 1 + lista.length) % lista.length;
+                const target = el.querySelectorAll<HTMLElement>('[data-cover-item]')[prev];
+                if (target) {
+                  const left = target.offsetLeft - (el.clientWidth - target.offsetWidth) / 2;
+                  el.scrollTo({ left, behavior: 'smooth' });
+                }
+              }}
+              aria-label="Atalho anterior"
+              className="w-8 h-8 rounded-full border border-white/10 bg-card hover:bg-neutral-800 flex items-center justify-center text-foreground hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const el = scrollerRef.current;
+                if (!el || lista.length === 0) return;
+                const next = (activeIdx + 1) % lista.length;
+                const target = el.querySelectorAll<HTMLElement>('[data-cover-item]')[next];
+                if (target) {
+                  const left = target.offsetLeft - (el.clientWidth - target.offsetWidth) / 2;
+                  el.scrollTo({ left, behavior: 'smooth' });
+                }
+              }}
+              aria-label="Próximo atalho"
+              className="w-8 h-8 rounded-full border border-white/10 bg-card hover:bg-neutral-800 flex items-center justify-center text-foreground hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSearchTerm('');
+              setModalOpen(true);
+            }}
+            aria-label="Personalizar atalhos de leis"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-card hover:bg-neutral-800 px-3.5 py-1.5 text-[12px] font-semibold text-foreground active:scale-[0.96] transition-all shadow-sm cursor-pointer"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+            <span>Personalizar</span>
+          </button>
+        </div>
       </div>
 
       {/* Carrossel de Atalhos fluido (mesmo motor nativo de Selecionados Para Você) */}

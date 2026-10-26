@@ -13,10 +13,12 @@ import DesktopTopHeader from '@/components/vademecum/DesktopTopHeader';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 import HeroMotifs from '@/components/vademecum/HeroMotifs';
 import HomeCard from '@/components/vademecum/HomeCard';
+import HomeAtalhosLeisCarousel from '@/components/vademecum/HomeAtalhosLeisCarousel';
+import { getLeiColor, shade } from '@/lib/leiTheme';
 
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 import { LAW_ICON_MAP, CODIGO_DISPLAY_NAMES, ESTATUTO_DISPLAY_NAMES } from '@/data/lawDisplay';
-import { pushRecente, getRecentes, LEIS_RECENTES_EVENT, type LeiRecente } from '@/lib/leisRecentes';
+import { pushRecente, getRecentes, LEIS_RECENTES_EVENT, isUuidLike, type LeiRecente } from '@/lib/leisRecentes';
 import { leiPath, leiToSlug, tipoToSlug } from '@/lib/legislacaoSlugs';
 import { prefetchAllArtigos } from '@/services/legislacaoService';
 import { prefetchResenha } from '@/services/atualizacaoService';
@@ -26,6 +28,16 @@ import { warmCoverCache } from '@/lib/coverLoader';
 
 const SearchOverlay = lazy(() => import('@/components/vademecum/SearchOverlay'));
 const AssistenteOverlay = lazy(() => import('@/components/vademecum/AssistenteOverlay'));
+
+function formatParouNoArtigo(artigoNumero?: string | null): string {
+  if (!artigoNumero || isUuidLike(artigoNumero)) return '';
+  const clean = artigoNumero.trim();
+  if (!clean) return '';
+  if (/^(?:art|adct)/i.test(clean)) {
+    return `Parou no ${clean}`;
+  }
+  return `Parou no Art. ${clean}`;
+}
 
 const normalizeText = (val: string) =>
   val
@@ -87,8 +99,12 @@ const IndexDesktop = () => {
   useEffect(() => { warmCoverCache(); }, []);
 
   useEffect(() => {
-    const ric: (cb: () => void) => number = (window as any).requestIdleCallback
-      ? (cb) => (window as any).requestIdleCallback(cb, { timeout: 1500 })
+    const win = window as unknown as {
+      requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    const ric: (cb: () => void) => number = win.requestIdleCallback
+      ? (cb) => win.requestIdleCallback!(cb, { timeout: 1500 })
       : (cb) => window.setTimeout(cb, 300);
     const id = ric(() => {
       prefetchAllArtigos(4);
@@ -96,7 +112,7 @@ const IndexDesktop = () => {
       prefetchNoticias();
     });
     return () => {
-      const cic = (window as any).cancelIdleCallback;
+      const cic = win.cancelIdleCallback;
       if (cic) cic(id); else window.clearTimeout(id);
     };
   }, []);
@@ -117,6 +133,13 @@ const IndexDesktop = () => {
       tabela_nome: lei.tabela_nome,
     });
     navigate(leiPath(lei));
+  };
+
+  const handleOpenLeiById = (leiId: string) => {
+    const lei = LEIS_CATALOG.find((l) => l.id === leiId);
+    if (lei) {
+      handleOpenLei(lei);
+    }
   };
 
   const emAltaItems = useMemo(() => {
@@ -328,32 +351,97 @@ const IndexDesktop = () => {
           </div>
 
           {/* CATÁLOGO ABAIXO DO HERO */}
-          <main className="max-w-7xl mx-auto px-8 py-8">
+          <main className="max-w-7xl mx-auto px-8 py-8 space-y-10">
             {/* CONTINUAR DE ONDE PAROU */}
             {recentes.length > 0 && !searchQuery && activeTab === 'todos' && !activeArea && (
-              <div className="mb-10">
+              <div>
                 <h2 className="font-display font-bold text-xl text-white mb-4 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-primary" />
                   Continuar de onde parou
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {recentes.map((rec) => (
-                    <button
-                      key={`${rec.leiId}-${rec.tabela_nome}`}
-                      onClick={() => navigate(leiPath(rec as any))}
-                      className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-left group"
-                    >
-                      <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 group-hover:bg-primary transition-colors">
-                        <BookOpen className="w-6 h-6 text-primary group-hover:text-black transition-colors" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-display font-bold text-[15px] text-white truncate">{rec.nome || rec.leiId}</h4>
-                        <p className="font-body text-xs text-white/50 truncate mt-0.5">{rec.descricao}</p>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-white/60 transition-colors shrink-0" />
-                    </button>
-                  ))}
+                  {recentes.map((rec) => {
+                    const leiCat = LEIS_CATALOG.find(l => l.id === rec.leiId || l.tabela_nome === rec.tabela_nome);
+                    const bgCor = getLeiColor(rec.leiId, rec.tipo);
+                    const isCf =
+                      rec.tipo === 'constituicao' ||
+                      rec.leiId === 'cf88' ||
+                      rec.leiId === 'cf' ||
+                      rec.leiId === 'constituicao' ||
+                      rec.nome?.toLowerCase().includes('constitui');
+                    const IconeLei = isCf ? Landmark : (LAW_ICON_MAP[rec.leiId] || BookOpen);
+                    const parouTexto = formatParouNoArtigo(rec.artigoNumero);
+                    const displayNome = leiCat?.nome || rec.nome || rec.leiId;
+
+                    return (
+                      <button
+                        key={`${rec.leiId}-${rec.tabela_nome}`}
+                        onClick={() => {
+                          const base = leiCat ? leiPath(leiCat) : `/legislacao/${tipoToSlug(rec.tipo)}/${leiToSlug({ id: rec.leiId, nome: rec.nome })}`;
+                          navigate(rec.artigoNumero ? `${base}/${encodeURIComponent(rec.artigoNumero)}` : base);
+                        }}
+                        style={{
+                          background: `linear-gradient(to right, ${bgCor}33, ${bgCor}0D)`,
+                          borderColor: `${bgCor}4D`
+                        }}
+                        className="relative flex items-center gap-4 p-4 rounded-2xl border text-left hover:scale-[1.01] active:scale-[0.99] transition-all overflow-hidden group shadow-lg cursor-pointer"
+                      >
+                        {/* Ícone sem fundo cinza (direto com a cor da lei) */}
+                        <div className="flex items-center justify-center shrink-0 z-10">
+                          <IconeLei
+                            className="w-8 h-8 drop-shadow-sm group-hover:scale-110 transition-transform"
+                            style={{ color: shade(bgCor, 0.2) }}
+                            strokeWidth={1.6}
+                          />
+                        </div>
+
+                        {/* Textos */}
+                        <div className="flex-1 min-w-0 z-10">
+                          <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: shade(bgCor, 0.2) }}>
+                            Continuar Leitura
+                          </p>
+                          <h4 className="font-serif italic text-[15px] sm:text-[16px] font-semibold text-white truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] leading-snug">
+                            {displayNome}
+                          </h4>
+                          {parouTexto ? (
+                            <p className="text-[11px] font-semibold truncate flex items-center gap-1.5 mt-0.5" style={{ color: shade(bgCor, 0.25) }}>
+                              <span className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0" style={{ backgroundColor: bgCor }} />
+                              <span className="truncate">{parouTexto}</span>
+                            </p>
+                          ) : (
+                            <p className="text-[11px] font-medium truncate flex items-center gap-1.5 mt-0.5" style={{ color: shade(bgCor, 0.25) }}>
+                              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: bgCor }} />
+                              <span className="truncate">{rec.descricao || 'Artigo 1º'}</span>
+                            </p>
+                          )}
+                        </div>
+
+                        <ChevronRight className="w-5 h-5 shrink-0 z-10 group-hover:translate-x-0.5 transition-transform" style={{ color: shade(bgCor, 0.2) }} />
+
+                        {/* Bg decoration — SVG translúcido no lado direito com sombra marcante */}
+                        <div
+                          className="absolute -right-3 -bottom-3 pointer-events-none select-none z-0 overflow-visible flex items-center justify-center"
+                          style={{
+                            filter: `drop-shadow(0 4px 12px rgba(0,0,0,0.9)) drop-shadow(0 0 10px ${bgCor}40)`,
+                          }}
+                        >
+                          <IconeLei
+                            className="w-24 h-24 opacity-25 group-hover:opacity-35 transition-opacity"
+                            style={{ color: bgCor }}
+                            strokeWidth={1.2}
+                          />
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
+              </div>
+            )}
+
+            {/* EM ALTA — MEUS ATALHOS COM ILUSTRAÇÕES */}
+            {!searchQuery && activeTab === 'todos' && !activeArea && (
+              <div>
+                <HomeAtalhosLeisCarousel onOpenLei={handleOpenLeiById} />
               </div>
             )}
 

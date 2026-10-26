@@ -1,16 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Scale, Gavel, BookOpen, Landmark, Feather, ScrollText, Bird, Heart } from 'lucide-react';
-import { pickAsset } from '@/lib/assetUrl';
-import vacatioLogoAsset from '@/assets/logo-vacatio-v2.png.asset.json';
-import vacatioLogoBundled from '@/assets/bundled/logo-vacatio-v2.webp';
+import { Bell, Scale, Gavel, BookOpen, Landmark, Feather, ScrollText, Bird, Heart, User2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfileSummary } from '@/hooks/useProfileSummary';
 import NotificationsSheet, { useUnreadNotifCount } from './NotificationsSheet';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { getFavoritos, type Favorito } from '@/lib/leisFavoritos';
-import { useEffect } from 'react';
-
-const vacatioLogo = pickAsset(vacatioLogoBundled, vacatioLogoAsset.url);
 
 // Ícones decorativos flutuando ao fundo — bem discretos, low-opacity.
 const BACKDROP_ICONS = [
@@ -30,10 +26,30 @@ interface Props {
 
 const DesktopTopHeader = ({ onAssistenteClick }: Props) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: profileSummary } = useProfileSummary();
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = useUnreadNotifCount();
 
   const [favoritos, setFavoritos] = useState<Favorito[]>([]);
+
+  const displayName = profileSummary?.displayName || user?.user_metadata?.nome || user?.user_metadata?.full_name || 'Usuário';
+  const avatarUrl = profileSummary?.avatarUrl || (user?.user_metadata as any)?.avatar_url || (user?.user_metadata as any)?.picture || '';
+
+  const perfilLabel = useMemo(() => {
+    const summary = profileSummary as any;
+    if (summary?.perfilContexto) return String(summary.perfilContexto);
+    if (Array.isArray(summary?.perfilTipos) && summary.perfilTipos.length > 0) {
+      const mapa: Record<string, string> = {
+        faculdade: 'Estudante de Direito',
+        oab: 'Concurseiro OAB',
+        concurso: 'Concurseiro',
+        advogado: 'Advogado(a)',
+      };
+      return mapa[summary.perfilTipos[0]] || 'Estudante de Direito';
+    }
+    return 'Meu Perfil';
+  }, [profileSummary]);
 
   useEffect(() => {
     const carregarFavoritos = () => {
@@ -65,23 +81,33 @@ const DesktopTopHeader = ({ onAssistenteClick }: Props) => {
 
       {/* Conteúdo */}
       <div className="relative z-10 h-full max-w-7xl mx-auto px-8 xl:px-12 flex items-center gap-6">
-        {/* Logo + wordmark */}
+        {/* Perfil do Usuário */}
         <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-3 shrink-0 group"
+          onClick={() => navigate('/perfil')}
+          className="flex items-center gap-3.5 shrink-0 group text-left cursor-pointer transition-transform hover:scale-[1.02]"
+          title="Ver meu perfil"
         >
           <div className="relative">
-            <div className="absolute inset-0 blur-xl bg-primary/40 rounded-full scale-125" />
-            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-xl border-2 border-primary-foreground/20 bg-background/40">
-              <img src={vacatioLogo} alt="Vacatio" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 blur-lg bg-primary/40 rounded-full scale-110 group-hover:scale-125 transition-transform" />
+            <div className="relative w-12 h-12 md:w-13 md:h-13 rounded-full overflow-hidden shadow-xl border-2 border-white/80 bg-neutral-900/60 flex items-center justify-center group-hover:border-primary transition-colors">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={displayName}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <User2 className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
+              )}
             </div>
           </div>
           <div className="flex flex-col items-start leading-tight">
-            <span className="font-display text-xl font-bold text-white tracking-tight drop-shadow-sm">
-              Vacatio
+            <span className="font-display text-lg xl:text-xl font-bold text-white tracking-tight drop-shadow-sm group-hover:text-primary transition-colors line-clamp-1 max-w-[200px] xl:max-w-[280px]">
+              {displayName}
             </span>
-            <span className="font-body text-[11px] uppercase tracking-[0.24em] text-white/90">
-              Vade Mecum 2026
+            <span className="font-body text-[10px] xl:text-[11px] uppercase tracking-[0.2em] text-white/80 font-medium">
+              {perfilLabel}
             </span>
           </div>
         </button>
