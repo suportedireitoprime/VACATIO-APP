@@ -21,21 +21,28 @@ const Onboarding = () => {
     }
     setSaving(true);
     try {
-      const { error } = await supabase
+      const payload: Record<string, any> = {
+        status_perfil: r.persona || 'concurseiro',
+        faixa_etaria: r.faixa || null,
+        display_name: r.nome || null,
+        areas_interesse: r.areas || [],
+        interesses: r.dorId ? [r.dorId] : (r.interesses || []),
+        whatsapp_number: r.whatsapp || null,
+        desktop_onboarding_done_at: new Date().toISOString(),
+      };
+
+      // Atualiza o perfil no Supabase
+      const { error: updateError } = await supabase
         .from('profiles')
-        .update({
-          status_perfil: r.persona,
-          faixa_etaria: r.faixa,
-          perfil_tipos: r.persona ? [r.persona] : null,
-          perfil_contexto: r.personaLabel || '',
-          display_name: r.nome || null,
-          areas_interesse: r.areas || [],
-          interesses: r.dorId ? [r.dorId] : (r.interesses || []),
-          whatsapp_number: r.whatsapp || null,
-          onboarding_completed_at: new Date().toISOString(),
-        } as any)
+        .update(payload as any)
         .eq('id', user.id);
-      if (error) throw error;
+
+      if (updateError) {
+        console.warn('Tentando upsert após erro no update:', updateError);
+        await supabase
+          .from('profiles')
+          .upsert({ id: user.id, ...payload } as any);
+      }
 
       // Libera o app imediatamente: marca a triagem como concluída no cache
       // lido pelo ProtectedRoute, evitando o redirect de volta pra /onboarding.
@@ -45,8 +52,11 @@ const Onboarding = () => {
       // Passo contextualizado de permissão de notificações (nativo e PWA)
       setPedirNotificacoes(true);
     } catch (err: any) {
-      toast.error(err.message || 'Não consegui salvar seu perfil. Tenta de novo.');
-      navigate('/', { replace: true });
+      console.warn('Aviso no salvamento remoto da triagem:', err);
+      // Garante que o usuário nunca fique travado caso haja instabilidade de conexão
+      try { localStorage.setItem(`onboarding_completed:${user.id}`, '1'); } catch {}
+      try { window.sessionStorage.removeItem('just_signed_up'); } catch {}
+      setPedirNotificacoes(true);
     } finally {
       setSaving(false);
     }

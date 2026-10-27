@@ -334,14 +334,14 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
         for (let i = 0; i < 3; i++) {
           const { data, error } = await supabase
             .from('profiles')
-            .select('onboarding_completed_at')
+            .select('status_perfil, desktop_onboarding_done_at')
             .eq('id', user.id)
             .maybeSingle();
           if (cancelled) return;
           if (error) break;
           ok = true;
           if (data) {
-            done = !!data.onboarding_completed_at;
+            done = !!(data.desktop_onboarding_done_at || data.status_perfil);
             break;
           }
           await new Promise((r) => setTimeout(r, 400));

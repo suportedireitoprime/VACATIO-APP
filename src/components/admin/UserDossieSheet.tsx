@@ -369,7 +369,7 @@ export function UserDossieSheet({ userId, nome, email, provider, onClose }: Prop
                 <Campo label="Sessões (30 dias)" value={d.sessoesTotal} />
                 <Campo
                   label="Onboarding"
-                  value={d.perfil?.onboarding_completed_at ? `Concluído ${dia(d.perfil.onboarding_completed_at)}` : 'Não concluído'}
+                  value={(d.perfil?.onboarding_completed_at || (d.perfil as any)?.desktop_onboarding_done_at) ? `Concluído ${dia(d.perfil?.onboarding_completed_at || (d.perfil as any)?.desktop_onboarding_done_at)}` : 'Não concluído'}
                 />
               </div>
               {!d.geo.pais && (

@@ -111,6 +111,14 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
     }
   };
 
+  // Pré-carrega as 4 imagens da história na memória para transições fluidas e instantâneas
+  useEffect(() => {
+    [imgOrigem, imgMudanca, imgRisco, imgSolucao].forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
   // Scroll to top on step change
   useEffect(() => {
     if (bodyRef.current) {
@@ -180,10 +188,10 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
           content: "";
           position: absolute;
           inset: 8% 12%;
-          background: radial-gradient(ellipse at center, rgba(217,168,46,0.32), transparent 65%);
-          filter: blur(24px);
+          background: radial-gradient(ellipse at center, rgba(217,168,46,0.28), transparent 65%);
+          filter: blur(26px);
           opacity: 0;
-          animation: triagemGlowIn 1.1s ease 0.25s forwards;
+          animation: triagemGlowIn 0.8s ease 0.1s forwards;
           z-index: 0;
           pointer-events: none;
         }
@@ -198,21 +206,14 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
           width: auto;
           height: auto;
           display: inline-block;
+          will-change: transform, opacity;
           opacity: 0;
-          animation: triagemImgIn 0.85s cubic-bezier(.22,1.25,.36,1) 0.18s forwards, triagemFloaty 5.5s ease-in-out 1.2s infinite alternate;
+          animation: triagemImgIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards, triagemFloaty 6s ease-in-out 0.8s infinite alternate;
         }
         @keyframes triagemImgIn {
           0% {
             opacity: 0;
-            transform: scale(0.85) translateY(28px);
-            filter: blur(8px);
-          }
-          55% {
-            opacity: 1;
-            filter: blur(0);
-          }
-          72% {
-            transform: scale(1.03) translateY(-4px);
+            transform: scale(0.96) translateY(12px);
           }
           100% {
             opacity: 1;
@@ -221,7 +222,7 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
         }
         @keyframes triagemFloaty {
           from { transform: translateY(0); }
-          to { transform: translateY(-8px); }
+          to { transform: translateY(-6px); }
         }
         .triagem-dot {
           width: 22px;
@@ -367,7 +368,7 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                 </p>
 
                 <figure className="triagem-pic">
-                  <img src={imgOrigem} alt="Pedra antiga com as primeiras leis gravadas" />
+                  <img src={imgOrigem} alt="Pedra antiga com as primeiras leis gravadas" loading="eager" decoding="async" />
                 </figure>
               </motion.div>
             )}
@@ -392,7 +393,7 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                 </p>
 
                 <figure className="triagem-pic">
-                  <img src={imgMudanca} alt="Pergaminho, livro antigo, livro moderno e tablet" />
+                  <img src={imgMudanca} alt="Pergaminho, livro antigo, livro moderno e tablet" loading="eager" decoding="async" />
                 </figure>
               </motion.div>
             )}
@@ -417,7 +418,7 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                 </p>
 
                 <figure className="triagem-pic">
-                  <img src={imgRisco} alt="Livro velho e empoeirado esquecido numa prateleira" />
+                  <img src={imgRisco} alt="Livro velho e empoeirado esquecido numa prateleira" loading="eager" decoding="async" />
                 </figure>
               </motion.div>
             )}
@@ -442,7 +443,7 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                 </p>
 
                 <figure className="triagem-pic">
-                  <img src={imgSolucao} alt="Livro novo e celular sobre a mesa na luz da manhã" />
+                  <img src={imgSolucao} alt="Livro novo e celular sobre a mesa na luz da manhã" loading="eager" decoding="async" />
                 </figure>
               </motion.div>
             )}
@@ -470,7 +471,7 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                   {[
                     {
                       title: 'Ouvir a lei',
-                      desc: 'Narração de cada artigo, para estudar em qualquer lugar',
+                      desc: 'Narração de cada artigo em áudio, para estudar em qualquer lugar',
                       icon: (
                         <svg viewBox="0 0 27 27" fill="none" stroke="#EFECE4" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="w-[26px] h-[26px] shrink-0 mt-0.5">
                           <circle cx="13.5" cy="13.5" r="10" />
@@ -479,12 +480,48 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                       ),
                     },
                     {
+                      title: 'Audioaulas',
+                      desc: 'Aulas completas e dinâmicas em áudio, com explicação direta',
+                      icon: (
+                        <svg viewBox="0 0 27 27" fill="none" stroke="#EFECE4" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="w-[26px] h-[26px] shrink-0 mt-0.5">
+                          <path d="M4.5 13.5 A9 9 0 0 1 22.5 13.5" />
+                          <rect x="3.5" y="13.5" width="4" height="7" rx="2" fill="#EFECE4" />
+                          <rect x="19.5" y="13.5" width="4" height="7" rx="2" fill="#EFECE4" />
+                          <path d="M11 15 L16 15" />
+                          <path d="M12.5 18 L14.5 18" />
+                        </svg>
+                      ),
+                    },
+                    {
                       title: 'Leis explicadas',
-                      desc: 'Artigo por artigo, em linguagem simples e com exemplo',
+                      desc: 'Artigo por artigo, em linguagem simples e com exemplo prático',
                       icon: (
                         <svg viewBox="0 0 27 27" fill="none" stroke="#EFECE4" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="w-[26px] h-[26px] shrink-0 mt-0.5">
                           <path d="M13.5 6.5 C11 4.3 6.8 4 4 5.5 V21 C6.8 19.7 11 20 13.5 22.3 C16 20 20.2 19.7 23 21 V5.5 C20.2 4 16 4.3 13.5 6.5 Z" />
                           <line x1="13.5" y1="6.5" x2="13.5" y2="22.3" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      title: 'Questões e flashcards',
+                      desc: 'Prática de OAB e de concursos com milhares de questões e cartões de memória',
+                      icon: (
+                        <svg viewBox="0 0 27 27" fill="none" stroke="#EFECE4" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="w-[26px] h-[26px] shrink-0 mt-0.5">
+                          <rect x="3.5" y="7" width="14" height="15" rx="3" />
+                          <path d="M8 4 H20.5 A3 3 0 0 1 23.5 7 V17" />
+                          <path d="M7.5 14.5 L10 17 L15 11" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      title: 'Blog Jurídico',
+                      desc: 'Mais de 500 artigos explicativos, didáticos e sem juridiquês',
+                      icon: (
+                        <svg viewBox="0 0 27 27" fill="none" stroke="#EFECE4" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="w-[26px] h-[26px] shrink-0 mt-0.5">
+                          <rect x="4" y="4" width="19" height="19" rx="3" />
+                          <line x1="8" y1="9" x2="19" y2="9" />
+                          <line x1="8" y1="13.5" x2="19" y2="13.5" />
+                          <line x1="8" y1="18" x2="14" y2="18" />
                         </svg>
                       ),
                     },
@@ -498,16 +535,6 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                           <path d="M5 7 L2.5 13 a2.8 2.8 0 0 0 5 0 Z" />
                           <path d="M22 7 L19.5 13 a2.8 2.8 0 0 0 5 0 Z" />
                           <line x1="8" y1="23" x2="19" y2="23" />
-                        </svg>
-                      ),
-                    },
-                    {
-                      title: 'Questões e simulados',
-                      desc: 'Prática de OAB e de concursos, com correção na hora',
-                      icon: (
-                        <svg viewBox="0 0 27 27" fill="none" stroke="#EFECE4" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="w-[26px] h-[26px] shrink-0 mt-0.5">
-                          <rect x="4" y="4" width="19" height="19" rx="4" />
-                          <path d="M8.5 13.8 L12 17.2 L18.5 10" />
                         </svg>
                       ),
                     },
