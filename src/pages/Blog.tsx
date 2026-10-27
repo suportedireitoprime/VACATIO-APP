@@ -27,6 +27,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { PageHeader } from '@/components/vademecum/PageHeader';
+import ShapeGrid from '@/components/ui/ShapeGrid';
 import {
   BLOG_CATEGORIAS,
   getTemaColor,
@@ -162,9 +163,23 @@ const Blog = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-12 text-foreground">
-      {/* Top Header */}
-      <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-xl border-b border-border/40">
+    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-12 text-foreground relative overflow-hidden">
+      {/* Fundo de Quadrados Animados idêntico à tela inicial do aplicativo */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <ShapeGrid 
+          speed={0.5} 
+          squareSize={40}
+          direction='diagonal'
+          borderColor='rgba(255, 255, 255, 0.05)'
+          hoverFillColor='rgba(255, 255, 255, 0.1)'
+          shape='square'
+          hoverTrailAmount={5}
+        />
+      </div>
+
+      <div className="relative z-10">
+        {/* Top Header */}
+        <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-4xl mx-auto px-4">
           <PageHeader
             title={selectedCategory && activeCategoryMeta ? activeCategoryMeta.titulo : 'Blog Jurídico'}
@@ -311,9 +326,9 @@ const Blog = () => {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-border/60" />
                 </div>
-                <div className="relative z-10 px-4 py-1 rounded-full bg-secondary/80 backdrop-blur-md border border-border/60 text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <div className="relative z-10 px-4 py-1.5 rounded-full bg-secondary/80 backdrop-blur-md border border-border/60 text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 shadow-sm">
                   <BookOpen className="w-3.5 h-3.5 text-primary" />
-                  10 Trilhas Temáticas em Zigue-Zague
+                  <span>{allPosts.length > 0 ? `${allPosts.length} Artigos divididos em 10 Categorias` : '499 Artigos divididos em 10 Categorias'}</span>
                 </div>
               </div>
 
@@ -590,6 +605,7 @@ const Blog = () => {
         onClose={() => setGateOpen(false)}
         feature="blog_read"
       />
+      </div>
     </div>
   );
 };
