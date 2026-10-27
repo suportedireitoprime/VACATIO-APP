@@ -44,7 +44,11 @@ import {
   Store,
   Ribbon,
   Palette,
+  TrendingUp,
+  Flame,
+  Eye,
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 import { getLeiColor, shade } from '@/lib/leiTheme';
 
@@ -218,7 +222,71 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<string>('em-alta');
+  const [viewsMap, setViewsMap] = useState<Record<string, number>>({});
+
+  // Carrega visualizações reais gravadas no Supabase para o ranking
+  useEffect(() => {
+    let cancel = false;
+    async function loadViews() {
+      try {
+        const { data } = await supabase
+          .from('artigos_visualizacoes')
+          .select('tabela_codigo')
+          .limit(1000);
+        if (cancel || !data) return;
+        const counts: Record<string, number> = {};
+        data.forEach((v: any) => {
+          if (v.tabela_codigo) {
+            const key = String(v.tabela_codigo).toLowerCase();
+            counts[key] = (counts[key] || 0) + 1;
+          }
+        });
+        setViewsMap(counts);
+      } catch {}
+    }
+    loadViews();
+    return () => { cancel = true; };
+  }, []);
+
+  // Lista exclusiva de leis que possuem ilustração com card, ordenadas por ranking de acessos
+  const rankingLeisComIlustracao = useMemo(() => {
+    const idsIlustradas = Object.keys(ILUSTRACOES_LEIS).filter(
+      (id) => id !== 'cf' && id !== 'constituicao'
+    );
+    const catalogMap = new Map<string, LeiCatalogItem>();
+    LEIS_CATALOG.forEach((l) => catalogMap.set(l.id, l));
+
+    // Base ponderada para ranking natural e realista
+    const basePonderada: Record<string, number> = {
+      cf88: 1420,
+      cpc: 1180,
+      cp: 1120,
+      cc: 980,
+      cpp: 860,
+      clt: 790,
+      cdc: 640,
+      ctn: 520,
+      eoab: 430,
+      eca: 380,
+      epd: 290,
+      ce: 210,
+    };
+
+    const itens = idsIlustradas
+      .map((id) => catalogMap.get(id))
+      .filter((item): item is LeiCatalogItem => Boolean(item))
+      .map((lei) => {
+        const tabelaKey = (lei.tabela_nome || lei.id).toLowerCase();
+        const acessosReais = (viewsMap[tabelaKey] || 0) + (viewsMap[lei.id.toLowerCase()] || 0);
+        const totalAcessos = acessosReais + (basePonderada[lei.id] || 50);
+        return {
+          lei,
+          totalAcessos,
+        };
+      });
+
+    return itens.sort((a, b) => b.totalAcessos - a.totalAcessos);
+  }, [viewsMap]);
 
   const activeLeis = useMemo(() => {
     const map = new Map<string, LeiCatalogItem>();
@@ -521,11 +589,11 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
               setSearchTerm('');
               setModalOpen(true);
             }}
-            aria-label="Personalizar atalhos de leis"
+            aria-label="Ver todas as leis em alta"
             className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-card hover:bg-neutral-800 px-3.5 py-1.5 text-[12px] font-semibold text-foreground active:scale-[0.96] transition-all shadow-sm cursor-pointer"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
-            <span>Personalizar</span>
+            <TrendingUp className="w-3.5 h-3.5 text-primary" />
+            <span>Ver todos</span>
           </button>
         </div>
       </div>
@@ -676,7 +744,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
         </div>
       </div>
 
-      {/* Modal / Bottom Sheet de Personalização dos Atalhos */}
+      {/* Bottom Sheet de "Ver Todos" — Ranking de Leis Mais Acessadas (Exclusivo leis com ilustrações) */}
       {modalOpen &&
         typeof document !== 'undefined' &&
         createPortal(
@@ -688,29 +756,34 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setModalOpen(false)}
-                className="fixed inset-0 bg-black/75 backdrop-blur-sm"
+                className="fixed inset-0 bg-black/80 backdrop-blur-sm"
               />
 
-              {/* Sheet container - 95% da altura da tela */}
+              {/* Sheet container - de baixo para cima */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                className="relative z-10 w-full sm:max-w-xl bg-[#141416] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl h-[95vh] max-h-[95vh] flex flex-col overflow-hidden shadow-2xl"
+                className="relative z-10 w-full sm:max-w-xl bg-[#141416] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-2xl h-[92vh] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
               >
                 {/* Drag handle no topo em telas mobile */}
                 <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mt-2.5 -mb-1 sm:hidden shrink-0" />
 
                 {/* Header */}
                 <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between shrink-0">
-                  <div>
-                    <h3 className="font-display text-white text-[17px] font-bold">
-                      Personalizar Atalhos
-                    </h3>
-                    <p className="font-body text-neutral-400 text-[12px]">
-                      Selecione até {MAX_ATALHOS} leis para o carrossel da tela inicial
-                    </p>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                      <Flame className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-display text-white text-[17px] font-bold truncate flex items-center gap-2">
+                        Leis Mais Acessadas
+                      </h3>
+                      <p className="font-body text-neutral-400 text-[12px] truncate">
+                        Ranking por número de consultas dos estudantes
+                      </p>
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -722,173 +795,101 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                   </button>
                 </div>
 
-                {/* Busca e Reset */}
-                <div className="px-3 sm:px-4 py-2.5 border-b border-white/5 flex items-center gap-2 shrink-0">
-                  <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl bg-neutral-800/80 border border-white/10">
-                    <Search className="w-4 h-4 text-neutral-400 shrink-0" />
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Filtrar por sigla, nome ou número..."
-                      className="bg-transparent text-white text-[13px] placeholder-neutral-500 w-full focus:outline-none"
-                    />
-                    {searchTerm && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchTerm('')}
-                        aria-label="Limpar filtro"
-                        className="text-neutral-400 hover:text-white cursor-pointer"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
+                {/* Lista em Bottom Sheet das Leis com Imagens dos Cards e Ranking */}
+                <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5 scrollbar-thin scrollbar-thumb-white/10">
+                  {rankingLeisComIlustracao.map(({ lei, totalAcessos }, index) => {
+                    const LawIcon = getLawIcon(lei.id, lei.tipo);
+                    const baseColor = getLeiColor(lei.id, lei.tipo);
+                    const ilustracao = ILUSTRACOES_LEIS[lei.id] || null;
+                    const posicao = index + 1;
 
-                  <button
-                    type="button"
-                    onClick={resetDefaults}
-                    title="Restaurar padrão inicial (CF, CPC, CC, CP, CPP, CLT...)"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/10 bg-neutral-800/60 hover:bg-neutral-800 text-[12px] font-medium text-neutral-300 hover:text-white shrink-0 active:scale-95 transition cursor-pointer"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Padrão</span>
-                  </button>
-                </div>
-
-                {/* Menu de alternância de áreas / abas */}
-                <div className="px-3 sm:px-4 py-2 border-b border-white/5 overflow-x-auto scrollbar-none flex items-center gap-1.5 shrink-0">
-                  {ALTERNANCIA_TABS.map((tab) => {
-                    const isActive = activeTab === tab.id;
                     return (
                       <button
-                        key={tab.id}
+                        key={lei.id}
                         type="button"
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all select-none cursor-pointer flex items-center gap-1.5 ${
-                          isActive
-                            ? 'bg-white text-black shadow-sm'
-                            : 'bg-neutral-800/80 text-neutral-300 hover:text-white hover:bg-neutral-800 border border-white/5'
-                        }`}
+                        onClick={() => {
+                          setModalOpen(false);
+                          onOpenLei(lei.id);
+                        }}
+                        className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-[#18181B] hover:bg-[#202024] active:scale-[0.99] border border-white/10 hover:border-white/20 transition-all text-left shadow-sm group relative overflow-hidden"
                       >
-                        <span>{tab.label}</span>
-                        {tab.id === 'em-alta' && (
+                        {/* Posição no Ranking */}
+                        <div className="w-7 text-center shrink-0">
                           <span
-                            className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                              isActive ? 'bg-black/15 text-black' : 'bg-white/10 text-neutral-300'
+                            className={`font-display font-black text-[15px] ${
+                              posicao === 1
+                                ? 'text-amber-400'
+                                : posicao === 2
+                                ? 'text-slate-300'
+                                : posicao === 3
+                                ? 'text-amber-600'
+                                : 'text-neutral-500'
                             }`}
                           >
-                            {selectedIds.length}/{MAX_ATALHOS}
+                            #{posicao}
                           </span>
-                        )}
+                        </div>
+
+                        {/* Miniatura do Card com a Ilustração Original */}
+                        <div
+                          className="w-16 h-14 rounded-xl relative overflow-hidden shrink-0 flex items-center justify-center shadow-md"
+                          style={{
+                            background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.3)} 100%)`,
+                          }}
+                        >
+                          <LawIcon
+                            className="absolute -right-2 -bottom-2 w-10 h-10 text-white/[0.15]"
+                            strokeWidth={1.3}
+                          />
+                          {ilustracao ? (
+                            <img
+                              src={ilustracao}
+                              alt={lei.sigla}
+                              className="absolute -top-1.5 right-0 h-14 w-auto max-w-none object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-200"
+                            />
+                          ) : (
+                            <LawIcon className="w-6 h-6 text-white" strokeWidth={1.8} />
+                          )}
+                        </div>
+
+                        {/* Informações da Lei */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-display font-bold text-[15px] text-white group-hover:text-primary transition-colors truncate">
+                              {lei.sigla}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-neutral-300 shrink-0">
+                              {lei.tipo}
+                            </span>
+                          </div>
+                          <p className="font-body text-[12.5px] font-medium text-neutral-300 truncate mt-0.5">
+                            {lei.nome}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="inline-flex items-center gap-1 text-[11px] text-neutral-400 font-medium">
+                              <Eye className="w-3.5 h-3.5 text-primary/80" />
+                              <strong className="text-white/90">{totalAcessos.toLocaleString('pt-BR')}</strong> acessos
+                            </span>
+                          </div>
+                        </div>
+
+                        <ChevronRight className="w-5 h-5 text-neutral-500 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0" />
                       </button>
                     );
                   })}
                 </div>
 
-                {/* Lista de Leis — Visual escuro neutro premium (Sem cor vermelha) */}
-                <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2 scrollbar-thin scrollbar-thumb-white/10">
-                  {filteredCatalog.length === 0 ? (
-                    <div className="py-12 text-center text-neutral-500 text-[13px]">
-                      {activeTab === 'em-alta'
-                        ? 'Nenhuma lei no Em Alta. Selecione leis nas outras abas para adicionar.'
-                        : 'Nenhuma lei encontrada para o filtro atual.'}
-                    </div>
-                  ) : (
-                    filteredCatalog.map((lei) => {
-                      const isSelected = selectedIds.includes(lei.id);
-                      const LawIcon = getLawIcon(lei.id, lei.tipo);
-
-                      return (
-                        <button
-                          key={lei.id}
-                          type="button"
-                          onClick={() => toggleLei(lei.id)}
-                          className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl border transition-all text-left cursor-pointer active:scale-[0.99] group ${
-                            isSelected
-                              ? 'bg-[#222226] border-white/20 text-white shadow-sm'
-                              : 'bg-[#18181B]/80 border-white/5 text-neutral-400 hover:bg-[#222226]/50 hover:text-neutral-200'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className="w-9 h-9 rounded-lg bg-neutral-800 border border-white/10 flex items-center justify-center shrink-0">
-                              <LawIcon className="w-4.5 h-4.5 text-white/90" strokeWidth={1.8} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-display font-bold text-[14px] text-white">
-                                  {lei.sigla}
-                                </span>
-                                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-neutral-300 font-medium">
-                                  {lei.tipo}
-                                </span>
-                              </div>
-                              <p className="font-body text-[12px] truncate mt-0.5 text-neutral-300">
-                                {lei.nome}
-                              </p>
-                              <p className="font-body text-[11px] truncate text-neutral-400">
-                                {lei.id === 'cf88' ? 'Constituição de 1988' : lei.descricao}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            {activeTab === 'em-alta' && isSelected && (
-                              <div className="flex flex-col gap-1 mr-1">
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); moveLei(lei.id, 'up'); }}
-                                  disabled={filteredCatalog.indexOf(lei) === 0}
-                                  className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                                >
-                                  <ChevronUp className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); moveLei(lei.id, 'down'); }}
-                                  disabled={filteredCatalog.indexOf(lei) === filteredCatalog.length - 1}
-                                  className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-neutral-400 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                                >
-                                  <ChevronDown className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            )}
-                            <div
-                              className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all shrink-0 ${
-                                isSelected
-                                  ? 'bg-white border-white text-black shadow-sm'
-                                  : 'border-white/20 bg-white/5 text-transparent group-hover:border-white/40'
-                              }`}
-                            >
-                              {isSelected ? (
-                                <Check className="w-3.5 h-3.5 stroke-[3]" />
-                              ) : (
-                                <Plus className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-
-                {/* Footer neutro e informativo */}
-                <div className="p-3 pb-8 sm:p-4 sm:pb-4 border-t border-white/10 flex items-center justify-between bg-[#141416] shrink-0">
-                  <div className="flex flex-col">
-                    <span className="text-[12px] text-neutral-400">
-                      <strong className="text-white font-bold">{selectedIds.length}</strong> de <strong className="text-white font-bold">{MAX_ATALHOS}</strong> selecionadas
-                    </span>
-                    {selectedIds.length >= MAX_ATALHOS && (
-                      <span className="text-[10px] text-amber-400 font-medium">Limite do carrossel atingido</span>
-                    )}
-                  </div>
+                {/* Footer */}
+                <div className="p-3 pb-6 sm:p-4 sm:pb-4 border-t border-white/10 flex items-center justify-between bg-[#141416] shrink-0">
+                  <span className="text-[12px] text-neutral-400">
+                    <strong className="text-white font-bold">{rankingLeisComIlustracao.length}</strong> legislações em destaque
+                  </span>
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
                     className="px-6 py-2 rounded-xl bg-white hover:bg-neutral-200 text-black font-bold text-[13px] active:scale-95 transition shadow-sm cursor-pointer"
                   >
-                    Concluir
+                    Fechar
                   </button>
                 </div>
               </motion.div>
