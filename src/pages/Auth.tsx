@@ -525,7 +525,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               onClick={() => setMode('signup')}
               className="text-primary font-bold hover:underline cursor-pointer"
             >
-              Criar conta com o Google
+              Cadastrar com o Google
             </button>
           </div>
         </div>
@@ -573,7 +573,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               onClick={() => setMode('login')}
               className="text-primary font-bold hover:underline cursor-pointer"
             >
-              Acessar conta
+              Entrar
             </button>
           </div>
         </div>
@@ -640,7 +640,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             onClick={() => { setMode('login'); setResetEmailSent(false); }}
             className="text-xs font-body text-primary hover:underline cursor-pointer"
           >
-            ← Voltar para acessar conta
+            ← Voltar para entrar
           </button>
         </div>
       </div>
@@ -778,28 +778,20 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 24 }}
           className="relative z-20 mx-4 my-4 bg-neutral-950/90 backdrop-blur-xl border border-primary/25 rounded-3xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.9)] w-full max-w-[440px] max-h-[calc(100dvh-2rem)] overflow-y-auto p-7 text-center"
         >
-          <div className="flex flex-col items-center mb-5">
+          <div className="flex items-center justify-center gap-3 mb-5">
             <img
               src={logoOABnaRisca}
               alt="Vacatio"
-              className="w-14 h-14 rounded-2xl shadow-xl object-cover border-2 border-primary/50 mb-3"
+              className="w-10 h-10 rounded-xl shadow-xl object-cover border border-primary/50"
             />
+            <span className="font-display text-white text-xl font-bold tracking-wider">
+              VACATIO
+            </span>
           </div>
 
           {/* Abas superiores no Desktop */}
           {mode !== 'forgot' && (
             <div className="flex mb-6 bg-white/[0.06] border border-white/10 rounded-2xl p-1">
-              <button
-                type="button"
-                onClick={() => setMode('login')}
-                className={`flex-1 py-2.5 text-sm font-body font-semibold rounded-xl transition-all cursor-pointer ${
-                  mode === 'login'
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'text-white/60 hover:text-white'
-                }`}
-              >
-                Acessar conta
-              </button>
               <button
                 type="button"
                 onClick={() => setMode('signup')}
@@ -809,7 +801,18 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
                     : 'text-white/60 hover:text-white'
                 }`}
               >
-                Criar conta
+                Cadastrar
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className={`flex-1 py-2.5 text-sm font-body font-semibold rounded-xl transition-all cursor-pointer ${
+                  mode === 'login'
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                Entrar
               </button>
             </div>
           )}
@@ -860,57 +863,59 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
 
       {/* Content at the bottom */}
       <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(var(--sai-bottom,var(--sai-bottom)),1.5rem)]">
-        {/* Brand block */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="relative shrink-0 mb-4">
-            <div className="absolute inset-0 rounded-3xl ring-pulse" />
+        {/* Brand block: Logo + VACATIO on same line */}
+        <div className="flex items-center gap-3 mb-4 max-w-[400px] w-full mx-auto">
+          <div className="relative shrink-0">
+            <div className="absolute inset-0 rounded-2xl ring-pulse" />
             <img
               src={logoOABnaRisca}
               alt="Vacatio"
-              className="relative w-20 h-20 rounded-3xl object-cover border-2 border-primary/60 shadow-xl"
+              className="relative w-11 h-11 rounded-2xl object-cover border border-primary/60 shadow-lg"
             />
           </div>
-          <h2 className="font-display text-white text-3xl font-bold leading-none drop-shadow">Vacatio</h2>
-          <p className="font-body text-white/70 text-sm mt-2 drop-shadow">Vade Mecum Jurídico Profissional</p>
+          <span className="font-display text-white text-2xl font-bold tracking-wider leading-none drop-shadow">
+            VACATIO
+          </span>
         </div>
 
-        {/* Action Buttons: Acessar conta / Criar uma conta */}
-        <div className="flex flex-col gap-3 w-full max-w-[400px] mx-auto">
-          <button
-            type="button"
-            onClick={() => {
-              setMode('login');
-              setDrawerOpen(true);
-            }}
-            className="relative overflow-hidden group w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base shadow-lg shadow-primary/30 active:scale-95 transition-all cursor-pointer"
-          >
-            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
-            <span className="relative z-10">Acessar conta</span>
-          </button>
+        {/* Headline & Description */}
+        <div className="text-left mb-6 max-w-[400px] w-full mx-auto">
+          <h1 className="font-display text-white text-[2rem] sm:text-4xl font-bold leading-[1.12] tracking-tight drop-shadow-md">
+            O Direito inteiro,<br />
+            <span className="font-title italic font-normal text-[#f5c467]">no seu bolso.</span>
+          </h1>
+          <p className="font-body text-white/80 text-[13.5px] mt-2.5 leading-snug drop-shadow">
+            Toda a legislação brasileira, atualizada, narrada e explicada em um só lugar.
+          </p>
+        </div>
 
+        {/* Action Buttons: Cadastrar (vermelho) / Entrar (glass) */}
+        <div className="flex flex-col gap-3 w-full max-w-[400px] mx-auto">
           <button
             type="button"
             onClick={() => {
               setMode('signup');
               setDrawerOpen(true);
             }}
-            className="w-full py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl font-body font-bold text-base shadow-lg active:scale-95 transition-all hover:bg-white/15 cursor-pointer"
+            className="relative overflow-hidden group w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base shadow-lg shadow-primary/30 active:scale-95 transition-all cursor-pointer"
           >
-            Criar uma conta
+            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
+            <span className="relative z-10">Cadastrar</span>
           </button>
 
           <button
             type="button"
             onClick={() => {
-              setMode('forgot');
+              setMode('login');
               setDrawerOpen(true);
             }}
-            className="mt-1 text-white/60 font-body text-xs font-medium hover:text-white active:scale-95 transition-colors cursor-pointer"
+            className="w-full py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl font-body font-bold text-base shadow-lg active:scale-95 transition-all hover:bg-white/15 cursor-pointer"
           >
-            Preciso de ajuda para entrar
+            Entrar
           </button>
 
-          <p className="text-[11.5px] leading-relaxed font-body text-white/70 text-center px-2 mt-2">
+          {/* Termos em uma linha só e menor */}
+          <p className="text-[10px] leading-tight font-body text-white/70 text-center truncate px-1 mt-1">
             Ao continuar, você concorda com os{' '}
             <button
               type="button"
@@ -930,10 +935,6 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             .
           </p>
         </div>
-
-        <p className="text-center text-[10px] font-body text-white/50 mt-6">
-          Vacatio — Vade Mecum © 2026
-        </p>
       </div>
 
       {/* Bottom Sheet Drawer for Auth Form */}
