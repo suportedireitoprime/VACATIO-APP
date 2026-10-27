@@ -3,10 +3,27 @@ import { pickAsset } from '@/lib/assetUrl';
 import { Capacitor } from '@capacitor/core';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { 
+  Loader2, 
+  ArrowLeft, 
+  ArrowRight, 
+  Mail, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  CheckCircle, 
+  KeyRound 
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { LegalSheet } from '@/components/auth/LegalSheet';
+import { 
+  Drawer, 
+  DrawerContent, 
+  DrawerHeader, 
+  DrawerTitle, 
+  DrawerDescription 
+} from '@/components/ui/drawer';
 
 /** Traduz mensagens de erro comuns do Supabase Auth para PT-BR. */
 const traduzirErroAuth = (raw?: string): string => {
@@ -321,11 +338,20 @@ const LandingScreen = ({ onStart }: { onStart: () => void }) => (
   </motion.main>
 );
 
-/* ─── Auth Form Screen (Exclusivo Google) ─── */
+/* ─── Auth Form Screen (Acessar conta ou Criar conta) ─── */
 const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   const isDesktop = useIsDesktop();
-  const { signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
+  const { signIn, signInWithGoogle, resetPassword } = useAuth();
+
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const [legalOpen, setLegalOpen] = useState<null | 'privacidade' | 'termos'>(null);
 
   const handleGoogle = async () => {
@@ -340,12 +366,47 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
     }
   };
 
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const { error } = await signIn(email, password);
+      if (error) throw error;
+      toast.success('Login realizado com sucesso!');
+      navigate('/', { replace: true });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha na autenticação';
+      toastErroAuth(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const { error } = await resetPassword(email);
+      if (error) throw error;
+      toast.success('Link de recuperação enviado para seu e-mail.');
+      setResetEmailSent(true);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao enviar e-mail de recuperação.';
+      toastErroAuth(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const inputCls =
+    'w-full pl-11 pr-12 py-3.5 bg-white/[0.05] border border-white/10 rounded-2xl text-sm font-body text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/40 transition-all';
+
   const googleButton = (
     <button
       type="button"
       onClick={handleGoogle}
       disabled={googleLoading}
-      className="w-full py-4 rounded-2xl bg-white text-neutral-900 font-body font-bold text-base flex items-center justify-center gap-3 border border-neutral-200 hover:bg-neutral-100 active:scale-[0.98] transition-all disabled:opacity-50 shadow-xl cursor-pointer"
+      className="w-full py-3.5 rounded-2xl bg-white text-neutral-900 font-body font-bold text-base flex items-center justify-center gap-3 border border-neutral-200 hover:bg-neutral-100 active:scale-[0.98] transition-all disabled:opacity-50 shadow-xl cursor-pointer"
     >
       {googleLoading ? (
         <Loader2 className="w-5 h-5 animate-spin text-neutral-900" />
@@ -362,6 +423,229 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       )}
     </button>
   );
+
+  /* Conteúdo compartilhado do formulário */
+  const renderFormBody = () => {
+    if (mode === 'login') {
+      return (
+        <div className="w-full flex flex-col text-left">
+          <div className="text-center mb-5">
+            <h2 className="font-display text-2xl font-bold text-white">
+              Acesse sua conta
+            </h2>
+            <p className="text-xs font-body text-neutral-400 mt-1">
+              Entre com o Google ou com seu e-mail cadastrado.
+            </p>
+          </div>
+
+          {/* Opção 1: Google */}
+          {googleButton}
+
+          {/* Divisor */}
+          <div className="relative my-4 flex items-center gap-3">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-[11px] font-body uppercase tracking-wider text-neutral-400">
+              ou com e-mail
+            </span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          {/* Opção 2: E-mail e Senha */}
+          <form onSubmit={handleLoginSubmit} className="space-y-3.5">
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+              <input
+                type="email"
+                name="email"
+                autoComplete="email"
+                inputMode="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                placeholder="Seu e-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className={inputCls}
+              />
+            </div>
+
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="current-password"
+                autoComplete="current-password"
+                placeholder="Sua senha"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className={inputCls}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors cursor-pointer"
+                aria-label={showPassword ? 'Ocultar senha' : 'Ver senha'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3.5 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-primary/25 cursor-pointer"
+            >
+              {submitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  Entrar
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => { setMode('forgot'); setResetEmailSent(false); }}
+                className="text-xs font-body text-primary hover:underline cursor-pointer"
+              >
+                Esqueci minha senha
+              </button>
+            </div>
+          </form>
+
+          <div className="text-center pt-4 text-xs font-body text-neutral-400">
+            Não tem uma conta?{' '}
+            <button
+              type="button"
+              onClick={() => setMode('signup')}
+              className="text-primary font-bold hover:underline cursor-pointer"
+            >
+              Criar conta com o Google
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (mode === 'signup') {
+      return (
+        <div className="w-full flex flex-col text-left">
+          <div className="text-center mb-5">
+            <h2 className="font-display text-2xl font-bold text-white">
+              Criar sua conta
+            </h2>
+            <p className="text-xs font-body text-neutral-400 mt-1 max-w-[320px] mx-auto">
+              O cadastro no Vacatio é realizado exclusivamente com sua conta Google para sincronização segura e imediata.
+            </p>
+          </div>
+
+          {googleButton}
+
+          <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-4">
+            Ao criar sua conta, você concorda com os{' '}
+            <button
+              type="button"
+              onClick={() => setLegalOpen('termos')}
+              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
+            >
+              Termos de Uso
+            </button>{' '}
+            e com a{' '}
+            <button
+              type="button"
+              onClick={() => setLegalOpen('privacidade')}
+              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
+            >
+              Política de Privacidade
+            </button>
+            .
+          </p>
+
+          <div className="text-center pt-5 text-xs font-body text-neutral-400">
+            Já possui uma conta?{' '}
+            <button
+              type="button"
+              onClick={() => setMode('login')}
+              className="text-primary font-bold hover:underline cursor-pointer"
+            >
+              Acessar conta
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    /* mode === 'forgot' */
+    return (
+      <div className="w-full flex flex-col text-left">
+        <div className="text-center mb-5">
+          <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-3">
+            {resetEmailSent ? (
+              <CheckCircle className="w-6 h-6 text-primary" />
+            ) : (
+              <KeyRound className="w-6 h-6 text-primary" />
+            )}
+          </div>
+          <h2 className="font-display text-xl font-bold text-white">
+            {resetEmailSent ? 'E-mail enviado' : 'Recuperar Senha'}
+          </h2>
+          <p className="text-xs font-body text-neutral-400 mt-1 max-w-[300px] mx-auto">
+            {resetEmailSent
+              ? `Abra o link enviado para ${email} para criar uma nova senha.`
+              : 'Informe seu e-mail cadastrado para enviarmos as instruções de recuperação.'}
+          </p>
+        </div>
+
+        {!resetEmailSent ? (
+          <form onSubmit={handleForgotSubmit} className="space-y-4">
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+              <input
+                type="email"
+                name="email"
+                autoComplete="email"
+                inputMode="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                placeholder="Seu e-mail cadastrado"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className={inputCls}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3.5 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-primary/25 cursor-pointer"
+            >
+              {submitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                'Enviar link de recuperação'
+              )}
+            </button>
+          </form>
+        ) : null}
+
+        <div className="text-center pt-4">
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setResetEmailSent(false); }}
+            className="text-xs font-body text-primary hover:underline cursor-pointer"
+          >
+            ← Voltar para acessar conta
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   /* ── Desktop: split-screen layout ── */
   if (isDesktop) {
@@ -487,48 +771,50 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
 
-        {/* Form card (Exclusivo Google) */}
+        {/* Form card */}
         <motion.div
           initial={{ scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 24 }}
-          className="relative z-20 mx-4 my-4 bg-neutral-950/90 backdrop-blur-xl border border-primary/25 rounded-3xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.9)] w-full max-w-[420px] p-8 text-center"
+          className="relative z-20 mx-4 my-4 bg-neutral-950/90 backdrop-blur-xl border border-primary/25 rounded-3xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.9)] w-full max-w-[440px] max-h-[calc(100dvh-2rem)] overflow-y-auto p-7 text-center"
         >
-          <div className="flex flex-col items-center mb-6">
+          <div className="flex flex-col items-center mb-5">
             <img
               src={logoOABnaRisca}
               alt="Vacatio"
-              className="w-16 h-16 rounded-2xl shadow-xl object-cover border-2 border-primary/50 mb-4"
+              className="w-14 h-14 rounded-2xl shadow-xl object-cover border-2 border-primary/50 mb-3"
             />
-            <h2 className="font-display text-2xl font-bold text-white">
-              Acesse sua conta
-            </h2>
-            <p className="text-xs font-body text-neutral-400 mt-1 max-w-[280px]">
-              Faça login ou cadastre-se instantaneamente com sua conta Google.
-            </p>
           </div>
 
-          {googleButton}
+          {/* Abas superiores no Desktop */}
+          {mode !== 'forgot' && (
+            <div className="flex mb-6 bg-white/[0.06] border border-white/10 rounded-2xl p-1">
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className={`flex-1 py-2.5 text-sm font-body font-semibold rounded-xl transition-all cursor-pointer ${
+                  mode === 'login'
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                Acessar conta
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('signup')}
+                className={`flex-1 py-2.5 text-sm font-body font-semibold rounded-xl transition-all cursor-pointer ${
+                  mode === 'signup'
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                Criar conta
+              </button>
+            </div>
+          )}
 
-          <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-5">
-            Ao continuar, você concorda com os{' '}
-            <button
-              type="button"
-              onClick={() => setLegalOpen('termos')}
-              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
-            >
-              Termos de Uso
-            </button>{' '}
-            e com a{' '}
-            <button
-              type="button"
-              onClick={() => setLegalOpen('privacidade')}
-              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
-            >
-              Política de Privacidade
-            </button>
-            .
-          </p>
+          {renderFormBody()}
 
           <LegalSheet
             open={legalOpen !== null}
@@ -540,7 +826,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
     );
   }
 
-  /* ── Mobile: cinematic layout com botão direto do Google ── */
+  /* ── Mobile: cinematic layout com opções 'Acessar conta' e 'Criar conta' ── */
   return (
     <motion.main
       key="auth-mobile"
@@ -588,9 +874,41 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           <p className="font-body text-white/70 text-sm mt-2 drop-shadow">Vade Mecum Jurídico Profissional</p>
         </div>
 
-        {/* Action Button - Exclusivo Google */}
+        {/* Action Buttons: Acessar conta / Criar uma conta */}
         <div className="flex flex-col gap-3 w-full max-w-[400px] mx-auto">
-          {googleButton}
+          <button
+            type="button"
+            onClick={() => {
+              setMode('login');
+              setDrawerOpen(true);
+            }}
+            className="relative overflow-hidden group w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base shadow-lg shadow-primary/30 active:scale-95 transition-all cursor-pointer"
+          >
+            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
+            <span className="relative z-10">Acessar conta</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setMode('signup');
+              setDrawerOpen(true);
+            }}
+            className="w-full py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl font-body font-bold text-base shadow-lg active:scale-95 transition-all hover:bg-white/15 cursor-pointer"
+          >
+            Criar uma conta
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setMode('forgot');
+              setDrawerOpen(true);
+            }}
+            className="mt-1 text-white/60 font-body text-xs font-medium hover:text-white active:scale-95 transition-colors cursor-pointer"
+          >
+            Preciso de ajuda para entrar
+          </button>
 
           <p className="text-[11.5px] leading-relaxed font-body text-white/70 text-center px-2 mt-2">
             Ao continuar, você concorda com os{' '}
@@ -617,6 +935,23 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           Vacatio — Vade Mecum © 2026
         </p>
       </div>
+
+      {/* Bottom Sheet Drawer for Auth Form */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent className="bg-neutral-950 border-neutral-800 text-white px-6 pt-2 pb-[max(var(--sai-bottom,var(--sai-bottom)),1.5rem)] outline-none max-h-[92dvh] overflow-y-auto">
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>
+              {mode === 'login' ? 'Acessar conta' : mode === 'signup' ? 'Criar conta' : 'Recuperar senha'}
+            </DrawerTitle>
+            <DrawerDescription>
+              {mode === 'login' ? 'Entre com Google ou e-mail' : mode === 'signup' ? 'Cadastro via Google' : 'Recupere sua senha'}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="pt-2">
+            {renderFormBody()}
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       <LegalSheet
         open={legalOpen !== null}
