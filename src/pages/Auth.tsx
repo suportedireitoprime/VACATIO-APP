@@ -411,25 +411,28 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [legalOpen, setLegalOpen] = useState<null | 'privacidade' | 'termos'>(null);
 
-  /* Capas rotativas automáticas a cada 4 segundos */
-  const [capaIdx, setCapaIdx] = useState(0);
-  const [capaFading, setCapaFading] = useState(false);
+  /* Capas rotativas com crossfade cinematográfico contínuo (sem tela preta) */
+  const [currentCapaIdx, setCurrentCapaIdx] = useState(0);
+  const [prevCapaIdx, setPrevCapaIdx] = useState<number | null>(null);
 
-  const trocarCapa = useCallback(() => {
-    if (capaFading) return;
-    setCapaFading(true);
-    setTimeout(() => {
-      setCapaIdx((prev) => (prev + 1) % CAPAS_FUNDO.length);
-      setCapaFading(false);
-    }, 550);
-  }, [capaFading]);
+  /* Preload de todas as capas para transição instantânea em memória */
+  useEffect(() => {
+    CAPAS_FUNDO.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
 
+  /* Rotação automática suave a cada 4.5 segundos */
   useEffect(() => {
     const timer = setInterval(() => {
-      trocarCapa();
-    }, 4000);
+      setCurrentCapaIdx((curr) => {
+        setPrevCapaIdx(curr);
+        return (curr + 1) % CAPAS_FUNDO.length;
+      });
+    }, 4500);
     return () => clearInterval(timer);
-  }, [trocarCapa]);
+  }, []);
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
@@ -934,30 +937,51 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       transition={{ type: 'spring', stiffness: 260, damping: 30 }}
       className="min-h-dvh flex flex-col relative overflow-hidden bg-[#0A0B10]"
     >
-      {/* ── Background image rotativa com zoom suave e fade ── */}
+      {/* ── Background image rotativa com crossfade contínuo sem transição preta ── */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
-        <img
-          key={capaIdx}
-          src={CAPAS_FUNDO[capaIdx]}
+        {/* Camada inferior: imagem anterior permanece 100% visível enquanto a nova se sobrepõe */}
+        {prevCapaIdx !== null && (
+          <img
+            key={`prev-${prevCapaIdx}`}
+            src={CAPAS_FUNDO[prevCapaIdx]}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover filter brightness-[0.76] saturate-[1.02]"
+          />
+        )}
+
+        {/* Camada superior: nova imagem surge suavemente por cima da anterior com leve zoom */}
+        <motion.img
+          key={`curr-${currentCapaIdx}`}
+          src={CAPAS_FUNDO[currentCapaIdx]}
           alt=""
           loading="eager"
           decoding="sync"
           fetchPriority="high"
-          className={`land-bg ${capaFading ? 'opacity-0' : 'opacity-100'}`}
+          initial={{ opacity: prevCapaIdx === null ? 1 : 0, scale: 1.01 }}
+          animate={{ opacity: 1, scale: 1.07 }}
+          transition={{
+            opacity: { duration: 1.4, ease: 'easeInOut' },
+            scale: { duration: 6, ease: 'linear' },
+          }}
+          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.76] saturate-[1.02]"
         />
+
+        {/* Sombra de gradiente cinematográfica */}
         <div className="land-shade" />
       </div>
 
-      {/* ── Top Bar: Botão Voltar, Brasão SVG + VACATIO e Botão Trocar Capa ── */}
+      {/* ── Top Bar: Botão Voltar e Brasão SVG + VACATIO perfeitamente centralizado ── */}
       <div className="relative z-20 pt-[max(var(--sai-top,1rem),1.25rem)] px-5 flex items-center justify-between">
+        <button
+          onClick={onBack}
+          aria-label="Voltar"
+          className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition cursor-pointer text-white"
+        >
+          <ArrowLeft className="w-4 h-4 text-white" />
+        </button>
+
         <div className="flex items-center gap-2.5">
-          <button
-            onClick={onBack}
-            aria-label="Voltar"
-            className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition cursor-pointer text-white mr-1"
-          >
-            <ArrowLeft className="w-4 h-4 text-white" />
-          </button>
           <svg width="28" height="28" viewBox="0 0 150 150" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round">
             <circle cx="75" cy="75" r="64" stroke="#D9A82E"/>
             <path d="M75 40 L104 55 H46 Z"/>
@@ -974,13 +998,8 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={trocarCapa}
-          className="bg-[rgba(10,10,14,0.45)] border border-white/50 text-white rounded-full px-3 py-1.5 text-[12px] font-semibold backdrop-blur-md cursor-pointer active:scale-95 transition"
-        >
-          ⇄ Capa {capaIdx + 1} de {CAPAS_FUNDO.length}
-        </button>
+        {/* Espaçador invisível à direita para manter o título perfeitamente centralizado */}
+        <div className="w-9 h-9 pointer-events-none" />
       </div>
 
       {/* Content at the bottom */}
