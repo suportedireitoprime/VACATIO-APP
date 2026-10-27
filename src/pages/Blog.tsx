@@ -26,7 +26,9 @@ import {
   ChevronRight,
   Filter,
   Check,
+  Heart,
 } from 'lucide-react';
+import { haptic } from '@/lib/nativeHaptics';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import ShapeGrid from '@/components/ui/ShapeGrid';
 import {
@@ -69,6 +71,15 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string; s
   Flame,
 };
 
+// Banners ilustrados em estilo Flat para as categorias do Blog
+const CATEGORY_BANNERS: Record<string, string> = {
+  '09 - História das leis': '/assets/blog-banners/banner_historia_leis.webp',
+  'em-alta': '/assets/blog-banners/banner_historia_leis.webp',
+};
+const DEFAULT_CATEGORY_BANNER = '/assets/blog-banners/banner_historia_leis.webp';
+
+type FilterTab = 'todos' | 'em-alta' | 'favoritos';
+
 function formatDate(iso: string) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -86,9 +97,60 @@ const Blog = () => {
   // Estados principais
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterTab, setFilterTab] = useState<FilterTab>('todos');
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
+
+  // Controle de artigos favoritados (sincronização síncrona local)
+  const [favPostIds, setFavPostIds] = useState<Set<string>>(() => {
+    const set = new Set<string>();
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('blog_fav_') && localStorage.getItem(key) === '1') {
+          set.add(key.replace('blog_fav_', ''));
+        }
+      }
+    } catch {}
+    return set;
+  });
+
+  useEffect(() => {
+    const handleFavSync = () => {
+      const set = new Set<string>();
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('blog_fav_') && localStorage.getItem(key) === '1') {
+            set.add(key.replace('blog_fav_', ''));
+          }
+        }
+      } catch {}
+      setFavPostIds(set);
+    };
+
+    window.addEventListener('blog_fav_updated', handleFavSync);
+    window.addEventListener('storage', handleFavSync);
+    return () => {
+      window.removeEventListener('blog_fav_updated', handleFavSync);
+      window.removeEventListener('storage', handleFavSync);
+    };
+  }, []);
+
+  // Garante que ao entrar ou trocar de categoria, a visualização sempre comece no topo (cabeçalho)
+  useEffect(() => {
+    if (selectedCategory) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [selectedCategory]);
+
+  const handleSelectCategory = (catId: string) => {
+    haptic.light();
+    setSelectedCategory(catId);
+    setFilterTab('todos');
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  };
 
   // Controle de artigos lidos/concluídos pelo usuário (persistência local)
   const [readPostIds, setReadPostIds] = useState<Set<string>>(() => {
@@ -182,11 +244,30 @@ const Blog = () => {
     return BLOG_CATEGORIAS.find((c) => c.id === selectedCategory) || null;
   }, [selectedCategory]);
 
-  const categoryPosts = useMemo(() => {
+  // Lista base da categoria sem filtros de busca e aba
+  const baseCategoryPosts = useMemo(() => {
     if (!selectedCategory) return [];
-    let list = selectedCategory === 'em-alta'
-      ? (allPosts && allPosts.length > 0 ? allPosts.slice(0, 30) : [])
-      : allPosts.filter((p) => p.tema === selectedCategory);
+    if (selectedCategory === 'em-alta') {
+      return allPosts && allPosts.length > 0 ? allPosts.slice(0, 30) : [];
+    }
+    return allPosts.filter((p) => p.tema === selectedCategory);
+  }, [allPosts, selectedCategory]);
+
+  // Quantidade de favoritos nesta categoria
+  const favoriteCountInCategory = useMemo(() => {
+    return baseCategoryPosts.filter((p) => favPostIds.has(p.id)).length;
+  }, [baseCategoryPosts, favPostIds]);
+
+  // Artigos filtrados conforme a aba (todos | em-alta | favoritos) e a busca
+  const categoryPosts = useMemo(() => {
+    let list = baseCategoryPosts;
+
+    if (filterTab === 'em-alta') {
+      // Artigos mais emblemáticos/em alta da trilha
+      list = list.slice(0, 15);
+    } else if (filterTab === 'favoritos') {
+      list = list.filter((p) => favPostIds.has(p.id));
+    }
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -197,7 +278,7 @@ const Blog = () => {
       );
     }
     return list;
-  }, [allPosts, selectedCategory, searchQuery]);
+  }, [baseCategoryPosts, filterTab, favPostIds, searchQuery]);
 
   const openPost = (post: BlogPost) => {
     if (!canUse) {
@@ -213,6 +294,8 @@ const Blog = () => {
     if (selectedCategory) {
       setSelectedCategory(null);
       setSearchQuery('');
+      setFilterTab('todos');
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     } else {
       navigate(-1);
     }
@@ -320,7 +403,7 @@ const Blog = () => {
                   {/* Botão Ver todos na mesma linha */}
                   <button
                     type="button"
-                    onClick={() => setSelectedCategory('em-alta')}
+                    onClick={() => handleSelectCategory('em-alta')}
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-primary hover:text-primary-foreground hover:bg-primary border border-primary/30 transition-all active:scale-95 cursor-pointer shadow-sm"
                   >
                     <span>Ver todos</span>
@@ -528,7 +611,7 @@ const Blog = () => {
                           {/* Botão Circular Principal */}
                           <button
                             type="button"
-                            onClick={() => setSelectedCategory(cat.id)}
+                            onClick={() => handleSelectCategory(cat.id)}
                             className="group relative flex flex-col items-center focus:outline-none cursor-pointer"
                             aria-label={`Abrir trilha ${cat.titulo}`}
                           >
@@ -585,31 +668,31 @@ const Blog = () => {
               transition={{ duration: 0.25, ease: 'easeOut' }}
               className="space-y-5"
             >
-              {/* Banner da Categoria Ativa */}
+              {/* Banner da Categoria em Estilo Flat Panorâmico */}
               {activeCategoryMeta && (
-                <div
-                  className={`relative rounded-3xl p-5 sm:p-6 overflow-hidden border border-white/10 bg-gradient-to-br ${activeCategoryMeta.colorGradient} text-white shadow-xl flex items-center justify-between gap-4`}
-                >
-                  <div className="space-y-1 relative z-10">
-                    <span className="px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[10.5px] font-bold uppercase tracking-wider text-white">
-                      Trilha {activeCategoryMeta.numero}
-                    </span>
-                    <h2 className="font-display text-xl sm:text-2xl font-bold leading-tight">
+                <div className="relative w-full h-36 sm:h-44 md:h-48 rounded-2xl sm:rounded-3xl overflow-hidden border border-border/40 shadow-xl bg-card group">
+                  <img
+                    src={CATEGORY_BANNERS[activeCategoryMeta.id] || DEFAULT_CATEGORY_BANNER}
+                    alt={activeCategoryMeta.titulo}
+                    className="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-500"
+                    loading="eager"
+                  />
+                  {/* Gradiente escuro para legibilidade perfeita do título sobre a arte flat */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/15 flex flex-col justify-end p-4 sm:p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-white shadow-sm border border-white/15">
+                        Trilha {activeCategoryMeta.numero}
+                      </span>
+                      <span className="text-[11px] text-white/85 font-medium drop-shadow-sm">
+                        {baseCategoryPosts.length} artigos disponíveis
+                      </span>
+                    </div>
+                    <h2 className="font-display text-lg sm:text-2xl font-bold text-white drop-shadow-md leading-tight">
                       {activeCategoryMeta.titulo}
                     </h2>
-                    <p className="text-xs sm:text-sm text-white/85 leading-relaxed font-body max-w-lg">
+                    <p className="text-[11px] sm:text-xs text-white/90 line-clamp-1 font-body mt-0.5 max-w-xl drop-shadow-sm">
                       {activeCategoryMeta.subtitulo}
                     </p>
-                    <div className="pt-2 text-xs font-semibold text-white/90">
-                      {categoryPosts.length} artigos encontrados
-                    </div>
-                  </div>
-
-                  <div className="hidden sm:flex shrink-0 w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-md items-center justify-center border border-white/20 text-white">
-                    {(() => {
-                      const Icon = CATEGORY_ICONS[activeCategoryMeta.iconName] || BookOpen;
-                      return <Icon className="w-8 h-8" strokeWidth={2} />;
-                    })()}
                   </div>
                 </div>
               )}
@@ -626,16 +709,82 @@ const Blog = () => {
                 />
               </div>
 
-              {/* Botão de retorno rápido para as categorias */}
-              <button
-                onClick={() => {
-                  setSelectedCategory(null);
-                  setSearchQuery('');
-                }}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" /> Voltar para todas as 10 categorias
-              </button>
+              {/* Menu de Alternância de Abas: Todos | Em alta | Favoritos */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-card/80 backdrop-blur-md border border-border/50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic.light();
+                    setFilterTab('todos');
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    filterTab === 'todos'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Todos</span>
+                  <span
+                    className={`text-[10px] ml-0.5 px-1.5 py-0.2 rounded-full ${
+                      filterTab === 'todos'
+                        ? 'bg-primary-foreground/20 text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {baseCategoryPosts.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic.light();
+                    setFilterTab('em-alta');
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    filterTab === 'em-alta'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <Flame
+                    className={`w-3.5 h-3.5 ${
+                      filterTab === 'em-alta' ? 'text-white fill-white' : 'text-orange-500 fill-orange-500'
+                    }`}
+                  />
+                  <span>Em alta</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic.light();
+                    setFilterTab('favoritos');
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    filterTab === 'favoritos'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  <Heart
+                    className={`w-3.5 h-3.5 ${
+                      filterTab === 'favoritos' ? 'text-white fill-white' : 'text-rose-500 fill-rose-500'
+                    }`}
+                  />
+                  <span>Favoritos</span>
+                  <span
+                    className={`text-[10px] ml-0.5 px-1.5 py-0.2 rounded-full ${
+                      filterTab === 'favoritos'
+                        ? 'bg-primary-foreground/20 text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {favoriteCountInCategory}
+                  </span>
+                </button>
+              </div>
 
               {/* Lista Vertical de Artigos */}
               <div className="space-y-3">
@@ -732,10 +881,15 @@ const Blog = () => {
                       </ContextMenu>
                     );
                   })
+                ) : filterTab === 'favoritos' ? (
+                  <EmptyState
+                    title="Nenhum favorito nesta categoria"
+                    description="Abra um artigo e toque no ícone de coração para salvá-lo como favorito."
+                  />
                 ) : (
                   <EmptyState
                     title="Nenhum artigo encontrado"
-                    description="Tente buscar por outras palavras-chave ou limpe a busca."
+                    description="Tente buscar por outras palavras-chave ou selecione outra aba."
                   />
                 )}
               </div>

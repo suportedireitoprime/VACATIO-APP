@@ -20,6 +20,7 @@ import {
   Headphones,
   Loader2,
   X,
+  ZoomIn,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -28,6 +29,7 @@ import { useIsDesktop } from '@/hooks/use-desktop';
 import { toast } from 'sonner';
 import ShareSheet from './ShareSheet';
 import BlogPostComments from './BlogPostComments';
+import ImageZoomModal from './ImageZoomModal';
 import type { BlogPost } from '@/data/blogPosts';
 import BlogCoverImage from '@/components/BlogCoverImage';
 import { blogHero } from '@/lib/blogImg';
@@ -105,6 +107,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
     return post.audio_url || `https://pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev/blog/audios/${post.id}.mp3`;
   });
   const [audioVoice, setAudioVoice] = useState<string>(() => post?.audio_voice || 'Professora');
+  const [zoomedImage, setZoomedImage] = useState<{ src: string; alt?: string } | null>(null);
   const isUsingTtsFallbackRef = useRef(false);
 
   const incFont = () => {
@@ -127,15 +130,14 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
 
   const toggleConcluido = () => {
     if (!post?.id) return;
+    haptic.success();
     const next = !concluido;
     setConcluido(next);
     try {
       if (next) {
         localStorage.setItem(`blog_concluido_${post.id}`, '1');
-        toast.success('Artigo marcado como concluído! Parabéns pela leitura.');
       } else {
         localStorage.removeItem(`blog_concluido_${post.id}`);
-        toast.info('Artigo desmarcado.');
       }
       window.dispatchEvent(new CustomEvent('blog_status_updated', { detail: { id: post.id, concluido: next } }));
     } catch {}
@@ -234,7 +236,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
   }, []);
 
   const togglePlay = async () => {
-    haptic.impact('light');
+    haptic.light();
     if (!post) return;
 
     if (isPlaying) {
@@ -421,17 +423,39 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
       return <p className="my-4 leading-[1.75]" {...props}>{children}</p>;
     },
     img: ({ src, alt, ...props }: React.ComponentPropsWithoutRef<'img'>) => (
-      <figure className="my-6">
-        <img
-          src={src}
-          alt={alt || 'Ilustração do artigo'}
-          loading="lazy"
-          decoding="async"
-          className="w-full max-h-[480px] object-cover object-center rounded-2xl shadow-xl border border-border/50 mx-auto"
-          {...props}
-        />
+      <figure className="my-6 flex flex-col items-center">
+        <div
+          onClick={() => src && setZoomedImage({ src, alt: typeof alt === 'string' ? alt : undefined })}
+          className="relative group cursor-zoom-in rounded-2xl overflow-hidden shadow-xl border border-border/50 max-h-[480px] w-full bg-black/20"
+        >
+          <img
+            src={src}
+            alt={alt || 'Ilustração do artigo'}
+            loading="lazy"
+            decoding="async"
+            className="w-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-300"
+            {...props}
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+            <span className="px-3.5 py-1.5 rounded-full bg-black/80 backdrop-blur-md text-white text-xs font-semibold flex items-center gap-1.5 shadow-xl border border-white/10">
+              <ZoomIn className="w-3.5 h-3.5 text-primary" />
+              Toque para ampliar
+            </span>
+          </div>
+        </div>
+
+        {/* Botão de Zoom solicitado para facilitar toque em mobile */}
+        <button
+          type="button"
+          onClick={() => src && setZoomedImage({ src, alt: typeof alt === 'string' ? alt : undefined })}
+          className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/80 hover:bg-secondary text-foreground text-xs font-semibold border border-border/60 shadow-sm transition-all active:scale-95 cursor-pointer"
+        >
+          <ZoomIn className="w-3.5 h-3.5 text-primary" />
+          <span>Toque para dar zoom</span>
+        </button>
+
         {alt && alt !== 'imagem' && alt !== 'ilustracao' && (
-          <figcaption className="text-xs text-muted-foreground italic text-center mt-2 px-4">
+          <figcaption className="text-xs text-muted-foreground italic text-center mt-1.5 px-4">
             {alt}
           </figcaption>
         )}
@@ -532,11 +556,14 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
     const next = !liked;
     setLiked(next); // otimista
 
+    // Sincroniza localmente para resposta instantânea e offline
+    try {
+      if (next) localStorage.setItem(`blog_fav_${post.id}`, '1');
+      else localStorage.removeItem(`blog_fav_${post.id}`);
+      window.dispatchEvent(new CustomEvent('blog_fav_updated'));
+    } catch {}
+
     if (!user) {
-      try {
-        if (next) localStorage.setItem(`blog_fav_${post.id}`, '1');
-        else localStorage.removeItem(`blog_fav_${post.id}`);
-      } catch {}
       setLikeBusy(false);
       toast.success(next ? 'Artigo favoritado!' : 'Artigo removido dos favoritos');
       return;
@@ -545,13 +572,27 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
     if (next) {
       const { error } = await supabase.from('blog_post_likes')
         .insert({ post_id: post.id, user_id: user.id });
-      if (error) setLiked(false);
-      else toast.success('Artigo favoritado!');
+      if (error) {
+        setLiked(false);
+        try {
+          localStorage.removeItem(`blog_fav_${post.id}`);
+          window.dispatchEvent(new CustomEvent('blog_fav_updated'));
+        } catch {}
+      } else {
+        toast.success('Artigo favoritado!');
+      }
     } else {
       const { error } = await supabase.from('blog_post_likes')
         .delete().eq('post_id', post.id).eq('user_id', user.id);
-      if (error) setLiked(true);
-      else toast.info('Artigo removido dos favoritos');
+      if (error) {
+        setLiked(true);
+        try {
+          localStorage.setItem(`blog_fav_${post.id}`, '1');
+          window.dispatchEvent(new CustomEvent('blog_fav_updated'));
+        } catch {}
+      } else {
+        toast.info('Artigo removido dos favoritos');
+      }
     }
     setLikeBusy(false);
   };
@@ -1065,6 +1106,12 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
             postId={post.id}
             open={commentsOpen}
             onClose={() => setCommentsOpen(false)}
+          />
+
+          <ImageZoomModal
+            src={zoomedImage?.src ?? null}
+            alt={zoomedImage?.alt}
+            onClose={() => setZoomedImage(null)}
           />
         </>
       )}
