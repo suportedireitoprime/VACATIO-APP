@@ -293,6 +293,10 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                     prose-strong:text-foreground
                     prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-1 prose-blockquote:px-3 prose-blockquote:rounded-r
                     prose-ul:my-4 prose-li:my-1
+                    prose-table:w-full prose-table:my-6 prose-table:border-collapse
+                    prose-th:border prose-th:border-border/60 prose-th:p-2.5 prose-th:bg-secondary/40 prose-th:text-foreground prose-th:font-semibold prose-th:text-xs sm:prose-th:text-sm
+                    prose-td:border prose-td:border-border/40 prose-td:p-2.5 prose-td:text-xs sm:prose-td:text-sm
+                    prose-img:rounded-2xl prose-img:shadow-xl prose-img:border prose-img:border-border/40 prose-img:mx-auto prose-img:my-6
                   "
                 >
                   {conteudo ? (

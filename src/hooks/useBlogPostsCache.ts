@@ -6,11 +6,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { BlogPost, BlogTema } from '@/data/blogPosts';
-import { TEMAS, BLOG_POSTS } from '@/data/blogPosts';
+import { BLOG_POSTS } from '@/data/blogPosts';
 import { bundle } from '@/services/offlineBundle';
 
-const KEY = 'blog:posts:v3';
-const LEGACY_KEYS = ['blog:posts:v1', 'blog:posts:v2'];
+const KEY = 'blog:posts:v6';
+const LEGACY_KEYS = ['blog:posts:v1', 'blog:posts:v2', 'blog:posts:v3', 'blog:posts:v4', 'blog:posts:v5'];
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 h
 
 const LISTA_COLS =
@@ -34,18 +34,17 @@ type Cached = { at: number; posts: BlogPost[] };
 
 function map(rows: RawPost[]): BlogPost[] {
   return rows.map((p) => {
-    const rawCategory = p.categoria || p.tema || 'Leis';
-    const tema = (TEMAS.includes(rawCategory as BlogTema) ? rawCategory : 'Leis') as BlogTema;
+    const rawCategory = p.categoria || p.tema || '01 - Leis - o que são e como funcionam';
     return {
       id: p.id,
       titulo: p.titulo,
       resumo: p.resumo,
       conteudo_md: p.conteudo_md ?? '',
       imagem_url: p.imagem_url,
-      tema,
-      autor: p.autor,
-      tempo_leitura_min: p.tempo_leitura_min,
-      data_publicacao: p.data_publicacao,
+      tema: rawCategory as BlogTema,
+      autor: p.autor || 'Redação Vadimeco',
+      tempo_leitura_min: p.tempo_leitura_min || 7,
+      data_publicacao: p.data_publicacao || new Date().toISOString(),
     };
   });
 }
@@ -56,8 +55,7 @@ function readCache(): BlogPost[] | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Cached;
     if (!parsed?.posts || !Array.isArray(parsed.posts)) return null;
-    // Aceitamos até TTL para tela; refresh sempre roda em background de qualquer forma.
-    if (Date.now() - parsed.at > TTL_MS) return parsed.posts; // ainda hidrata, marca stale
+    if (Date.now() - parsed.at > TTL_MS) return parsed.posts;
     return parsed.posts;
   } catch {
     return null;
@@ -66,15 +64,10 @@ function readCache(): BlogPost[] | null {
 
 function writeCache(posts: BlogPost[]) {
   try {
-    // Cache só da lista (sem o markdown completo): mantém o payload pequeno e
-    // evita estourar a quota do localStorage — era o que fazia o cache falhar
-    // e a tela recarregar tudo do zero a cada abertura.
     const leves = posts.map((p) => ({ ...p, conteudo_md: '' }));
     localStorage.setItem(KEY, JSON.stringify({ at: Date.now(), posts: leves } satisfies Cached));
     LEGACY_KEYS.forEach((k) => localStorage.removeItem(k));
-  } catch {
-    /* quota / private mode — ignora */
-  }
+  } catch {}
 }
 
 export function useBlogPostsCache() {
@@ -86,18 +79,16 @@ export function useBlogPostsCache() {
     let cancelled = false;
     (async () => {
       let rows: RawPost[] | null = null;
-      // Fase 1 — lista leve (sem o markdown): resposta pequena, pinta na hora.
       try {
         const { data } = await supabase
           .from('blog_edicao_posts')
           .select(LISTA_COLS)
           .eq('publicado', true)
           .order('data_publicacao', { ascending: false })
-          .order('created_at', { ascending: false })
-          .limit(60);
+          .limit(1000);
         rows = (data as RawPost[]) ?? null;
       } catch {}
-      // Fallback pro bundle nativo (Electron / sem rede) ou posts locais
+
       if (!rows || rows.length === 0) {
         const bundled = await bundle.blogPosts<RawPost>();
         if (bundled.length > 0) rows = bundled;
@@ -111,8 +102,8 @@ export function useBlogPostsCache() {
       }
       setLoaded(true);
 
-      // Fase 2 — conteúdo completo em background, só dos posts em tela.
-      const ids = (rows || []).map((r) => r.id).slice(0, 20);
+      // Preload do conteúdo dos primeiros posts
+      const ids = (rows || []).map((r) => r.id).slice(0, 30);
       if (!ids.length) return;
       try {
         const { data: full } = await supabase

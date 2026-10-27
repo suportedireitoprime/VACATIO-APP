@@ -1042,7 +1042,7 @@ const Auth = () => {
 
   if (loading) {
     return (
-      <main className="min-h-dvh flex items-center justify-center bg-background">
+      <main className="min-h-dvh flex items-center justify-center bg-[#0A0B10]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </main>
     );
