@@ -286,7 +286,9 @@ const AdminMonitorUsuarios = () => {
 
   // Fetch aggregate history
   const fetchHistory = useCallback(async () => {
-    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const now = new Date();
+    const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
+    const oneMinFuture = new Date(now.getTime() + 60 * 1000).toISOString();
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const startOfWeek = new Date();
@@ -301,25 +303,25 @@ const AdminMonitorUsuarios = () => {
         .from('user_activity_log')
         .select('*')
         .gte('last_seen_at', fiveMinAgo)
-        .not('email', 'in', ADMIN_EMAILS_LIST)
+        .lte('last_seen_at', oneMinFuture)
         .order('last_seen_at', { ascending: false }),
       supabase
         .from('user_activity_log')
         .select('*')
         .gte('last_seen_at', startOfDay.toISOString())
-        .not('email', 'in', ADMIN_EMAILS_LIST)
+        .lte('last_seen_at', oneMinFuture)
         .order('last_seen_at', { ascending: false }),
       supabase
         .from('user_activity_log')
         .select('*')
         .gte('last_seen_at', startOfWeek.toISOString())
-        .not('email', 'in', ADMIN_EMAILS_LIST)
+        .lte('last_seen_at', oneMinFuture)
         .order('last_seen_at', { ascending: false }),
       supabase
         .from('user_activity_log')
         .select('*')
         .gte('last_seen_at', startOfMonth.toISOString())
-        .not('email', 'in', ADMIN_EMAILS_LIST)
+        .lte('last_seen_at', oneMinFuture)
         .order('last_seen_at', { ascending: false }),
       supabase
         .from('profiles')
@@ -334,10 +336,24 @@ const AdminMonitorUsuarios = () => {
       supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_premium', true),
     ]);
 
-    if (r5.data) setLast5min(r5.data as ActivityRow[]);
-    if (rToday.data) setToday(rToday.data as ActivityRow[]);
-    if (rWeek.data) setWeekData(rWeek.data as ActivityRow[]);
-    if (rMonth.data) setMonthData(rMonth.data as ActivityRow[]);
+    const nowMs = now.getTime();
+    const fiveMinMs = 5 * 60 * 1000;
+    const filterValid = (arr: ActivityRow[] | null, is5m = false) => {
+      if (!arr) return [];
+      return arr.filter((r) => {
+        if (!r.last_seen_at || isAdminEmail(r.email)) return false;
+        const t = new Date(r.last_seen_at).getTime();
+        if (is5m) {
+          return t >= (nowMs - fiveMinMs) && t <= (nowMs + 60 * 1000);
+        }
+        return t <= (nowMs + 60 * 1000);
+      });
+    };
+
+    if (r5.data) setLast5min(filterValid(r5.data as ActivityRow[], true));
+    if (rToday.data) setToday(filterValid(rToday.data as ActivityRow[]));
+    if (rWeek.data) setWeekData(filterValid(rWeek.data as ActivityRow[]));
+    if (rMonth.data) setMonthData(filterValid(rMonth.data as ActivityRow[]));
     setSignupsToday(rSignups.count ?? 0);
     setTrialClicksToday(rTrial.count ?? 0);
     setTotalUsers(rTotal.count ?? 0);

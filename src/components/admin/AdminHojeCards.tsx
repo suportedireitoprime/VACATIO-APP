@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Radio, UserPlus, Sparkles, Loader2, Mail, BarChart3, ChevronRight } from 'lucide-react';
+import { Radio, UserPlus, Sparkles, Loader2, Mail, BarChart3, ChevronRight, RefreshCw } from 'lucide-react';
 import { SiGoogle, SiApple } from 'react-icons/si';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { supabase } from '@/integrations/supabase/client';
@@ -82,6 +82,16 @@ const sameDay = (a: Date, b: Date) =>
 const hora = (v?: string | null) =>
   v ? new Date(v).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
 
+const tempoAtras = (v?: string | null) => {
+  if (!v) return '';
+  const diffSec = Math.floor((Date.now() - new Date(v).getTime()) / 1000);
+  if (diffSec < 0) return 'agora';
+  if (diffSec < 60) return `há ${diffSec}s`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `há ${diffMin}m`;
+  return hora(v);
+};
+
 const DIAS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
 type Seen = { count: number; keys: string[] };
@@ -131,7 +141,6 @@ export function AdminHojeCards() {
   const [provRows, setProvRows] = useState<Row[]>([]);
   const [provLoading, setProvLoading] = useState(false);
 
-
   const abrirProvider = useCallback(
     async (p: string) => {
       setProvOpen(p);
@@ -166,7 +175,8 @@ export function AdminHojeCards() {
     setTotaisLoading(true);
     setTotais(null);
     try {
-      const { data } = await supabase.rpc('admin_totais' as any, { _tipo: open });
+      const tipo = open === 'online5m' ? 'online' : open;
+      const { data } = await supabase.rpc('admin_totais' as any, { _tipo: tipo });
       setTotais(data as any);
     } finally {
       setTotaisLoading(false);
@@ -175,15 +185,34 @@ export function AdminHojeCards() {
 
   const load = useCallback(async () => {
     const hoje = new Date();
-    const [{ data }, { count: c5m }] = await Promise.all([
+    const now = new Date();
+    const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
+    const oneMinFuture = new Date(now.getTime() + 60 * 1000).toISOString();
+
+    const [{ data }, { data: actRows }] = await Promise.all([
       supabase.rpc('admin_metricas_dia' as any, { _dia: isoDate(hoje) }),
       supabase.from('user_activity_log')
-        .select('*', { count: 'exact', head: true })
-        .gte('last_seen_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
-        .not('email', 'in', ADMIN_EMAILS_FILTER),
+        .select('*')
+        .gte('last_seen_at', fiveMinAgo)
+        .lte('last_seen_at', oneMinFuture)
+        .order('last_seen_at', { ascending: false }),
     ]);
+
+    const nowMs = now.getTime();
+    const fiveMinMs = 5 * 60 * 1000;
+    const c5m = ((actRows as any[]) || []).filter((r) => {
+      if (!r.last_seen_at || isAdminEmail(r.email)) return false;
+      const t = new Date(r.last_seen_at).getTime();
+      return t >= (nowMs - fiveMinMs) && t <= (nowMs + 60 * 1000);
+    }).length;
+
     const m = (data as any) || {};
-    const novos: Record<CardId, number> = { online5m: c5m || 0, online: m.online || 0, cadastros: m.cadastros || 0, trial: m.trial || 0 };
+    const novos: Record<CardId, number> = { 
+      online5m: c5m, 
+      online: typeof m.online === 'number' ? m.online : 0, 
+      cadastros: typeof m.cadastros === 'number' ? m.cadastros : 0, 
+      trial: typeof m.trial === 'number' ? m.trial : 0 
+    };
     setCounts(novos);
     // Primeira visita do dia: considera tudo como já visto (sem badge)
     (['online5m', 'online', 'cadastros', 'trial'] as CardId[]).forEach((id) => {
@@ -193,7 +222,6 @@ export function AdminHojeCards() {
       }
     });
   }, []);
-
 
   useEffect(() => {
     load();
@@ -207,20 +235,30 @@ export function AdminHojeCards() {
     try {
       let rawList: any[] = [];
       if (id === 'online5m') {
-        // Query users seen in last 5m regardless of selected day (it only makes sense for "now")
-        const limitDate = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const now = new Date();
+        const limitDate = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
+        const futureLimit = new Date(now.getTime() + 60 * 1000).toISOString();
         const { data } = await supabase.from('user_activity_log')
           .select('*')
           .gte('last_seen_at', limitDate)
-          .not('email', 'in', ADMIN_EMAILS_FILTER)
+          .lte('last_seen_at', futureLimit)
           .order('last_seen_at', { ascending: false });
-        rawList = ((data as any[]) || []).map((r) => ({
+
+        const nowMs = now.getTime();
+        const fiveMinMs = 5 * 60 * 1000;
+        const validRows = ((data as any[]) || []).filter((r) => {
+          if (!r.last_seen_at || isAdminEmail(r.email)) return false;
+          const t = new Date(r.last_seen_at).getTime();
+          return t >= (nowMs - fiveMinMs) && t <= (nowMs + 60 * 1000);
+        });
+
+        rawList = validRows.map((r) => ({
           key: r.user_id,
           userId: r.user_id,
           title: r.display_name || 'Usuário',
           email: r.email || null,
           subtitle: rotaParaFuncao(r.current_route).label,
-          meta: hora(r.last_seen_at),
+          meta: tempoAtras(r.last_seen_at),
           acessos: null,
         }));
       } else {
@@ -267,7 +305,6 @@ export function AdminHojeCards() {
     }
   }, []);
 
-
   const openCard = useCallback((id: CardId) => {
     const hoje = new Date();
     setOpen(id);
@@ -287,9 +324,6 @@ export function AdminHojeCards() {
     }
   }, [openCard]);
 
-
-
-
   const selecionarDia = (d: Date) => {
     setDia(d);
     if (open) fetchRows(open, d);
@@ -301,7 +335,6 @@ export function AdminHojeCards() {
     d.setDate(d.getDate() - i);
     return d;
   });
-
 
   const CARDS: { id: CardId; label: string; icon: any }[] = [
     { id: 'online5m', label: 'Online 5 min', icon: Sparkles },
@@ -333,7 +366,7 @@ export function AdminHojeCards() {
           <button
             key={id}
             onClick={() => openCard(id)}
-            className="relative rounded-2xl border border-border/60 bg-secondary/30 px-2.5 py-3 text-left hover:bg-secondary/60 active:bg-secondary transition-colors"
+            className="relative rounded-2xl border border-border/60 bg-secondary/30 px-2.5 py-3 text-left hover:bg-secondary/60 active:bg-secondary transition-colors cursor-pointer"
           >
             {counts[id] - (seenCounts[id] || 0) > 0 && (
               <span className="absolute top-2 right-2 inline-flex items-center rounded-full bg-emerald-500/15 border border-emerald-500/40 px-1.5 py-[1px] font-body text-[10px] font-bold text-emerald-400 animate-pulse">
@@ -344,7 +377,6 @@ export function AdminHojeCards() {
             <div className="font-display text-xl font-bold text-foreground leading-none">{counts[id]}</div>
             <div className="font-body text-[10.5px] text-muted-foreground mt-1 leading-tight">{label}</div>
           </button>
-
         ))}
       </div>
 
@@ -354,16 +386,20 @@ export function AdminHojeCards() {
             <div className="flex items-start justify-between gap-3 pr-9">
               <div className="min-w-0">
                 <SheetTitle className="font-display text-base font-bold text-foreground">
-                  {open ? `${titles[open]} · ${rotuloDia}` : ''}
+                  {open === 'online5m' ? 'Online (Últimos 5m) · Tempo Real' : open ? `${titles[open]} · ${rotuloDia}` : ''}
                 </SheetTitle>
                 <p className="font-body text-[11.5px] text-muted-foreground mt-0.5">
-                  {loading ? 'Carregando…' : `${rows.length} registro${rows.length === 1 ? '' : 's'}`}
+                  {loading
+                    ? 'Carregando…'
+                    : open === 'online5m'
+                      ? `${rows.length} usuário${rows.length === 1 ? '' : 's'} ativo${rows.length === 1 ? '' : 's'} agora`
+                      : `${rows.length} registro${rows.length === 1 ? '' : 's'}`}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={abrirTotais}
-                className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 font-body text-[12px] font-semibold text-primary hover:bg-primary/20 active:bg-primary/30 transition-colors"
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 font-body text-[12px] font-semibold text-primary hover:bg-primary/20 active:bg-primary/30 transition-colors cursor-pointer"
               >
                 <BarChart3 className="w-3.5 h-3.5" />
                 Totais
@@ -371,39 +407,60 @@ export function AdminHojeCards() {
             </div>
           </SheetHeader>
 
-
-          <div className="border-b border-border/50 bg-background/95 sticky top-0 z-10">
-            <div className="flex gap-2 overflow-x-auto px-3 py-3 scrollbar-none">
-              {dias.map((d) => {
-                const ativo = sameDay(d, dia);
-                const ehHoje = sameDay(d, hoje);
-                const ehOntem = sameDay(d, ontem);
-                return (
-                  <button
-                    key={d.toISOString()}
-                    type="button"
-                    onClick={() => selecionarDia(d)}
-                    className={cn(
-                      'shrink-0 min-w-[64px] rounded-2xl border px-3 py-2.5 text-center transition-colors',
-                      ativo
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-secondary/30 border-border/60 text-muted-foreground hover:bg-secondary/60',
-                    )}
-                  >
-                    <div className="font-body text-[10.5px] uppercase tracking-wide opacity-80">
-                      {ehHoje ? 'Hoje' : ehOntem ? 'Ontem' : DIAS[d.getDay()]}
-                    </div>
-                    <div className={cn('font-display text-lg font-bold leading-none mt-1', ativo ? '' : 'text-foreground')}>
-                      {String(d.getDate()).padStart(2, '0')}
-                    </div>
-                    <div className="font-body text-[10px] opacity-70 mt-0.5">
-                      {d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
-                    </div>
-                  </button>
-                );
-              })}
+          {open === 'online5m' ? (
+            <div className="border-b border-border/50 bg-background/95 px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span className="font-body text-xs font-medium text-muted-foreground">
+                  Monitoramento em tempo real (últimos 5 minutos)
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => fetchRows('online5m', new Date())}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-secondary hover:bg-secondary/80 text-foreground border border-border/60 transition-all active:scale-95 cursor-pointer"
+              >
+                <RefreshCw className={cn('w-3 h-3', loading && 'animate-spin')} />
+                Atualizar
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="border-b border-border/50 bg-background/95 sticky top-0 z-10">
+              <div className="flex gap-2 overflow-x-auto px-3 py-3 scrollbar-none">
+                {dias.map((d) => {
+                  const ativo = sameDay(d, dia);
+                  const ehHoje = sameDay(d, hoje);
+                  const ehOntem = sameDay(d, ontem);
+                  return (
+                    <button
+                      key={d.toISOString()}
+                      type="button"
+                      onClick={() => selecionarDia(d)}
+                      className={cn(
+                        'shrink-0 min-w-[64px] rounded-2xl border px-3 py-2.5 text-center transition-colors cursor-pointer',
+                        ativo
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-secondary/30 border-border/60 text-muted-foreground hover:bg-secondary/60',
+                      )}
+                    >
+                      <div className="font-body text-[10.5px] uppercase tracking-wide opacity-80">
+                        {ehHoje ? 'Hoje' : ehOntem ? 'Ontem' : DIAS[d.getDay()]}
+                      </div>
+                      <div className={cn('font-display text-lg font-bold leading-none mt-1', ativo ? '' : 'text-foreground')}>
+                        {String(d.getDate()).padStart(2, '0')}
+                      </div>
+                      <div className="font-body text-[10px] opacity-70 mt-0.5">
+                        {d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="p-3">
             {loading ? (
@@ -412,7 +469,7 @@ export function AdminHojeCards() {
               </div>
             ) : rows.length === 0 ? (
               <p className="font-body text-sm text-muted-foreground text-center py-10">
-                Nenhum registro em {rotuloDia.toLowerCase()}.
+                {open === 'online5m' ? 'Nenhum usuário ativo nos últimos 5 minutos.' : `Nenhum registro em ${rotuloDia.toLowerCase()}.`}
               </p>
             ) : (
               <div className="rounded-2xl border border-border/60 bg-secondary/30 divide-y divide-border/50 overflow-hidden">
@@ -422,7 +479,7 @@ export function AdminHojeCards() {
                     type="button"
                     onClick={() => r.userId && setDossie(r)}
                     className={cn(
-                      'w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 active:bg-secondary transition-colors',
+                      'w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 active:bg-secondary transition-colors cursor-pointer',
                       novosKeys.has(r.key) && 'bg-emerald-500/10',
                     )}
                   >
