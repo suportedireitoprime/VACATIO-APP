@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { pickAsset } from '@/lib/assetUrl';
 import { Capacitor } from '@capacitor/core';
 import { Navigate, useNavigate } from 'react-router-dom';
@@ -71,6 +71,18 @@ const themisBg = themisBgAsset;
 import themisAuthYellowAsset from '@/assets/themis-auth-yellow.webp.asset.json';
 import themisAuthYellowBundled from '@/assets/bundled/themis-auth-yellow.webp';
 const themisAuthYellow = pickAsset(themisAuthYellowBundled, themisAuthYellowAsset.url);
+
+import capa1 from '@/assets/capas/capa-1.webp';
+import capa2 from '@/assets/capas/capa-2.webp';
+import capa3 from '@/assets/capas/capa-3.webp';
+import capa4 from '@/assets/capas/capa-4.webp';
+import capa5 from '@/assets/capas/capa-5.webp';
+import capa6 from '@/assets/capas/capa-6.webp';
+import capa7 from '@/assets/capas/capa-7.webp';
+import capa8 from '@/assets/capas/capa-8.webp';
+import capa9 from '@/assets/capas/capa-9.webp';
+
+const CAPAS_FUNDO = [capa1, capa2, capa3, capa4, capa5, capa6, capa7, capa8, capa9];
 import authBgLeftAsset from '@/assets/auth-bg-left.webp';
 const authBgLeft = authBgLeftAsset;
 import authBgRightAsset from '@/assets/auth-bg-right.webp';
@@ -174,6 +186,29 @@ if (typeof document !== 'undefined' && !document.getElementById(shineStyleId)) {
     }
     .animate-btn-cadastrar-shimmer {
       animation: btnCadastrarShimmer 4s ease-in-out infinite;
+    }
+    @keyframes landIn {
+      from { opacity: 0.15; }
+      to { opacity: 1; }
+    }
+    @keyframes capaZoom {
+      from { transform: scale(1.01); }
+      to { transform: scale(1.07); }
+    }
+    .land-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.76) saturate(1.02);
+      transition: opacity 0.55s ease;
+      animation: landIn 0.8s ease, capaZoom 5.4s linear forwards;
+    }
+    .land-shade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(5,6,10,0.66) 0%, rgba(5,6,10,0.18) 30%, rgba(5,6,10,0.22) 55%, rgba(5,6,10,0.95) 88%);
     }
   `;
   document.head.appendChild(style);
@@ -375,6 +410,26 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [legalOpen, setLegalOpen] = useState<null | 'privacidade' | 'termos'>(null);
+
+  /* Capas rotativas automáticas a cada 4 segundos */
+  const [capaIdx, setCapaIdx] = useState(0);
+  const [capaFading, setCapaFading] = useState(false);
+
+  const trocarCapa = useCallback(() => {
+    if (capaFading) return;
+    setCapaFading(true);
+    setTimeout(() => {
+      setCapaIdx((prev) => (prev + 1) % CAPAS_FUNDO.length);
+      setCapaFading(false);
+    }, 550);
+  }, [capaFading]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      trocarCapa();
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [trocarCapa]);
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
@@ -869,7 +924,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
     );
   }
 
-  /* ── Mobile: cinematic layout com opções 'Acessar conta' e 'Criar conta' ── */
+  /* ── Mobile: cinematic layout com capas rotativas automáticas e tipografia oficial de tela de cadastro.html ── */
   return (
     <motion.main
       key="auth-mobile"
@@ -877,54 +932,71 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
       transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-      className="min-h-dvh flex flex-col relative overflow-hidden bg-black"
+      className="min-h-dvh flex flex-col relative overflow-hidden bg-[#0A0B10]"
     >
-      {/* ── Fullscreen background image ── */}
-      <div className="absolute inset-0 z-0">
+      {/* ── Background image rotativa com zoom suave e fade ── */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
         <img
-          src={themisAuthYellow}
-          alt="Themis e a advocacia"
+          key={capaIdx}
+          src={CAPAS_FUNDO[capaIdx]}
+          alt=""
           loading="eager"
           decoding="sync"
           fetchPriority="high"
-          className="w-full h-full object-cover object-center pointer-events-none select-none opacity-85"
+          className={`land-bg ${capaFading ? 'opacity-0' : 'opacity-100'}`}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-transparent" />
+        <div className="land-shade" />
       </div>
 
-      {/* Back button */}
-      <button
-        onClick={onBack}
-        aria-label="Voltar"
-        className="absolute top-[max(var(--sai-top,var(--sai-top)),1rem)] left-4 z-20 w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition cursor-pointer"
-      >
-        <ArrowLeft className="w-5 h-5 text-white" />
-      </button>
-
-      {/* Content at the bottom */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(var(--sai-bottom,var(--sai-bottom)),1.5rem)]">
-        {/* Brand block: Logo + VACATIO on same line */}
-        <div className="flex items-center gap-3 mb-4 max-w-[400px] w-full mx-auto">
-          <div className="relative shrink-0">
-            <div className="absolute inset-0 rounded-2xl ring-pulse" />
-            <img
-              src={logoOABnaRisca}
-              alt="Vacatio"
-              className="relative w-11 h-11 rounded-2xl object-cover border border-primary/60 shadow-lg"
-            />
-          </div>
-          <span className="font-display text-white text-2xl font-bold tracking-wider leading-none drop-shadow">
+      {/* ── Top Bar: Botão Voltar, Brasão SVG + VACATIO e Botão Trocar Capa ── */}
+      <div className="relative z-20 pt-[max(var(--sai-top,1rem),1.25rem)] px-5 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={onBack}
+            aria-label="Voltar"
+            className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition cursor-pointer text-white mr-1"
+          >
+            <ArrowLeft className="w-4 h-4 text-white" />
+          </button>
+          <svg width="28" height="28" viewBox="0 0 150 150" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round">
+            <circle cx="75" cy="75" r="64" stroke="#D9A82E"/>
+            <path d="M75 40 L104 55 H46 Z"/>
+            <line x1="55" y1="65" x2="55" y2="94"/>
+            <line x1="75" y1="65" x2="75" y2="94"/>
+            <line x1="95" y1="65" x2="95" y2="94"/>
+            <line x1="48" y1="103" x2="102" y2="103"/>
+          </svg>
+          <span
+            className="text-white font-semibold text-[15px] tracking-[0.42em] select-none"
+            style={{ fontFamily: "'Iowan Old Style', 'Playfair Display', Georgia, serif" }}
+          >
             VACATIO
           </span>
         </div>
 
+        <button
+          type="button"
+          onClick={trocarCapa}
+          className="bg-[rgba(10,10,14,0.45)] border border-white/50 text-white rounded-full px-3 py-1.5 text-[12px] font-semibold backdrop-blur-md cursor-pointer active:scale-95 transition"
+        >
+          ⇄ Capa {capaIdx + 1} de {CAPAS_FUNDO.length}
+        </button>
+      </div>
+
+      {/* Content at the bottom */}
+      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(var(--sai-bottom,1.5rem),1.5rem)]">
         {/* Headline & Description */}
         <div className="text-left mb-6 max-w-[400px] w-full mx-auto">
-          <h1 className="font-display text-white text-[2rem] sm:text-4xl font-bold leading-[1.12] tracking-tight drop-shadow-md">
+          <h1
+            className="text-white text-[32px] sm:text-[34px] font-semibold leading-[1.16] tracking-tight drop-shadow-[0_2px_18px_rgba(0,0,0,0.6)]"
+            style={{ fontFamily: "'Iowan Old Style', 'Playfair Display', Georgia, serif" }}
+          >
             O Direito inteiro,<br />
-            <span className="font-title italic font-normal text-[#f5c467]">no seu bolso.</span>
+            <em className="italic text-[#E8C766]">no seu bolso.</em>
           </h1>
-          <p className="font-body text-white/80 text-[13.5px] mt-2.5 leading-snug drop-shadow">
+          <p
+            className="text-[#E4DECF] text-[14.5px] leading-[1.55] max-w-[300px] mt-2.5 mb-1 drop-shadow-[0_1px_10px_rgba(0,0,0,0.65)]"
+          >
             Toda a legislação brasileira, atualizada, narrada e explicada em um só lugar.
           </p>
         </div>
@@ -949,13 +1021,13 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               setMode('login');
               setDrawerOpen(true);
             }}
-            className="w-full py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl font-body font-bold text-lg shadow-lg active:scale-95 transition-all hover:bg-white/15 cursor-pointer"
+            className="w-full py-4 bg-[rgba(10,10,14,0.35)] backdrop-blur-md text-white border border-white/50 rounded-2xl font-body font-bold text-lg shadow-lg active:scale-95 transition-all hover:bg-white/15 cursor-pointer"
           >
             Entrar
           </button>
 
           {/* Termos em uma linha só e menor */}
-          <p className="text-[10px] leading-tight font-body text-white/70 text-center truncate px-1 mt-1">
+          <p className="text-[10.5px] leading-tight font-body text-[#B9B2A2] text-center truncate px-1 mt-1">
             Ao continuar, você concorda com os{' '}
             <button
               type="button"
