@@ -56,6 +56,7 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { recordActivity } from '@/lib/continuity';
+import { supabase } from '@/integrations/supabase/client';
 
 // Mapeamento dos ícones para as 10 categorias + Em Alta
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
@@ -116,6 +117,72 @@ const Blog = () => {
     } catch {}
     return set;
   });
+
+  // Métricas do Supabase para artigos "Em Alta" (views + curtidas calculadas no PostgreSQL)
+  const [trendingPostIds, setTrendingPostIds] = useState<string[]>([]);
+  const [trendingMetrics, setTrendingMetrics] = useState<
+    Map<string, { views: number; likes: number; score: number }>
+  >(new Map());
+
+  // Busca métricas em alta e sincroniza favoritos do usuário logado no Supabase
+  useEffect(() => {
+    let cancelled = false;
+
+    // 1. Carrega artigos em alta ordenados por pontuação (views + curtidas)
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc('blog_metricas_em_alta' as any, { _dias: 30 });
+        if (!cancelled && !error && Array.isArray(data) && data.length > 0) {
+          const map = new Map<string, { views: number; likes: number; score: number }>();
+          const ids: string[] = [];
+          for (const row of (data as any[])) {
+            if (row?.post_id) {
+              ids.push(row.post_id);
+              map.set(row.post_id, {
+                views: Number(row.total_views || 0),
+                likes: Number(row.total_likes || 0),
+                score: Number(row.score || 0),
+              });
+            }
+          }
+          setTrendingPostIds(ids);
+          setTrendingMetrics(map);
+        }
+      } catch (err) {
+        console.warn('[Blog] Erro ao carregar métricas em alta:', err);
+      }
+    })();
+
+    // 2. Sincroniza curtidas do usuário no Supabase para a lista de favoritos
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user && !cancelled) {
+        supabase
+          .from('blog_post_likes')
+          .select('post_id')
+          .eq('user_id', user.id)
+          .then(({ data, error }) => {
+            if (!cancelled && !error && Array.isArray(data) && data.length > 0) {
+              setFavPostIds((prev) => {
+                const next = new Set(prev);
+                for (const row of data) {
+                  if (row?.post_id) {
+                    next.add(row.post_id);
+                    try {
+                      localStorage.setItem(`blog_fav_${row.post_id}`, '1');
+                    } catch {}
+                  }
+                }
+                return next;
+              });
+            }
+          });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const handleFavSync = () => {
@@ -219,12 +286,39 @@ const Blog = () => {
     return map;
   }, [allPosts]);
 
-  // Artigos "Em Alta" (destaque no topo)
+  // Artigos "Em Alta" (destaque no topo): prioriza artigos com maiores métricas reais no Supabase
   const trendingPosts = useMemo(() => {
     if (!allPosts || allPosts.length === 0) return [];
-    // Prioriza artigos emblemáticos e variados
-    return allPosts.slice(0, 10);
-  }, [allPosts]);
+    if (trendingPostIds.length === 0) {
+      return allPosts.slice(0, 10);
+    }
+    const map = new Map<string, BlogPost>();
+    for (const p of allPosts) map.set(p.id, p);
+
+    const result: BlogPost[] = [];
+    const seen = new Set<string>();
+
+    for (const id of trendingPostIds) {
+      const p = map.get(id);
+      if (p && !seen.has(p.id)) {
+        seen.add(p.id);
+        result.push(p);
+      }
+      if (result.length >= 10) break;
+    }
+
+    if (result.length < 10) {
+      for (const p of allPosts) {
+        if (!seen.has(p.id)) {
+          seen.add(p.id);
+          result.push(p);
+        }
+        if (result.length >= 10) break;
+      }
+    }
+
+    return result;
+  }, [allPosts, trendingPostIds]);
 
   // Artigos filtrados para a categoria selecionada (inclui suporte para "em-alta")
   const activeCategoryMeta = useMemo(() => {
@@ -249,10 +343,30 @@ const Blog = () => {
   const baseCategoryPosts = useMemo(() => {
     if (!selectedCategory) return [];
     if (selectedCategory === 'em-alta') {
-      return allPosts && allPosts.length > 0 ? allPosts.slice(0, 30) : [];
+      if (!allPosts || allPosts.length === 0) return [];
+      if (trendingPostIds.length === 0) return allPosts.slice(0, 30);
+      const map = new Map<string, BlogPost>();
+      for (const p of allPosts) map.set(p.id, p);
+      const result: BlogPost[] = [];
+      const seen = new Set<string>();
+      for (const id of trendingPostIds) {
+        const p = map.get(id);
+        if (p && !seen.has(p.id)) {
+          seen.add(p.id);
+          result.push(p);
+        }
+      }
+      for (const p of allPosts) {
+        if (!seen.has(p.id)) {
+          seen.add(p.id);
+          result.push(p);
+        }
+        if (result.length >= 50) break;
+      }
+      return result;
     }
     return allPosts.filter((p) => p.tema === selectedCategory);
-  }, [allPosts, selectedCategory]);
+  }, [allPosts, selectedCategory, trendingPostIds]);
 
   // Quantidade de favoritos nesta categoria
   const favoriteCountInCategory = useMemo(() => {
@@ -264,8 +378,12 @@ const Blog = () => {
     let list = baseCategoryPosts;
 
     if (filterTab === 'em-alta') {
-      // Artigos mais emblemáticos/em alta da trilha
-      list = list.slice(0, 15);
+      // Artigos mais emblemáticos e com maior pontuação de métricas da trilha
+      list = [...list].sort((a, b) => {
+        const scoreA = trendingMetrics.get(a.id)?.score || 0;
+        const scoreB = trendingMetrics.get(b.id)?.score || 0;
+        return scoreB - scoreA;
+      }).slice(0, 20);
     } else if (filterTab === 'favoritos') {
       list = list.filter((p) => favPostIds.has(p.id));
     }
@@ -279,7 +397,7 @@ const Blog = () => {
       );
     }
     return list;
-  }, [baseCategoryPosts, filterTab, favPostIds, searchQuery]);
+  }, [baseCategoryPosts, filterTab, favPostIds, searchQuery, trendingMetrics]);
 
   const openPost = (post: BlogPost) => {
     if (!canUse) {

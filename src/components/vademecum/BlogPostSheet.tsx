@@ -15,11 +15,8 @@ import {
   CheckCircle2,
   Play,
   Pause,
-  RotateCcw,
-  RotateCw,
   Headphones,
   Loader2,
-  X,
   ZoomIn,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -102,7 +99,6 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [audioPlayerOpen, setAudioPlayerOpen] = useState(false);
   const [audioVoice, setAudioVoice] = useState<string>(() => post?.audio_voice || 'Professora');
   const [zoomedImage, setZoomedImage] = useState<{ src: string; alt?: string } | null>(null);
   const isUsingTtsFallbackRef = useRef(false);
@@ -192,7 +188,6 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
     setIsPlaying(false);
     setIsLoadingAudio(false);
     setCurrentTime(0);
-    setAudioPlayerOpen(false);
 
     if (!post) {
       setAudioDuration(0);
@@ -290,7 +285,6 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
       return;
     }
 
-    setAudioPlayerOpen(true);
     setIsLoadingAudio(true);
 
     const defaultR2Url = `https://pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev/blog/audios/${post.id}.mp3`;
@@ -747,10 +741,15 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                     {post.tema}
                   </span>
                   {isPlaying && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold animate-pulse border border-emerald-500/30">
+                    <button
+                      type="button"
+                      onClick={cycleSpeed}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-[10px] font-bold border border-emerald-500/30 cursor-pointer active:scale-95 transition-all"
+                      title="Toque para alternar velocidade (1x, 1.25x, 1.5x, 2x)"
+                    >
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                      Reproduzindo narração
-                    </span>
+                      <span>Reproduzindo narração ({playbackSpeed}x)</span>
+                    </button>
                   )}
                 </div>
 
@@ -868,121 +867,6 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
               )}
             </AnimatePresence>
 
-            {/* Player Flutuante de Narração (aparece acima do Bottom Nav) */}
-            <AnimatePresence>
-              {audioPlayerOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 25, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 20, scale: 0.96 }}
-                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                  className="fixed bottom-[88px] left-3 right-3 sm:left-auto sm:right-6 sm:w-[420px] z-[70] rounded-2xl bg-[#1C1C1E]/95 backdrop-blur-xl border border-white/10 p-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.7)] text-white select-none"
-                >
-                  {/* Header do Player: Título + Voz + Velocidade + Fechar */}
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-                        <Headphones className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-white truncate leading-tight">
-                          Narração do Artigo
-                        </p>
-                        <p className="text-[10px] text-white/60 truncate flex items-center gap-1.5 mt-0.5">
-                          <span>Voz: {audioVoice}</span>
-                          {isPlaying && (
-                            <span className="flex items-center gap-0.5 ml-1">
-                              <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                              <span className="w-1 h-3.5 bg-emerald-400 rounded-full animate-pulse delay-75" />
-                              <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse delay-150" />
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        onClick={cycleSpeed}
-                        className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white active:scale-95 transition-all cursor-pointer"
-                        title="Alterar velocidade"
-                      >
-                        {playbackSpeed}x
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (audioRef.current) audioRef.current.pause();
-                          void stopNativeSpeech();
-                          isUsingTtsFallbackRef.current = false;
-                          setIsPlaying(false);
-                          setAudioPlayerOpen(false);
-                        }}
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                        title="Fechar player"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Barra de Progresso Scrub Interativa */}
-                  <div className="space-y-1">
-                    <div className="relative w-full flex items-center">
-                      <input
-                        type="range"
-                        min={0}
-                        max={audioDuration || 100}
-                        value={currentTime}
-                        onChange={(e) => {
-                          const val = parseFloat(e.target.value);
-                          setCurrentTime(val);
-                          if (audioRef.current) audioRef.current.currentTime = val;
-                        }}
-                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-primary"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] text-white/60 font-mono">
-                      <span>{formatAudioTime(currentTime)}</span>
-                      <span>{formatAudioTime(audioDuration)}</span>
-                    </div>
-                  </div>
-
-                  {/* Controles de Reprodução (-10s, Play/Pause, +10s) */}
-                  <div className="flex items-center justify-center gap-6 mt-1.5">
-                    <button
-                      onClick={() => skipAudio(-10)}
-                      className="text-white/70 hover:text-white active:scale-90 transition-all flex flex-col items-center cursor-pointer"
-                      title="Voltar 10 segundos"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      <span className="text-[9px] -mt-0.5 font-bold">-10s</span>
-                    </button>
-
-                    <button
-                      onClick={togglePlay}
-                      className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer"
-                    >
-                      {isLoadingAudio ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : isPlaying ? (
-                        <Pause className="w-5 h-5 fill-current" />
-                      ) : (
-                        <Play className="w-5 h-5 fill-current ml-0.5" />
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => skipAudio(10)}
-                      className="text-white/70 hover:text-white active:scale-90 transition-all flex flex-col items-center cursor-pointer"
-                      title="Avançar 10 segundos"
-                    >
-                      <RotateCw className="w-4 h-4" />
-                      <span className="text-[9px] -mt-0.5 font-bold">+10s</span>
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* Menu de Rodapé do Artigo (estilo BottomNav do início do aplicativo) */}
             <nav
@@ -1037,32 +921,120 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                   </span>
                 </button>
 
-                {/* 3. Narrar (Central FAB - Principal) */}
-                <button
-                  onClick={togglePlay}
-                  data-track="blog_sheet_narrar"
-                  className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 min-h-[6.25rem] min-w-[5.75rem] touch-manipulation select-none cursor-pointer"
-                  aria-label={isPlaying ? 'Pausar narração' : 'Narrar artigo'}
-                >
-                  <span
-                    className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.6)] transition-all duration-300 active:scale-95 ${
-                      isPlaying
-                        ? 'bg-gradient-to-tr from-amber-500 via-rose-500 to-amber-400 ring-4 ring-amber-400/40 animate-pulse'
-                        : 'bg-primary ring-2 ring-white/10 hover:ring-white/25 hover:scale-105'
-                    }`}
-                  >
-                    {isLoadingAudio ? (
-                      <Loader2 className="w-8 h-8 sm:w-9 sm:h-9 text-white animate-spin" />
-                    ) : isPlaying ? (
-                      <Pause className="w-8 h-8 sm:w-9 sm:h-9 text-white fill-current drop-shadow-sm" strokeWidth={1.5} />
-                    ) : (
-                      <Play className="w-8 h-8 sm:w-9 sm:h-9 text-white fill-current ml-1 drop-shadow-sm" strokeWidth={1.5} />
-                    )}
-                  </span>
-                  <span className="font-body text-[11px] sm:text-[12px] font-bold leading-tight text-center text-white drop-shadow-sm truncate px-0.5">
-                    {isPlaying ? 'Pausar' : 'Narrar'}
-                  </span>
-                </button>
+                {/* 3. Narrar (Central FAB - Principal com anel de contorno animado de progresso) */}
+                {(() => {
+                  const audioProgress =
+                    audioDuration > 0
+                      ? Math.min(1, Math.max(0, currentTime / audioDuration))
+                      : 0;
+                  const hasAudioActivity = isPlaying || currentTime > 0;
+                  // Raio 38 em viewBox 0 0 84 84 -> Circunferência = 2 * PI * 38 = ~238.76
+                  const circumference = 238.76;
+                  const strokeOffset = circumference * (1 - audioProgress);
+
+                  return (
+                    <button
+                      type="button"
+                      onClick={togglePlay}
+                      data-track="blog_sheet_narrar"
+                      className="relative z-[80] flex flex-col items-center justify-end gap-1 -mt-12 min-h-[6.5rem] min-w-[5.75rem] touch-manipulation select-none cursor-pointer group"
+                      aria-label={
+                        isPlaying
+                          ? 'Pausar narração'
+                          : currentTime > 0
+                          ? 'Continuar narração'
+                          : 'Narrar artigo'
+                      }
+                    >
+                      {/* Container circular com o anel SVG de contorno */}
+                      <div className="relative w-[4.75rem] h-[4.75rem] sm:w-[5.25rem] sm:h-[5.25rem] flex items-center justify-center">
+                        {/* SVG com anel de contorno animado em tom de vermelho mais claro (#FF5252 / #FF6B6B) */}
+                        <svg
+                          className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none drop-shadow-md"
+                          viewBox="0 0 84 84"
+                        >
+                          {/* Trilha base do anel */}
+                          <circle
+                            cx="42"
+                            cy="42"
+                            r="38"
+                            fill="none"
+                            stroke={
+                              hasAudioActivity
+                                ? 'rgba(255, 255, 255, 0.16)'
+                                : 'rgba(255, 255, 255, 0.08)'
+                            }
+                            strokeWidth="3.5"
+                          />
+                          {/* Arco de progresso ativo em tom de vermelho mais claro com brilho suave */}
+                          {hasAudioActivity && (
+                            <circle
+                              cx="42"
+                              cy="42"
+                              r="38"
+                              fill="none"
+                              stroke="#FF5252"
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                              strokeDasharray={circumference}
+                              strokeDashoffset={strokeOffset}
+                              className="transition-[stroke-dashoffset] duration-150 ease-linear"
+                              style={{
+                                filter: isPlaying
+                                  ? 'drop-shadow(0 0 6px rgba(255, 82, 82, 0.85))'
+                                  : 'drop-shadow(0 0 3px rgba(255, 82, 82, 0.4))',
+                              }}
+                            />
+                          )}
+                        </svg>
+
+                        {/* Botão circular central interno */}
+                        <span
+                          className={`relative w-[3.85rem] h-[3.85rem] sm:w-[4.25rem] sm:h-[4.25rem] rounded-full flex items-center justify-center overflow-hidden shadow-[0_8px_25px_rgba(0,0,0,0.65)] transition-all duration-300 active:scale-95 ${
+                            isPlaying
+                              ? 'bg-gradient-to-tr from-[#B91C1C] via-[#DC2626] to-[#EF4444] shadow-[0_0_20px_rgba(239,68,68,0.45)]'
+                              : currentTime > 0
+                              ? 'bg-gradient-to-tr from-[#991B1B] to-[#DC2626] shadow-[0_4px_16px_rgba(220,38,38,0.35)] hover:scale-105'
+                              : 'bg-primary ring-2 ring-white/10 hover:ring-white/25 hover:scale-105'
+                          }`}
+                        >
+                          {isLoadingAudio ? (
+                            <Loader2 className="w-7 h-7 sm:w-8 sm:h-8 text-white animate-spin" />
+                          ) : isPlaying ? (
+                            <Pause
+                              className="w-7 h-7 sm:w-8 sm:h-8 text-white fill-current drop-shadow-sm"
+                              strokeWidth={1.5}
+                            />
+                          ) : (
+                            <Play
+                              className="w-7 h-7 sm:w-8 sm:h-8 text-white fill-current ml-1 drop-shadow-sm"
+                              strokeWidth={1.5}
+                            />
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Legenda e tempo de reprodução */}
+                      <div className="flex flex-col items-center text-center">
+                        <span className="font-body text-[11px] sm:text-[12px] font-bold leading-tight text-white drop-shadow-sm truncate px-0.5">
+                          {isLoadingAudio
+                            ? 'Carregando'
+                            : isPlaying
+                            ? 'Pausar'
+                            : currentTime > 0
+                            ? 'Continuar'
+                            : 'Narrar'}
+                        </span>
+                        {hasAudioActivity && (
+                          <span className="font-mono text-[9px] text-white/70 leading-none mt-0.5 tracking-tight">
+                            {formatAudioTime(currentTime)}
+                            {audioDuration > 0 ? ` / ${formatAudioTime(audioDuration)}` : ''}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })()}
 
                 {/* 4. Compartilhar */}
                 <button
