@@ -917,7 +917,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               setMode('signup');
               setDrawerOpen(true);
             }}
-            className="relative overflow-hidden group w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-lg shadow-lg shadow-primary/30 active:scale-95 transition-all cursor-pointer"
+            className="relative overflow-hidden group w-full py-4 bg-primary text-primary-foreground rounded-full font-body font-bold text-lg shadow-lg shadow-primary/30 active:scale-95 transition-all cursor-pointer"
           >
             <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
             <span className="relative z-10">Cadastrar</span>
