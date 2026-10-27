@@ -1134,7 +1134,8 @@ const ArtigoBottomSheet = ({
       if (played) return;
     }
 
-    toast.info('Narração ainda não disponível para este artigo.');
+    // Se ainda não há áudio gerado, solicita geração sob demanda
+    await gerarNarracao({ autoplay: true });
   };
 
   // Índice ativo agora vem direto do state (atualizado só quando muda)

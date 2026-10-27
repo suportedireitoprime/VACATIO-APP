@@ -34,6 +34,9 @@ import { blogHero } from '@/lib/blogImg';
 import { supabase } from '@/integrations/supabase/client';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { haptic } from '@/lib/nativeHaptics';
+import { notifyMediaPlay, subscribeMediaPlay } from '@/lib/mediaCoordinator';
+import { speakNative, stopNativeSpeech } from '@/lib/nativeTts';
+import { telaAcesa } from '@/lib/nativo/telaAcordada';
 
 /** Corrige formatações comuns do Word/Drive (ex: espaço antes do fechamento de negrito `**texto **`) */
 function sanitizeBlogMarkdown(content: string): string {
@@ -97,8 +100,12 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
   const [audioDuration, setAudioDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [audioPlayerOpen, setAudioPlayerOpen] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [audioVoice, setAudioVoice] = useState<string>('Professora');
+  const [audioUrl, setAudioUrl] = useState<string | null>(() => {
+    if (!post) return null;
+    return post.audio_url || `https://pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev/blog/audios/${post.id}.mp3`;
+  });
+  const [audioVoice, setAudioVoice] = useState<string>(() => post?.audio_voice || 'Professora');
+  const isUsingTtsFallbackRef = useRef(false);
 
   const incFont = () => {
     haptic.selection();
@@ -142,6 +149,8 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
         audioRef.current.removeAttribute('src');
         audioRef.current.load();
       }
+      void stopNativeSpeech();
+      isUsingTtsFallbackRef.current = false;
       setIsPlaying(false);
       setIsLoadingAudio(false);
       setCurrentTime(0);
@@ -151,10 +160,14 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
       return;
     }
 
-    // URL no Cloudflare R2 ou campo de áudio
     const defaultR2Url = `https://pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev/blog/audios/${post.id}.mp3`;
     const initialUrl = post.audio_url || defaultR2Url;
     setAudioUrl(initialUrl);
+
+    if (audioRef.current && (!audioRef.current.src || !audioRef.current.src.includes(post.id))) {
+      audioRef.current.src = initialUrl;
+      audioRef.current.load();
+    }
 
     if (post.audio_duration_seconds) {
       setAudioDuration(post.audio_duration_seconds);
@@ -173,8 +186,12 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
         if (data?.conteudo_md && !conteudo) {
           setConteudo(data.conteudo_md as string);
         }
-        if (data?.audio_url) {
+        if (data?.audio_url && data.audio_url !== initialUrl) {
           setAudioUrl(data.audio_url);
+          if (audioRef.current && !isPlaying) {
+            audioRef.current.src = data.audio_url;
+            audioRef.current.load();
+          }
         }
         if (data?.audio_duration_seconds) {
           setAudioDuration(data.audio_duration_seconds);
@@ -185,33 +202,140 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
       });
   }, [post?.id]);
 
-  const togglePlay = () => {
+  // Pausa narração se outro reprodutor do app iniciar
+  useEffect(() => {
+    return subscribeMediaPlay((active) => {
+      if (active !== 'narracao') {
+        if (audioRef.current && !audioRef.current.paused) {
+          audioRef.current.pause();
+        }
+        void stopNativeSpeech();
+        setIsPlaying(false);
+      }
+    });
+  }, []);
+
+  // Mantém tela acesa durante a narração
+  useEffect(() => {
+    void telaAcesa('blog_narracao', isPlaying);
+    return () => {
+      void telaAcesa('blog_narracao', false);
+    };
+  }, [isPlaying]);
+
+  // Limpa reprodução ao desmontar
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      void stopNativeSpeech();
+    };
+  }, []);
+
+  const togglePlay = async () => {
     haptic.impact('light');
-    if (!audioRef.current) return;
+    if (!post) return;
 
     if (isPlaying) {
-      audioRef.current.pause();
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      void stopNativeSpeech();
+      isUsingTtsFallbackRef.current = false;
       setIsPlaying(false);
-    } else {
-      setAudioPlayerOpen(true);
-      setIsLoadingAudio(true);
-      audioRef.current
-        .play()
-        .then(() => {
+      return;
+    }
+
+    setAudioPlayerOpen(true);
+    setIsLoadingAudio(true);
+
+    const defaultR2Url = `https://pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev/blog/audios/${post.id}.mp3`;
+    const targetUrl = audioUrl || post.audio_url || defaultR2Url;
+
+    notifyMediaPlay('narracao');
+
+    const tryTtsFallback = async () => {
+      isUsingTtsFallbackRef.current = true;
+      const rawText = (conteudo || post.conteudo_md || post.resumo || post.titulo)
+        .replace(/!\[.*?\]\(.*?\)/g, '')
+        .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+        .replace(/[#*_`>~-]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (rawText) {
+        toast.info('Iniciando narração do artigo...');
+        const ok = await speakNative(rawText, { rate: playbackSpeed });
+        if (ok) {
           setIsPlaying(true);
           setIsLoadingAudio(false);
-        })
-        .catch((err) => {
-          console.warn('Erro ao reproduzir narração:', err);
-          setIsLoadingAudio(false);
+        } else {
           setIsPlaying(false);
-          toast.error('Não foi possível iniciar a narração. Tente novamente.');
-        });
+          setIsLoadingAudio(false);
+          toast.error('Não foi possível iniciar a narração deste artigo.');
+        }
+      } else {
+        setIsPlaying(false);
+        setIsLoadingAudio(false);
+        toast.error('Conteúdo do artigo indisponível para narração.');
+      }
+    };
+
+    let audio = audioRef.current;
+    if (!audio) {
+      audio = new Audio();
+      audioRef.current = audio;
+    }
+
+    if (!audio.src || !audio.src.includes(post.id)) {
+      audio.src = targetUrl;
+      audio.preload = 'auto';
+      audio.load();
+    }
+
+    audio.playbackRate = playbackSpeed;
+
+    try {
+      await audio.play();
+      setIsPlaying(true);
+      setIsLoadingAudio(false);
+      isUsingTtsFallbackRef.current = false;
+
+      if ('mediaSession' in navigator) {
+        try {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: post.titulo,
+            artist: post.autor || 'Redação Vacatio',
+            album: 'Blog Jurídico',
+            artwork: post.imagem_url ? [{ src: post.imagem_url, sizes: '512x512', type: 'image/jpeg' }] : [],
+          });
+          navigator.mediaSession.setActionHandler('play', () => {
+            notifyMediaPlay('narracao');
+            audio?.play().catch(() => {});
+            setIsPlaying(true);
+          });
+          navigator.mediaSession.setActionHandler('pause', () => {
+            audio?.pause();
+            setIsPlaying(false);
+          });
+          navigator.mediaSession.setActionHandler('seekto', (details) => {
+            if (audio && details.seekTime !== undefined) {
+              audio.currentTime = details.seekTime;
+              setCurrentTime(details.seekTime);
+            }
+          });
+        } catch {}
+      }
+    } catch (err) {
+      console.warn('Erro ao reproduzir MP3, ativando narração por voz nativa:', err);
+      await tryTtsFallback();
     }
   };
 
   const skipAudio = (seconds: number) => {
     haptic.selection();
+    if (isUsingTtsFallbackRef.current) return;
     if (!audioRef.current) return;
     const maxDur = audioDuration || audioRef.current.duration || 9999;
     const next = Math.max(0, Math.min(maxDur, audioRef.current.currentTime + seconds));
@@ -699,7 +823,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 20, scale: 0.96 }}
                   transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                  className="fixed bottom-[88px] left-3 right-3 sm:left-auto sm:right-6 sm:w-[420px] z-50 rounded-2xl bg-[#1C1C1E]/95 backdrop-blur-xl border border-white/10 p-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.7)] text-white select-none"
+                  className="fixed bottom-[88px] left-3 right-3 sm:left-auto sm:right-6 sm:w-[420px] z-[70] rounded-2xl bg-[#1C1C1E]/95 backdrop-blur-xl border border-white/10 p-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.7)] text-white select-none"
                 >
                   {/* Header do Player: Título + Voz + Velocidade + Fechar */}
                   <div className="flex items-center justify-between gap-2 mb-2">
@@ -735,6 +859,8 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                       <button
                         onClick={() => {
                           if (audioRef.current) audioRef.current.pause();
+                          void stopNativeSpeech();
+                          isUsingTtsFallbackRef.current = false;
                           setIsPlaying(false);
                           setAudioPlayerOpen(false);
                         }}

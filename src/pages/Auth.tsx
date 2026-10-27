@@ -485,7 +485,6 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
     try {
       const { error } = await signIn(email, password);
       if (error) throw error;
-      toast.success('Login realizado com sucesso!');
       navigate('/', { replace: true });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Falha na autenticação';
