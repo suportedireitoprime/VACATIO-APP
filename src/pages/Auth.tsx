@@ -405,16 +405,16 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [signupName, setSignupName] = useState('');
+  const [signupPasswordConfirm, setSignupPasswordConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [legalOpen, setLegalOpen] = useState<null | 'privacidade' | 'termos'>(null);
 
-  /* Capas rotativas com transição cinematográfica fluida: a nova imagem surge suavemente atrás da atual */
+  /* Capas rotativas com transição Ken Burns contínua e suave */
   const [currentCapaIdx, setCurrentCapaIdx] = useState(0);
-  const [nextCapaIdx, setNextCapaIdx] = useState(1);
-  const [fadeFrontOut, setFadeFrontOut] = useState(false);
 
   /* Preload de todas as capas para transição instantânea em memória */
   useEffect(() => {
@@ -424,20 +424,11 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
     });
   }, []);
 
-  /* Rotação elegante: a imagem da frente desvanece suavemente revelando a imagem de trás */
+  /* Rotação cinematográfica suave a cada 7 segundos */
   useEffect(() => {
     const timer = setInterval(() => {
-      setFadeFrontOut(true);
-
-      setTimeout(() => {
-        setCurrentCapaIdx((curr) => {
-          const next = (curr + 1) % CAPAS_FUNDO.length;
-          setNextCapaIdx((next + 1) % CAPAS_FUNDO.length);
-          setFadeFrontOut(false);
-          return next;
-        });
-      }, 2000);
-    }, 5500);
+      setCurrentCapaIdx((curr) => (curr + 1) % CAPAS_FUNDO.length);
+    }, 7000);
 
     return () => clearInterval(timer);
   }, []);
@@ -445,12 +436,46 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
+      if (mode === 'signup') {
+        try { window.sessionStorage.setItem('just_signed_up', '1'); } catch {}
+      }
       const { error } = await signInWithGoogle();
       if (error) throw error;
     } catch (err: unknown) {
+      if (mode === 'signup') {
+        try { window.sessionStorage.removeItem('just_signed_up'); } catch {}
+      }
       const msg = err instanceof Error ? err.message : 'Não consegui entrar com o Google.';
       toastErroAuth(msg);
       setGoogleLoading(false);
+    }
+  };
+
+  const handleSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== signupPasswordConfirm) {
+      toastErroAuth('As senhas não coincidem. Digite a mesma senha em ambos os campos.');
+      return;
+    }
+    if (password.length < 6) {
+      toastErroAuth('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      try { window.sessionStorage.setItem('just_signed_up', '1'); } catch {}
+      const { error } = await signUp(email, password, signupName.trim() || undefined);
+      if (error) {
+        try { window.sessionStorage.removeItem('just_signed_up'); } catch {}
+        throw error;
+      }
+      toast.success('Cadastro realizado com sucesso! Vamos iniciar sua triagem.');
+      navigate('/onboarding', { replace: true });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao criar conta';
+      toastErroAuth(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -602,20 +627,102 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
     if (mode === 'signup') {
       return (
         <div className="w-full flex flex-col text-left py-1">
-          <div className="text-center mb-5">
+          <div className="text-center mb-4">
             <h2 className="font-display text-2xl font-bold text-white">
               Criar sua conta
             </h2>
             <p className="text-xs font-body text-neutral-400 mt-1 max-w-[320px] mx-auto">
-              Cadastre-se rapidamente com sua conta Google para sincronização imediata.
+              Cadastre-se com sua conta Google ou com seu e-mail.
             </p>
           </div>
 
-          {/* Opção exclusiva Google */}
+          {/* Opção 1: Google */}
           {googleButton}
 
+          {/* Divisor */}
+          <div className="relative my-3.5 flex items-center gap-3">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-[11px] font-body uppercase tracking-wider text-neutral-400">
+              ou com e-mail
+            </span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          {/* Opção 2: Formulário com e-mail e senha */}
+          <form onSubmit={handleSignupSubmit} className="space-y-3">
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+              <input
+                type="email"
+                name="email"
+                autoComplete="email"
+                inputMode="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                placeholder="Seu e-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className={inputCls}
+              />
+            </div>
+
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="new-password"
+                autoComplete="new-password"
+                placeholder="Sua senha (mínimo 6 caracteres)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className={inputCls}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors cursor-pointer"
+                aria-label={showPassword ? 'Ocultar senha' : 'Ver senha'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="confirm-password"
+                autoComplete="new-password"
+                placeholder="Confirme sua senha"
+                value={signupPasswordConfirm}
+                onChange={(e) => setSignupPasswordConfirm(e.target.value)}
+                required
+                minLength={6}
+                className={inputCls}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="relative overflow-hidden group w-full py-3.5 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-primary/25 cursor-pointer mt-1"
+            >
+              {submitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  Cadastrar e Iniciar Triagem
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+
           {/* Termos de uso e privacidade exibidos exclusivamente no cadastro */}
-          <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-4">
+          <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-3.5">
             Ao continuar, você concorda com os{' '}
             <button
               type="button"
@@ -897,42 +1004,33 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       transition={{ type: 'spring', stiffness: 260, damping: 30 }}
       className="h-dvh max-h-dvh w-full flex flex-col relative overflow-hidden bg-[#0A0B10] select-none touch-none"
     >
-      {/* ── Background: transição fluida cinematográfica surgindo atrás da imagem ── */}
+      {/* ── Background: transição fluida cinematográfica Ken Burns sem trancos ── */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
-        {/* Camada de trás (permanece pronta e visível atrás da imagem frontal) */}
-        <img
-          key={`back-${nextCapaIdx}`}
-          src={CAPAS_FUNDO[nextCapaIdx]}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.76] saturate-[1.02]"
-          style={{
-            animation: 'capaZoom 7s linear infinite alternate',
-          }}
-        />
-
-        {/* Camada da frente (fade out suave de 2s revelando a imagem que está atrás) */}
-        <img
-          key={`front-${currentCapaIdx}`}
-          src={CAPAS_FUNDO[currentCapaIdx]}
-          alt=""
-          loading="eager"
-          decoding="sync"
-          fetchPriority="high"
-          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.76] saturate-[1.02]"
-          style={{
-            opacity: fadeFrontOut ? 0 : 1,
-            transition: 'opacity 2000ms cubic-bezier(0.4, 0, 0.2, 1)',
-            animation: 'capaZoom 7s linear infinite alternate',
-          }}
-        />
+        <AnimatePresence>
+          <motion.img
+            key={`capa-${currentCapaIdx}`}
+            src={CAPAS_FUNDO[currentCapaIdx]}
+            alt=""
+            loading="eager"
+            decoding="sync"
+            fetchPriority="high"
+            initial={{ opacity: 0, scale: 1 }}
+            animate={{ opacity: 1, scale: 1.08 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              opacity: { duration: 1.8, ease: 'easeInOut' },
+              scale: { duration: 8.5, ease: 'linear' },
+            }}
+            className="absolute inset-0 w-full h-full object-cover filter brightness-[0.76] saturate-[1.02]"
+          />
+        </AnimatePresence>
 
         {/* Sombra de gradiente cinematográfica */}
         <div className="land-shade" />
       </div>
 
-      {/* ── Top Bar: Brasão SVG + VACATIO centralizado no topo com margem segura ── */}
-      <div className="relative z-20 pt-[max(calc(env(safe-area-inset-top)+1.25rem),1.75rem)] px-6 flex items-center justify-center">
+      {/* ── Top Bar: Brasão SVG + VACATIO centralizado no topo com margem confortável ── */}
+      <div className="relative z-20 pt-[max(calc(env(safe-area-inset-top)+2.5rem),3.5rem)] px-6 flex items-center justify-center">
         <div className="flex items-center gap-2.5">
           <svg width="28" height="28" viewBox="0 0 150 150" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round">
             <circle cx="75" cy="75" r="64" stroke="#D9A82E"/>
@@ -952,7 +1050,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       </div>
 
       {/* Content at the bottom with safe-area spacing */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(calc(env(safe-area-inset-bottom)+2.5rem),3rem)]">
+      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(calc(env(safe-area-inset-bottom)+3.25rem),4.25rem)]">
         {/* Headline & Description */}
         <div className="text-left mb-6 max-w-[400px] w-full mx-auto">
           <h1
@@ -970,7 +1068,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
         </div>
 
         {/* Action Buttons: Cadastrar (vermelho) / Entrar (glass) */}
-        <div className="flex flex-col gap-3 w-full max-w-[400px] mx-auto">
+        <div className="flex flex-col gap-3 w-full max-w-[400px] mx-auto mb-2">
           <button
             type="button"
             onClick={() => {
@@ -998,7 +1096,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
 
       {/* Bottom Sheet Drawer for Auth Form */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="bg-neutral-950 border-neutral-800 text-white px-6 pt-3 pb-[max(calc(env(safe-area-inset-bottom)+1.5rem),2rem)] outline-none overflow-hidden max-h-[85dvh] rounded-t-[28px]">
+        <DrawerContent className="bg-neutral-950 border-neutral-800 text-white px-6 pt-3 pb-[max(calc(env(safe-area-inset-bottom)+1.5rem),2rem)] outline-none overflow-hidden max-h-[90dvh] rounded-t-[28px]">
           {/* Barra de arraste (handle) no topo */}
           <div className="w-12 h-1.5 rounded-full bg-white/20 mx-auto mb-2" />
 
@@ -1017,10 +1115,10 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               {mode === 'login' ? 'Acessar conta' : mode === 'signup' ? 'Criar conta' : 'Recuperar senha'}
             </DrawerTitle>
             <DrawerDescription>
-              {mode === 'login' ? 'Entre com Google ou e-mail' : mode === 'signup' ? 'Cadastro via Google' : 'Recupere sua senha'}
+              {mode === 'login' ? 'Entre com Google ou e-mail' : mode === 'signup' ? 'Criar conta com Google ou e-mail' : 'Recupere sua senha'}
             </DrawerDescription>
           </DrawerHeader>
-          <div className="pt-2 min-h-[490px] flex flex-col justify-between">
+          <div className="pt-2 overflow-y-auto max-h-[calc(90dvh-4rem)] flex flex-col justify-between">
             {renderFormBody()}
           </div>
         </DrawerContent>

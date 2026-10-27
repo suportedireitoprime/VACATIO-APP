@@ -299,12 +299,10 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
     justSignedUp = typeof window !== 'undefined' && window.sessionStorage.getItem('just_signed_up') === '1';
   } catch (e) {}
 
-  const [needsOnboarding, setNeedsOnboarding] = useState(justSignedUp);
-  // Só libera a tela quando souber se a triagem está pendente. Antes começava
-  // como `true` e o app abria antes da resposta do Supabase — por isso a
-  // triagem às vezes só aparecia depois, ao navegar/interagir.
+  const [needsOnboarding, setNeedsOnboarding] = useState(justSignedUp || (!cachedDone && !!user));
+  // Só libera a tela quando souber se a triagem está pendente.
   const [initialCheckDone, setInitialCheckDone] = useState(
-    () => !user || cachedDone || (typeof navigator !== 'undefined' && navigator.onLine === false),
+    () => !user || (cachedDone && !justSignedUp) || (typeof navigator !== 'undefined' && navigator.onLine === false),
   );
 
   useEffect(() => {
@@ -315,10 +313,9 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
       return;
     }
 
-    if (cachedDone) {
+    if (cachedDone && !justSignedUp) {
       setInitialCheckDone(true);
       setNeedsOnboarding(false);
-      try { window.sessionStorage.removeItem('just_signed_up'); } catch {}
       return;
     }
 
@@ -362,7 +359,7 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
     })();
 
     return () => { cancelled = true; };
-  }, [user, cacheKey, cachedDone]);
+  }, [user, cacheKey, cachedDone, justSignedUp]);
 
   useEffect(() => {
     if (!loading && user && initialCheckDone) {

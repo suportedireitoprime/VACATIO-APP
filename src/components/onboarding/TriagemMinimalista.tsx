@@ -65,14 +65,24 @@ const MOMENTOS = [
   { id: 'advogado', label: 'Advogado(a)', desc: 'Já atuo na prática' },
 ] as const;
 
+const FAIXAS_ETARIAS = [
+  { id: '18-24', label: '18 a 24 anos', desc: 'Início dos estudos jurídicos ou faculdade' },
+  { id: '25-34', label: '25 a 34 anos', desc: 'Graduação, OAB, pós ou foco em concursos' },
+  { id: '35-44', label: '35 a 44 anos', desc: 'Carreira jurídica, transição ou concursos de ponta' },
+  { id: '45-54', label: '45 a 54 anos', desc: 'Prática profissional consolidada e atualização' },
+  { id: '55+', label: '55 anos ou mais', desc: 'Consultoria, advocacia sênior ou novos objetivos' },
+  { id: '-18', label: 'Menos de 18 anos', desc: 'Ensino médio ou vestibular para Direito' },
+] as const;
+
 const SOL_PADRAO = 'Toda a legislação atualizada, com narração, explicação e jurisprudência no mesmo lugar.';
-const TOTAL_STEPS = 10;
+const TOTAL_STEPS = 11;
 
 export default function TriagemMinimalista({ onFinished, initialName, previewMode }: Props) {
   const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [dor, setDor] = useState<string | null>(null);
   const [momento, setMomento] = useState<'faculdade' | 'faculdade-oab' | 'concurso' | 'advogado' | null>(null);
+  const [faixa, setFaixa] = useState<string | null>(null);
   const [nome, setNome] = useState(() => {
     if (initialName) return initialName;
     const metaName = user?.user_metadata?.full_name || user?.user_metadata?.name || '';
@@ -90,6 +100,7 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
     setStep(0);
     setDor(null);
     setMomento(null);
+    setFaixa(null);
     showToast('Recomeçando do início');
   };
 
@@ -110,11 +121,12 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
   const concluir = () => {
     const dorObj = DORES.find((d) => d.id === dor);
     const momentoObj = MOMENTOS.find((m) => m.id === momento);
+    const faixaObj = FAIXAS_ETARIAS.find((f) => f.id === faixa);
 
     onFinished({
       persona: momento || 'faculdade',
       personaLabel: momentoObj?.label || 'Faculdade',
-      faixa: null,
+      faixa: faixaObj?.label || faixa || null,
       nome: (nome || '').trim(),
       dorId: dor,
       dorLabel: dorObj?.label || null,
@@ -668,6 +680,53 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                 className="flex flex-col"
               >
                 <div className="text-[11px] font-bold tracking-[0.35em] text-[#D9A82E] mb-1.5 uppercase">
+                  SUA IDADE
+                </div>
+                <h2 className="text-[24px] font-extrabold tracking-tight text-[#EFECE4]">
+                  Qual é a sua faixa de idade?
+                </h2>
+                <p className="text-[13.5px] text-[#9C968A] leading-relaxed mt-1">
+                  Assim personalizamos a experiência e a comunicação com você.
+                </p>
+
+                <div className="mt-4 border-t border-[#2B2B31] divide-y divide-[#2B2B31]">
+                  {FAIXAS_ETARIAS.map((f) => {
+                    const isSel = faixa === f.id;
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setFaixa(f.id)}
+                        className={`w-full flex items-center gap-3.5 py-4 px-1 text-left transition-colors cursor-pointer ${
+                          isSel ? 'triagem-row-sel bg-white/[0.02]' : 'hover:bg-white/[0.01]'
+                        }`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <b className={`text-[15.5px] block leading-tight ${isSel ? 'text-white font-extrabold' : 'text-[#EFECE4] font-bold'}`}>
+                            {f.label}
+                          </b>
+                          <span className="text-[13px] text-[#9C968A] block mt-1 leading-snug">
+                            {f.desc}
+                          </span>
+                        </div>
+                        <span className="triagem-dot" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+            {step === 9 && (
+              <motion.div
+                key="step-9"
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -14 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                className="flex flex-col"
+              >
+                <div className="text-[11px] font-bold tracking-[0.35em] text-[#D9A82E] mb-1.5 uppercase">
                   POR ÚLTIMO
                 </div>
                 <h2 className="text-[24px] font-extrabold tracking-tight text-[#EFECE4]">
@@ -689,9 +748,9 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
               </motion.div>
             )}
 
-            {step === 9 && (
+            {step === 10 && (
               <motion.div
-                key="step-9"
+                key="step-10"
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -14 }}
@@ -712,6 +771,15 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                     </b>
                     <span className="text-[15px] text-[#EFECE4] leading-snug">
                       {MOMENTOS.find((m) => m.id === momento)?.label || 'Faculdade'}
+                    </span>
+                  </div>
+
+                  <div className="py-3.5 px-0.5">
+                    <b className="block text-[10.5px] font-extrabold tracking-[0.22em] text-[#D9A82E] mb-1 uppercase">
+                      SUA FAIXA ETÁRIA
+                    </b>
+                    <span className="text-[15px] text-[#EFECE4] leading-snug">
+                      {FAIXAS_ETARIAS.find((f) => f.id === faixa)?.label || '18 a 24 anos'}
                     </span>
                   </div>
 
@@ -819,13 +887,28 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
             <button
               type="button"
               onClick={() => go(9)}
+              disabled={!faixa}
+              className={`w-full font-bold text-[16px] py-4 rounded-full transition shadow-md ${
+                faixa
+                  ? 'bg-[#EFECE4] hover:bg-white text-[#141310] active:scale-[0.98] cursor-pointer'
+                  : 'bg-[#2B2B31] text-[#6E6A5E] cursor-not-allowed'
+              }`}
+            >
+              Continuar
+            </button>
+          )}
+
+          {step === 9 && (
+            <button
+              type="button"
+              onClick={() => go(10)}
               className="w-full bg-[#EFECE4] hover:bg-white text-[#141310] font-bold text-[16px] py-4 rounded-full active:scale-[0.98] transition cursor-pointer shadow-md"
             >
               Concluir
             </button>
           )}
 
-          {step === 9 && (
+          {step === 10 && (
             <>
               <button
                 type="button"
