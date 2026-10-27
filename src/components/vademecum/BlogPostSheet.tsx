@@ -84,6 +84,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
         localStorage.removeItem(`blog_concluido_${post.id}`);
         toast.info('Artigo desmarcado.');
       }
+      window.dispatchEvent(new CustomEvent('blog_status_updated', { detail: { id: post.id, concluido: next } }));
     } catch {}
   };
 

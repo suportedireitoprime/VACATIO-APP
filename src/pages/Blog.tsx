@@ -25,6 +25,7 @@ import {
   Star,
   ChevronRight,
   Filter,
+  Check,
 } from 'lucide-react';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import ShapeGrid from '@/components/ui/ShapeGrid';
@@ -53,7 +54,7 @@ import {
 } from '@/components/ui/context-menu';
 import { recordActivity } from '@/lib/continuity';
 
-// Mapeamento dos ícones para as 10 categorias
+// Mapeamento dos ícones para as 10 categorias + Em Alta
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   Scale,
   ScrollText,
@@ -65,6 +66,7 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string; s
   HeartHandshake,
   Hourglass,
   Eye,
+  Flame,
 };
 
 function formatDate(iso: string) {
@@ -87,6 +89,44 @@ const Blog = () => {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
+
+  // Controle de artigos lidos/concluídos pelo usuário (persistência local)
+  const [readPostIds, setReadPostIds] = useState<Set<string>>(() => {
+    const set = new Set<string>();
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('blog_concluido_') && localStorage.getItem(key) === '1') {
+          set.add(key.replace('blog_concluido_', ''));
+        }
+      }
+    } catch {}
+    return set;
+  });
+
+  useEffect(() => {
+    const handleStatusSync = () => {
+      const set = new Set<string>();
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('blog_concluido_') && localStorage.getItem(key) === '1') {
+            set.add(key.replace('blog_concluido_', ''));
+          }
+        }
+      } catch {}
+      setReadPostIds(set);
+    };
+
+    window.addEventListener('blog_status_updated', handleStatusSync);
+    window.addEventListener('storage', handleStatusSync);
+    return () => {
+      window.removeEventListener('blog_status_updated', handleStatusSync);
+      window.removeEventListener('storage', handleStatusSync);
+    };
+  }, []);
+
+  const isPostRead = (id: string) => readPostIds.has(id);
 
   const { canUse, register } = useFeatureLimit('blog_read');
   const { posts: allPosts, loaded: blogLoaded } = useBlogPostsCache();
@@ -123,15 +163,31 @@ const Blog = () => {
     return allPosts.slice(0, 10);
   }, [allPosts]);
 
-  // Artigos filtrados para a categoria selecionada
+  // Artigos filtrados para a categoria selecionada (inclui suporte para "em-alta")
   const activeCategoryMeta = useMemo(() => {
     if (!selectedCategory) return null;
+    if (selectedCategory === 'em-alta') {
+      return {
+        id: 'em-alta',
+        numero: '★',
+        titulo: 'Artigos Em Alta',
+        subtitulo: 'Os artigos mais lidos e comentados da semana em todas as trilhas',
+        iconName: 'Flame',
+        colorGradient: 'from-amber-500 via-orange-600 to-rose-600',
+        accentColor: '#f97316',
+        badgeBg: 'rgba(249, 115, 22, 0.15)',
+        badgeText: '#fb923c',
+      };
+    }
     return BLOG_CATEGORIAS.find((c) => c.id === selectedCategory) || null;
   }, [selectedCategory]);
 
   const categoryPosts = useMemo(() => {
     if (!selectedCategory) return [];
-    let list = allPosts.filter((p) => p.tema === selectedCategory);
+    let list = selectedCategory === 'em-alta'
+      ? (allPosts && allPosts.length > 0 ? allPosts.slice(0, 30) : [])
+      : allPosts.filter((p) => p.tema === selectedCategory);
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(
@@ -249,12 +305,10 @@ const Blog = () => {
               {/* 1. SEÇÃO EM ALTA (CARROSSEL HORIZONTAL) */}
               <section className="space-y-3.5">
                 <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500">
-                      <Flame className="w-4 h-4 fill-amber-500" />
-                    </div>
+                  <div className="flex items-center gap-2.5">
+                    <Flame className="w-6 h-6 text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.65)] animate-pulse shrink-0" />
                     <div>
-                      <h2 className="font-display text-base sm:text-lg font-bold text-foreground leading-tight">
+                      <h2 className="font-display text-base sm:text-lg font-bold text-foreground leading-tight tracking-tight uppercase">
                         Em Alta
                       </h2>
                       <p className="text-[11.5px] text-muted-foreground font-body">
@@ -262,12 +316,23 @@ const Blog = () => {
                       </p>
                     </div>
                   </div>
+
+                  {/* Botão Ver todos na mesma linha */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory('em-alta')}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-primary hover:text-primary-foreground hover:bg-primary border border-primary/30 transition-all active:scale-95 cursor-pointer shadow-sm"
+                  >
+                    <span>Ver todos</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
                 {/* Carrossel Horizontal com Snap */}
                 <div className="flex gap-3.5 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 snap-x snap-mandatory">
                   {trendingPosts.map((post) => {
                     const themeColor = getTemaColor(post.tema);
+                    const isRead = isPostRead(post.id);
                     return (
                       <div
                         key={post.id}
@@ -285,7 +350,7 @@ const Blog = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                           {/* Badge de categoria no topo */}
-                          <div className="absolute top-2.5 left-2.5">
+                          <div className="absolute top-2.5 left-2.5 z-10">
                             <span
                               className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase shadow-md backdrop-blur-md"
                               style={{ background: themeColor.chip, color: themeColor.chipText }}
@@ -294,8 +359,22 @@ const Blog = () => {
                             </span>
                           </div>
 
-                          {/* Tempo de leitura */}
-                          <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1 text-[10.5px] font-medium text-white/90 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-full">
+                          {/* Tag Lido / Não lido na parte de baixo do lado esquerdo da capa */}
+                          <div className="absolute bottom-2.5 left-2.5 z-10">
+                            {isRead ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-emerald-600/95 backdrop-blur-md px-2.5 py-0.5 rounded-full shadow-md">
+                                <Check className="w-3 h-3 stroke-[3]" />
+                                Lido
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-zinc-300 bg-zinc-900/85 border border-white/10 backdrop-blur-md px-2.5 py-0.5 rounded-full shadow-sm">
+                                Não lido
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Tempo de leitura no canto inferior direito */}
+                          <div className="absolute bottom-2.5 right-2.5 z-10 flex items-center gap-1 text-[10.5px] font-medium text-white/90 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-full">
                             <Clock className="w-3 h-3" />
                             {post.tempo_leitura_min} min
                           </div>
@@ -333,103 +412,139 @@ const Blog = () => {
               </div>
 
               {/* 3. FLUXO EM ZIGUE-ZAGUE DAS 10 CATEGORIAS */}
-              <section className="relative py-6">
+              <section className="relative py-6 max-w-md sm:max-w-lg mx-auto">
                 {/* SVG Connecting Curved Path */}
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none z-0"
-                  style={{ overflow: 'visible' }}
+                  viewBox="0 0 100 1900"
+                  preserveAspectRatio="none"
                 >
                   <defs>
                     <linearGradient id="zigzagGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.5" />
-                      <stop offset="30%" stopColor="#3b82f6" stopOpacity="0.4" />
-                      <stop offset="60%" stopColor="#a855f7" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#d946ef" stopOpacity="0.5" />
+                      <stop offset="0%" stopColor="#f97316" />
+                      <stop offset="12%" stopColor="#f59e0b" />
+                      <stop offset="25%" stopColor="#3b82f6" />
+                      <stop offset="38%" stopColor="#10b981" />
+                      <stop offset="50%" stopColor="#0ea5e9" />
+                      <stop offset="62%" stopColor="#a855f7" />
+                      <stop offset="75%" stopColor="#f43f5e" />
+                      <stop offset="88%" stopColor="#eab308" />
+                      <stop offset="100%" stopColor="#d946ef" />
                     </linearGradient>
                   </defs>
-                  {/* Curva conectando os nós verticais em zigzag */}
+
+                  {/* Curva conectando os nós verticais em zigue-zague autêntico */}
                   {BLOG_CATEGORIAS.slice(0, -1).map((_, i) => {
-                    const itemHeight = 160; // espaçamento vertical aproximado entre nós
-                    const y1 = 40 + i * itemHeight;
-                    const y2 = 40 + (i + 1) * itemHeight;
+                    const rowHeight = 190;
+                    const y1 = i * rowHeight + 48;
+                    const y2 = (i + 1) * rowHeight + 48;
                     const isEven1 = i % 2 === 0;
-                    const x1 = isEven1 ? 'calc(50% - 60px)' : 'calc(50% + 60px)';
-                    const x2 = isEven1 ? 'calc(50% + 60px)' : 'calc(50% - 60px)';
+                    const x1 = isEven1 ? 22 : 78;
+                    const x2 = isEven1 ? 78 : 22;
+                    const midY = (y1 + y2) / 2;
 
                     return (
-                      <path
-                        key={`path-${i}`}
-                        d={`M ${x1} ${y1} C ${x1} ${y1 + 80}, ${x2} ${y2 - 80}, ${x2} ${y2}`}
-                        stroke="url(#zigzagGradient)"
-                        strokeWidth="3.5"
-                        strokeDasharray="6 4"
-                        fill="none"
-                        className="opacity-70"
-                      />
+                      <g key={`zigzag-segment-${i}`}>
+                        {/* Linha de brilho difuso */}
+                        <path
+                          d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
+                          stroke="url(#zigzagGradient)"
+                          strokeWidth="8"
+                          strokeOpacity="0.18"
+                          fill="none"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                        {/* Linha principal tracejada */}
+                        <path
+                          d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
+                          stroke="url(#zigzagGradient)"
+                          strokeWidth="3.5"
+                          strokeDasharray="6 5"
+                          strokeLinecap="round"
+                          fill="none"
+                          vectorEffect="non-scaling-stroke"
+                          className="opacity-80"
+                        />
+                        {/* Ponto luminoso intermediário na curva */}
+                        <circle
+                          cx="50"
+                          cy={midY}
+                          r="3.5"
+                          fill="#f59e0b"
+                          vectorEffect="non-scaling-stroke"
+                          className="opacity-70"
+                        />
+                      </g>
                     );
                   })}
                 </svg>
 
-                {/* Lista Vertical com nós alternados em Zigue-Zague */}
-                <div className="relative z-10 flex flex-col items-center gap-14 sm:gap-16">
+                {/* Lista Vertical de Trilhas em Zigue-Zague */}
+                <div className="relative z-10 flex flex-col">
                   {BLOG_CATEGORIAS.map((cat, idx) => {
                     const isEven = idx % 2 === 0;
-                    const offsetClass = isEven
-                      ? '-translate-x-[45px] sm:-translate-x-[65px]'
-                      : 'translate-x-[45px] sm:translate-x-[65px]';
                     const IconComp = CATEGORY_ICONS[cat.iconName] || BookOpen;
                     const totalArticles = countsByCategory.get(cat.id) || 50;
 
                     return (
-                      <motion.div
+                      <div
                         key={cat.id}
-                        initial={{ opacity: 0, scale: 0.9, y: 15 }}
-                        whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                        viewport={{ once: true, margin: '-40px' }}
-                        transition={{ delay: 0.05 * idx, duration: 0.3 }}
-                        className={`relative flex flex-col items-center ${offsetClass}`}
+                        className="h-[190px] relative w-full"
                       >
-                        {/* Botão Grande Circular */}
-                        <button
-                          onClick={() => setSelectedCategory(cat.id)}
-                          className="group relative flex flex-col items-center focus:outline-none"
-                          aria-label={`Abrir categoria ${cat.titulo}`}
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.85, y: 15 }}
+                          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                          viewport={{ once: true, margin: '-20px' }}
+                          transition={{ delay: 0.04 * idx, duration: 0.3 }}
+                          className="absolute top-0 flex flex-col items-center"
+                          style={{
+                            left: isEven ? '22%' : '78%',
+                            transform: 'translateX(-50%)',
+                          }}
                         >
-                          {/* Aura de brilho pulsante no hover */}
-                          <div
-                            className="absolute -inset-2.5 rounded-full opacity-30 group-hover:opacity-75 blur-md transition-all duration-300 pointer-events-none"
-                            style={{ background: cat.accentColor }}
-                          />
-
-                          {/* Círculo Principal */}
-                          <div
-                            className={`relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${cat.colorGradient} shadow-2xl border-2 border-white/30 group-hover:scale-105 active:scale-95 transition-transform duration-200`}
+                          {/* Botão Circular Principal */}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedCategory(cat.id)}
+                            className="group relative flex flex-col items-center focus:outline-none cursor-pointer"
+                            aria-label={`Abrir trilha ${cat.titulo}`}
                           >
-                            <IconComp className="w-9 h-9 sm:w-10 sm:h-10 text-white drop-shadow-md" strokeWidth={2.2} />
+                            {/* Aura de brilho pulsante no hover */}
+                            <div
+                              className="absolute -inset-2.5 rounded-full opacity-25 group-hover:opacity-75 blur-md transition-all duration-300 pointer-events-none"
+                              style={{ background: cat.accentColor }}
+                            />
 
-                            {/* Badge do número da categoria */}
-                            <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-background border border-border text-foreground font-display text-[10px] font-black flex items-center justify-center shadow-md">
-                              {cat.numero}
-                            </span>
-                          </div>
-
-                          {/* Informações da categoria abaixo do botão */}
-                          <div className="mt-2.5 flex flex-col items-center text-center max-w-[150px] sm:max-w-[170px]">
-                            <h4 className="font-display text-xs sm:text-sm font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
-                              {cat.titulo}
-                            </h4>
-                            <p className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-1 leading-snug">
-                              {cat.subtitulo}
-                            </p>
-                            <span
-                              className="mt-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold tracking-wide"
-                              style={{ background: cat.badgeBg, color: cat.badgeText }}
+                            {/* Círculo Principal com gradiente */}
+                            <div
+                              className={`relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${cat.colorGradient} shadow-2xl border-2 border-white/30 group-hover:scale-105 active:scale-95 transition-transform duration-200`}
                             >
-                              {totalArticles} artigos
-                            </span>
-                          </div>
-                        </button>
-                      </motion.div>
+                              <IconComp className="w-9 h-9 sm:w-10 sm:h-10 text-white drop-shadow-md" strokeWidth={2.2} />
+
+                              {/* Badge do número da categoria */}
+                              <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-background border border-border text-foreground font-display text-[10px] font-black flex items-center justify-center shadow-md">
+                                {cat.numero}
+                              </span>
+                            </div>
+
+                            {/* Informações da categoria abaixo do botão */}
+                            <div className="mt-2 flex flex-col items-center text-center max-w-[140px] sm:max-w-[160px]">
+                              <h4 className="font-display text-xs sm:text-sm font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
+                                {cat.titulo}
+                              </h4>
+                              <p className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-1 leading-snug">
+                                {cat.subtitulo}
+                              </p>
+                              <span
+                                className="mt-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold tracking-wide shadow-sm"
+                                style={{ background: cat.badgeBg, color: cat.badgeText }}
+                              >
+                                {totalArticles} artigos
+                              </span>
+                            </div>
+                          </button>
+                        </motion.div>
+                      </div>
                     );
                   })}
                 </div>
@@ -522,6 +637,19 @@ const Blog = () => {
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             loading={idx < 5 ? 'eager' : 'lazy'}
                           />
+                          {/* Tag Lido / Não lido no thumbnail */}
+                          <div className="absolute bottom-1.5 left-1.5 z-10">
+                            {isPostRead(post.id) ? (
+                              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-white bg-emerald-600/95 backdrop-blur-md px-1.5 py-0.5 rounded-full shadow-sm">
+                                <Check className="w-2.5 h-2.5 stroke-[3]" />
+                                Lido
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-0.5 text-[9px] font-medium text-zinc-300 bg-zinc-900/80 border border-white/10 backdrop-blur-md px-1.5 py-0.5 rounded-full shadow-sm">
+                                Não lido
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Conteúdo textual */}

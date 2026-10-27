@@ -25,8 +25,19 @@ export interface BlogCategoryMeta {
 
 export const BLOG_CATEGORIAS: BlogCategoryMeta[] = [
   {
-    id: '01 - Leis - o que são e como funcionam',
+    id: '09 - História das leis',
     numero: '01',
+    titulo: 'História das Leis',
+    subtitulo: 'De Hamurabi e Roma até a Constituição de 1988',
+    iconName: 'Hourglass',
+    colorGradient: 'from-orange-500 to-red-600',
+    accentColor: '#f97316',
+    badgeBg: 'rgba(249, 115, 22, 0.15)',
+    badgeText: '#fb923c',
+  },
+  {
+    id: '01 - Leis - o que são e como funcionam',
+    numero: '02',
     titulo: 'Leis & Fundamentos',
     subtitulo: 'O que são, hierarquia e como funcionam',
     iconName: 'Scale',
@@ -37,7 +48,7 @@ export const BLOG_CATEGORIAS: BlogCategoryMeta[] = [
   },
   {
     id: '02 - Processo legislativo',
-    numero: '02',
+    numero: '03',
     titulo: 'Processo Legislativo',
     subtitulo: 'Como nasce uma lei e o rito em Brasília',
     iconName: 'ScrollText',
@@ -48,7 +59,7 @@ export const BLOG_CATEGORIAS: BlogCategoryMeta[] = [
   },
   {
     id: '03 - Senado Federal',
-    numero: '03',
+    numero: '04',
     titulo: 'Senado Federal',
     subtitulo: 'A câmara alta, 81 senadores e sabatinas',
     iconName: 'Landmark',
@@ -59,7 +70,7 @@ export const BLOG_CATEGORIAS: BlogCategoryMeta[] = [
   },
   {
     id: '04 - Câmara dos Deputados',
-    numero: '04',
+    numero: '05',
     titulo: 'Câmara dos Deputados',
     subtitulo: 'Representação do povo, 513 deputados e plenário',
     iconName: 'Users',
@@ -70,7 +81,7 @@ export const BLOG_CATEGORIAS: BlogCategoryMeta[] = [
   },
   {
     id: '05 - STF',
-    numero: '05',
+    numero: '06',
     titulo: 'STF · Supremo Tribunal',
     subtitulo: 'Guardião da Constituição e decisões históricas',
     iconName: 'Gavel',
@@ -81,7 +92,7 @@ export const BLOG_CATEGORIAS: BlogCategoryMeta[] = [
   },
   {
     id: '06 - Judiciário além do STF',
-    numero: '06',
+    numero: '07',
     titulo: 'Poder Judiciário',
     subtitulo: 'STJ, TST, juizados e a justiça cotidiana',
     iconName: 'Shield',
@@ -92,7 +103,7 @@ export const BLOG_CATEGORIAS: BlogCategoryMeta[] = [
   },
   {
     id: '07 - Presidência e Poder Executivo',
-    numero: '07',
+    numero: '08',
     titulo: 'Presidência & Executivo',
     subtitulo: 'O Palácio do Planalto, ministérios e decretos',
     iconName: 'Crown',
@@ -103,7 +114,7 @@ export const BLOG_CATEGORIAS: BlogCategoryMeta[] = [
   },
   {
     id: '08 - Direitos do cidadão na prática',
-    numero: '08',
+    numero: '09',
     titulo: 'Direitos do Cidadão',
     subtitulo: 'Seus direitos em consumo, trabalho e saúde',
     iconName: 'HeartHandshake',
@@ -111,17 +122,6 @@ export const BLOG_CATEGORIAS: BlogCategoryMeta[] = [
     accentColor: '#14b8a6',
     badgeBg: 'rgba(20, 184, 166, 0.15)',
     badgeText: '#2dd4bf',
-  },
-  {
-    id: '09 - História das leis',
-    numero: '09',
-    titulo: 'História das Leis',
-    subtitulo: 'De Hamurabi e Roma até a Constituição de 1988',
-    iconName: 'Hourglass',
-    colorGradient: 'from-orange-500 to-red-600',
-    accentColor: '#f97316',
-    badgeBg: 'rgba(249, 115, 22, 0.15)',
-    badgeText: '#fb923c',
   },
   {
     id: '10 - Bastidores do poder',
