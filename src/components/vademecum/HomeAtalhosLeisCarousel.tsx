@@ -107,51 +107,6 @@ const DEFAULT_ATALHOS_IDS = [
   'ce',   // 12. Código Eleitoral
 ];
 
-interface AlternanciaTab {
-  id: string;
-  label: string;
-}
-
-const ALTERNANCIA_TABS: AlternanciaTab[] = [
-  { id: 'em-alta', label: 'Em Alta' },
-  { id: 'todos', label: 'Todas' },
-  { id: 'penal', label: 'Penal' },
-  { id: 'civil', label: 'Civil' },
-  { id: 'constitucional', label: 'Constitucional' },
-  { id: 'trabalho', label: 'Trabalho' },
-  { id: 'tributario', label: 'Tributário' },
-  { id: 'estatutos', label: 'Estatutos' },
-  { id: 'administrativo', label: 'Administrativo' },
-];
-
-const CATEGORY_MAP: Record<string, string[]> = {
-  penal: [
-    'cp', 'cpp', 'cpm', 'cppm', 'lep', 'lmp', 'ld', 'loc', 'laa', 'lit',
-    'lch', 'ltort', 'lcsf', 'lpt', 'lcp', 'lat', 'lci'
-  ],
-  civil: [
-    'cc', 'cpc', 'cdc', 'li', 'lrp', 'lalim', 'lalp', 'lgpd', 'mci',
-    'cflor', 'ccom', 'la'
-  ],
-  constitucional: [
-    'cf88', 'lindb', 'lpaf', 'lai', 'lap', 'lmi', 'lms', 'lhd'
-  ],
-  trabalho: [
-    'clt'
-  ],
-  tributario: [
-    'ctn', 'lrf', 'lrt', 'lcsf'
-  ],
-  estatutos: [
-    'eca', 'ei', 'epd', 'eir', 'ec', 'ed', 'eoab', 'et', 'ej', 'em',
-    'eind', 'eterra', 'emig', 'eref', 'emet', 'emus', 'eme', 'epc'
-  ],
-  administrativo: [
-    'lia', 'lpaf', 'nll', 'lai', 'lms', 'l8112', 'loman', 'lotcu',
-    'ces', 'lcon', 'lppp', 'lace'
-  ],
-};
-
 export const LAW_ICON_MAP: Record<string, React.ElementType> = {
   // Constituição
   cf88: Landmark,
@@ -448,87 +403,6 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
       }, 0);
     }
   };
-
-  const filteredCatalog = useMemo(() => {
-    let list: LeiCatalogItem[];
-
-    if (activeTab === 'em-alta') {
-      const map = new Map<string, LeiCatalogItem>();
-      LEIS_CATALOG.forEach((lei) => map.set(lei.id, lei));
-      list = selectedIds
-        .map((id) => map.get(id))
-        .filter((item): item is LeiCatalogItem => Boolean(item));
-    } else if (activeTab === 'todos') {
-      list = LEIS_CATALOG;
-    } else if (CATEGORY_MAP[activeTab]) {
-      const allowedIds = new Set(CATEGORY_MAP[activeTab]);
-      list = LEIS_CATALOG.filter((l) => allowedIds.has(l.id));
-    } else {
-      list = LEIS_CATALOG;
-    }
-
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) return list;
-
-    return list.filter(
-      (lei) =>
-        lei.sigla.toLowerCase().includes(term) ||
-        lei.nome.toLowerCase().includes(term) ||
-        lei.descricao.toLowerCase().includes(term) ||
-        lei.tags?.some((t) => t.toLowerCase().includes(term))
-    );
-  }, [activeTab, selectedIds, searchTerm]);
-
-  const toggleLei = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      let next: string[];
-      if (prev.includes(id)) {
-        if (prev.length <= 1) {
-          toast.error('Mantenha pelo menos 1 atalho selecionado.');
-          return prev;
-        }
-        next = prev.filter((item) => item !== id);
-        toast.info('Atalho removido do Em Alta');
-      } else {
-        if (prev.length >= MAX_ATALHOS) {
-          toast.warning(`Limite de ${MAX_ATALHOS} atalhos atingido. Remova um atalho no "Em Alta" para adicionar outro.`);
-          return prev;
-        }
-        next = [...prev, id];
-        toast.success('Atalho adicionado ao Em Alta!');
-      }
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
-  }, []);
-
-  const resetDefaults = useCallback(() => {
-    setSelectedIds(DEFAULT_ATALHOS_IDS);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_ATALHOS_IDS));
-    } catch {}
-    toast.success('Atalhos restaurados para o padrão.');
-  }, []);
-
-  const moveLei = useCallback((id: string, direction: 'up' | 'down') => {
-    setSelectedIds((prev) => {
-      const idx = prev.indexOf(id);
-      if (idx === -1) return prev;
-      if (direction === 'up' && idx === 0) return prev;
-      if (direction === 'down' && idx === prev.length - 1) return prev;
-
-      const next = [...prev];
-      const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-      [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
-
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {}
-      return next;
-    });
-  }, []);
 
   return (
     <section className="space-y-3">
