@@ -155,6 +155,26 @@ if (typeof document !== 'undefined' && !document.getElementById(shineStyleId)) {
       animation: tagsMarquee 28s linear infinite;
       will-change: transform;
     }
+    @keyframes btnCadastrarShimmer {
+      0% {
+        transform: translateX(-150%) skewX(-20deg);
+        opacity: 0;
+      }
+      3% {
+        opacity: 1;
+      }
+      22% {
+        transform: translateX(250%) skewX(-20deg);
+        opacity: 1;
+      }
+      23%, 100% {
+        transform: translateX(250%) skewX(-20deg);
+        opacity: 0;
+      }
+    }
+    .animate-btn-cadastrar-shimmer {
+      animation: btnCadastrarShimmer 4s ease-in-out infinite;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -919,7 +939,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             }}
             className="relative overflow-hidden group w-full py-4 bg-primary text-primary-foreground rounded-full font-body font-bold text-lg shadow-lg shadow-primary/30 active:scale-95 transition-all cursor-pointer"
           >
-            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
+            <div className="absolute inset-0 pointer-events-none -translate-x-full animate-btn-cadastrar-shimmer bg-gradient-to-r from-transparent via-white/50 to-transparent" />
             <span className="relative z-10">Cadastrar</span>
           </button>
 
