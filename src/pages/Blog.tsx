@@ -27,6 +27,7 @@ import {
   Filter,
   Check,
   Heart,
+  type LucideIcon,
 } from 'lucide-react';
 import { haptic } from '@/lib/nativeHaptics';
 import { PageHeader } from '@/components/vademecum/PageHeader';
@@ -57,7 +58,7 @@ import {
 import { recordActivity } from '@/lib/continuity';
 
 // Mapeamento dos ícones para as 10 categorias + Em Alta
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
   Scale,
   ScrollText,
   Landmark,
@@ -400,14 +401,14 @@ const Blog = () => {
                     </div>
                   </div>
 
-                  {/* Botão Ver todos na mesma linha */}
+                  {/* Botão Ver todos cinza com texto branco */}
                   <button
                     type="button"
                     onClick={() => handleSelectCategory('em-alta')}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-primary hover:text-primary-foreground hover:bg-primary border border-primary/30 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white border border-zinc-600/60 shadow-md transition-all active:scale-95 cursor-pointer"
                   >
-                    <span>Ver todos</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <span className="text-white font-medium">Ver todos</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-white stroke-[2.5]" />
                   </button>
                 </div>
 
@@ -625,28 +626,30 @@ const Blog = () => {
                             <div
                               className={`relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${cat.colorGradient} shadow-2xl border-2 border-white/30 group-hover:scale-105 active:scale-95 transition-transform duration-200`}
                             >
-                              <IconComp className="w-9 h-9 sm:w-10 sm:h-10 text-white drop-shadow-md" strokeWidth={2.2} />
+                              <IconComp className="w-9 h-9 sm:w-10 sm:h-10 text-white drop-shadow-md" strokeWidth={1.5} />
 
-                              {/* Badge do número da categoria */}
-                              <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-background border border-border text-foreground font-display text-[10px] font-black flex items-center justify-center shadow-md">
+                              {/* Badge do número da categoria com traço mais fino e discreto */}
+                              <span className="absolute -top-1 -right-1 w-5.5 h-5.5 rounded-full bg-zinc-950/95 border border-white/20 text-white font-mono text-[10px] font-medium flex items-center justify-center shadow-lg">
                                 {cat.numero}
                               </span>
                             </div>
 
-                            {/* Informações da categoria com fundo translúcido protetor (evita interferência da linha) */}
-                            <div className="mt-2.5 flex flex-col items-center text-center max-w-[145px] sm:max-w-[165px] px-3 py-1.5 rounded-2xl bg-background/85 backdrop-blur-md border border-border/40 shadow-sm relative z-20 group-hover:border-primary/40 group-hover:bg-background/95 transition-all">
-                              <h4 className="font-display text-xs sm:text-sm font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
+                            {/* Informações da categoria com largura confortável e sem abreviação */}
+                            <div className="mt-2.5 flex flex-col items-center text-center w-[165px] sm:w-[185px] max-w-[195px] px-3 py-2 rounded-2xl bg-background/90 backdrop-blur-md border border-border/50 shadow-md relative z-20 group-hover:border-primary/50 group-hover:bg-background/95 transition-all">
+                              <h4 className="font-display text-xs sm:text-sm font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
                                 {cat.titulo}
                               </h4>
-                              <p className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-1 leading-snug mt-0.5">
+                              <p className="text-[10.5px] sm:text-[11px] text-muted-foreground leading-tight mt-1 font-body">
                                 {cat.subtitulo}
                               </p>
-                              <span
-                                className="mt-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold tracking-wide shadow-sm"
-                                style={{ background: cat.badgeBg, color: cat.badgeText }}
-                              >
-                                {totalArticles} artigos
-                              </span>
+                              <div className="mt-1.5 flex items-center justify-center">
+                                <span
+                                  className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold tracking-wide shadow-sm"
+                                  style={{ background: cat.badgeBg, color: cat.badgeText }}
+                                >
+                                  {totalArticles} artigos
+                                </span>
+                              </div>
                             </div>
                           </button>
                         </motion.div>
@@ -908,7 +911,7 @@ const Blog = () => {
       <PremiumGate
         open={gateOpen}
         onClose={() => setGateOpen(false)}
-        feature="blog_read"
+        feature="blog"
       />
       </div>
     </div>
