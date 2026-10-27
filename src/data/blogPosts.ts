@@ -166,6 +166,9 @@ export interface BlogPost {
   autor: string;
   data_publicacao: string; // ISO
   tempo_leitura_min: number;
+  audio_url?: string | null;
+  audio_duration_seconds?: number | null;
+  audio_voice?: string | null;
 }
 
 // O acervo agora é 100% carregado dinamicamente do Supabase (blog_edicao_posts)

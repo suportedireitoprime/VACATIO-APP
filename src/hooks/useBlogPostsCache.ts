@@ -14,7 +14,7 @@ const LEGACY_KEYS = ['blog:posts:v1', 'blog:posts:v2', 'blog:posts:v3', 'blog:po
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 h
 
 const LISTA_COLS =
-  'id, titulo, resumo, imagem_url, categoria, autor, tempo_leitura_min, data_publicacao, created_at';
+  'id, titulo, resumo, imagem_url, categoria, autor, tempo_leitura_min, data_publicacao, created_at, audio_url, audio_duration_seconds, audio_voice';
 
 type RawPost = {
   id: string;
@@ -28,6 +28,9 @@ type RawPost = {
   tempo_leitura_min: number;
   data_publicacao: string;
   created_at?: string;
+  audio_url?: string | null;
+  audio_duration_seconds?: number | null;
+  audio_voice?: string | null;
 };
 
 type Cached = { at: number; posts: BlogPost[] };
@@ -45,6 +48,9 @@ function map(rows: RawPost[]): BlogPost[] {
       autor: p.autor || 'Redação Vadimeco',
       tempo_leitura_min: p.tempo_leitura_min || 7,
       data_publicacao: p.data_publicacao || new Date().toISOString(),
+      audio_url: p.audio_url || `https://pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev/blog/audios/${p.id}.mp3`,
+      audio_duration_seconds: p.audio_duration_seconds,
+      audio_voice: p.audio_voice || 'Professora',
     };
   });
 }

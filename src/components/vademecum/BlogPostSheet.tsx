@@ -1,7 +1,26 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Clock, BookOpen, Share2, ArrowUpRight, Heart, Type, Plus, Minus, MessageCircle, CheckCircle2 } from 'lucide-react';
+import {
+  ChevronDown,
+  Clock,
+  BookOpen,
+  Share2,
+  ArrowUpRight,
+  Heart,
+  Type,
+  Plus,
+  Minus,
+  MessageCircle,
+  CheckCircle2,
+  Play,
+  Pause,
+  RotateCcw,
+  RotateCw,
+  Headphones,
+  Loader2,
+  X,
+} from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +33,7 @@ import BlogCoverImage from '@/components/BlogCoverImage';
 import { blogHero } from '@/lib/blogImg';
 import { supabase } from '@/integrations/supabase/client';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
+import { haptic } from '@/lib/nativeHaptics';
 
 /** Corrige formatações comuns do Word/Drive (ex: espaço antes do fechamento de negrito `**texto **`) */
 function sanitizeBlogMarkdown(content: string): string {
@@ -36,6 +56,14 @@ function isAllUpper(text: string): boolean {
   return letters.length >= 3 && letters === letters.toUpperCase();
 }
 
+/** Formata segundos para MM:SS */
+function formatAudioTime(sec: number): string {
+  if (!sec || isNaN(sec) || sec < 0) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
 interface Props {
   post: BlogPost | null;
   onClose: () => void;
@@ -48,6 +76,8 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
   useEscapeKey(!!post && !inline, onClose);
   const isDesktop = useIsDesktop();
   const navigate = useNavigate();
+
+  // Estados de Leitura e UI
   const [fontSize, setFontSize] = useState(17);
   const [shareOpen, setShareOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -56,12 +86,28 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
   const [fontOpen, setFontOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [concluido, setConcluido] = useState(false);
-  // O conteúdo completo é carregado sob demanda (a lista vem sem markdown para
-  // abrir o Blogger instantaneamente).
   const [conteudo, setConteudo] = useState<string>(post?.conteudo_md || '');
   const scrollRef = useRef<HTMLDivElement>(null);
-  const incFont = () => setFontSize((s) => Math.min(24, s + 2));
-  const decFont = () => setFontSize((s) => Math.max(12, s - 2));
+
+  // Estados do Player de Narração (Áudio)
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [audioPlayerOpen, setAudioPlayerOpen] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioVoice, setAudioVoice] = useState<string>('Professora');
+
+  const incFont = () => {
+    haptic.selection();
+    setFontSize((s) => Math.min(26, s + 2));
+  };
+  const decFont = () => {
+    haptic.selection();
+    setFontSize((s) => Math.max(13, s - 2));
+  };
 
   // Carrega status de conclusão do artigo
   useEffect(() => {
@@ -86,6 +132,102 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
       }
       window.dispatchEvent(new CustomEvent('blog_status_updated', { detail: { id: post.id, concluido: next } }));
     } catch {}
+  };
+
+  // Inicialização e sincronização do áudio
+  useEffect(() => {
+    if (!post) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.removeAttribute('src');
+        audioRef.current.load();
+      }
+      setIsPlaying(false);
+      setIsLoadingAudio(false);
+      setCurrentTime(0);
+      setAudioDuration(0);
+      setAudioPlayerOpen(false);
+      setAudioUrl(null);
+      return;
+    }
+
+    // URL no Cloudflare R2 ou campo de áudio
+    const defaultR2Url = `https://pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev/blog/audios/${post.id}.mp3`;
+    const initialUrl = post.audio_url || defaultR2Url;
+    setAudioUrl(initialUrl);
+
+    if (post.audio_duration_seconds) {
+      setAudioDuration(post.audio_duration_seconds);
+    }
+    if (post.audio_voice) {
+      setAudioVoice(post.audio_voice);
+    }
+
+    // Busca detalhes mais recentes no Supabase caso ainda não estejam no cache
+    supabase
+      .from('blog_edicao_posts')
+      .select('conteudo_md, audio_url, audio_duration_seconds, audio_voice')
+      .eq('id', post.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.conteudo_md && !conteudo) {
+          setConteudo(data.conteudo_md as string);
+        }
+        if (data?.audio_url) {
+          setAudioUrl(data.audio_url);
+        }
+        if (data?.audio_duration_seconds) {
+          setAudioDuration(data.audio_duration_seconds);
+        }
+        if (data?.audio_voice) {
+          setAudioVoice(data.audio_voice);
+        }
+      });
+  }, [post?.id]);
+
+  const togglePlay = () => {
+    haptic.impact('light');
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      setAudioPlayerOpen(true);
+      setIsLoadingAudio(true);
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setIsLoadingAudio(false);
+        })
+        .catch((err) => {
+          console.warn('Erro ao reproduzir narração:', err);
+          setIsLoadingAudio(false);
+          setIsPlaying(false);
+          toast.error('Não foi possível iniciar a narração. Tente novamente.');
+        });
+    }
+  };
+
+  const skipAudio = (seconds: number) => {
+    haptic.selection();
+    if (!audioRef.current) return;
+    const maxDur = audioDuration || audioRef.current.duration || 9999;
+    const next = Math.max(0, Math.min(maxDur, audioRef.current.currentTime + seconds));
+    audioRef.current.currentTime = next;
+    setCurrentTime(next);
+  };
+
+  const cycleSpeed = () => {
+    haptic.selection();
+    const speeds = [1, 1.25, 1.5, 2];
+    const nextIdx = (speeds.indexOf(playbackSpeed) + 1) % speeds.length;
+    const nextSpeed = speeds[nextIdx];
+    setPlaybackSpeed(nextSpeed);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = nextSpeed;
+    }
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -120,7 +262,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
       const upper = isAllUpper(text);
       return (
         <h2
-          className={`font-display font-bold text-xl md:text-2xl mt-6 mb-3 ${
+          className={`font-display font-bold text-xl md:text-2xl mt-5 mb-2.5 ${
             upper ? 'text-[#FF6B6B] dark:text-[#F87171] tracking-wide' : 'text-foreground'
           }`}
           {...props}
@@ -134,7 +276,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
       const upper = isAllUpper(text);
       return (
         <h3
-          className={`font-display font-bold text-lg md:text-xl mt-5 mb-2 ${
+          className={`font-display font-semibold text-lg md:text-xl mt-4 mb-2 ${
             upper ? 'text-[#FF6B6B] dark:text-[#F87171] tracking-wide' : 'text-foreground'
           }`}
           {...props}
@@ -143,6 +285,34 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
         </h3>
       );
     },
+    p: ({ children, ...props }: React.ComponentPropsWithoutRef<'p'>) => {
+      const text = typeof children === 'string' ? children : '';
+      if (text.startsWith('Foto:') || text.startsWith('Fonte:') || text.startsWith('Legenda:') || text.startsWith('Figura')) {
+        return (
+          <p className="text-xs text-muted-foreground italic text-center -mt-3 mb-4" {...props}>
+            {children}
+          </p>
+        );
+      }
+      return <p className="my-4 leading-[1.75]" {...props}>{children}</p>;
+    },
+    img: ({ src, alt, ...props }: React.ComponentPropsWithoutRef<'img'>) => (
+      <figure className="my-6">
+        <img
+          src={src}
+          alt={alt || 'Ilustração do artigo'}
+          loading="lazy"
+          decoding="async"
+          className="w-full max-h-[480px] object-cover object-center rounded-2xl shadow-xl border border-border/50 mx-auto"
+          {...props}
+        />
+        {alt && alt !== 'imagem' && alt !== 'ilustracao' && (
+          <figcaption className="text-xs text-muted-foreground italic text-center mt-2 px-4">
+            {alt}
+          </figcaption>
+        )}
+      </figure>
+    ),
     strong: ({ children, ...props }: React.ComponentPropsWithoutRef<'strong'>) => {
       const text = typeof children === 'string' ? children : Array.isArray(children) ? children.join('') : '';
       const upper = isAllUpper(text);
@@ -188,8 +358,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
     return () => { cancelled = true; };
   }, [post?.id, post?.conteudo_md]);
 
-  // Trava scroll do fundo enquanto o painel estiver aberto — evita que
-  // toques/roladas vazem para a página atrás do sheet.
+  // Trava scroll do fundo enquanto o painel estiver aberto
   useEffect(() => {
     if (!post || inline) return;
     const prev = document.body.style.overflow;
@@ -216,7 +385,14 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
           return s;
         })()) : null,
       }).then(() => {});
-      if (!user) { if (!cancelled) setLiked(false); return; }
+
+      if (!user) {
+        try {
+          const isLocalFav = localStorage.getItem(`blog_fav_${post.id}`) === '1';
+          if (!cancelled) setLiked(isLocalFav);
+        } catch {}
+        return;
+      }
       const { data } = await supabase.from('blog_post_likes')
         .select('id').eq('post_id', post.id).eq('user_id', user.id).maybeSingle();
       if (!cancelled) setLiked(!!data);
@@ -226,19 +402,32 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
 
   const toggleLike = async () => {
     if (!post || likeBusy) return;
+    haptic.selection();
     setLikeBusy(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLikeBusy(false); return; }
     const next = !liked;
     setLiked(next); // otimista
+
+    if (!user) {
+      try {
+        if (next) localStorage.setItem(`blog_fav_${post.id}`, '1');
+        else localStorage.removeItem(`blog_fav_${post.id}`);
+      } catch {}
+      setLikeBusy(false);
+      toast.success(next ? 'Artigo favoritado!' : 'Artigo removido dos favoritos');
+      return;
+    }
+
     if (next) {
       const { error } = await supabase.from('blog_post_likes')
         .insert({ post_id: post.id, user_id: user.id });
       if (error) setLiked(false);
+      else toast.success('Artigo favoritado!');
     } else {
       const { error } = await supabase.from('blog_post_likes')
         .delete().eq('post_id', post.id).eq('user_id', user.id);
       if (error) setLiked(true);
+      else toast.info('Artigo removido dos favoritos');
     }
     setLikeBusy(false);
   };
@@ -257,6 +446,38 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
               onClick={onClose}
             />
           )}
+
+          {/* Elemento de áudio oculto */}
+          <audio
+            ref={audioRef}
+            src={audioUrl || undefined}
+            preload="metadata"
+            onTimeUpdate={() => {
+              if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+            }}
+            onLoadedMetadata={() => {
+              if (audioRef.current && audioRef.current.duration && !isNaN(audioRef.current.duration)) {
+                setAudioDuration(audioRef.current.duration);
+              }
+            }}
+            onWaiting={() => setIsLoadingAudio(true)}
+            onPlaying={() => {
+              setIsLoadingAudio(false);
+              setIsPlaying(true);
+            }}
+            onPause={() => setIsPlaying(false)}
+            onEnded={() => {
+              setIsPlaying(false);
+              setCurrentTime(0);
+              if (audioRef.current) audioRef.current.currentTime = 0;
+              toast.success('Narração concluída!');
+            }}
+            onError={() => {
+              setIsLoadingAudio(false);
+              setIsPlaying(false);
+            }}
+          />
+
           <motion.div
             key={inline ? post.id : 'sheet'}
             initial={inline ? { opacity: 0, y: 8 } : { y: '100%' }}
@@ -282,7 +503,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
             <div
               ref={scrollRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto pb-8 relative scroll-smooth"
+              className="flex-1 overflow-y-auto pb-36 relative scroll-smooth"
             >
               {/* Capa Principal: começa no topo com cantos arredondados, preenchendo toda a largura sem faixas pretas */}
               <div className={`relative w-full ${isDesktop ? 'h-[240px]' : 'aspect-[16/10] sm:aspect-[16/9] max-h-[46vh]'} overflow-hidden rounded-t-3xl bg-card`}>
@@ -298,18 +519,18 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-card via-card/75 to-transparent" />
               </div>
 
-              {/* Barra de ações sticky: botão de abaixar o artigo (ChevronDown) à esquerda + botões de ação à direita */}
+              {/* Barra superior de navegação: botão de fechar/abaixar à esquerda + comentários e atalhos à direita */}
               <div className="sticky top-1 z-30 pointer-events-none flex items-center justify-between px-3 -mt-7 mb-3">
-                {/* Botão de abaixar / fechar o artigo — acompanha o scroll o tempo todo */}
+                {/* Botão de fechar / abaixar o artigo */}
                 <button
                   onClick={onClose}
                   aria-label="Abaixar artigo"
-                  className="pointer-events-auto w-11 h-11 flex items-center justify-center rounded-full bg-card/95 backdrop-blur-md border border-border text-foreground shadow-xl hover:bg-secondary active:scale-95 transition-all"
+                  className="pointer-events-auto w-11 h-11 flex items-center justify-center rounded-full bg-card/95 backdrop-blur-md border border-border text-foreground shadow-xl hover:bg-secondary active:scale-95 transition-all cursor-pointer"
                 >
                   <ChevronDown className="w-5 h-5" strokeWidth={2.5} />
                 </button>
 
-                {/* Ações da direita: Ir para (desktop), Tamanho da fonte, Comentários, Curtir, Compartilhar */}
+                {/* Ações da direita no topo */}
                 <div className="pointer-events-auto flex items-center gap-2">
                   {showGoTo && (
                     <button
@@ -318,86 +539,23 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                         navigate('/blog', { state: { postId: post.id } });
                       }}
                       aria-label="Ir para o Blog"
-                      className="inline-flex items-center gap-1.5 h-11 px-3.5 rounded-full bg-card/95 backdrop-blur-md border border-border text-foreground text-xs font-semibold shadow-xl hover:bg-secondary active:scale-95 transition-all"
+                      className="inline-flex items-center gap-1.5 h-11 px-3.5 rounded-full bg-card/95 backdrop-blur-md border border-border text-foreground text-xs font-semibold shadow-xl hover:bg-secondary active:scale-95 transition-all cursor-pointer"
                     >
                       <ArrowUpRight className="w-4 h-4" />
                       Ir para
                     </button>
                   )}
 
-                  {/* Controle de Fonte */}
-                  <div className="flex flex-row items-center bg-card/95 backdrop-blur-md border border-border rounded-full shadow-xl overflow-hidden">
-                    <AnimatePresence initial={false}>
-                      {fontOpen && (
-                        <motion.div
-                          key="font-controls"
-                          initial={{ width: 0, opacity: 0 }}
-                          animate={{ width: 'auto', opacity: 1 }}
-                          exit={{ width: 0, opacity: 0 }}
-                          transition={{ duration: 0.18 }}
-                          className="flex items-center overflow-hidden"
-                        >
-                          <button
-                            onClick={decFont}
-                            aria-label="Diminuir fonte"
-                            className="w-9 h-11 flex items-center justify-center text-foreground hover:bg-secondary active:scale-95 transition-all"
-                          >
-                            <Minus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                          </button>
-                          <span className="min-w-[40px] text-center text-[11px] font-bold tabular-nums text-foreground">
-                            {fontSize}px
-                          </span>
-                          <button
-                            onClick={incFont}
-                            aria-label="Aumentar fonte"
-                            className="w-9 h-11 flex items-center justify-center text-foreground hover:bg-secondary active:scale-95 transition-all"
-                          >
-                            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                          </button>
-                          <div className="w-px h-5 bg-border" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    <button
-                      onClick={() => setFontOpen((v) => !v)}
-                      aria-label="Ajustar tamanho do texto"
-                      aria-expanded={fontOpen}
-                      className="w-11 h-11 flex items-center justify-center text-foreground hover:bg-secondary active:scale-95 transition-all"
-                    >
-                      <Type className="w-5 h-5" strokeWidth={2.5} />
-                    </button>
-                  </div>
-
-                  {/* Comentários */}
+                  {/* Botão de Comentários */}
                   <button
-                    onClick={() => setCommentsOpen(true)}
-                    aria-label="Comentar"
-                    className="w-11 h-11 flex items-center justify-center rounded-full bg-card/95 backdrop-blur-md border border-border text-foreground shadow-xl hover:bg-secondary active:scale-95 transition-all"
+                    onClick={() => {
+                      haptic.selection();
+                      setCommentsOpen(true);
+                    }}
+                    aria-label="Comentários"
+                    className="w-11 h-11 flex items-center justify-center rounded-full bg-card/95 backdrop-blur-md border border-border text-foreground shadow-xl hover:bg-secondary active:scale-95 transition-all cursor-pointer"
                   >
                     <MessageCircle className="w-5 h-5" />
-                  </button>
-
-                  {/* Curtir */}
-                  <button
-                    onClick={toggleLike}
-                    aria-label={liked ? 'Descurtir' : 'Curtir'}
-                    aria-pressed={liked}
-                    className={`w-11 h-11 flex items-center justify-center rounded-full shadow-xl active:scale-95 transition-all ${
-                      liked
-                        ? 'bg-rose-500 text-white'
-                        : 'bg-card/95 backdrop-blur-md border border-border text-foreground hover:bg-secondary'
-                    }`}
-                  >
-                    <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} strokeWidth={2.5} />
-                  </button>
-
-                  {/* Compartilhar */}
-                  <button
-                    onClick={() => setShareOpen(true)}
-                    aria-label="Compartilhar"
-                    className="w-11 h-11 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl hover:brightness-110 active:scale-95 transition-all"
-                  >
-                    <Share2 className="w-5 h-5" />
                   </button>
                 </div>
               </div>
@@ -411,7 +569,14 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                   <span className="px-2 py-0.5 rounded-md bg-primary/15 text-primary text-[10px] font-bold">
                     {post.tema}
                   </span>
+                  {isPlaying && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold animate-pulse border border-emerald-500/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                      Reproduzindo narração
+                    </span>
+                  )}
                 </div>
+
                 <h2
                   className={`font-display text-2xl md:text-3xl leading-[1.15] font-bold tracking-tight ${
                     isAllUpper(post.titulo)
@@ -421,6 +586,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                 >
                   {post.titulo}
                 </h2>
+
                 <p className="text-muted-foreground text-xs font-body flex items-center gap-3">
                   <span>{post.autor}</span>
                   <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
@@ -428,6 +594,15 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                     <Clock className="w-3 h-3" />
                     {post.tempo_leitura_min} min de leitura
                   </span>
+                  {audioDuration > 0 && (
+                    <>
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+                      <span className="inline-flex items-center gap-1.5 text-primary font-medium">
+                        <Headphones className="w-3 h-3" />
+                        {formatAudioTime(audioDuration)} de áudio
+                      </span>
+                    </>
+                  )}
                 </p>
 
                 <article
@@ -463,7 +638,7 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                   )}
                 </article>
 
-                {/* Botão no Rodapé: Marcar como concluído */}
+                {/* Cartão de Conclusão de Leitura */}
                 <div className="pt-8 pb-10 flex flex-col items-center border-t border-border/40 mt-8">
                   <button
                     type="button"
@@ -477,15 +652,279 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
                     <CheckCircle2 className="w-5 h-5" />
                     {concluido ? 'Leitura Concluída ✓' : 'Marcar como concluído'}
                   </button>
-                  <p className="text-xs text-muted-foreground mt-2.5">
+                  <p className="text-xs text-muted-foreground mt-2.5 text-center">
                     {concluido
                       ? 'Parabéns! Artigo marcado no seu progresso.'
-                      : 'Finalizou a leitura? Marque para registrar seu progresso.'}
+                      : 'Finalizou a leitura? Marque para registrar seu progresso no app.'}
                   </p>
                 </div>
               </div>
             </div>
 
+            {/* Seletor Flutuante de Tamanho da Fonte (aparece acima do botão Fonte) */}
+            <AnimatePresence>
+              {fontOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="fixed bottom-[88px] left-8 sm:left-auto sm:right-32 z-50 flex items-center gap-2 bg-[#232326]/95 backdrop-blur-xl border border-white/10 px-3 py-2 rounded-2xl shadow-2xl text-white select-none"
+                >
+                  <button
+                    onClick={decFont}
+                    aria-label="Diminuir fonte"
+                    className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center active:scale-90 transition-all text-white cursor-pointer"
+                  >
+                    <Minus className="w-4 h-4" strokeWidth={2.5} />
+                  </button>
+                  <span className="min-w-[48px] text-center font-mono text-xs font-bold text-white">
+                    {fontSize}px
+                  </span>
+                  <button
+                    onClick={incFont}
+                    aria-label="Aumentar fonte"
+                    className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center active:scale-90 transition-all text-white cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" strokeWidth={2.5} />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Player Flutuante de Narração (aparece acima do Bottom Nav) */}
+            <AnimatePresence>
+              {audioPlayerOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 25, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.96 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                  className="fixed bottom-[88px] left-3 right-3 sm:left-auto sm:right-6 sm:w-[420px] z-50 rounded-2xl bg-[#1C1C1E]/95 backdrop-blur-xl border border-white/10 p-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.7)] text-white select-none"
+                >
+                  {/* Header do Player: Título + Voz + Velocidade + Fechar */}
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+                        <Headphones className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white truncate leading-tight">
+                          Narração do Artigo
+                        </p>
+                        <p className="text-[10px] text-white/60 truncate flex items-center gap-1.5 mt-0.5">
+                          <span>Voz: {audioVoice}</span>
+                          {isPlaying && (
+                            <span className="flex items-center gap-0.5 ml-1">
+                              <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                              <span className="w-1 h-3.5 bg-emerald-400 rounded-full animate-pulse delay-75" />
+                              <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse delay-150" />
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={cycleSpeed}
+                        className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white active:scale-95 transition-all cursor-pointer"
+                        title="Alterar velocidade"
+                      >
+                        {playbackSpeed}x
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (audioRef.current) audioRef.current.pause();
+                          setIsPlaying(false);
+                          setAudioPlayerOpen(false);
+                        }}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                        title="Fechar player"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Barra de Progresso Scrub Interativa */}
+                  <div className="space-y-1">
+                    <div className="relative w-full flex items-center">
+                      <input
+                        type="range"
+                        min={0}
+                        max={audioDuration || 100}
+                        value={currentTime}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          setCurrentTime(val);
+                          if (audioRef.current) audioRef.current.currentTime = val;
+                        }}
+                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-primary"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-white/60 font-mono">
+                      <span>{formatAudioTime(currentTime)}</span>
+                      <span>{formatAudioTime(audioDuration)}</span>
+                    </div>
+                  </div>
+
+                  {/* Controles de Reprodução (-10s, Play/Pause, +10s) */}
+                  <div className="flex items-center justify-center gap-6 mt-1.5">
+                    <button
+                      onClick={() => skipAudio(-10)}
+                      className="text-white/70 hover:text-white active:scale-90 transition-all flex flex-col items-center cursor-pointer"
+                      title="Voltar 10 segundos"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span className="text-[9px] -mt-0.5 font-bold">-10s</span>
+                    </button>
+
+                    <button
+                      onClick={togglePlay}
+                      className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                    >
+                      {isLoadingAudio ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : isPlaying ? (
+                        <Pause className="w-5 h-5 fill-current" />
+                      ) : (
+                        <Play className="w-5 h-5 fill-current ml-0.5" />
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => skipAudio(10)}
+                      className="text-white/70 hover:text-white active:scale-90 transition-all flex flex-col items-center cursor-pointer"
+                      title="Avançar 10 segundos"
+                    >
+                      <RotateCw className="w-4 h-4" />
+                      <span className="text-[9px] -mt-0.5 font-bold">+10s</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Menu de Rodapé do Artigo (estilo BottomNav do início do aplicativo) */}
+            <nav
+              aria-label="Barra de ações do artigo"
+              className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,0px)] select-none"
+            >
+              {/* Degradê escuro subindo do rodapé para dar profundidade */}
+              <div
+                aria-hidden="true"
+                className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
+              />
+              <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
+                {/* 1. Favoritar */}
+                <button
+                  onClick={toggleLike}
+                  data-track="blog_sheet_favoritar"
+                  className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative cursor-pointer group"
+                  aria-label={liked ? 'Desfavoritar' : 'Favoritar'}
+                >
+                  <Heart
+                    className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform group-active:scale-125 ${
+                      liked
+                        ? 'scale-110 text-rose-500 fill-rose-500 drop-shadow-[0_2px_10px_rgba(244,63,94,0.5)]'
+                        : 'text-white/80 hover:text-white drop-shadow-sm'
+                    }`}
+                    strokeWidth={1.5}
+                  />
+                  <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white/90 drop-shadow-sm">
+                    {liked ? 'Favorito' : 'Favoritar'}
+                  </span>
+                </button>
+
+                {/* 2. Fonte (A- / A+) */}
+                <button
+                  onClick={() => {
+                    haptic.selection();
+                    setFontOpen((v) => !v);
+                  }}
+                  data-track="blog_sheet_fonte"
+                  className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative cursor-pointer group"
+                  aria-label="Tamanho da fonte"
+                  aria-expanded={fontOpen}
+                >
+                  <Type
+                    className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform group-active:scale-110 ${
+                      fontOpen ? 'scale-110 text-primary drop-shadow-[0_2px_10px_rgba(245,158,11,0.5)]' : 'text-white/80 hover:text-white drop-shadow-sm'
+                    }`}
+                    strokeWidth={1.5}
+                  />
+                  <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white/90 drop-shadow-sm">
+                    Fonte
+                  </span>
+                </button>
+
+                {/* 3. Narrar (Central FAB - Principal) */}
+                <button
+                  onClick={togglePlay}
+                  data-track="blog_sheet_narrar"
+                  className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 min-h-[6.25rem] min-w-[5.75rem] touch-manipulation select-none cursor-pointer"
+                  aria-label={isPlaying ? 'Pausar narração' : 'Narrar artigo'}
+                >
+                  <span
+                    className={`relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.6)] transition-all duration-300 active:scale-95 ${
+                      isPlaying
+                        ? 'bg-gradient-to-tr from-amber-500 via-rose-500 to-amber-400 ring-4 ring-amber-400/40 animate-pulse'
+                        : 'bg-primary ring-2 ring-white/10 hover:ring-white/25 hover:scale-105'
+                    }`}
+                  >
+                    {isLoadingAudio ? (
+                      <Loader2 className="w-8 h-8 sm:w-9 sm:h-9 text-white animate-spin" />
+                    ) : isPlaying ? (
+                      <Pause className="w-8 h-8 sm:w-9 sm:h-9 text-white fill-current drop-shadow-sm" strokeWidth={1.5} />
+                    ) : (
+                      <Play className="w-8 h-8 sm:w-9 sm:h-9 text-white fill-current ml-1 drop-shadow-sm" strokeWidth={1.5} />
+                    )}
+                  </span>
+                  <span className="font-body text-[11px] sm:text-[12px] font-bold leading-tight text-center text-white drop-shadow-sm truncate px-0.5">
+                    {isPlaying ? 'Pausar' : 'Narrar'}
+                  </span>
+                </button>
+
+                {/* 4. Compartilhar */}
+                <button
+                  onClick={() => {
+                    haptic.selection();
+                    setShareOpen(true);
+                  }}
+                  data-track="blog_sheet_compartilhar"
+                  className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative cursor-pointer group"
+                  aria-label="Compartilhar artigo"
+                >
+                  <Share2 className="w-7 h-7 sm:w-8 sm:h-8 text-white/80 hover:text-white group-active:scale-110 drop-shadow-sm" strokeWidth={1.5} />
+                  <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white/90 drop-shadow-sm">
+                    Compartilhar
+                  </span>
+                </button>
+
+                {/* 5. Concluir / Lido */}
+                <button
+                  onClick={() => {
+                    haptic.selection();
+                    toggleConcluido();
+                  }}
+                  data-track="blog_sheet_concluir"
+                  className="flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors relative cursor-pointer group"
+                  aria-label={concluido ? 'Leitura concluída' : 'Marcar como lido'}
+                >
+                  <CheckCircle2
+                    className={`w-7 h-7 sm:w-8 sm:h-8 transition-transform group-active:scale-125 ${
+                      concluido
+                        ? 'scale-110 text-emerald-400 fill-emerald-500/20 drop-shadow-[0_2px_10px_rgba(52,211,153,0.5)]'
+                        : 'text-white/80 hover:text-white drop-shadow-sm'
+                    }`}
+                    strokeWidth={1.5}
+                  />
+                  <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white/90 drop-shadow-sm">
+                    {concluido ? 'Lido' : 'Concluir'}
+                  </span>
+                </button>
+              </div>
+            </nav>
           </motion.div>
 
           <ShareSheet
@@ -510,4 +949,3 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
   if (inline) return content;
   return createPortal(content, document.body);
 }
-
