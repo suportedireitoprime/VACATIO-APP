@@ -13,7 +13,8 @@ import {
   EyeOff, 
   CheckCircle, 
   KeyRound,
-  Star 
+  Star,
+  X 
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -535,37 +536,55 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
 
     if (mode === 'signup') {
       return (
-        <div className="w-full flex flex-col text-left">
-          <div className="text-center mb-5">
-            <h2 className="font-display text-2xl font-bold text-white">
-              Criar sua conta
-            </h2>
-            <p className="text-xs font-body text-neutral-400 mt-1 max-w-[320px] mx-auto">
-              O cadastro no Vacatio é realizado exclusivamente com sua conta Google para sincronização segura e imediata.
+        <div className="w-full flex-1 flex flex-col justify-between text-left py-1">
+          <div>
+            <div className="text-center mb-5">
+              <h2 className="font-display text-2xl font-bold text-white">
+                Criar sua conta
+              </h2>
+              <p className="text-xs font-body text-neutral-400 mt-1 max-w-[320px] mx-auto">
+                O cadastro no Vacatio é realizado exclusivamente com sua conta Google para sincronização segura e imediata.
+              </p>
+            </div>
+
+            {googleButton}
+
+            {/* Destaques para equilibrar a altura exatamente com a tela de login */}
+            <div className="mt-5 p-4 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2.5">
+              <div className="flex items-center gap-2.5 text-xs font-body text-white/80">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                <span>Acesso instantâneo a toda a legislação explicada</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs font-body text-white/80">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                <span>Sincronização automática em todos os seus aparelhos</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs font-body text-white/80">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                <span>Sem senhas para memorizar: login seguro com 1 clique</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-4">
+              Ao criar sua conta, você concorda com os{' '}
+              <button
+                type="button"
+                onClick={() => setLegalOpen('termos')}
+                className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
+              >
+                Termos de Uso
+              </button>{' '}
+              e com a{' '}
+              <button
+                type="button"
+                onClick={() => setLegalOpen('privacidade')}
+                className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
+              >
+                Política de Privacidade
+              </button>
+              .
             </p>
           </div>
-
-          {googleButton}
-
-          <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-4">
-            Ao criar sua conta, você concorda com os{' '}
-            <button
-              type="button"
-              onClick={() => setLegalOpen('termos')}
-              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
-            >
-              Termos de Uso
-            </button>{' '}
-            e com a{' '}
-            <button
-              type="button"
-              onClick={() => setLegalOpen('privacidade')}
-              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
-            >
-              Política de Privacidade
-            </button>
-            .
-          </p>
 
           <div className="text-center pt-5 text-xs font-body text-neutral-400">
             Já possui uma conta?{' '}
@@ -940,7 +959,17 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
 
       {/* Bottom Sheet Drawer for Auth Form */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="bg-neutral-950 border-neutral-800 text-white px-6 pt-2 pb-[max(var(--sai-bottom,var(--sai-bottom)),1.5rem)] outline-none max-h-[92dvh] overflow-y-auto">
+        <DrawerContent className="bg-neutral-950 border-neutral-800 text-white px-6 pt-3 pb-[max(var(--sai-bottom,var(--sai-bottom)),1.5rem)] outline-none max-h-[92dvh] overflow-y-auto">
+          {/* Botão de fechar responsivo */}
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(false)}
+            aria-label="Fechar"
+            className="absolute top-3.5 right-4 z-30 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 text-white/70 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
           <DrawerHeader className="sr-only">
             <DrawerTitle>
               {mode === 'login' ? 'Acessar conta' : mode === 'signup' ? 'Criar conta' : 'Recuperar senha'}
@@ -949,7 +978,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               {mode === 'login' ? 'Entre com Google ou e-mail' : mode === 'signup' ? 'Cadastro via Google' : 'Recupere sua senha'}
             </DrawerDescription>
           </DrawerHeader>
-          <div className="pt-2">
+          <div className="pt-2 min-h-[490px] flex flex-col justify-between">
             {renderFormBody()}
           </div>
         </DrawerContent>
