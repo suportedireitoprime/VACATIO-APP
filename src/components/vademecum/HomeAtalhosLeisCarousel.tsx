@@ -663,14 +663,14 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                     type="button"
                     onClick={() => setModalOpen(false)}
                     aria-label="Fechar"
-                    className="p-2 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition cursor-pointer"
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 active:scale-95 text-neutral-300 hover:text-white flex items-center justify-center border border-white/10 transition-all cursor-pointer shrink-0"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
                 {/* Lista em Bottom Sheet das Leis com Imagens dos Cards e Ranking */}
-                <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5 scrollbar-thin scrollbar-thumb-white/10">
+                <div className="flex-1 overflow-y-auto p-3 pt-4 sm:p-4 space-y-3 scrollbar-thin scrollbar-thumb-white/10">
                   {rankingLeisComIlustracao.map(({ lei, totalAcessos }, index) => {
                     const LawIcon = getLawIcon(lei.id, lei.tipo);
                     const baseColor = getLeiColor(lei.id, lei.tipo);
@@ -685,7 +685,7 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                           setModalOpen(false);
                           onOpenLei(lei.id);
                         }}
-                        className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-[#18181B] hover:bg-[#202024] active:scale-[0.99] border border-white/10 hover:border-white/20 transition-all text-left shadow-sm group relative overflow-hidden"
+                        className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-[#18181B] hover:bg-[#202024] active:scale-[0.99] border border-white/10 hover:border-white/20 transition-all text-left shadow-sm group relative overflow-visible"
                       >
                         {/* Posição no Ranking */}
                         <div className="w-7 text-center shrink-0">
@@ -704,25 +704,31 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                           </span>
                         </div>
 
-                        {/* Miniatura do Card com a Ilustração Original */}
-                        <div
-                          className="w-16 h-14 rounded-xl relative overflow-hidden shrink-0 flex items-center justify-center shadow-md"
-                          style={{
-                            background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.3)} 100%)`,
-                          }}
-                        >
-                          <LawIcon
-                            className="absolute -right-2 -bottom-2 w-10 h-10 text-white/[0.15]"
-                            strokeWidth={1.3}
-                          />
+                        {/* Miniatura do Card com a Ilustração Vazada */}
+                        <div className="relative w-16 h-14 shrink-0 flex items-center justify-center">
+                          {/* Fundo arredondado colorido com overflow-hidden para o gradiente e marca d'água */}
+                          <div
+                            className="absolute inset-0 rounded-xl overflow-hidden shadow-md"
+                            style={{
+                              background: `linear-gradient(135deg, ${baseColor} 0%, ${shade(baseColor, -0.3)} 100%)`,
+                            }}
+                          >
+                            <LawIcon
+                              className="absolute -right-2 -bottom-2 w-10 h-10 text-white/[0.15]"
+                              strokeWidth={1.3}
+                            />
+                            <div className="absolute -right-4 -top-4 w-12 h-12 rounded-full bg-white/10 blur-md" />
+                          </div>
+
+                          {/* Ilustração 3D vazando para fora do topo da caixinha */}
                           {ilustracao ? (
                             <img
                               src={ilustracao}
                               alt={lei.sigla}
-                              className="absolute -top-1.5 right-0 h-14 w-auto max-w-none object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-200"
+                              className="absolute -top-3.5 right-0 h-[66px] w-auto max-w-none object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-200 pointer-events-none z-10"
                             />
                           ) : (
-                            <LawIcon className="w-6 h-6 text-white" strokeWidth={1.8} />
+                            <LawIcon className="relative z-10 w-6 h-6 text-white" strokeWidth={1.8} />
                           )}
                         </div>
 
@@ -753,18 +759,11 @@ function HomeAtalhosLeisCarousel({ onOpenLei }: Props) {
                   })}
                 </div>
 
-                {/* Footer */}
-                <div className="p-3 pb-6 sm:p-4 sm:pb-4 border-t border-white/10 flex items-center justify-between bg-[#141416] shrink-0">
+                {/* Footer sem botão fechar redundante */}
+                <div className="p-3.5 pb-6 sm:pb-3.5 border-t border-white/10 flex items-center justify-center bg-[#141416] shrink-0">
                   <span className="text-[12px] text-neutral-400">
                     <strong className="text-white font-bold">{rankingLeisComIlustracao.length}</strong> legislações em destaque
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setModalOpen(false)}
-                    className="px-6 py-2 rounded-xl bg-white hover:bg-neutral-200 text-black font-bold text-[13px] active:scale-95 transition shadow-sm cursor-pointer"
-                  >
-                    Fechar
-                  </button>
                 </div>
               </motion.div>
             </div>
