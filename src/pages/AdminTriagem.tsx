@@ -1,52 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, MessageCircle, UserPlus, Sparkles, Check } from 'lucide-react';
+import { Play, MessageCircle, UserPlus, Sparkles } from 'lucide-react';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import HorusOnboardingOverlay from '@/components/horus/onboarding/HorusOnboardingOverlay';
-import CadastroOnboardingOverlay, {
-  getActiveTriagemVersion,
-  setActiveTriagemVersion,
-} from '@/components/onboarding/CadastroOnboardingOverlay';
+import CadastroOnboardingOverlay from '@/components/onboarding/CadastroOnboardingOverlay';
 import { toast } from 'sonner';
-
-const VERSIONS: {
-  id: 'A' | 'B' | 'C';
-  name: string;
-  desc: string;
-  vibe: string;
-}[] = [
-  {
-    id: 'A',
-    name: 'Editorial Cinematográfico',
-    desc: 'Fundo colorido que muda a cada etapa, tipografia grande em cima, cards no meio.',
-    vibe: 'Elegante · Sério · Editorial',
-  },
-  {
-    id: 'B',
-    name: 'Conversa com Horus',
-    desc: 'Chat animado com bubbles e "digitando…". Cada pergunta chega como mensagem.',
-    vibe: 'Direto · Amigável · Rápido',
-  },
-  {
-    id: 'C',
-    name: 'Cards Empilhados',
-    desc: 'Cards coloridos deslizando lateralmente com progresso segmentado no topo.',
-    vibe: 'Pop · Divertido · Kinetic',
-  },
-];
 
 export default function AdminTriagem() {
   const navigate = useNavigate();
-  const [previewVersion, setPreviewVersion] = useState<'A' | 'B' | 'C' | null>(null);
+  const [previewVersion, setPreviewVersion] = useState<string | null>(null);
   const [previewHorus, setPreviewHorus] = useState(false);
-  const [active, setActive] = useState<'A' | 'B' | 'C'>(getActiveTriagemVersion());
-
-  const definir = (v: 'A' | 'B' | 'C') => {
-    setActiveTriagemVersion(v);
-    setActive(v);
-    toast.success(`Versão ${v} agora é a triagem ativa`);
-  };
 
   const resetFirstSeen = () => {
     try {
@@ -76,11 +40,10 @@ export default function AdminTriagem() {
                 <div>
                   <h2 className="font-bold text-lg flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    3 versões de triagem
+                    Triagem Minimalista Oficial
                   </h2>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Preview de cada uma abaixo. Clique em <b>Definir como ativa</b> pra escolher qual
-                    novos usuários verão. Ativa agora: <b>Versão {active}</b>.
+                    Triagem em modo escuro, com narrativa das leis em 10 passos, funções do aplicativo, dor principal, momento do estudante e perfil.
                   </p>
                 </div>
                 <button
@@ -90,51 +53,15 @@ export default function AdminTriagem() {
                   Resetar "primeira vez"
                 </button>
               </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              {VERSIONS.map((v) => {
-                const isActive = active === v.id;
-                return (
-                  <div
-                    key={v.id}
-                    className={`rounded-2xl border-2 p-5 space-y-3 transition ${
-                      isActive ? 'border-primary bg-primary/5' : 'border-border bg-card'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs font-black tracking-widest text-primary">
-                        VERSÃO {v.id}
-                      </div>
-                      {isActive && (
-                        <span className="flex items-center gap-1 text-xs font-bold text-primary">
-                          <Check className="w-3.5 h-3.5" /> ATIVA
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="font-bold text-base leading-tight">{v.name}</h3>
-                    <p className="text-sm text-muted-foreground min-h-[3.5rem]">{v.desc}</p>
-                    <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">
-                      {v.vibe}
-                    </p>
-                    <div className="flex gap-2 pt-1">
-                      <button
-                        onClick={() => setPreviewVersion(v.id)}
-                        className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 active:scale-95"
-                      >
-                        <Play className="w-4 h-4" /> Preview
-                      </button>
-                      <button
-                        onClick={() => definir(v.id)}
-                        disabled={isActive}
-                        className="h-11 px-3 rounded-xl border border-border text-sm font-semibold hover:bg-muted disabled:opacity-40"
-                      >
-                        {isActive ? 'Ativa' : 'Definir'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setPreviewVersion('C')}
+                  className="h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 active:scale-95 shadow-md"
+                >
+                  <Play className="w-4 h-4" /> Preview da Triagem
+                </button>
+              </div>
             </div>
           </TabsContent>
 

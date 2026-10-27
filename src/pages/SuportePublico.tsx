@@ -55,7 +55,7 @@ export default function SuportePublico() {
           <div>
             <p className="font-semibold">Como faço login?</p>
             <p className="text-muted-foreground">
-              Abra o app e escolha entrar com Apple, Google ou e-mail e senha.
+              Abra o app e escolha entrar com a sua conta Google.
             </p>
           </div>
           <div>

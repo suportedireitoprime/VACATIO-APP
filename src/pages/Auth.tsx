@@ -3,16 +3,10 @@ import { pickAsset } from '@/lib/assetUrl';
 import { Capacitor } from '@capacitor/core';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2,
-  KeyRound, ArrowLeft, BookOpen, Scale, Video, Star, Brain, Radar, CheckCircle
-} from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { LegalSheet } from '@/components/auth/LegalSheet';
-import { track } from '@/lib/analyticsEvents';
-import { Drawer, DrawerContent } from '@/components/ui/drawer';
 
 /** Traduz mensagens de erro comuns do Supabase Auth para PT-BR. */
 const traduzirErroAuth = (raw?: string): string => {
@@ -49,8 +43,6 @@ const toastErroAuth = (raw?: string) =>
     style: { minWidth: '320px', maxWidth: '92vw' },
   });
 import { useIsDesktop } from '@/hooks/use-desktop';
-const isElectronApp =
-  typeof window !== 'undefined' && Boolean((window as any).desktopApp?.isElectron);
 import { LEIS_CATALOG } from '@/data/leisCatalog';
 import logoOABnaRiscaAsset from '@/assets/logo-vacatio-v2.png.asset.json';
 import logoOABnaRiscaBundled from '@/assets/bundled/logo-vacatio-v2.webp';
@@ -329,353 +321,51 @@ const LandingScreen = ({ onStart }: { onStart: () => void }) => (
   </motion.main>
 );
 
-/* ─── Auth Form Screen ─── */
+/* ─── Auth Form Screen (Exclusivo Google) ─── */
 const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   const isDesktop = useIsDesktop();
-  const { signIn, signUp, resetPassword, signInWithGoogle, signInWithApple } = useAuth();
-  const navigateForm = useNavigate();
-  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
-  const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const { signInWithGoogle } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [legalOpen, setLegalOpen] = useState<null | 'privacidade' | 'termos'>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [showEmailForm, setShowEmailForm] = useState(false);
-
-  // Reseta o form de e-mail ao fechar o drawer no mobile
-  useEffect(() => {
-    if (!isDesktop && !drawerOpen) setShowEmailForm(false);
-  }, [drawerOpen, isDesktop]);
-
-  // Pré-carrega o bundle da triagem para abrir sem delay logo após signup.
-  useEffect(() => {
-    if (mode !== 'signup') return;
-    import('@/components/onboarding/CadastroOnboardingOverlay').catch(() => {});
-    import('@/components/onboarding/CadastroFeaturesReel').catch(() => {});
-  }, [mode]);
-
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
       const { error } = await signInWithGoogle();
       if (error) throw error;
-    } catch (err: any) {
-      toastErroAuth(err.message || 'Não consegui entrar com o Google.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Não consegui entrar com o Google.';
+      toastErroAuth(msg);
       setGoogleLoading(false);
     }
   };
 
-  const [appleLoading, setAppleLoading] = useState(false);
-  const handleApple = async () => {
-    setAppleLoading(true);
-    try {
-      const { error } = await signInWithApple();
-      if (error) throw error;
-    } catch (err: any) {
-      toastErroAuth(err.message || 'Não consegui entrar com a Apple.');
-      setAppleLoading(false);
-    }
-  };
-
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    track(`${mode}_attempted`, { email_domain: email.split('@')[1] ?? 'unknown' });
-    try {
-      if (mode === 'forgot') {
-        const { error } = await resetPassword(email);
-        if (error) throw error;
-        track('password_reset_sent', { email_domain: email.split('@')[1] ?? 'unknown' });
-        toast.success('Enviamos o link de recuperação para seu email.');
-        setResetEmailSent(true);
-      } else if (mode === 'login') {
-        const { error } = await signIn(email, password);
-        if (error) throw error;
-        track('login_success', { method: 'email' });
-      } else {
-        if (password !== confirmPassword) {
-          toastErroAuth('As senhas não coincidem.');
-          setSubmitting(false);
-          return;
-        }
-        const { error } = await signUp(email, password, displayName);
-        if (error) throw error;
-        track('signup_success', { method: 'email', has_display_name: Boolean(displayName) });
-        // Ao criar conta, o usuário aceita os Termos e a Política de Privacidade,
-        // incluindo o uso de analytics anônimo (LGPD — Consent Mode v2).
-        try { (await import('@/lib/analytics')).grantConsent(); } catch {}
-        toast.success('Conta criada! Verifique seu email para confirmar.');
-        // Se a sessão já foi criada (confirmação de email desativada), leva
-        // direto pra triagem — sem depender de nova interação do usuário.
-        // A sessão pode demorar alguns ms pra ser persistida — tenta algumas
-        // vezes antes de desistir, pra triagem abrir sozinha após o cadastro.
-        let sessao = null as Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session'];
-        for (let i = 0; i < 6 && !sessao; i++) {
-          const { data: sess } = await supabase.auth.getSession();
-          sessao = sess.session;
-          if (!sessao) await new Promise((r) => setTimeout(r, 250));
-        }
-        if (sessao) navigateForm('/onboarding', { replace: true });
-      }
-    } catch (err: any) {
-      track(`${mode}_failed`, { erro: err.message ?? 'unknown' });
-      toastErroAuth(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const inputCls = "w-full pl-5 pr-14 py-4 bg-white/[0.04] border border-white/10 rounded-2xl text-base font-body text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/40 transition-all";
-
-  /* ── Shared form content ── */
-  const formContent = (
-    <>
-      {/* Tabs */}
-      {mode !== 'forgot' && (
-        <div className="hidden md:flex mb-5 bg-white/[0.04] border border-white/10 rounded-2xl p-1">
-          {(['login', 'signup'] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`flex-1 py-3 text-sm font-body font-medium rounded-xl transition-all ${
-                mode === m
-                  ? 'bg-primary text-primary-foreground shadow-md'
-                  : 'text-white/60 hover:text-white'
-              }`}
-            >
-              {m === 'login' ? 'Entrar' : 'Cadastrar'}
-            </button>
-          ))}
-        </div>
+  const googleButton = (
+    <button
+      type="button"
+      onClick={handleGoogle}
+      disabled={googleLoading}
+      className="w-full py-4 rounded-2xl bg-white text-neutral-900 font-body font-bold text-base flex items-center justify-center gap-3 border border-neutral-200 hover:bg-neutral-100 active:scale-[0.98] transition-all disabled:opacity-50 shadow-xl cursor-pointer"
+    >
+      {googleLoading ? (
+        <Loader2 className="w-5 h-5 animate-spin text-neutral-900" />
+      ) : (
+        <>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
+          </svg>
+          Continuar com o Google
+        </>
       )}
-
-      {/* Mode title (desktop) */}
-      {isDesktop && mode !== 'forgot' && (
-        <div className="text-center mb-4">
-          <h2 className="font-display text-xl font-bold text-foreground">
-            {mode === 'login' ? 'Entrar' : 'Criar Conta'}
-          </h2>
-          <p className="text-xs font-body text-muted-foreground mt-1">
-            {mode === 'login' ? 'Entre com suas credenciais para acessar' : 'Preencha os dados para criar sua conta'}
-          </p>
-        </div>
-      )}
-
-      <AnimatePresence mode="wait">
-        {!showEmailForm && mode !== 'forgot' ? (
-          <motion.div
-            key="auth-options"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="w-full flex flex-col"
-          >
-            {/* Google sign in */}
-            {(() => {
-              const googleBtn = (
-                <button
-                  key="google"
-                  type="button"
-                  onClick={handleGoogle}
-                  disabled={googleLoading}
-                  className="w-full py-4 mb-3 rounded-2xl bg-white text-neutral-900 font-body font-semibold text-base flex items-center justify-center gap-2.5 border border-neutral-200 hover:bg-neutral-50 transition-colors disabled:opacity-50 shadow-sm"
-                >
-                  {googleLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
-                      </svg>
-                      Continuar com Google
-                    </>
-                  )}
-                </button>
-              );
-              const appleBtn = (
-                <button
-                  key="apple"
-                  type="button"
-                  onClick={handleApple}
-                  disabled={appleLoading}
-                  className="w-full py-4 mb-3 rounded-2xl bg-white text-neutral-900 font-body font-semibold text-base flex items-center justify-center gap-2.5 border border-neutral-200 hover:bg-neutral-50 transition-colors disabled:opacity-50 shadow-sm"
-                >
-                  {appleLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.92 15.35 3.71 7.56 9.6 7.23c1.27.07 2.17.74 2.92.8 1.17-.24 2.29-.93 3.57-.84 1.36.1 2.36.66 3.05 1.68-2.76 1.68-2.29 5.98.22 7.13-.57 1.5-1.31 2.99-2.31 4.28zm-5.85-15.1c.07-2.04 1.76-3.79 3.74-3.95.29 2.32-1.93 4.48-3.74 3.95z"/>
-                      </svg>
-                      Continuar com Apple
-                    </>
-                  )}
-                </button>
-              );
-              // No iOS (App Store guideline), Apple aparece primeiro.
-              const isIOS = Capacitor.getPlatform() === 'ios';
-              return isIOS ? [appleBtn, googleBtn] : [googleBtn, appleBtn];
-            })()}
-
-            <div className="relative mb-4 flex items-center gap-3">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-[11px] font-body uppercase tracking-widest text-muted-foreground">ou</span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowEmailForm(true)}
-              className="w-full py-4 rounded-2xl bg-white/[0.04] text-white font-body font-semibold text-base flex items-center justify-center gap-2.5 border border-white/10 hover:bg-white/10 transition-colors shadow-sm"
-            >
-              <Mail className="w-5 h-5 text-white/50" />
-              Usar e-mail
-            </button>
-          </motion.div>
-        ) : (
-          <motion.form
-          key={mode + (resetEmailSent ? '-sent' : '')}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.2 }}
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-          {mode === 'forgot' && (
-            <div className="text-center mb-4">
-              <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-3">
-                {resetEmailSent ? <CheckCircle className="w-6 h-6 text-primary" /> : <KeyRound className="w-6 h-6 text-primary" />}
-              </div>
-              <h2 className="font-display text-lg font-bold text-foreground">
-                {resetEmailSent ? 'Email enviado' : 'Recuperar Senha'}
-              </h2>
-              <p className="text-xs font-body text-muted-foreground mt-1">
-                {resetEmailSent
-                  ? `Abra o link enviado para ${email} para criar uma nova senha.`
-                  : 'Informe seu email para receber o link de redefinição'}
-              </p>
-            </div>
-          )}
-
-          {mode === 'signup' && (
-            <div className="relative">
-              <input type="text" name="name" autoComplete="name" placeholder="Nome de exibição" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className={inputCls} />
-              <User className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            </div>
-          )}
-
-          {(mode !== 'forgot' || !resetEmailSent) && (
-            <div className="relative">
-              <input type="email" name="email" autoComplete="email" inputMode="email" autoCapitalize="none" autoCorrect="off" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputCls} />
-              <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            </div>
-          )}
-
-          {mode !== 'forgot' && (
-            <div className="relative">
-              <input type={showPassword ? 'text' : 'password'} name={mode === 'signup' ? 'new-password' : 'current-password'} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className={inputCls} />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          )}
-
-          {mode === 'signup' && (
-            <div className="relative">
-              <input type={showPassword ? 'text' : 'password'} name="confirm-password" autoComplete="new-password" placeholder="Confirmar senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6} className={inputCls} />
-              <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            </div>
-          )}
-
-          {!resetEmailSent && (
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg shadow-primary/25"
-            >
-              {submitting ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  {mode === 'login' && 'Entrar'}
-                  {mode === 'signup' && 'Criar Conta'}
-                  {mode === 'forgot' && 'Enviar link de recuperação'}
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
-            </button>
-          )}
-
-          {mode === 'signup' && (
-            <p className="text-[11px] leading-relaxed font-body text-white/60 text-center px-2">
-              Ao criar sua conta, você concorda com os{' '}
-              <button
-                type="button"
-                onClick={() => setLegalOpen('termos')}
-                className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80"
-              >
-                Termos de Uso
-              </button>{' '}
-              e com a{' '}
-              <button
-                type="button"
-                onClick={() => setLegalOpen('privacidade')}
-                className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80"
-              >
-                Política de Privacidade
-              </button>
-              , incluindo o uso de dados anônimos (Google Analytics) para melhorar o Vacatio. Nada é vinculado à sua identidade sem permissão.
-            </p>
-          )}
-
-          {mode === 'login' && (
-            <button type="button" onClick={() => { setMode('forgot'); setResetEmailSent(false); }} className="w-full text-center text-xs font-body text-primary hover:underline">
-              Esqueci minha senha
-            </button>
-          )}
-
-          {showEmailForm && mode !== 'forgot' && (
-            <button
-              type="button"
-              onClick={() => setShowEmailForm(false)}
-              className="w-full text-center text-xs font-body text-white/50 hover:text-white/80 transition-colors pt-2"
-            >
-              ← Outras opções (Google / Apple)
-            </button>
-          )}
-
-          {mode === 'forgot' && (
-            <button type="button" onClick={() => { setMode('login'); setResetEmailSent(false); }} className="w-full text-center text-xs font-body text-primary hover:underline">
-              {resetEmailSent ? 'Entendi, voltar ao login' : 'Voltar ao login'}
-            </button>
-          )}
-        </motion.form>
-        )}
-      </AnimatePresence>
-
-      <LegalSheet
-        open={legalOpen !== null}
-        onOpenChange={(o) => !o && setLegalOpen(null)}
-        kind={legalOpen ?? 'privacidade'}
-      />
-    </>
+    </button>
   );
 
   /* ── Desktop: split-screen layout ── */
   if (isDesktop) {
-    const lawItems = LEIS_CATALOG.map(l => ({ sigla: l.sigla, nome: l.nome }));
+    const lawItems = LEIS_CATALOG.map((l) => ({ sigla: l.sigla, nome: l.nome }));
     const lawItemsLoop = [...lawItems, ...lawItems];
 
     return (
@@ -700,7 +390,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-black/55" />
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/80" />
 
-          {/* Big title — bottom-left, hierarquia harmônica e sem corte de texto */}
+          {/* Big title */}
           <motion.div
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -716,7 +406,6 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               <div className="h-px flex-1 bg-gradient-to-r from-primary/60 to-transparent" />
             </div>
 
-            {/* Hierarquia principal */}
             <h1 className="font-display text-[clamp(2.2rem,3.6vw,3.5rem)] font-black text-primary leading-[0.92] tracking-tight drop-shadow-2xl">
               VADE MECUM
             </h1>
@@ -724,7 +413,6 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               Jurídico Profissional
             </h2>
 
-            {/* Subheadline completa e visível */}
             <p className="mt-4 font-display text-sm xl:text-base font-medium text-white/90 leading-snug">
               Domine a legislação brasileira como um{' '}
               <span className="text-primary font-bold">verdadeiro profissional do Direito</span>.
@@ -746,7 +434,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/65 to-black/25" />
           <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-black to-transparent" />
 
-          {/* Brasão da Justiça + título — topo da coluna direita */}
+          {/* Brasão da República + título */}
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -766,7 +454,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             </p>
           </motion.div>
 
-          {/* Cascading laws list — começa de baixo, abaixo do brasão */}
+          {/* Cascading laws list */}
           <div
             className="absolute right-10 left-[45%] top-[42%] bottom-8 overflow-hidden pointer-events-none"
             style={{
@@ -788,32 +476,71 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               ))}
             </div>
           </div>
-
         </div>
 
         {/* Back button */}
         <button
           onClick={onBack}
-          className="absolute top-6 left-6 z-30 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/15 flex items-center justify-center hover:bg-black/80 transition-colors"
+          aria-label="Voltar"
+          className="absolute top-6 left-6 z-30 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/15 flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
 
-        {/* Form card (Google, Apple, Email) */}
+        {/* Form card (Exclusivo Google) */}
         <motion.div
           initial={{ scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 24 }}
-          className="relative z-20 mx-4 my-4 bg-neutral-950/85 backdrop-blur-xl border border-primary/20 rounded-3xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.9)] w-full max-w-[440px] max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 xl:p-7"
+          className="relative z-20 mx-4 my-4 bg-neutral-950/90 backdrop-blur-xl border border-primary/25 rounded-3xl shadow-[0_25px_80px_-20px_rgba(0,0,0,0.9)] w-full max-w-[420px] p-8 text-center"
         >
-          {formContent}
+          <div className="flex flex-col items-center mb-6">
+            <img
+              src={logoOABnaRisca}
+              alt="Vacatio"
+              className="w-16 h-16 rounded-2xl shadow-xl object-cover border-2 border-primary/50 mb-4"
+            />
+            <h2 className="font-display text-2xl font-bold text-white">
+              Acesse sua conta
+            </h2>
+            <p className="text-xs font-body text-neutral-400 mt-1 max-w-[280px]">
+              Faça login ou cadastre-se instantaneamente com sua conta Google.
+            </p>
+          </div>
+
+          {googleButton}
+
+          <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-5">
+            Ao continuar, você concorda com os{' '}
+            <button
+              type="button"
+              onClick={() => setLegalOpen('termos')}
+              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
+            >
+              Termos de Uso
+            </button>{' '}
+            e com a{' '}
+            <button
+              type="button"
+              onClick={() => setLegalOpen('privacidade')}
+              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
+            >
+              Política de Privacidade
+            </button>
+            .
+          </p>
+
+          <LegalSheet
+            open={legalOpen !== null}
+            onOpenChange={(o) => !o && setLegalOpen(null)}
+            kind={legalOpen ?? 'privacidade'}
+          />
         </motion.div>
       </motion.main>
     );
   }
 
-
-  /* ── Mobile: dark gray layout with cinematic hero ── */
+  /* ── Mobile: cinematic layout com botão direto do Google ── */
   return (
     <motion.main
       key="auth-mobile"
@@ -833,22 +560,20 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           fetchPriority="high"
           className="w-full h-full object-cover object-center pointer-events-none select-none opacity-85"
         />
-        {/* Gradients to ensure text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-transparent" />
       </div>
 
       {/* Back button */}
       <button
         onClick={onBack}
         aria-label="Voltar"
-        className="absolute top-[max(var(--sai-top,var(--sai-top)),1rem)] left-4 z-20 w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition"
+        className="absolute top-[max(var(--sai-top,var(--sai-top)),1rem)] left-4 z-20 w-11 h-11 rounded-full bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition cursor-pointer"
       >
         <ArrowLeft className="w-5 h-5 text-white" />
       </button>
 
       {/* Content at the bottom */}
       <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(var(--sai-bottom,var(--sai-bottom)),1.5rem)]">
-        
         {/* Brand block */}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="relative shrink-0 mb-4">
@@ -863,43 +588,41 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           <p className="font-body text-white/70 text-sm mt-2 drop-shadow">Vade Mecum Jurídico Profissional</p>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Button - Exclusivo Google */}
         <div className="flex flex-col gap-3 w-full max-w-[400px] mx-auto">
-          <button
-            onClick={() => { setMode('login'); setDrawerOpen(true); }}
-            className="relative overflow-hidden group w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base shadow-lg active:scale-95 transition-transform"
-          >
-            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
-            <span className="relative z-10">Acessar conta</span>
-          </button>
-          
-          <button
-            onClick={() => { setMode('signup'); setDrawerOpen(true); }}
-            className="w-full py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl font-body font-bold text-base shadow-lg active:scale-95 transition-transform"
-          >
-            Criar uma conta
-          </button>
+          {googleButton}
 
-          <button
-            onClick={() => { setMode('forgot'); setDrawerOpen(true); }}
-            className="mt-2 text-white/70 font-body text-sm font-medium hover:text-white active:scale-95 transition-all"
-          >
-            Preciso de ajuda
-          </button>
+          <p className="text-[11.5px] leading-relaxed font-body text-white/70 text-center px-2 mt-2">
+            Ao continuar, você concorda com os{' '}
+            <button
+              type="button"
+              onClick={() => setLegalOpen('termos')}
+              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
+            >
+              Termos de Uso
+            </button>{' '}
+            e com a{' '}
+            <button
+              type="button"
+              onClick={() => setLegalOpen('privacidade')}
+              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
+            >
+              Política de Privacidade
+            </button>
+            .
+          </p>
         </div>
-        
+
         <p className="text-center text-[10px] font-body text-white/50 mt-6">
           Vacatio — Vade Mecum © 2026
         </p>
       </div>
 
-      {/* Bottom Sheet Drawer for Auth Form */}
-      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="bg-neutral-900 border-neutral-800 px-5 pt-6 pb-[max(var(--sai-bottom,var(--sai-bottom)),1.5rem)] outline-none">
-          {formContent}
-        </DrawerContent>
-      </Drawer>
-
+      <LegalSheet
+        open={legalOpen !== null}
+        onOpenChange={(o) => !o && setLegalOpen(null)}
+        kind={legalOpen ?? 'privacidade'}
+      />
     </motion.main>
   );
 };

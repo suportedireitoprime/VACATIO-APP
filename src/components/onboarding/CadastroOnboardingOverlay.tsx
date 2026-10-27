@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
-import TriagemVersaoA from './versoes/TriagemVersaoA';
-import TriagemVersaoB from './versoes/TriagemVersaoB';
-import TriagemVersaoC from './versoes/TriagemVersaoC';
-import type { TriagemResult } from './versoes/triagemShared';
+import TriagemMinimalista, { type TriagemMinimalistaResult } from './TriagemMinimalista';
 
 export type CadastroResult = {
-  persona: TriagemResult['persona'];
+  persona: string | null;
   personaLabel: string | null;
   faixa: string | null;
   nome: string;
+  dorId?: string | null;
+  dorLabel?: string | null;
+  dorSolucao?: string | null;
   areas?: string[];
   interesses?: string[];
   whatsapp?: string | null;
@@ -19,22 +18,19 @@ type Props = {
   onFinished: (r: CadastroResult) => void;
   previewMode?: boolean;
   initialName?: string;
-  /** Forces a specific version, ignoring localStorage. */
-  forceVersion?: 'A' | 'B' | 'C';
+  forceVersion?: string;
   playerRefExternal?: any;
 };
 
 const VERSION_KEY = 'triagem:version';
 
 export function getActiveTriagemVersion(): 'A' | 'B' | 'C' {
-  if (typeof window === 'undefined') return 'C';
-  const v = window.localStorage.getItem(VERSION_KEY);
-  return v === 'A' || v === 'B' || v === 'C' ? v : 'C';
+  return 'C';
 }
 
-export function setActiveTriagemVersion(v: 'A' | 'B' | 'C') {
+export function setActiveTriagemVersion(_v: 'A' | 'B' | 'C') {
   try {
-    window.localStorage.setItem(VERSION_KEY, v);
+    window.localStorage.setItem(VERSION_KEY, 'C');
   } catch {}
 }
 
@@ -42,28 +38,27 @@ export default function CadastroOnboardingOverlay({
   open,
   onFinished,
   previewMode,
-  forceVersion,
+  initialName,
 }: Props) {
-  const [version, setVersion] = useState<'A' | 'B' | 'C'>(() => forceVersion || getActiveTriagemVersion());
-
-  useEffect(() => {
-    if (forceVersion) setVersion(forceVersion);
-    else if (open) setVersion(getActiveTriagemVersion());
-  }, [open, forceVersion]);
-
-  const handleFinished = (r: TriagemResult) => {
-    onFinished({
-      persona: r.persona,
-      personaLabel: r.personaLabel,
-      faixa: r.faixa,
-      nome: r.nome,
-      areas: r.areas,
-      interesses: r.interesses,
-      whatsapp: r.whatsapp,
-    });
-  };
-
   if (!open) return null;
-  const Comp = version === 'B' ? TriagemVersaoB : version === 'C' ? TriagemVersaoC : TriagemVersaoA;
-  return <Comp open={open} onFinished={handleFinished} previewMode={previewMode} />;
+
+  return (
+    <TriagemMinimalista
+      open={open}
+      previewMode={previewMode}
+      initialName={initialName}
+      onFinished={(r: TriagemMinimalistaResult) => {
+        onFinished({
+          persona: r.persona,
+          personaLabel: r.personaLabel,
+          faixa: r.faixa,
+          nome: r.nome,
+          dorId: r.dorId,
+          dorLabel: r.dorLabel,
+          dorSolucao: r.dorSolucao,
+          interesses: r.dorId ? [r.dorId] : [],
+        });
+      }}
+    />
+  );
 }

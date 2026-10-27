@@ -30,7 +30,7 @@ const Onboarding = () => {
           perfil_contexto: r.personaLabel || '',
           display_name: r.nome || null,
           areas_interesse: r.areas || [],
-          interesses: r.interesses || [],
+          interesses: r.dorId ? [r.dorId] : (r.interesses || []),
           whatsapp_number: r.whatsapp || null,
           onboarding_completed_at: new Date().toISOString(),
         } as any)
