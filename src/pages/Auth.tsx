@@ -411,9 +411,10 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [legalOpen, setLegalOpen] = useState<null | 'privacidade' | 'termos'>(null);
 
-  /* Capas rotativas com crossfade cinematográfico contínuo (sem tela preta) */
+  /* Capas rotativas com transição cinematográfica fluida: a nova imagem surge suavemente atrás da atual */
   const [currentCapaIdx, setCurrentCapaIdx] = useState(0);
-  const [prevCapaIdx, setPrevCapaIdx] = useState<number | null>(null);
+  const [nextCapaIdx, setNextCapaIdx] = useState(1);
+  const [fadeFrontOut, setFadeFrontOut] = useState(false);
 
   /* Preload de todas as capas para transição instantânea em memória */
   useEffect(() => {
@@ -423,14 +424,21 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
     });
   }, []);
 
-  /* Rotação automática suave a cada 4.5 segundos */
+  /* Rotação elegante: a imagem da frente desvanece suavemente revelando a imagem de trás */
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentCapaIdx((curr) => {
-        setPrevCapaIdx(curr);
-        return (curr + 1) % CAPAS_FUNDO.length;
-      });
-    }, 4500);
+      setFadeFrontOut(true);
+
+      setTimeout(() => {
+        setCurrentCapaIdx((curr) => {
+          const next = (curr + 1) % CAPAS_FUNDO.length;
+          setNextCapaIdx((next + 1) % CAPAS_FUNDO.length);
+          setFadeFrontOut(false);
+          return next;
+        });
+      }, 2000);
+    }, 5500);
+
     return () => clearInterval(timer);
   }, []);
 
@@ -614,66 +622,39 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
 
     if (mode === 'signup') {
       return (
-        <div className="w-full flex-1 flex flex-col justify-between text-left py-1">
-          <div>
-            <div className="text-center mb-5">
-              <h2 className="font-display text-2xl font-bold text-white">
-                Criar sua conta
-              </h2>
-              <p className="text-xs font-body text-neutral-400 mt-1 max-w-[320px] mx-auto">
-                O cadastro no Vacatio é realizado exclusivamente com sua conta Google para sincronização segura e imediata.
-              </p>
-            </div>
-
-            {googleButton}
-
-            {/* Destaques para equilibrar a altura exatamente com a tela de login */}
-            <div className="mt-5 p-4 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2.5">
-              <div className="flex items-center gap-2.5 text-xs font-body text-white/80">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                <span>Acesso instantâneo a toda a legislação explicada</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-xs font-body text-white/80">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                <span>Sincronização automática em todos os seus aparelhos</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-xs font-body text-white/80">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                <span>Sem senhas para memorizar: login seguro com 1 clique</span>
-              </div>
-            </div>
-
-            <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-4">
-              Ao criar sua conta, você concorda com os{' '}
-              <button
-                type="button"
-                onClick={() => setLegalOpen('termos')}
-                className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
-              >
-                Termos de Uso
-              </button>{' '}
-              e com a{' '}
-              <button
-                type="button"
-                onClick={() => setLegalOpen('privacidade')}
-                className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
-              >
-                Política de Privacidade
-              </button>
-              .
+        <div className="w-full flex flex-col text-left py-1">
+          <div className="text-center mb-5">
+            <h2 className="font-display text-2xl font-bold text-white">
+              Criar sua conta
+            </h2>
+            <p className="text-xs font-body text-neutral-400 mt-1 max-w-[320px] mx-auto">
+              Cadastre-se rapidamente com sua conta Google para sincronização imediata.
             </p>
           </div>
 
-          <div className="text-center pt-5 text-xs font-body text-neutral-400">
-            Já possui uma conta?{' '}
+          {/* Opção exclusiva Google */}
+          {googleButton}
+
+          {/* Termos de uso e privacidade exibidos exclusivamente no cadastro */}
+          <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-4">
+            Ao continuar, você concorda com os{' '}
             <button
               type="button"
-              onClick={() => setMode('login')}
-              className="text-primary font-bold hover:underline cursor-pointer"
+              onClick={() => setLegalOpen('termos')}
+              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
             >
-              Entrar
+              Termos de Uso
+            </button>{' '}
+            e com a{' '}
+            <button
+              type="button"
+              onClick={() => setLegalOpen('privacidade')}
+              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
+            >
+              Política de Privacidade
             </button>
-          </div>
+            .
+          </p>
         </div>
       );
     }
@@ -937,34 +918,34 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       transition={{ type: 'spring', stiffness: 260, damping: 30 }}
       className="min-h-dvh flex flex-col relative overflow-hidden bg-[#0A0B10]"
     >
-      {/* ── Background image rotativa com crossfade contínuo sem transição preta ── */}
+      {/* ── Background: transição fluida cinematográfica surgindo atrás da imagem ── */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
-        {/* Camada inferior: imagem anterior permanece 100% visível enquanto a nova se sobrepõe */}
-        {prevCapaIdx !== null && (
-          <img
-            key={`prev-${prevCapaIdx}`}
-            src={CAPAS_FUNDO[prevCapaIdx]}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover filter brightness-[0.76] saturate-[1.02]"
-          />
-        )}
+        {/* Camada de trás (permanece pronta e visível atrás da imagem frontal) */}
+        <img
+          key={`back-${nextCapaIdx}`}
+          src={CAPAS_FUNDO[nextCapaIdx]}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.76] saturate-[1.02]"
+          style={{
+            animation: 'capaZoom 7s linear infinite alternate',
+          }}
+        />
 
-        {/* Camada superior: nova imagem surge suavemente por cima da anterior com leve zoom */}
-        <motion.img
-          key={`curr-${currentCapaIdx}`}
+        {/* Camada da frente (fade out suave de 2s revelando a imagem que está atrás) */}
+        <img
+          key={`front-${currentCapaIdx}`}
           src={CAPAS_FUNDO[currentCapaIdx]}
           alt=""
           loading="eager"
           decoding="sync"
           fetchPriority="high"
-          initial={{ opacity: prevCapaIdx === null ? 1 : 0, scale: 1.01 }}
-          animate={{ opacity: 1, scale: 1.07 }}
-          transition={{
-            opacity: { duration: 1.4, ease: 'easeInOut' },
-            scale: { duration: 6, ease: 'linear' },
-          }}
           className="absolute inset-0 w-full h-full object-cover filter brightness-[0.76] saturate-[1.02]"
+          style={{
+            opacity: fadeFrontOut ? 0 : 1,
+            transition: 'opacity 2000ms cubic-bezier(0.4, 0, 0.2, 1)',
+            animation: 'capaZoom 7s linear infinite alternate',
+          }}
         />
 
         {/* Sombra de gradiente cinematográfica */}
@@ -1044,27 +1025,6 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
           >
             Entrar
           </button>
-
-          {/* Termos em uma linha só e menor */}
-          <p className="text-[10.5px] leading-tight font-body text-[#B9B2A2] text-center truncate px-1 mt-1">
-            Ao continuar, você concorda com os{' '}
-            <button
-              type="button"
-              onClick={() => setLegalOpen('termos')}
-              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
-            >
-              Termos de Uso
-            </button>{' '}
-            e com a{' '}
-            <button
-              type="button"
-              onClick={() => setLegalOpen('privacidade')}
-              className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 cursor-pointer"
-            >
-              Política de Privacidade
-            </button>
-            .
-          </p>
         </div>
       </div>
 
