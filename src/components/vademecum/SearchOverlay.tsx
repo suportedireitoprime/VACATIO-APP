@@ -119,8 +119,21 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
   const [mode, setMode] = useState<SearchMode>('todos');
   const [ocrOpen, setOcrOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
-  const voice = useVoiceInput((text) => setQuery((prev) => (prev ? prev + ' ' : '') + text));
+  const baseQueryRef = useRef('');
+  const voice = useVoiceInput((text) => {
+    const base = baseQueryRef.current;
+    setQuery((base ? base + ' ' : '') + text);
+  });
+  useEffect(() => {
+    if (voice.listening) {
+      const base = baseQueryRef.current;
+      setQuery((base ? base + ' ' : '') + (voice.partial || ''));
+    }
+  }, [voice.partial, voice.listening]);
+  const toggleVoice = () => {
+    if (!voice.listening) baseQueryRef.current = query;
+    voice.toggle();
+  };
   const [favVersion, setFavVersion] = useState(0);
   useEffect(() => {
     const h = () => setFavVersion((v) => v + 1);
@@ -278,7 +291,7 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70" />
                 <input
                   ref={inputRef}
-                  value={voice.listening && voice.partial ? voice.partial : query}
+                  value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={placeholder}
                   className="w-full h-12 pl-11 pr-10 rounded-2xl bg-black/20 border border-white/25 text-white placeholder:text-white/50 outline-none focus:border-white/40 transition-colors"
@@ -286,7 +299,7 @@ const SearchOverlay = ({ open, onClose, onSelectLei }: SearchOverlayProps) => {
               </div>
               <button
                 type="button"
-                onClick={voice.toggle}
+                onClick={toggleVoice}
                 aria-label={voice.listening ? "Parar gravação" : "Pesquisar por voz"}
                 className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition ${
                   voice.listening

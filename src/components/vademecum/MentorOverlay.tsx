@@ -123,11 +123,24 @@ const MentorOverlay = ({ open, onClose }: MentorOverlayProps) => {
 
 
 
+  // Ditado por voz — mostra transcrição em tempo real dentro do chat
+  const baseInputRef = useRef('');
   const voice = useVoiceInput((finalText) => {
-    const combined = (input ? input + " " : "") + finalText;
-    setInput("");
-    send(combined);
+    const base = baseInputRef.current;
+    setInput((base ? base + ' ' : '') + finalText);
   });
+
+  useEffect(() => {
+    if (voice.listening) {
+      const base = baseInputRef.current;
+      setInput((base ? base + ' ' : '') + (voice.partial || ''));
+    }
+  }, [voice.partial, voice.listening]);
+
+  const toggleMic = () => {
+    if (!voice.listening) baseInputRef.current = input;
+    voice.toggle();
+  };
 
   useEffect(() => {
     // Não foca automaticamente: o usuário deve tocar no input para abrir o teclado.
@@ -674,34 +687,48 @@ const MentorOverlay = ({ open, onClose }: MentorOverlayProps) => {
 
                 <input
                   ref={inputRef}
-                  value={voice.listening && voice.partial ? voice.partial : input}
+                  value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
-                  placeholder={voice.listening ? "Ouvindo…" : "Peça algo ao mentor…"}
+                  placeholder={voice.listening ? "Ouvindo… fale agora" : "Peça algo ao mentor…"}
                   className="flex-1 min-w-0 bg-transparent text-base font-body text-foreground placeholder:text-muted-foreground focus:outline-none"
                 />
               </div>
-              {/* Botão direito: mic quando vazio, enviar quando digitando */}
-              {input.trim() || anexo ? (
+              {/* Botão direito: mic quando vazio/ouvindo, enviar quando digitando e não ouvindo */}
+              {(!voice.listening && (input.trim() || anexo)) ? (
                 <button
                   onClick={() => send(input)}
                   disabled={loading}
                   aria-label="Enviar"
-                  className="w-14 h-14 rounded-full bg-primary flex items-center justify-center disabled:opacity-40 transition-opacity shrink-0"
+                  className="w-14 h-14 rounded-full bg-primary flex items-center justify-center disabled:opacity-40 transition-opacity shrink-0 active:scale-95 shadow-md"
                 >
                   <Send className="w-6 h-6 text-primary-foreground" />
                 </button>
               ) : (
                 <button
-                  onClick={voice.toggle}
-                  aria-label={voice.listening ? "Parar" : "Falar"}
-                  className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors shrink-0 ${voice.listening ? "bg-red-500/20 text-red-400 animate-pulse" : "bg-primary text-primary-foreground"}`}
+                  onClick={toggleMic}
+                  aria-label={voice.listening ? "Parar gravação" : "Falar"}
+                  className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors shrink-0 active:scale-95 shadow-md ${
+                    voice.listening
+                      ? "bg-red-500 text-white animate-pulse shadow-red-500/40 ring-4 ring-red-400/30"
+                      : "bg-primary text-primary-foreground"
+                  }`}
                 >
                   {voice.listening ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
                 </button>
               )}
             </div>
 
+            {voice.listening && (
+              <div
+                className="fixed left-4 right-4 z-[64] pointer-events-none flex justify-center"
+                style={{ bottom: "calc(5.5rem + var(--sai-bottom, 0px))" }}
+              >
+                <div className="px-3 py-1.5 rounded-full bg-red-500/95 text-white text-[12px] font-body shadow-lg animate-pulse flex items-center gap-1.5">
+                  <span>🎙️</span> Ouvindo… fale agora
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       )}

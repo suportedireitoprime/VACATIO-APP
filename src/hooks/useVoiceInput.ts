@@ -2,17 +2,34 @@ import { useCallback, useRef, useState } from 'react';
 import { startListening, stopListening, ensureSpeechPermission } from '@/lib/speechRecognition';
 import { toast } from 'sonner';
 
-export function useVoiceInput(onFinal: (text: string) => void, lang = 'pt-BR') {
+export type VoiceInputCallback = (text: string) => void;
+export type VoiceInputOptions = {
+  onFinal: (text: string) => void;
+  onPartial?: (partial: string) => void;
+  lang?: string;
+};
+
+export function useVoiceInput(
+  handlerOrOptions: VoiceInputCallback | VoiceInputOptions,
+  legacyLang = 'pt-BR'
+) {
   const [listening, setListening] = useState(false);
   const [partial, setPartial] = useState('');
   const lastRef = useRef('');
   const finalizedRef = useRef(false);
 
+  const options: VoiceInputOptions =
+    typeof handlerOrOptions === 'function'
+      ? { onFinal: handlerOrOptions, lang: legacyLang }
+      : { lang: legacyLang, ...handlerOrOptions };
+
+  const { onFinal, onPartial, lang = 'pt-BR' } = options;
+
   const start = useCallback(async () => {
     if (listening) return;
     const ok = await ensureSpeechPermission();
     if (!ok) {
-      toast.error('Permissão de microfone negada');
+      toast.error('Permissão de microfone negada ou indisponível');
       return;
     }
     setPartial('');
@@ -23,20 +40,28 @@ export function useVoiceInput(onFinal: (text: string) => void, lang = 'pt-BR') {
       await startListening((text, isFinal) => {
         lastRef.current = text;
         setPartial(text);
+        if (onPartial) {
+          onPartial(text);
+        }
         if (isFinal && !finalizedRef.current) {
           finalizedRef.current = true;
-          onFinal(text);
+          if (text.trim()) {
+            onFinal(text.trim());
+          }
           setListening(false);
           setPartial('');
         }
       }, lang);
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Erro ao iniciar reconhecimento');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Erro ao iniciar reconhecimento';
+      console.warn('Erro ao iniciar reconhecimento de voz:', e);
+      toast.error(msg);
       setListening(false);
+      setPartial('');
     }
-  }, [listening, lang, onFinal]);
+  }, [listening, lang, onFinal, onPartial]);
 
-  // Toque no botão enquanto ouvindo = CANCELAR (não envia).
+  // Toque no botão enquanto ouvindo = CANCELAR ou parar
   const stop = useCallback(async () => {
     finalizedRef.current = true;
     await stopListening(true);
@@ -49,5 +74,6 @@ export function useVoiceInput(onFinal: (text: string) => void, lang = 'pt-BR') {
     if (listening) stop(); else start();
   }, [listening, start, stop]);
 
-  return { listening, partial, start, stop, toggle };
+  return { listening, partial, text: partial, start, stop, toggle };
 }
+
