@@ -594,28 +594,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
                 </>
               )}
             </button>
-
-            <div className="text-center pt-1">
-              <button
-                type="button"
-                onClick={() => { setMode('forgot'); setResetEmailSent(false); }}
-                className="text-xs font-body text-primary hover:underline cursor-pointer"
-              >
-                Esqueci minha senha
-              </button>
-            </div>
           </form>
-
-          <div className="text-center pt-4 text-xs font-body text-neutral-400">
-            Não tem uma conta?{' '}
-            <button
-              type="button"
-              onClick={() => setMode('signup')}
-              className="text-primary font-bold hover:underline cursor-pointer"
-            >
-              Cadastrar com o Google
-            </button>
-          </div>
         </div>
       );
     }
@@ -916,7 +895,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
       transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-      className="min-h-dvh flex flex-col relative overflow-hidden bg-[#0A0B10]"
+      className="h-dvh max-h-dvh w-full flex flex-col relative overflow-hidden bg-[#0A0B10] select-none touch-none"
     >
       {/* ── Background: transição fluida cinematográfica surgindo atrás da imagem ── */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
@@ -952,16 +931,8 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
         <div className="land-shade" />
       </div>
 
-      {/* ── Top Bar: Botão Voltar e Brasão SVG + VACATIO perfeitamente centralizado ── */}
-      <div className="relative z-20 pt-[max(var(--sai-top,1rem),1.25rem)] px-5 flex items-center justify-between">
-        <button
-          onClick={onBack}
-          aria-label="Voltar"
-          className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md border border-white/15 flex items-center justify-center active:scale-95 transition cursor-pointer text-white"
-        >
-          <ArrowLeft className="w-4 h-4 text-white" />
-        </button>
-
+      {/* ── Top Bar: Brasão SVG + VACATIO centralizado no topo com margem segura ── */}
+      <div className="relative z-20 pt-[max(calc(env(safe-area-inset-top)+1.25rem),1.75rem)] px-6 flex items-center justify-center">
         <div className="flex items-center gap-2.5">
           <svg width="28" height="28" viewBox="0 0 150 150" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round">
             <circle cx="75" cy="75" r="64" stroke="#D9A82E"/>
@@ -978,13 +949,10 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             VACATIO
           </span>
         </div>
-
-        {/* Espaçador invisível à direita para manter o título perfeitamente centralizado */}
-        <div className="w-9 h-9 pointer-events-none" />
       </div>
 
-      {/* Content at the bottom */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(var(--sai-bottom,1.5rem),1.5rem)]">
+      {/* Content at the bottom with safe-area spacing */}
+      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(calc(env(safe-area-inset-bottom)+2.5rem),3rem)]">
         {/* Headline & Description */}
         <div className="text-left mb-6 max-w-[400px] w-full mx-auto">
           <h1
@@ -1030,15 +998,18 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
 
       {/* Bottom Sheet Drawer for Auth Form */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="bg-neutral-950 border-neutral-800 text-white px-6 pt-3 pb-[max(var(--sai-bottom,var(--sai-bottom)),1.5rem)] outline-none max-h-[92dvh] overflow-y-auto">
-          {/* Botão de fechar responsivo */}
+        <DrawerContent className="bg-neutral-950 border-neutral-800 text-white px-6 pt-3 pb-[max(calc(env(safe-area-inset-bottom)+1.5rem),2rem)] outline-none overflow-hidden max-h-[85dvh] rounded-t-[28px]">
+          {/* Barra de arraste (handle) no topo */}
+          <div className="w-12 h-1.5 rounded-full bg-white/20 mx-auto mb-2" />
+
+          {/* Botão de fechar responsivo e confortável ao toque */}
           <button
             type="button"
             onClick={() => setDrawerOpen(false)}
             aria-label="Fechar"
-            className="absolute top-3.5 right-4 z-30 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 text-white/70 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+            className="absolute top-3.5 right-4 z-30 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white flex items-center justify-center transition-all cursor-pointer shadow-sm"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5 text-white" />
           </button>
 
           <DrawerHeader className="sr-only">
