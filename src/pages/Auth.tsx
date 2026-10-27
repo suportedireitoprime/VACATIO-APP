@@ -1040,7 +1040,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               setMode('login');
               setDrawerOpen(true);
             }}
-            className="w-full py-4 bg-[rgba(10,10,14,0.35)] backdrop-blur-md text-white border border-white/50 rounded-2xl font-body font-bold text-lg shadow-lg active:scale-95 transition-all hover:bg-white/15 cursor-pointer"
+            className="w-full py-4 bg-white/[0.08] backdrop-blur-md text-white border border-white/40 rounded-2xl font-body font-bold text-lg shadow-lg active:scale-95 transition-all hover:bg-white/15 cursor-pointer"
           >
             Entrar
           </button>
