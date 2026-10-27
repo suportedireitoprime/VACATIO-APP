@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Index from "@/pages/Index";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +15,25 @@ import { useAuth } from "@/hooks/useAuth";
 const PersistentHome = () => {
   const location = useLocation();
   const { user, loading } = useAuth();
+
+  const cacheKey = user ? `onboarding_completed:${user.id}` : null;
+  const checkIsDone = () => {
+    if (!cacheKey || typeof window === 'undefined') return false;
+    return localStorage.getItem(cacheKey) === '1';
+  };
+
+  const [isDone, setIsDone] = useState(checkIsDone);
+
+  useEffect(() => {
+    setIsDone(checkIsDone());
+    const onCompleted = () => setIsDone(true);
+    window.addEventListener('onboarding_completed', onCompleted);
+    window.addEventListener('storage', onCompleted);
+    return () => {
+      window.removeEventListener('onboarding_completed', onCompleted);
+      window.removeEventListener('storage', onCompleted);
+    };
+  }, [cacheKey, location.pathname]);
 
   // Só monta depois que a auth resolveu e temos usuário — evita rodar
   // efeitos da Home no fluxo público (auth/landing/etc).
@@ -34,15 +54,12 @@ const PersistentHome = () => {
     location.pathname.startsWith("/desktop-link/");
   if (isPublic) return null;
 
-  // Não monta a Home se o usuário ainda precisa passar pela triagem/onboarding
-  const cacheKey = user ? `onboarding_completed:${user.id}` : null;
-  const isDone = cacheKey && typeof window !== 'undefined' ? localStorage.getItem(cacheKey) === '1' : false;
   let justSignedUp = false;
   try {
     justSignedUp = typeof window !== 'undefined' && window.sessionStorage.getItem('just_signed_up') === '1';
   } catch (e) {}
 
-  if (!isDone || justSignedUp) return null;
+  if ((!isDone && !checkIsDone()) || justSignedUp) return null;
 
   const visible = location.pathname === "/";
   return (

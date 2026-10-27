@@ -3,12 +3,11 @@ import { createPortal } from 'react-dom';
 import {
   X, FileText, Newspaper, BookOpen, Gavel, Landmark, Shield, ScrollText, Bell, Info, LogOut, ChevronLeft, ChevronRight,
   User, LifeBuoy, Lock, GraduationCap, Library, StickyNote, Star, Gem, MessageSquareHeart,
-  Pencil, Sparkles, Bell as BellIcon,
+  Pencil, Sparkles, Crown, Bell as BellIcon,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfileSummary } from '@/hooks/useProfileSummary';
 import { useSubscription } from '@/hooks/useSubscription';
-import { useAppUsageTime } from '@/hooks/useAppUsageTime';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { isAdminEmail } from '@/lib/adminEmails';
@@ -32,14 +31,6 @@ interface Item {
   danger?: boolean;
 }
 interface Group { title?: string; items: Item[]; }
-
-// Destaques — Perfil, Planos, Opinião, Avaliar o app (Suporte desceu para "Conta")
-const HIGHLIGHT_TRIO: Item[] = [
-  { id: 'perfil',  label: 'Perfil',  icon: User },
-  { id: 'planos',  label: 'Planos',  icon: Gem },
-  { id: 'opiniao', label: 'Opinião', icon: MessageSquareHeart },
-  { id: 'avaliar', label: 'Avaliar o app', icon: Star },
-];
 
 const GROUPS: Group[] = [
   {
@@ -69,7 +60,6 @@ const SideMenu = ({ open, onClose, onNavigate }: SideMenuProps) => {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
   const { isPremium } = useSubscription();
-  const { formattedToday, pctToday } = useAppUsageTime();
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('sidemenu-state', { detail: { open } }));
@@ -159,6 +149,17 @@ const SideMenu = ({ open, onClose, onNavigate }: SideMenuProps) => {
     onClose();
   };
 
+  const highlightItems: Item[] = [
+    { id: 'perfil', label: 'Perfil', icon: User },
+    {
+      id: 'planos',
+      label: isPremium ? 'Minha assinatura' : 'Planos',
+      icon: Gem,
+    },
+    { id: 'opiniao', label: 'Opinião', icon: MessageSquareHeart },
+    { id: 'avaliar', label: 'Avaliar o app', icon: Star },
+  ];
+
   const sheet = (
     <AnimatePresence>
       {open && (
@@ -172,8 +173,6 @@ const SideMenu = ({ open, onClose, onNavigate }: SideMenuProps) => {
           <PageHeader title="Menu" onBack={onClose} />
 
           <div className="flex-1 overflow-y-auto px-4 pb-8 pt-3">
-
-
 
               {/* Profile card */}
               <div className="rounded-3xl bg-gradient-to-br from-secondary/80 to-secondary/40 border border-border p-4 mb-4">
@@ -201,19 +200,28 @@ const SideMenu = ({ open, onClose, onNavigate }: SideMenuProps) => {
                     </div>
                   </button>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center justify-between gap-2">
                       <h2 className="font-display text-base font-bold text-foreground leading-tight truncate">{displayName}</h2>
                       {isPremium ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 border border-primary/40 text-[10px] font-body font-bold uppercase tracking-wider text-primary">
-                          <Sparkles className="w-3 h-3" /> Premium
+                        <span className="relative shrink-0 overflow-hidden inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-400/30 to-amber-500/25 border border-amber-400/50 text-[10px] font-body font-bold uppercase tracking-wider text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                          {/* Shimmer sweeping reflection */}
+                          <span
+                            aria-hidden
+                            className="pointer-events-none absolute inset-y-0 -left-full w-full -skew-x-12 animate-[planos-shine_3s_ease-in-out_infinite]"
+                            style={{
+                              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.45) 50%, transparent 100%)',
+                            }}
+                          />
+                          <Crown className="w-3.5 h-3.5 text-amber-300 relative z-10" />
+                          <span className="relative z-10">Premium</span>
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-muted border border-border text-[10px] font-body font-bold uppercase tracking-wider text-muted-foreground">
+                        <span className="shrink-0 px-2 py-0.5 rounded-full bg-muted border border-border text-[10px] font-body font-bold uppercase tracking-wider text-muted-foreground">
                           Free
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground font-body truncate">{userEmail}</p>
+                    <p className="text-xs text-muted-foreground font-body truncate mt-0.5">{userEmail}</p>
                   </div>
                   {!isPremium && (
                     <button
@@ -226,32 +234,17 @@ const SideMenu = ({ open, onClose, onNavigate }: SideMenuProps) => {
                     </button>
                   )}
                 </div>
-
-                {/* Study time bar */}
-                <div className="mt-4">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-body text-muted-foreground">Tempo de estudo hoje</span>
-                    <span className="text-xs font-body font-semibold text-foreground">{formattedToday}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${pctToday}%` }}
-                      transition={{ duration: 0.6, ease: 'easeOut' }}
-                      className="h-full bg-primary rounded-full"
-                    />
-                  </div>
-                </div>
               </div>
 
-              {/* Perfil · Planos · Suporte como itens de lista (mesmo estilo de "Meus lembretes"). */}
+              {/* Perfil · Planos (ou Minha assinatura) · Opinião · Avaliar o app */}
               <GroupCard>
-                {HIGHLIGHT_TRIO.map((it) => (
+                {highlightItems.map((it) => (
                   <MenuRow
                     key={it.id}
                     icon={it.icon}
                     label={it.label}
-                    variant={it.id === 'planos' ? 'yellow' : undefined}
+                    iconColor={it.id === 'avaliar' ? 'text-amber-400 fill-amber-400/20' : undefined}
+                    variant={it.id === 'planos' && !isPremium ? 'yellow' : undefined}
                     onClick={() => handleItemClick(it.id)}
                   />
                 ))}
@@ -330,12 +323,14 @@ function MenuRow({
   onClick,
   danger,
   variant,
+  iconColor,
 }: {
   icon: any;
   label: string;
   onClick: () => void;
   danger?: boolean;
   variant?: 'yellow';
+  iconColor?: string;
 }) {
   if (variant === 'yellow') {
     return (
@@ -371,7 +366,7 @@ function MenuRow({
         danger ? 'text-red-400 hover:text-red-300' : 'text-foreground/90 hover:bg-secondary'
       }`}
     >
-      <Icon className={`w-5 h-5 ${danger ? 'text-red-400' : 'text-primary/80'}`} />
+      <Icon className={`w-5 h-5 ${danger ? 'text-red-400' : (iconColor || 'text-primary/80')}`} />
       <span className="font-body text-[15px] flex-1">{label}</span>
     </button>
   );

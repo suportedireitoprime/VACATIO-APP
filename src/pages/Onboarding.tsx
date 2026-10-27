@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import CadastroOnboardingOverlay, {
@@ -14,12 +15,31 @@ const Onboarding = () => {
   const [saving, setSaving] = useState(false);
   const [pedirNotificacoes, setPedirNotificacoes] = useState(false);
 
+  // Se já concluiu a triagem anteriormente, libera imediatamente
+  useEffect(() => {
+    if (user) {
+      try {
+        const isDone = localStorage.getItem(`onboarding_completed:${user.id}`) === '1';
+        const justSignedUp = window.sessionStorage.getItem('just_signed_up') === '1';
+        if (isDone && !justSignedUp) {
+          navigate('/', { replace: true });
+        }
+      } catch {}
+    }
+  }, [user, navigate]);
+
   const finalizar = async (r: CadastroResult) => {
     if (!user) {
       navigate('/', { replace: true });
       return;
     }
     setSaving(true);
+
+    // Marca imediatamente no cache local e emite evento para destravar o app
+    try { localStorage.setItem(`onboarding_completed:${user.id}`, '1'); } catch {}
+    try { window.sessionStorage.removeItem('just_signed_up'); } catch {}
+    window.dispatchEvent(new CustomEvent('onboarding_completed'));
+
     try {
       const payload: Record<string, any> = {
         status_perfil: r.persona || 'concurseiro',
@@ -31,31 +51,31 @@ const Onboarding = () => {
         desktop_onboarding_done_at: new Date().toISOString(),
       };
 
-      // Atualiza o perfil no Supabase
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update(payload as any)
-        .eq('id', user.id);
+      // Salva no Supabase com timeout de segurança de 3.5s para nunca travar a tela
+      const savePromise = (async () => {
+        try {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update(payload as any)
+            .eq('id', user.id);
 
-      if (updateError) {
-        console.warn('Tentando upsert após erro no update:', updateError);
-        await supabase
-          .from('profiles')
-          .upsert({ id: user.id, ...payload } as any);
-      }
+          if (updateError) {
+            console.warn('Tentando upsert após erro no update:', updateError);
+            await supabase
+              .from('profiles')
+              .upsert({ id: user.id, ...payload } as any);
+          }
+        } catch (e) {
+          console.warn('Erro ao salvar perfil no Supabase:', e);
+        }
+      })();
 
-      // Libera o app imediatamente: marca a triagem como concluída no cache
-      // lido pelo ProtectedRoute, evitando o redirect de volta pra /onboarding.
-      try { localStorage.setItem(`onboarding_completed:${user.id}`, '1'); } catch {}
-      try { window.sessionStorage.removeItem('just_signed_up'); } catch {}
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 3500));
+      await Promise.race([savePromise, timeoutPromise]);
 
-      // Passo contextualizado de permissão de notificações (nativo e PWA)
       setPedirNotificacoes(true);
     } catch (err: any) {
-      console.warn('Aviso no salvamento remoto da triagem:', err);
-      // Garante que o usuário nunca fique travado caso haja instabilidade de conexão
-      try { localStorage.setItem(`onboarding_completed:${user.id}`, '1'); } catch {}
-      try { window.sessionStorage.removeItem('just_signed_up'); } catch {}
+      console.warn('Aviso no salvamento da triagem:', err);
       setPedirNotificacoes(true);
     } finally {
       setSaving(false);
@@ -66,6 +86,12 @@ const Onboarding = () => {
     setPedirNotificacoes(false);
     toast.success(granted ? 'Notificações ativadas. Bora estudar!' : 'Bora estudar!');
     
+    if (user) {
+      try { localStorage.setItem(`onboarding_completed:${user.id}`, '1'); } catch {}
+      try { window.sessionStorage.removeItem('just_signed_up'); } catch {}
+    }
+    window.dispatchEvent(new CustomEvent('onboarding_completed'));
+
     // Mostra o prompt nativo de avaliação após finalizar a triagem
     import('@/lib/inAppReview').then(({ requestReviewNow }) => {
       setTimeout(() => requestReviewNow(), 1500);
@@ -77,10 +103,15 @@ const Onboarding = () => {
   return (
     <main className="min-h-dvh bg-black">
       {!pedirNotificacoes && !saving && <CadastroOnboardingOverlay open onFinished={finalizar} />}
+      {saving && (
+        <div className="min-h-dvh flex flex-col items-center justify-center bg-black gap-3 text-white px-4">
+          <Loader2 className="w-9 h-9 animate-spin text-primary" />
+          <p className="text-sm font-medium text-zinc-300">Personalizando seu Vacatio…</p>
+        </div>
+      )}
       {pedirNotificacoes && <NotificacoesPermissaoStep onDone={concluirNotificacoes} />}
     </main>
   );
 };
 
 export default Onboarding;
-

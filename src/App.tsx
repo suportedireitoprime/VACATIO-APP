@@ -286,24 +286,50 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
 
   // Leitura síncrona do cache — não bloqueia o paint.
   const cacheKey = user ? `onboarding_completed:${user.id}` : null;
-  let cachedDone = false;
-  try {
-    cachedDone = cacheKey && typeof window !== 'undefined' ? localStorage.getItem(cacheKey) === '1' : false;
-  } catch (e) {}
+  const isCacheDone = () => {
+    if (!cacheKey || typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem(cacheKey) === '1';
+    } catch {
+      return false;
+    }
+  };
 
-  // Otimista pós-cadastro: se acabou de criar conta nesta sessão, já assume
-  // que precisa passar pela triagem — evita spinner de 3-5s enquanto o
-  // Supabase ainda não respondeu com o perfil recém-criado.
-  let justSignedUp = false;
-  try {
-    justSignedUp = typeof window !== 'undefined' && window.sessionStorage.getItem('just_signed_up') === '1';
-  } catch (e) {}
+  const isJustSignedUp = () => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return window.sessionStorage.getItem('just_signed_up') === '1';
+    } catch {
+      return false;
+    }
+  };
 
-  const [needsOnboarding, setNeedsOnboarding] = useState(justSignedUp || (!cachedDone && !!user));
-  // Só libera a tela quando souber se a triagem está pendente.
-  const [initialCheckDone, setInitialCheckDone] = useState(
-    () => !user || (cachedDone && !justSignedUp) || (typeof navigator !== 'undefined' && navigator.onLine === false),
-  );
+  const [needsOnboarding, setNeedsOnboarding] = useState(() => {
+    if (!user) return false;
+    if (isCacheDone() && !isJustSignedUp()) return false;
+    return true;
+  });
+
+  const [initialCheckDone, setInitialCheckDone] = useState(() => {
+    if (!user) return true;
+    if (isCacheDone() && !isJustSignedUp()) return true;
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return true;
+    return false;
+  });
+
+  // Ouve evento global quando a triagem for finalizada
+  useEffect(() => {
+    const handleCompleted = () => {
+      setNeedsOnboarding(false);
+      setInitialCheckDone(true);
+    };
+    window.addEventListener('onboarding_completed', handleCompleted);
+    window.addEventListener('storage', handleCompleted);
+    return () => {
+      window.removeEventListener('onboarding_completed', handleCompleted);
+      window.removeEventListener('storage', handleCompleted);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -313,7 +339,7 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
       return;
     }
 
-    if (cachedDone && !justSignedUp) {
+    if (isCacheDone() && !isJustSignedUp()) {
       setInitialCheckDone(true);
       setNeedsOnboarding(false);
       return;
@@ -327,8 +353,6 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
     setInitialCheckDone(false);
     (async () => {
       try {
-        // Perfil pode estar sendo criado pelo trigger (e-mail, Google, Apple).
-        // Tenta algumas vezes antes de decidir, para não liberar o app por engano.
         let done = false;
         let ok = false;
         for (let i = 0; i < 3; i++) {
@@ -359,7 +383,7 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
     })();
 
     return () => { cancelled = true; };
-  }, [user, cacheKey, cachedDone, justSignedUp]);
+  }, [user, cacheKey, location.pathname]);
 
   useEffect(() => {
     if (!loading && user && initialCheckDone) {
@@ -390,7 +414,8 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
     );
   }
 
-  if (requireOnboarding && needsOnboarding) {
+  const currentDone = isCacheDone() && !isJustSignedUp();
+  if (requireOnboarding && needsOnboarding && !currentDone) {
     return <Navigate to="/onboarding" replace />;
   }
 

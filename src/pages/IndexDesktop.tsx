@@ -18,7 +18,7 @@ import { getLeiColor, shade } from '@/lib/leiTheme';
 
 import { LEIS_CATALOG, type LeiCatalogItem } from '@/data/leisCatalog';
 import { LAW_ICON_MAP, CODIGO_DISPLAY_NAMES, ESTATUTO_DISPLAY_NAMES } from '@/data/lawDisplay';
-import { pushRecente, getRecentes, LEIS_RECENTES_EVENT, isUuidLike, type LeiRecente } from '@/lib/leisRecentes';
+import { pushRecente, getRecentes, LEIS_RECENTES_EVENT, isUuidLike, type LeiRecente, formatFriendlyLeiName } from '@/lib/leisRecentes';
 import { leiPath, leiToSlug, tipoToSlug } from '@/lib/legislacaoSlugs';
 import { prefetchAllArtigos } from '@/services/legislacaoService';
 import { prefetchResenha } from '@/services/atualizacaoService';
@@ -374,7 +374,12 @@ const IndexDesktop = () => {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {ultimasRecentes.map((rec) => {
-                    const leiCat = LEIS_CATALOG.find(l => l.id === rec.leiId || l.tabela_nome === rec.tabela_nome);
+                    const leiCat = LEIS_CATALOG.find(
+                      l => l.id.toLowerCase() === rec.leiId?.toLowerCase() ||
+                           l.tabela_nome?.toLowerCase() === rec.leiId?.toLowerCase() ||
+                           l.tabela_nome?.toLowerCase() === rec.tabela_nome?.toLowerCase() ||
+                           l.id.toLowerCase() === rec.tabela_nome?.toLowerCase()
+                    );
                     const bgCor = getLeiColor(rec.leiId, rec.tipo);
                     const isCf =
                       rec.tipo === 'constituicao' ||
@@ -384,7 +389,7 @@ const IndexDesktop = () => {
                       rec.nome?.toLowerCase().includes('constitui');
                     const IconeLei = isCf ? Landmark : (LAW_ICON_MAP[rec.leiId] || BookOpen);
                     const parouTexto = formatParouNoArtigo(rec.artigoNumero);
-                    const displayNome = leiCat?.nome || rec.nome || rec.leiId;
+                    const displayNome = leiCat?.nome || formatFriendlyLeiName(rec.nome) || rec.nome || rec.leiId;
 
                     return (
                       <button

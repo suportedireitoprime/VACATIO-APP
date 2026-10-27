@@ -126,7 +126,11 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
     }
   }, [step]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const concluir = () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     const dorObj = DORES.find((d) => d.id === dor);
     const momentoObj = MOMENTOS.find((m) => m.id === momento);
     const faixaObj = FAIXAS_ETARIAS.find((f) => f.id === faixa);
@@ -940,9 +944,10 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
               <button
                 type="button"
                 onClick={concluir}
-                className="w-full bg-[#EFECE4] hover:bg-white text-[#141310] font-bold text-[16px] py-4 rounded-full active:scale-[0.98] transition cursor-pointer shadow-md"
+                disabled={isSubmitting}
+                className="w-full bg-[#EFECE4] hover:bg-white text-[#141310] font-bold text-[16px] py-4 rounded-full active:scale-[0.98] transition cursor-pointer shadow-md disabled:opacity-75"
               >
-                Entrar no Vacatio
+                {isSubmitting ? 'Entrando no Vacatio…' : 'Entrar no Vacatio'}
               </button>
               <button
                 type="button"

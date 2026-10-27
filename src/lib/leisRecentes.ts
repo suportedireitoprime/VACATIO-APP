@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { LEIS_CATALOG } from '@/data/leisCatalog';
 
 export type LeiRecente = {
   tipo: string;
@@ -12,6 +13,34 @@ export type LeiRecente = {
 
 const KEY = 'leis_recentes_v1';
 const MAX = 20;
+
+/** Normaliza códigos técnicos e nomes com underscores como 'EOAB_ESTATUTO_OAB' para nomes amigáveis */
+export function formatFriendlyLeiName(raw?: string | null): string {
+  if (!raw) return 'Legislação';
+  const trimmed = raw.trim();
+  const match = LEIS_CATALOG.find(
+    (l) =>
+      l.id.toLowerCase() === trimmed.toLowerCase() ||
+      l.tabela_nome?.toLowerCase() === trimmed.toLowerCase()
+  );
+  if (match?.nome) return match.nome;
+
+  if (trimmed.includes('_')) {
+    const cleaned = trimmed
+      .replace(/^[A-Z0-9]+_/, '')
+      .replace(/_/g, ' ')
+      .trim();
+    return cleaned
+      .split(' ')
+      .map((w, idx) => {
+        const lower = w.toLowerCase();
+        if (idx > 0 && ['de', 'da', 'do', 'das', 'dos', 'e', 'em'].includes(lower)) return lower;
+        return lower.charAt(0).toUpperCase() + lower.slice(1);
+      })
+      .join(' ');
+  }
+  return trimmed;
+}
 
 // Detecta se a string parece um UUID (ex: '17e8abb2-80c3-4317-96b8-d62192e37545')
 // Artigos de lei NUNCA são UUIDs.
@@ -31,7 +60,7 @@ export function cleanArtigoNumero(val?: string | null): string | undefined {
   return s;
 }
 
-// Lê o cache local síncrono e sanitiza contra UUIDs residuais
+// Lê o cache local síncrono e sanitiza contra UUIDs residuais e códigos crus como EOAB_ESTATUTO_OAB
 export function getRecentes(): LeiRecente[] {
   if (typeof window === 'undefined') return [];
   try {
@@ -45,8 +74,33 @@ export function getRecentes(): LeiRecente[] {
       if (item.artigoNumero && item.artigoNumero !== cleaned) {
         needsRewrite = true;
       }
+      const match = LEIS_CATALOG.find(
+        (l) =>
+          l.id.toLowerCase() === item.leiId?.toLowerCase() ||
+          l.tabela_nome?.toLowerCase() === item.leiId?.toLowerCase() ||
+          l.tabela_nome?.toLowerCase() === item.tabela_nome?.toLowerCase() ||
+          l.id.toLowerCase() === item.tabela_nome?.toLowerCase()
+      );
+      let nome = item.nome;
+      let leiId = item.leiId;
+      let tipo = item.tipo;
+      const tabelaNome = item.tabela_nome || (match?.tabela_nome ?? leiId);
+
+      if (match) {
+        if (nome !== match.nome) { nome = match.nome; needsRewrite = true; }
+        if (leiId !== match.id) { leiId = match.id; needsRewrite = true; }
+        if (tipo !== match.tipo) { tipo = match.tipo; needsRewrite = true; }
+      } else if (nome && nome.includes('_')) {
+        const friendly = formatFriendlyLeiName(nome);
+        if (friendly !== nome) { nome = friendly; needsRewrite = true; }
+      }
+
       return {
         ...item,
+        tipo: tipo || 'lei',
+        leiId: leiId || item.leiId,
+        nome: nome || item.nome,
+        tabela_nome: tabelaNome,
         artigoNumero: cleaned,
       };
     });
@@ -84,17 +138,24 @@ export async function syncRecentesFromSupabase() {
     // Atualiza/Adiciona baseados no Supabase
     data.forEach(row => {
       const artClean = cleanArtigoNumero(row.numero_artigo);
-      const key = `${row.tabela_codigo}-${artClean || 'CAPA'}`;
+      const match = LEIS_CATALOG.find(
+        l => l.tabela_nome?.toLowerCase() === row.tabela_codigo?.toLowerCase() ||
+             l.id.toLowerCase() === row.tabela_codigo?.toLowerCase()
+      );
+      const resolvedLeiId = match?.id || row.tabela_codigo;
+      const resolvedNome = match?.nome || formatFriendlyLeiName(row.tabela_codigo);
+      const resolvedTipo = match?.tipo || 'lei';
+      const key = `${resolvedLeiId}-${artClean || 'CAPA'}`;
       const existing = map.get(key);
       const sbTime = new Date(row.visualizado_em).getTime();
       
       if (!existing || existing.openedAt < sbTime) {
         map.set(key, {
-          tipo: existing?.tipo || 'lei',
-          leiId: row.tabela_codigo,
-          nome: existing?.nome || row.tabela_codigo.toUpperCase(),
-          descricao: existing?.descricao || '',
-          tabela_nome: existing?.tabela_nome || row.tabela_codigo,
+          tipo: existing?.tipo || resolvedTipo,
+          leiId: resolvedLeiId,
+          nome: match?.nome || existing?.nome || resolvedNome,
+          descricao: existing?.descricao || match?.descricao || '',
+          tabela_nome: match?.tabela_nome || existing?.tabela_nome || row.tabela_codigo,
           artigoNumero: artClean,
           openedAt: sbTime
         });

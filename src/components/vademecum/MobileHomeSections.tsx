@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getRecentes, LEIS_RECENTES_EVENT, pushRecente, isUuidLike, cleanArtigoNumero } from '@/lib/leisRecentes';
+import { getRecentes, LEIS_RECENTES_EVENT, pushRecente, isUuidLike, cleanArtigoNumero, formatFriendlyLeiName } from '@/lib/leisRecentes';
 import { getCachedArtigos } from '@/services/legislacaoService';
 import {
   Accessibility, Baby, Banknote, BookMarked, Briefcase, BriefcaseBusiness, Building,
@@ -635,9 +635,14 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           onClick={() => {
-            const leiCat = LEIS_CATALOG.find(l => l.id === ultimaLei.leiId);
+            const leiCat = LEIS_CATALOG.find(
+              l => l.id.toLowerCase() === ultimaLei.leiId?.toLowerCase() ||
+                   l.tabela_nome?.toLowerCase() === ultimaLei.leiId?.toLowerCase() ||
+                   l.tabela_nome?.toLowerCase() === ultimaLei.tabela_nome?.toLowerCase() ||
+                   l.id.toLowerCase() === ultimaLei.tabela_nome?.toLowerCase()
+            );
             const base = leiCat ? leiPath(leiCat) : `/legislacao/${tipoToSlug(ultimaLei.tipo)}/${leiToSlug({ id: ultimaLei.leiId, nome: ultimaLei.nome })}`;
-            navigate(base);
+            navigate(ultimaLei.artigoNumero ? `${base}/${encodeURIComponent(ultimaLei.artigoNumero)}` : base);
           }}
           style={{
             background: `linear-gradient(to right, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}33, ${getLeiColor(ultimaLei.leiId, ultimaLei.tipo)}0D)`,
@@ -655,7 +660,13 @@ const MobileHomeSections = ({ onNewsOpenChange }: Props = {}) => {
               ultimaLei.nome?.toLowerCase().includes('constitui');
             const IconeLei = isCf ? Landmark : (LAW_ICON_MAP[ultimaLei.leiId] || BookOpen);
             const parouTexto = formatParouNoArtigo(ultimaLei.artigoNumero);
-            const displayNome = LEIS_CATALOG.find(l => l.id === ultimaLei.leiId)?.nome || ultimaLei.nome;
+            const leiCat = LEIS_CATALOG.find(
+              l => l.id.toLowerCase() === ultimaLei.leiId?.toLowerCase() ||
+                   l.tabela_nome?.toLowerCase() === ultimaLei.leiId?.toLowerCase() ||
+                   l.tabela_nome?.toLowerCase() === ultimaLei.tabela_nome?.toLowerCase() ||
+                   l.id.toLowerCase() === ultimaLei.tabela_nome?.toLowerCase()
+            );
+            const displayNome = leiCat?.nome || formatFriendlyLeiName(ultimaLei.nome) || ultimaLei.nome;
             return (
               <>
                 <div className="flex items-center justify-center shrink-0 z-10">

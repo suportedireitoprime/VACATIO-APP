@@ -421,7 +421,7 @@ const Blog = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-12 text-foreground relative overflow-hidden">
+    <div className="min-h-dvh bg-background pb-[calc(7rem+var(--sai-bottom,0px))] lg:pb-12 text-foreground relative overflow-hidden">
       {/* Fundo de Quadrados Animados idêntico à tela inicial do aplicativo */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <ShapeGrid 
@@ -519,11 +519,12 @@ const Blog = () => {
                     </div>
                   </div>
 
-                  {/* Botão Ver todos cinza com texto branco */}
+                  {/* Botão Ver todos cinza com texto branco e touch target de 44px conforme Apple/Google */}
                   <button
                     type="button"
                     onClick={() => handleSelectCategory('em-alta')}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white border border-zinc-600/60 shadow-md transition-all active:scale-95 cursor-pointer"
+                    aria-label="Ver todos os artigos em alta"
+                    className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-full text-xs font-semibold bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white border border-zinc-600/60 shadow-md transition-all active:scale-95 cursor-pointer touch-manipulation shrink-0"
                   >
                     <span className="text-white font-medium">Ver todos</span>
                     <ChevronRight className="w-3.5 h-3.5 text-white stroke-[2.5]" />
@@ -614,7 +615,7 @@ const Blog = () => {
               </div>
 
               {/* 3. FLUXO EM ZIGUE-ZAGUE DAS 10 CATEGORIAS */}
-              <section className="relative py-6 max-w-md sm:max-w-lg mx-auto">
+              <section className="relative py-6 max-w-md sm:max-w-lg mx-auto overflow-hidden px-1">
                 {/* SVG Connecting Curved Path */}
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none z-0"
@@ -631,9 +632,9 @@ const Blog = () => {
                         <linearGradient
                           key={`trilha-grad-${i}`}
                           id={`trilhaSegmentGradient-${i}`}
-                          x1={isEven1 ? '22%' : '78%'}
+                          x1={isEven1 ? '28%' : '72%'}
                           y1="0%"
-                          x2={isEven1 ? '78%' : '22%'}
+                          x2={isEven1 ? '72%' : '28%'}
                           y2="100%"
                         >
                           {/* Cor correspondente ao ícone de origem */}
@@ -656,8 +657,8 @@ const Blog = () => {
                     const y1 = i * rowHeight + 48;
                     const y2 = (i + 1) * rowHeight + 48;
                     const isEven1 = i % 2 === 0;
-                    const x1 = isEven1 ? 22 : 78;
-                    const x2 = isEven1 ? 78 : 22;
+                    const x1 = isEven1 ? 28 : 72;
+                    const x2 = isEven1 ? 72 : 28;
                     const midY = (y1 + y2) / 2;
 
                     return (
@@ -723,7 +724,7 @@ const Blog = () => {
                           transition={{ delay: 0.04 * idx, duration: 0.3 }}
                           className="absolute top-0 flex flex-col items-center"
                           style={{
-                            left: isEven ? '22%' : '78%',
+                            left: isEven ? '28%' : '72%',
                             transform: 'translateX(-50%)',
                           }}
                         >
@@ -731,7 +732,7 @@ const Blog = () => {
                           <button
                             type="button"
                             onClick={() => handleSelectCategory(cat.id)}
-                            className="group relative flex flex-col items-center focus:outline-none cursor-pointer"
+                            className="group relative flex flex-col items-center focus:outline-none cursor-pointer touch-manipulation"
                             aria-label={`Abrir trilha ${cat.titulo}`}
                           >
                             {/* Aura de brilho pulsante no hover */}
@@ -752,12 +753,12 @@ const Blog = () => {
                               </span>
                             </div>
 
-                            {/* Informações da categoria com largura confortável e sem abreviação */}
-                            <div className="mt-2.5 flex flex-col items-center text-center w-[165px] sm:w-[185px] max-w-[195px] px-3 py-2 rounded-2xl bg-background/90 backdrop-blur-md border border-border/50 shadow-md relative z-20 group-hover:border-primary/50 group-hover:bg-background/95 transition-all">
-                              <h4 className="font-display text-xs sm:text-sm font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
+                            {/* Informações da categoria com largura responsiva calculada para não cortar nas bordas */}
+                            <div className="mt-2.5 flex flex-col items-center text-center w-[145px] sm:w-[170px] max-w-[calc(50vw-20px)] px-2.5 py-2 rounded-2xl bg-background/90 backdrop-blur-md border border-border/50 shadow-md relative z-20 group-hover:border-primary/50 group-hover:bg-background/95 transition-all">
+                              <h4 className="font-display text-xs sm:text-sm font-bold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
                                 {cat.titulo}
                               </h4>
-                              <p className="text-[10.5px] sm:text-[11px] text-muted-foreground leading-tight mt-1 font-body">
+                              <p className="text-[10px] sm:text-[11px] text-muted-foreground leading-tight mt-1 font-body line-clamp-2">
                                 {cat.subtitulo}
                               </p>
                               <div className="mt-1.5 flex items-center justify-center">
@@ -838,7 +839,7 @@ const Blog = () => {
                     haptic.light();
                     setFilterTab('todos');
                   }}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 min-h-[44px] py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer touch-manipulation active:scale-[0.98] ${
                     filterTab === 'todos'
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -863,7 +864,7 @@ const Blog = () => {
                     haptic.light();
                     setFilterTab('em-alta');
                   }}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 min-h-[44px] py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer touch-manipulation active:scale-[0.98] ${
                     filterTab === 'em-alta'
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -883,7 +884,7 @@ const Blog = () => {
                     haptic.light();
                     setFilterTab('favoritos');
                   }}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 min-h-[44px] py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer touch-manipulation active:scale-[0.98] ${
                     filterTab === 'favoritos'
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
