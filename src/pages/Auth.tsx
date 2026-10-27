@@ -12,7 +12,8 @@ import {
   Eye, 
   EyeOff, 
   CheckCircle, 
-  KeyRound 
+  KeyRound,
+  Star 
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -897,7 +898,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               setMode('signup');
               setDrawerOpen(true);
             }}
-            className="relative overflow-hidden group w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base shadow-lg shadow-primary/30 active:scale-95 transition-all cursor-pointer"
+            className="relative overflow-hidden group w-full py-4 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-lg shadow-lg shadow-primary/30 active:scale-95 transition-all cursor-pointer"
           >
             <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
             <span className="relative z-10">Cadastrar</span>
@@ -909,7 +910,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               setMode('login');
               setDrawerOpen(true);
             }}
-            className="w-full py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl font-body font-bold text-base shadow-lg active:scale-95 transition-all hover:bg-white/15 cursor-pointer"
+            className="w-full py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-2xl font-body font-bold text-lg shadow-lg active:scale-95 transition-all hover:bg-white/15 cursor-pointer"
           >
             Entrar
           </button>
