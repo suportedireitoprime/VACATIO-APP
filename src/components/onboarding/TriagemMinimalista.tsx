@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import imgOrigem from '@/assets/onboarding/triagem-origem.png';
-import imgMudanca from '@/assets/onboarding/triagem-mudanca.png';
-import imgRisco from '@/assets/onboarding/triagem-risco.png';
-import imgSolucao from '@/assets/onboarding/triagem-solucao.png';
+import imgOrigem from '@/assets/onboarding/triagem-origem.webp';
+import imgMudanca from '@/assets/onboarding/triagem-mudanca.webp';
+import imgRisco from '@/assets/onboarding/triagem-risco.webp';
+import imgSolucao from '@/assets/onboarding/triagem-solucao.webp';
 
 export type TriagemMinimalistaResult = {
   persona: 'faculdade' | 'faculdade-oab' | 'concurso' | 'advogado' | null;
