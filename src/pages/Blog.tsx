@@ -380,19 +380,19 @@ const Blog = () => {
                           </div>
                         </div>
 
-                        <div className="p-3.5 flex-1 flex flex-col justify-between gap-2">
+                        {/* Corpo com apenas o título (sem a prévia do artigo) */}
+                        <div className="p-3.5 pb-3 flex-1 flex items-start">
                           <h3 className="font-display text-[13.5px] sm:text-sm font-semibold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                             {post.titulo}
                           </h3>
-                          <p className="text-[11.5px] text-muted-foreground line-clamp-2 leading-relaxed font-body">
-                            {post.resumo}
-                          </p>
-                          <div className="pt-1 flex items-center justify-between text-[11px] text-muted-foreground border-t border-border/30">
-                            <span>{formatDate(post.data_publicacao)}</span>
-                            <span className="inline-flex items-center gap-0.5 text-primary font-medium group-hover:translate-x-0.5 transition-transform">
-                              Ler artigo <ArrowUpRight className="w-3 h-3" />
-                            </span>
-                          </div>
+                        </div>
+
+                        {/* Rodapé na parte cinza: data à esquerda e 'Ler artigo' à direita */}
+                        <div className="px-3.5 py-2.5 bg-muted/60 dark:bg-zinc-800/60 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
+                          <span>{formatDate(post.data_publicacao)}</span>
+                          <span className="inline-flex items-center gap-0.5 text-primary font-semibold group-hover:translate-x-0.5 transition-transform">
+                            Ler artigo <ArrowUpRight className="w-3 h-3" />
+                          </span>
                         </div>
                       </div>
                     );
@@ -420,21 +420,36 @@ const Blog = () => {
                   preserveAspectRatio="none"
                 >
                   <defs>
-                    <linearGradient id="zigzagGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#f97316" />
-                      <stop offset="12%" stopColor="#f59e0b" />
-                      <stop offset="25%" stopColor="#3b82f6" />
-                      <stop offset="38%" stopColor="#10b981" />
-                      <stop offset="50%" stopColor="#0ea5e9" />
-                      <stop offset="62%" stopColor="#a855f7" />
-                      <stop offset="75%" stopColor="#f43f5e" />
-                      <stop offset="88%" stopColor="#eab308" />
-                      <stop offset="100%" stopColor="#d946ef" />
-                    </linearGradient>
+                    {/* Gradiente por segmento: a cor nasce no ícone de origem e se encontra com a cor do próximo ícone */}
+                    {BLOG_CATEGORIAS.slice(0, -1).map((_, i) => {
+                      const cat1 = BLOG_CATEGORIAS[i];
+                      const cat2 = BLOG_CATEGORIAS[i + 1];
+                      const isEven1 = i % 2 === 0;
+                      return (
+                        <linearGradient
+                          key={`trilha-grad-${i}`}
+                          id={`trilhaSegmentGradient-${i}`}
+                          x1={isEven1 ? '22%' : '78%'}
+                          y1="0%"
+                          x2={isEven1 ? '78%' : '22%'}
+                          y2="100%"
+                        >
+                          {/* Cor correspondente ao ícone de origem */}
+                          <stop offset="0%" stopColor={cat1.accentColor} stopOpacity="0.85" />
+                          <stop offset="35%" stopColor={cat1.accentColor} stopOpacity="0.70" />
+                          {/* Transição suave onde as cores se encontram na metade da curva */}
+                          <stop offset="65%" stopColor={cat2.accentColor} stopOpacity="0.70" />
+                          {/* Cor correspondente ao ícone de destino */}
+                          <stop offset="100%" stopColor={cat2.accentColor} stopOpacity="0.85" />
+                        </linearGradient>
+                      );
+                    })}
                   </defs>
 
                   {/* Curva conectando os nós verticais em zigue-zague autêntico */}
                   {BLOG_CATEGORIAS.slice(0, -1).map((_, i) => {
+                    const cat1 = BLOG_CATEGORIAS[i];
+                    const cat2 = BLOG_CATEGORIAS[i + 1];
                     const rowHeight = 190;
                     const y1 = i * rowHeight + 48;
                     const y2 = (i + 1) * rowHeight + 48;
@@ -445,34 +460,42 @@ const Blog = () => {
 
                     return (
                       <g key={`zigzag-segment-${i}`}>
-                        {/* Linha de brilho difuso */}
+                        {/* Linha de brilho difuso suave */}
                         <path
                           d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
-                          stroke="url(#zigzagGradient)"
-                          strokeWidth="8"
-                          strokeOpacity="0.18"
+                          stroke={`url(#trilhaSegmentGradient-${i})`}
+                          strokeWidth="5"
+                          strokeOpacity="0.10"
                           fill="none"
                           vectorEffect="non-scaling-stroke"
                         />
-                        {/* Linha principal tracejada */}
+                        {/* Linha principal tracejada mais fina e delicada */}
                         <path
                           d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
-                          stroke="url(#zigzagGradient)"
-                          strokeWidth="3.5"
-                          strokeDasharray="6 5"
+                          stroke={`url(#trilhaSegmentGradient-${i})`}
+                          strokeWidth="2.2"
+                          strokeDasharray="4 4"
                           strokeLinecap="round"
                           fill="none"
                           vectorEffect="non-scaling-stroke"
-                          className="opacity-80"
+                          className="opacity-70"
                         />
-                        {/* Ponto luminoso intermediário na curva */}
+                        {/* Ponto luminoso intermediário exatamente onde as cores se encontram */}
                         <circle
                           cx="50"
                           cy={midY}
-                          r="3.5"
-                          fill="#f59e0b"
+                          r="5.5"
+                          fill={cat2.accentColor}
+                          fillOpacity="0.25"
                           vectorEffect="non-scaling-stroke"
-                          className="opacity-70"
+                        />
+                        <circle
+                          cx="50"
+                          cy={midY}
+                          r="2.8"
+                          fill={cat1.accentColor}
+                          vectorEffect="non-scaling-stroke"
+                          className="opacity-90"
                         />
                       </g>
                     );
@@ -527,12 +550,12 @@ const Blog = () => {
                               </span>
                             </div>
 
-                            {/* Informações da categoria abaixo do botão */}
-                            <div className="mt-2 flex flex-col items-center text-center max-w-[140px] sm:max-w-[160px]">
+                            {/* Informações da categoria com fundo translúcido protetor (evita interferência da linha) */}
+                            <div className="mt-2.5 flex flex-col items-center text-center max-w-[145px] sm:max-w-[165px] px-3 py-1.5 rounded-2xl bg-background/85 backdrop-blur-md border border-border/40 shadow-sm relative z-20 group-hover:border-primary/40 group-hover:bg-background/95 transition-all">
                               <h4 className="font-display text-xs sm:text-sm font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
                                 {cat.titulo}
                               </h4>
-                              <p className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-1 leading-snug">
+                              <p className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-1 leading-snug mt-0.5">
                                 {cat.subtitulo}
                               </p>
                               <span
