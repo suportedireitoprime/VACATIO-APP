@@ -82,7 +82,7 @@ import capa7 from '@/assets/capas/capa-7.webp';
 import capa8 from '@/assets/capas/capa-8.webp';
 import capa9 from '@/assets/capas/capa-9.webp';
 
-const CAPAS_FUNDO = [capa1, capa2, capa3, capa4, capa5, capa6, capa7, capa8, capa9];
+const CAPAS_FUNDO = [capa3, capa1, capa2, capa4, capa5, capa6, capa7, capa8, capa9];
 import authBgLeftAsset from '@/assets/auth-bg-left.webp';
 const authBgLeft = authBgLeftAsset;
 import authBgRightAsset from '@/assets/auth-bg-right.webp';
@@ -424,11 +424,18 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
     });
   }, []);
 
-  /* Rotação cinematográfica suave a cada 7 segundos */
+  /* Rotação cinematográfica a cada 3.5 segundos com transição aleatória */
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentCapaIdx((curr) => (curr + 1) % CAPAS_FUNDO.length);
-    }, 7000);
+      setCurrentCapaIdx((curr) => {
+        if (CAPAS_FUNDO.length <= 1) return curr;
+        let next: number;
+        do {
+          next = Math.floor(Math.random() * CAPAS_FUNDO.length);
+        } while (next === curr);
+        return next;
+      });
+    }, 3500);
 
     return () => clearInterval(timer);
   }, []);
@@ -619,6 +626,19 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               )}
             </button>
           </form>
+
+          <div className="text-center pt-3.5 mt-2 border-t border-white/10">
+            <p className="text-xs font-body text-neutral-400">
+              Não tem uma conta?{' '}
+              <button
+                type="button"
+                onClick={() => setMode('signup')}
+                className="text-primary font-bold hover:underline cursor-pointer"
+              >
+                Cadastre-se com o Google
+              </button>
+            </p>
+          </div>
         </div>
       );
     }
@@ -626,102 +646,22 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
     if (mode === 'signup') {
       return (
         <div className="w-full flex flex-col text-left py-1">
-          <div className="text-center mb-4">
+          <div className="text-center mb-5">
             <h2 className="font-display text-2xl font-bold text-white">
               Criar sua conta
             </h2>
-            <p className="text-xs font-body text-neutral-400 mt-1 max-w-[320px] mx-auto">
-              Cadastre-se com sua conta Google ou com seu e-mail.
+            <p className="text-xs font-body text-neutral-400 mt-1.5 max-w-[320px] mx-auto">
+              Cadastre-se com sua conta Google para iniciar a triagem e começar seus estudos.
             </p>
           </div>
 
-          {/* Opção 1: Google */}
-          {googleButton}
-
-          {/* Divisor */}
-          <div className="relative my-3.5 flex items-center gap-3">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-[11px] font-body uppercase tracking-wider text-neutral-400">
-              ou com e-mail
-            </span>
-            <div className="flex-1 h-px bg-white/10" />
+          {/* Opção única para cadastro: Google */}
+          <div className="py-2">
+            {googleButton}
           </div>
 
-          {/* Opção 2: Formulário com e-mail e senha */}
-          <form onSubmit={handleSignupSubmit} className="space-y-3">
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-              <input
-                type="email"
-                name="email"
-                autoComplete="email"
-                inputMode="email"
-                autoCapitalize="none"
-                autoCorrect="off"
-                placeholder="Seu e-mail"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className={inputCls}
-              />
-            </div>
-
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="new-password"
-                autoComplete="new-password"
-                placeholder="Sua senha (mínimo 6 caracteres)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className={inputCls}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors cursor-pointer"
-                aria-label={showPassword ? 'Ocultar senha' : 'Ver senha'}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="confirm-password"
-                autoComplete="new-password"
-                placeholder="Confirme sua senha"
-                value={signupPasswordConfirm}
-                onChange={(e) => setSignupPasswordConfirm(e.target.value)}
-                required
-                minLength={6}
-                className={inputCls}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="relative overflow-hidden group w-full py-3.5 bg-primary text-primary-foreground rounded-2xl font-body font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-primary/25 cursor-pointer mt-1"
-            >
-              {submitting ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  Cadastrar e Iniciar Triagem
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-
           {/* Termos de uso e privacidade exibidos exclusivamente no cadastro */}
-          <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-3.5">
+          <p className="text-[11px] leading-relaxed font-body text-neutral-400 text-center px-2 mt-4">
             Ao continuar, você concorda com os{' '}
             <button
               type="button"
@@ -740,6 +680,19 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             </button>
             .
           </p>
+
+          <div className="text-center pt-5 mt-2 border-t border-white/10">
+            <p className="text-xs font-body text-neutral-400">
+              Já tem uma conta?{' '}
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className="text-primary font-bold hover:underline cursor-pointer"
+              >
+                Fazer login
+              </button>
+            </p>
+          </div>
         </div>
       );
     }
@@ -1017,8 +970,8 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
             animate={{ opacity: 1, scale: 1.08 }}
             exit={{ opacity: 0 }}
             transition={{
-              opacity: { duration: 1.8, ease: 'easeInOut' },
-              scale: { duration: 8.5, ease: 'linear' },
+              opacity: { duration: 0.9, ease: 'easeInOut' },
+              scale: { duration: 4.5, ease: 'linear' },
             }}
             className="absolute inset-0 w-full h-full object-cover filter brightness-[0.76] saturate-[1.02]"
           />
@@ -1049,7 +1002,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
       </div>
 
       {/* Content at the bottom with safe-area spacing */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(calc(env(safe-area-inset-bottom)+3.25rem),4.25rem)]">
+      <div className="relative z-10 flex-1 flex flex-col justify-end px-6 pb-[max(calc(env(safe-area-inset-bottom,0px)+5rem),6rem)]">
         {/* Headline & Description */}
         <div className="text-left mb-6 max-w-[400px] w-full mx-auto">
           <h1
@@ -1095,7 +1048,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
 
       {/* Bottom Sheet Drawer for Auth Form */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="bg-neutral-950 border-neutral-800 text-white px-6 pt-3 pb-[max(calc(env(safe-area-inset-bottom)+1.5rem),2rem)] outline-none overflow-hidden max-h-[90dvh] rounded-t-[28px]">
+        <DrawerContent className="bg-neutral-950 border-neutral-800 text-white px-6 pt-3 pb-[max(calc(env(safe-area-inset-bottom,0px)+2.5rem),3.25rem)] outline-none overflow-hidden max-h-[90dvh] rounded-t-[28px]">
           {/* Barra de arraste (handle) no topo */}
           <div className="w-12 h-1.5 rounded-full bg-white/20 mx-auto mb-2" />
 

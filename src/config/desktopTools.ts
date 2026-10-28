@@ -52,7 +52,6 @@ export const DESKTOP_TOOL_GROUPS: DesktopToolGroup[] = [
       { id: 'biblioteca', label: 'Biblioteca', desc: 'Livros, manuais e doutrinas', icon: Library, route: '/biblioteca', color: '#F59E0B' },
       { id: 'dicionario', label: 'Dicionário Jurídico', desc: 'Termos e conceitos do Direito', icon: BookOpenText, route: '/ferramentas/dicionario', color: '#3B82F6' },
       { id: 'resumos', label: 'Resumos Jurídicos', desc: 'Biblioteca por área, tema e subtema', icon: NotebookText, route: '/resumos-juridicos', color: '#A855F7' },
-      { id: 'locais', label: 'Locais Jurídicos', desc: 'Tribunais, cartórios e delegacias', icon: MapPin, route: '/ferramentas/locais', color: '#14B8A6' },
     ],
   },
   {
@@ -63,7 +62,6 @@ export const DESKTOP_TOOL_GROUPS: DesktopToolGroup[] = [
       { id: 'radar-360', label: 'Radar 360', desc: 'Monitore votações, deputados e proposições', icon: ScanEye, route: '/radar', color: '#A78BFA' },
       { id: 'noticias', label: 'Notícias', desc: 'Notícias jurídicas e atualizações', icon: Newspaper, route: '/noticias', color: '#EC4899' },
       { id: 'boletins', label: 'Boletins Jurídicos', desc: 'Vídeo diário com as normas quentes', icon: Clapperboard, route: '/boletins', color: '#EF4444' },
-      { id: 'newsletter', label: 'Newsletter', desc: 'Receba o resumo por e-mail', icon: Mail, route: '/newsletter', color: '#F97316' },
     ],
   },
   {
