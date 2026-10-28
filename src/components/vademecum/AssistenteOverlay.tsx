@@ -266,6 +266,111 @@ function BrainEmptyState({ suggestions, onSelect }: { suggestions: string[], onS
   );
 }
 
+function ChatThinkingIndicator() {
+  const [phaseIndex, setPhaseIndex] = useState(0);
+
+  const phases = [
+    { text: 'Consultando e fundamentando resposta…', sub: 'Pesquisando legislação e artigos aplicáveis' },
+    { text: 'Analisando normas e jurisprudência…', sub: 'Cruzando entendimentos dos tribunais' },
+    { text: 'Sintetizando explicação jurídica…', sub: 'Estruturando resposta clara e fundamentada' },
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPhaseIndex((prev) => (prev + 1) % phases.length);
+    }, 2200);
+    return () => clearInterval(timer);
+  }, [phases.length]);
+
+  return (
+    <div className="py-2.5 px-1 min-w-[240px] max-w-[340px] space-y-3">
+      {/* Header com ícone estelar pulsante + status rotativo suave */}
+      <div className="flex items-center gap-2.5">
+        <div className="relative flex items-center justify-center w-7 h-7 rounded-xl bg-primary/10 border border-primary/25 shrink-0 shadow-sm overflow-hidden">
+          <motion.div
+            animate={{
+              rotate: [0, 90, 180, 270, 360],
+              scale: [1, 1.15, 1],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          >
+            <Sparkles className="w-4 h-4 text-primary" />
+          </motion.div>
+          <span className="absolute inset-0 rounded-xl bg-primary/20 animate-ping opacity-25" style={{ animationDuration: '2.5s' }} />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={phaseIndex}
+              initial={{ opacity: 0, y: 3 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -3 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center gap-1.5"
+            >
+              <span className="text-xs font-semibold text-foreground tracking-tight truncate">
+                {phases[phaseIndex].text}
+              </span>
+            </motion.div>
+          </AnimatePresence>
+          <p className="text-[10px] text-muted-foreground font-body truncate mt-0.5">
+            {phases[phaseIndex].sub}
+          </p>
+        </div>
+
+        {/* 3 jumping dots com ritmo orgânico */}
+        <div className="flex items-center gap-1 shrink-0 px-1">
+          <motion.span
+            className="w-1.5 h-1.5 rounded-full bg-primary"
+            animate={{ scale: [0.7, 1.25, 0.7], opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+          />
+          <motion.span
+            className="w-1.5 h-1.5 rounded-full bg-primary"
+            animate={{ scale: [0.7, 1.25, 0.7], opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay: 0.18 }}
+          />
+          <motion.span
+            className="w-1.5 h-1.5 rounded-full bg-primary"
+            animate={{ scale: [0.7, 1.25, 0.7], opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut", delay: 0.36 }}
+          />
+        </div>
+      </div>
+
+      {/* Ondas fluidas de reflexo sobre linhas de conteúdo (shimmer wave) */}
+      <div className="space-y-2 pt-0.5">
+        <div className="relative h-2 w-full rounded-full overflow-hidden bg-primary/10">
+          <motion.div
+            className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-primary/45 to-transparent"
+            animate={{ x: ['-100%', '250%'] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+        <div className="relative h-2 w-[82%] rounded-full overflow-hidden bg-primary/10">
+          <motion.div
+            className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-primary/35 to-transparent"
+            animate={{ x: ['-100%', '250%'] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.15 }}
+          />
+        </div>
+        <div className="relative h-2 w-[55%] rounded-full overflow-hidden bg-primary/10">
+          <motion.div
+            className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-primary/25 to-transparent"
+            animate={{ x: ['-100%', '250%'] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const AssistenteOverlay = ({ open, onClose }: Props) => {
   const isDesktop = useIsDesktop();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -831,11 +936,19 @@ REGRAS DE ESTILO E FORMATO:
                 : normalizedMarkdown;
               const isUser = msg.role === 'user';
               return (
-                <div key={msg.id} className={`w-full flex ${isUser ? 'justify-end mt-4 mb-2' : 'justify-start mt-5 mb-4'}`}>
-                  <div className={`rounded-2xl px-4 py-3 ${
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                  className={`w-full flex ${isUser ? 'justify-end mt-4 mb-2' : 'justify-start mt-5 mb-4'}`}
+                >
+                  <div className={`rounded-2xl px-4 py-3 transition-all duration-300 ${
                     isUser
                       ? 'max-w-[85%] sm:max-w-[80%] bg-primary/15 text-foreground border border-primary/40 rounded-br-md shadow-sm'
-                      : 'w-full bg-card border border-border text-foreground rounded-2xl shadow-sm'
+                      : isMsgStreaming && !shown
+                        ? 'w-full bg-card border border-primary/40 text-foreground rounded-2xl shadow-[0_4px_24px_-4px_hsl(var(--primary)/0.18)] ring-1 ring-primary/20'
+                        : 'w-full bg-card border border-border text-foreground rounded-2xl shadow-sm'
                   }`}>
                     {msg.attachment && isUser && (
                       <div className="mb-2 flex items-center gap-2 text-xs opacity-90">
@@ -845,17 +958,7 @@ REGRAS DE ESTILO E FORMATO:
                     {msg.role === 'assistant' ? (
                       <>
                         {isMsgStreaming && !shown ? (
-                          <div className="py-2 px-1 space-y-2 min-w-[220px]">
-                            <div className="flex items-center gap-2 text-xs font-medium text-foreground">
-                              <Sparkles className="w-3.5 h-3.5 text-primary animate-spin" />
-                              <span className="animate-pulse">Consultando e fundamentando resposta…</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 pt-1">
-                              <div className="h-1.5 w-12 rounded-full bg-primary/50 animate-pulse" />
-                              <div className="h-1.5 w-24 rounded-full bg-primary/30 animate-pulse delay-75" />
-                              <div className="h-1.5 w-8 rounded-full bg-primary/40 animate-pulse delay-150" />
-                            </div>
-                          </div>
+                          <ChatThinkingIndicator />
                         ) : (
                           <motion.div
                             initial={{ opacity: 0.8 }} animate={{ opacity: 1 }}
@@ -967,7 +1070,7 @@ REGRAS DE ESTILO E FORMATO:
                     )}
                   </div>
                 </div>
-              );
+              </motion.div>;
             })}
             </div>
 
@@ -1068,6 +1171,8 @@ REGRAS DE ESTILO E FORMATO:
                           sendMessage();
                         }}
                         disabled={loading || !!streamingId}
+                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.05 }}
                         aria-label="Enviar mensagem"
                         className="w-11 h-11 sm:w-12 sm:h-12 min-w-[44px] min-h-[44px] rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 active:scale-95 transition-transform disabled:opacity-40 shadow-md cursor-pointer"
                       >

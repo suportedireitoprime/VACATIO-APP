@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Capacitor } from '@capacitor/core';
 import { Crown, Zap, Check, Shield, BookOpen, Brain, CreditCard, Copy, CheckCircle2, Loader2, Smartphone, RotateCw, Monitor, TrendingUp, Sparkles, Star, MessageCircle, Headphones, FileText, Library, Scale, Briefcase } from "lucide-react";
 import { AppHeader } from '@/components/layout/AppHeader';
-import { PageHeader } from '@/components/vademecum/PageHeader';
 import logoVacatio from '@/assets/logo-vacatio-v2.webp';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +18,6 @@ import { toast } from "sonner";
 import { isBillingAvailable, initBilling, getProducts, purchase as playPurchase, restorePurchases, PRODUCT_IDS, PlayProduct } from "@/lib/billing";
 import { useSubscription } from "@/hooks/useSubscription";
 import WelcomePremiumOverlay from "@/components/planos/WelcomePremiumOverlay";
-import { TrialTimelineSheet } from "@/components/planos/TrialTimelineSheet";
-import { scheduleTrialReminder, type TrialPlan } from "@/lib/trialReminders";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { isAdminEmail } from "@/lib/adminEmails";
 import { maybeRequestAfterPurchase } from "@/lib/inAppReview";
@@ -358,8 +355,6 @@ export default function Assinatura() {
   ];
 
 
-  const [trialSheetPlan, setTrialSheetPlan] = useState<TrialPlan | null>(null);
-
   const startPurchase = (plano: PlanoTab) => {
     track('subscription_started', { plano, metodo: nativeBilling ? 'play' : 'web', source: 'planos_page' });
     import('@/lib/appEvents')
@@ -368,24 +363,9 @@ export default function Assinatura() {
         appEvents.assinaturaIniciada({ plano, metodo: nativeBilling ? 'play' : 'web' });
       })
       .catch(() => {});
-    // Antes de abrir o checkout, mostra a linha do tempo do teste grátis.
-    const trialPlan: TrialPlan = plano === 'mensal' ? 'mensal' : 'anual_parcelado';
-    setTrialSheetPlan(trialPlan);
-  };
 
-  const confirmTrialAndBuy = async () => {
-    if (!trialSheetPlan) return;
-    import('@/lib/appEvents')
-      .then(({ appEvents }) =>
-        appEvents.trialIniciado({ plano: trialSheetPlan, dias: trialSheetPlan === 'mensal' ? 3 : 7 })
-      )
-      .catch(() => {});
-    // Agenda lembrete (WhatsApp via cron + push local) e abre checkout real.
-    await scheduleTrialReminder(trialSheetPlan);
-    const plano = trialSheetPlan;
-    setTrialSheetPlan(null);
     if (nativeBilling) {
-      handlePlayPurchase(plano);
+      handlePlayPurchase(plano === 'mensal' ? 'mensal' : 'anual');
     } else {
       handleSelectPlan(plano === 'mensal' ? 'mensal' : 'anual');
     }
@@ -407,17 +387,7 @@ export default function Assinatura() {
           syncing={welcomeFlag && !isPremium}
           onClose={closeWelcome}
         />
-        <TrialTimelineSheet
-          open={!!trialSheetPlan}
-          onOpenChange={(v) => { if (!v) setTrialSheetPlan(null); }}
-          plan={trialSheetPlan ?? 'anual_parcelado'}
-          onConfirm={confirmTrialAndBuy}
-          loading={playLoading}
-        />
-        <PageHeader
-          title="Assinatura Premium"
-          onBack={() => navigate(-1)}
-        />
+        <AppHeader title="Assinatura Premium" onBack={() => navigate(-1)} />
 
         <div className="max-w-2xl mx-auto pt-6 space-y-7">
           {/* Clean hero */}
@@ -543,7 +513,7 @@ export default function Assinatura() {
                     {playLoading && isActive ? (
                       <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Processando…</span>
                     ) : (
-                      <span>Começar {plan.trial}</span>
+                      <span>Assinar {plan.label}</span>
                     )}
                   </Button>
                   <p className="text-center font-body text-[10px] text-muted-foreground mt-2">
@@ -605,14 +575,6 @@ export default function Assinatura() {
                 </AccordionTrigger>
                 <AccordionContent className="font-body text-sm text-muted-foreground leading-relaxed">
                   Sim. O cancelamento é feito direto pela sua conta da Google Play, com um toque, sem burocracia. Você mantém o acesso Premium até o fim do período pago.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="teste" className="border-border">
-                <AccordionTrigger className="font-body text-sm font-semibold text-foreground text-left hover:no-underline">
-                  Como funciona o período grátis?
-                </AccordionTrigger>
-                <AccordionContent className="font-body text-sm text-muted-foreground leading-relaxed">
-                  No plano Mensal você testa 3 dias grátis; no Anual, 7 dias. Durante o teste, todas as funções Premium ficam liberadas. Cancele antes do fim para não ser cobrado.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="pagamento" className="border-border">

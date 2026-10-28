@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { Shield } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import MinhaAssinaturaView from '@/components/planos/MinhaAssinaturaView';
-import { PageHeader } from '@/components/vademecum/PageHeader';
+import { AppHeader } from '@/components/layout/AppHeader';
 
 const PlanosAtivos = () => {
   const navigate = useNavigate();
@@ -15,15 +15,7 @@ const PlanosAtivos = () => {
 
   return (
     <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md">
-        <div className="max-w-3xl mx-auto">
-          <PageHeader
-            title="ASSINATURA"
-            subtitle="Gerencie seu plano Vacatio Premium"
-            onBack={() => navigate(-1)}
-          />
-        </div>
-      </header>
+      <AppHeader title="Assinatura" onBack={() => navigate(-1)} />
 
 
       <div className="max-w-3xl mx-auto px-4 pt-8 space-y-8">
