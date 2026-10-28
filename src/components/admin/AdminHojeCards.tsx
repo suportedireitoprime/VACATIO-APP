@@ -202,7 +202,7 @@ export function AdminHojeCards() {
     const nowMs = now.getTime();
     const fiveMinMs = 5 * 60 * 1000;
     const c5m = ((actRows as any[]) || []).filter((r) => {
-      if (!r.last_seen_at || isAdminEmail(r.email)) return false;
+      if (!r.last_seen_at) return false;
       const t = new Date(r.last_seen_at).getTime();
       return t >= (nowMs - fiveMinMs) && t <= (nowMs + 60 * 1000);
     }).length;
@@ -248,19 +248,20 @@ export function AdminHojeCards() {
         const nowMs = now.getTime();
         const fiveMinMs = 5 * 60 * 1000;
         const validRows = ((data as any[]) || []).filter((r) => {
-          if (!r.last_seen_at || isAdminEmail(r.email)) return false;
+          if (!r.last_seen_at) return false;
           const t = new Date(r.last_seen_at).getTime();
           return t >= (nowMs - fiveMinMs) && t <= (nowMs + 60 * 1000);
         });
 
-        rawList = validRows.map((r) => ({
+        rawList = validRows.map((r: any) => ({
           key: r.user_id,
           userId: r.user_id,
           title: r.display_name || 'Usuário',
           email: r.email || null,
           subtitle: rotaParaFuncao(r.current_route).label,
           meta: tempoAtras(r.last_seen_at),
-          acessos: null,
+          acessos: typeof r.acessos_hoje === 'number' ? r.acessos_hoje : 1,
+          minutos_dia: r.segundos_hoje ? Math.max(1, Math.round(r.segundos_hoje / 60)) : 1,
         }));
       } else {
         const { data } = await supabase.rpc('admin_lista_dia' as any, { _tipo: id, _dia: isoDate(date) });
@@ -277,7 +278,7 @@ export function AdminHojeCards() {
         }));
       }
       
-      const list = rawList.filter(r => !isAdminEmail(r.email));
+      const list = rawList;
       setRows(list);
       if (sameDay(date, new Date())) {
         const seen = readSeen(id, date);
@@ -496,6 +497,14 @@ export function AdminHojeCards() {
                     <div className="flex-1 min-w-0 py-0.5">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="font-body text-sm font-semibold text-foreground truncate">{r.title}</div>
+                        {isAdminEmail(r.email) && (
+                          <span
+                            title="Conta de Administrador"
+                            className="shrink-0 rounded-full bg-amber-500/15 border border-amber-500/40 px-1.5 py-[1px] font-body text-[9.5px] font-bold text-amber-400"
+                          >
+                            ADMIN
+                          </span>
+                        )}
                         {typeof r.acessos === 'number' && r.acessos > 0 && (
                           <span
                             title={`${r.acessos} acesso${r.acessos === 1 ? '' : 's'} no dia`}
@@ -515,7 +524,9 @@ export function AdminHojeCards() {
                           <span className="truncate">{r.subtitle}</span>
                           {r.minutos_dia != null && r.minutos_dia > 0 && (
                             <span className="inline-flex items-center gap-0.5 shrink-0 font-bold text-emerald-400 text-[10.5px]">
-                              · {r.minutos_dia}min
+                              · {r.minutos_dia >= 60 
+                                  ? `${Math.floor(r.minutos_dia / 60)}h${r.minutos_dia % 60 > 0 ? ` ${r.minutos_dia % 60}m` : ''}` 
+                                  : `${r.minutos_dia}min`}
                             </span>
                           )}
                         </div>
