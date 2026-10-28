@@ -15,6 +15,7 @@ import { PageHeader } from '@/components/vademecum/PageHeader';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import OpiniaoSheet from '@/components/menu/OpiniaoSheet';
 import AvaliarAppSheet from '@/components/vademecum/AvaliarAppSheet';
+import PremiumGate from '@/components/PremiumGate';
 
 
 interface SideMenuProps {
@@ -56,6 +57,7 @@ const GROUPS: Group[] = [
 const SideMenu = ({ open, onClose, onNavigate }: SideMenuProps) => {
   const [opiniaoOpen, setOpiniaoOpen] = useState(false);
   const [avaliarOpen, setAvaliarOpen] = useState(false);
+  const [premiumGateOpen, setPremiumGateOpen] = useState(false);
   useEscapeKey(open, onClose);
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
@@ -116,6 +118,16 @@ const SideMenu = ({ open, onClose, onNavigate }: SideMenuProps) => {
       // Fecha o menu lateral primeiro para o sheet não abrir atrás dele.
       onClose();
       setTimeout(() => setAvaliarOpen(true), 180);
+      return;
+    }
+
+    if (id === 'planos') {
+      if (!isPremium) {
+        setPremiumGateOpen(true);
+        return;
+      }
+      navigate('/planos/ativos');
+      onClose();
       return;
     }
 
@@ -225,9 +237,7 @@ const SideMenu = ({ open, onClose, onNavigate }: SideMenuProps) => {
                   </div>
                   {!isPremium && (
                     <button
-                      onMouseEnter={() => { import('@/pages/Assinatura.tsx').catch(() => {}); }}
-                      onPointerDown={() => { import('@/pages/Assinatura.tsx').catch(() => {}); }}
-                      onClick={() => { navigate('/assinatura'); onClose(); }}
+                      onClick={() => { setPremiumGateOpen(true); }}
                       className="px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-body font-semibold whitespace-nowrap active:scale-95 transition-transform"
                     >
                       Atualizar
@@ -296,6 +306,11 @@ const SideMenu = ({ open, onClose, onNavigate }: SideMenuProps) => {
         open={avaliarOpen}
         onClose={() => setAvaliarOpen(false)}
         onFeedback={() => { navigate('/suporte'); onClose(); }}
+      />
+      <PremiumGate
+        open={premiumGateOpen}
+        onClose={() => setPremiumGateOpen(false)}
+        feature="default"
       />
     </>,
     document.body,

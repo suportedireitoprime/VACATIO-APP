@@ -30,6 +30,7 @@ import LeitorFolhear, { type LeitorFolhearHandle } from './leitor/LeitorFolhear'
 import AssistenteIA from './leitor/AssistenteIA';
 import CompartilharFrase from './leitor/CompartilharFrase';
 import IntroLivro from './leitor/IntroLivro';
+import PremiumGate from '@/components/PremiumGate';
 
 
 
@@ -137,6 +138,7 @@ const LeitorNativo = ({
   const [status, setStatus] = useState<Registro['status']>('pendente');
   const [conteudo, setConteudo] = useState<string>('');
   const [speaking, setSpeaking] = useState(false);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
   // Narrações geradas pelo admin (áudio real). Chave = número da página do OCR.
   const [narracoes, setNarracoes] = useState<Map<number, string>>(new Map());
   const audioNarracaoRef = useRef<HTMLAudioElement | null>(null);
@@ -1924,16 +1926,20 @@ const LeitorNativo = ({
           <p className="font-bold text-sm mb-1">Prévia do livro (5 págs)</p>
           <p className="text-xs opacity-90 mb-3">Assine o Premium para liberar a leitura completa deste livro e de todo o acervo.</p>
           <button
-            onClick={() => {
-              onClose();
-              window.location.href = '/assinatura';
-            }}
+            onClick={() => setShowPremiumGate(true)}
             className="w-full py-2.5 bg-background text-foreground rounded-xl text-sm font-bold active:scale-95 transition-transform"
           >
             Assinar Premium
           </button>
         </div>
       )}
+
+      <PremiumGate
+        open={showPremiumGate}
+        onClose={() => setShowPremiumGate(false)}
+        feature="biblioteca"
+        description="Desbloqueie a leitura completa deste livro e de todo o acervo da biblioteca."
+      />
     </div>
 
   );

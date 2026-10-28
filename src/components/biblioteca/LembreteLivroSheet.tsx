@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Bell, BookOpen, Lock, MessageCircle, Plus, Sparkles, Trash2, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { LivroSnapshot } from '@/lib/bibliotecaTracking';
+import PremiumGate, { type PremiumFeatureKey } from '@/components/PremiumGate';
 
 type Channel = 'push' | 'horus';
 
@@ -43,6 +44,7 @@ export default function LembreteLivroSheet({
   const [channel, setChannel] = useState<Channel>('push');
   const [existingBook, setExistingBook] = useState<{ livro_id: string; livro_titulo: string | null } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [gateFeature, setGateFeature] = useState<PremiumFeatureKey | null>(null);
   const [hasExistingHere, setHasExistingHere] = useState(false);
 
   // Reset ao abrir
@@ -99,7 +101,7 @@ export default function LembreteLivroSheet({
 
   const addTime = () => {
     if (!isPremium && times.length >= 1) {
-      toast.info('Somente Premium pode adicionar mais horários.');
+      setGateFeature('lembretes');
       return;
     }
     setTimes((prev) => [...prev, '20:00']);
@@ -111,7 +113,7 @@ export default function LembreteLivroSheet({
 
   const trySelectChannel = (c: Channel) => {
     if (c === 'horus' && !isPremium) {
-      toast.info('Horus (WhatsApp) é exclusivo Premium.');
+      setGateFeature('horus');
       return;
     }
     setChannel(c);
@@ -192,6 +194,7 @@ export default function LembreteLivroSheet({
   if (!livro) return null;
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-3xl border-border/60 bg-background flex flex-col">
         <SheetHeader className="px-5 pt-5 pb-3 text-left">
@@ -359,5 +362,11 @@ export default function LembreteLivroSheet({
         </div>
       </SheetContent>
     </Sheet>
+    <PremiumGate
+      open={!!gateFeature}
+      onClose={() => setGateFeature(null)}
+      feature={gateFeature ?? 'lembretes'}
+    />
+    </>
   );
 }

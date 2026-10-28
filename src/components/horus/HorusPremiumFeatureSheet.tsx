@@ -7,6 +7,7 @@ import { haptic } from '@/lib/nativeHaptics';
 import { motion } from 'framer-motion';
 import horusOwl from '@/assets/horus/horus-owl.png.asset.json';
 import PremiumFeaturesFullSheet from './PremiumFeaturesFullSheet';
+import PremiumGate from '@/components/PremiumGate';
 
 export type HorusCapabilityKey = 'texto' | 'audio' | 'pdf' | 'imagem';
 
@@ -27,6 +28,7 @@ export default function HorusPremiumFeatureSheet({ open, onClose, capability }: 
   const navigate = useNavigate();
   const info = capability ? LABELS[capability] : LABELS.audio;
   const [fullOpen, setFullOpen] = useState(false);
+  const [premiumGateOpen, setPremiumGateOpen] = useState(false);
 
   return (
     <>
@@ -122,8 +124,7 @@ export default function HorusPremiumFeatureSheet({ open, onClose, capability }: 
               <Button
                 onClick={() => {
                   haptic.medium();
-                  onClose();
-                  navigate('/perfil?tab=assinaturas');
+                  setPremiumGateOpen(true);
                 }}
                 className="w-full h-12 rounded-2xl font-display text-base font-bold text-black"
                 style={{
@@ -132,7 +133,7 @@ export default function HorusPremiumFeatureSheet({ open, onClose, capability }: 
                 }}
               >
                 <Crown className="w-4 h-4 mr-2" />
-                Começar 7 dias grátis
+                Começar teste gratuito
               </Button>
               <button
                 onClick={() => { haptic.selection(); onClose(); }}
@@ -146,6 +147,14 @@ export default function HorusPremiumFeatureSheet({ open, onClose, capability }: 
       </SheetContent>
     </Sheet>
     <PremiumFeaturesFullSheet open={fullOpen} onClose={() => setFullOpen(false)} />
+    <PremiumGate
+      open={premiumGateOpen}
+      onClose={() => {
+        setPremiumGateOpen(false);
+        onClose();
+      }}
+      feature="horus"
+    />
     </>
   );
 }

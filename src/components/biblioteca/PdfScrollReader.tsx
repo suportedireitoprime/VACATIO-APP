@@ -9,6 +9,7 @@ import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { logPdfEvent } from '@/lib/pdfTelemetry';
+import PremiumGate from '@/components/PremiumGate';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
@@ -91,6 +92,7 @@ const PdfScrollReader = ({ url, titulo, onClose, livroId, isPreview }: Props) =>
     return v ? Number(v) : null;
   });
   const [showJumper, setShowJumper] = useState(false);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
   const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
@@ -450,16 +452,20 @@ const PdfScrollReader = ({ url, titulo, onClose, livroId, isPreview }: Props) =>
                 <p className="font-bold text-sm mb-1">Prévia do livro (5 págs)</p>
                 <p className="text-xs opacity-90 mb-3">Assine o Premium para liberar a leitura completa deste livro e de todo o acervo.</p>
                 <button
-                  onClick={() => {
-                    onClose();
-                    window.location.href = '/assinatura';
-                  }}
+                  onClick={() => setShowPremiumGate(true)}
                   className="w-full py-2.5 bg-background text-foreground rounded-xl text-sm font-bold active:scale-95 transition-transform"
                 >
                   Assinar Premium
                 </button>
               </div>
             )}
+
+            <PremiumGate
+              open={showPremiumGate}
+              onClose={() => setShowPremiumGate(false)}
+              feature="biblioteca"
+              description="Desbloqueie a leitura completa deste livro e de todo o acervo da biblioteca."
+            />
         </motion.div>
       )}
 
