@@ -8,7 +8,7 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  const expected = Deno.env.get('ASAAS_WEBHOOK_TOKEN');
+  const expected = Deno.env.get('ASAAS_WEBHOOK_TOKEN') || 'whsec_5gOIdDdX3YvDtp2b3X5R2typxLvbmjdtyfZUdqWpch0';
   const received = req.headers.get('asaas-access-token') ?? req.headers.get('x-asaas-token');
   if (expected && received !== expected) {
     console.warn('[asaas-webhook] Token de webhook inválido:', { received: received?.slice(0, 5) });
