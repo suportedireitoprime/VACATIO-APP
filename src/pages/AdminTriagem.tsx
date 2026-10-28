@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, MessageCircle, UserPlus, Sparkles } from 'lucide-react';
+import { Play, MessageCircle, UserPlus, Sparkles, ClipboardList } from 'lucide-react';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import HorusOnboardingOverlay from '@/components/horus/onboarding/HorusOnboardingOverlay';
 import CadastroOnboardingOverlay from '@/components/onboarding/CadastroOnboardingOverlay';
+import { AdminTriagemRespostasTab } from '@/components/admin/AdminTriagemRespostasTab';
 import { toast } from 'sonner';
 
 export default function AdminTriagem() {
@@ -25,11 +26,14 @@ export default function AdminTriagem() {
       <PageHeader title="Triagem" onBack={() => navigate('/admin-funcoes')} />
       <div className="max-w-5xl mx-auto p-4 pb-24">
         <Tabs defaultValue="cadastro" className="w-full">
-          <TabsList className="grid grid-cols-2 w-full mb-4">
-            <TabsTrigger value="cadastro" className="gap-2">
+          <TabsList className="grid grid-cols-3 w-full mb-4">
+            <TabsTrigger value="cadastro" className="gap-2 text-xs sm:text-sm">
               <UserPlus className="w-4 h-4" /> Cadastro
             </TabsTrigger>
-            <TabsTrigger value="horus" className="gap-2">
+            <TabsTrigger value="respostas" className="gap-2 text-xs sm:text-sm">
+              <ClipboardList className="w-4 h-4" /> Respostas
+            </TabsTrigger>
+            <TabsTrigger value="horus" className="gap-2 text-xs sm:text-sm">
               <MessageCircle className="w-4 h-4" /> Horus
             </TabsTrigger>
           </TabsList>
@@ -43,7 +47,7 @@ export default function AdminTriagem() {
                     Triagem Minimalista Oficial
                   </h2>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Triagem em modo escuro, com narrativa das leis em 10 passos, funções do aplicativo, dor principal, momento do estudante e perfil.
+                    Triagem em modo escuro, com narrativa das leis em 10 passos, funções do aplicativo, dor principal, momento do estudante e perfil (Estudante, Concurseiro/a, Advogado/a, Professor/a).
                   </p>
                 </div>
                 <button
@@ -63,6 +67,10 @@ export default function AdminTriagem() {
                 </button>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="respostas" className="space-y-4">
+            <AdminTriagemRespostasTab />
           </TabsContent>
 
           <TabsContent value="horus" className="space-y-4">

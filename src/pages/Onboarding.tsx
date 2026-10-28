@@ -43,6 +43,8 @@ const Onboarding = () => {
     try {
       const payload: Record<string, any> = {
         status_perfil: r.persona || 'concurseiro',
+        categoria_perfil: r.categoria || r.persona || null,
+        genero_perfil: r.genero || 'unissex',
         faixa_etaria: r.faixa || null,
         display_name: r.nome || null,
         areas_interesse: r.areas || [],
@@ -54,6 +56,7 @@ const Onboarding = () => {
       // Salva no Supabase com timeout de segurança de 3.5s para nunca travar a tela
       const savePromise = (async () => {
         try {
+          // 1. Atualiza profiles
           const { error: updateError } = await supabase
             .from('profiles')
             .update(payload as any)
@@ -65,8 +68,23 @@ const Onboarding = () => {
               .from('profiles')
               .upsert({ id: user.id, ...payload } as any);
           }
+
+          // 2. Salva na tabela triagem_respostas para histórico e relatórios
+          await supabase.from('triagem_respostas' as any).insert({
+            user_id: user.id,
+            nome: r.nome || null,
+            categoria: r.categoria || r.persona || 'faculdade',
+            genero: r.genero || 'unissex',
+            persona_label: r.personaLabel || null,
+            faixa_etaria: r.faixa || null,
+            dor_id: r.dorId || null,
+            dor_label: r.dorLabel || null,
+            dor_solucao: r.dorSolucao || null,
+            interesses: r.interesses || (r.dorId ? [r.dorId] : []),
+            areas_interesse: r.areas || [],
+          });
         } catch (e) {
-          console.warn('Erro ao salvar perfil no Supabase:', e);
+          console.warn('Erro ao salvar perfil/triagem no Supabase:', e);
         }
       })();
 

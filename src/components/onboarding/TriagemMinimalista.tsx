@@ -6,8 +6,13 @@ import imgMudanca from '@/assets/onboarding/triagem-mudanca.webp';
 import imgRisco from '@/assets/onboarding/triagem-risco.webp';
 import imgSolucao from '@/assets/onboarding/triagem-solucao.webp';
 
+export type TriagemCategoria = 'faculdade' | 'faculdade-oab' | 'concurso' | 'advogado' | 'professor';
+export type TriagemGenero = 'm' | 'f' | 'unissex';
+
 export type TriagemMinimalistaResult = {
-  persona: 'faculdade' | 'faculdade-oab' | 'concurso' | 'advogado' | null;
+  persona: string | null;
+  categoria: TriagemCategoria | null;
+  genero: TriagemGenero | null;
   personaLabel: string | null;
   faixa: string | null;
   nome: string;
@@ -58,12 +63,41 @@ const DORES = [
   },
 ] as const;
 
-const MOMENTOS = [
-  { id: 'faculdade', label: 'Faculdade', desc: 'Do 1º ao 6º semestre' },
+export const MOMENTOS: Array<{
+  id: TriagemCategoria;
+  label: string;
+  desc: string;
+  hasGender?: boolean;
+  maleLabel?: string;
+  femaleLabel?: string;
+}> = [
+  { id: 'faculdade', label: 'Faculdade', desc: 'Do 1º ao 6º semestre (Estudante)' },
   { id: 'faculdade-oab', label: 'Faculdade e OAB', desc: 'Do 7º semestre até o exame' },
-  { id: 'concurso', label: 'Concurso', desc: 'Magistratura, MP, Delegado e carreiras' },
-  { id: 'advogado', label: 'Advogado(a)', desc: 'Já atuo na prática' },
-] as const;
+  {
+    id: 'concurso',
+    label: 'Concurso',
+    desc: 'Magistratura, MP, Delegado e carreiras',
+    hasGender: true,
+    maleLabel: 'Concurseiro',
+    femaleLabel: 'Concurseira',
+  },
+  {
+    id: 'advogado',
+    label: 'Advocacia',
+    desc: 'Já atuo na prática jurídica',
+    hasGender: true,
+    maleLabel: 'Advogado',
+    femaleLabel: 'Advogada',
+  },
+  {
+    id: 'professor',
+    label: 'Docência',
+    desc: 'Ensino jurídico, faculdade e cursos',
+    hasGender: true,
+    maleLabel: 'Professor',
+    femaleLabel: 'Professora',
+  },
+];
 
 const FAIXAS_ETARIAS = [
   { id: '18-24', label: '18 a 24 anos', desc: 'Início dos estudos jurídicos ou faculdade' },
@@ -81,7 +115,8 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
   const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [dor, setDor] = useState<string | null>(null);
-  const [momento, setMomento] = useState<'faculdade' | 'faculdade-oab' | 'concurso' | 'advogado' | null>(null);
+  const [momento, setMomento] = useState<TriagemCategoria | null>(null);
+  const [genero, setGenero] = useState<TriagemGenero | null>(null);
   const [faixa, setFaixa] = useState<string | null>(null);
   const [nome, setNome] = useState(() => {
     if (initialName) return initialName;
@@ -100,6 +135,7 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
     setStep(0);
     setDor(null);
     setMomento(null);
+    setGenero(null);
     setFaixa(null);
     showToast('Recomeçando do início');
   };
@@ -128,16 +164,29 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const getPersonaLabel = () => {
+    if (!momento) return 'Estudante de Direito';
+    const m = MOMENTOS.find((item) => item.id === momento);
+    if (!m) return 'Estudante de Direito';
+    if (m.hasGender) {
+      if (genero === 'f') return m.femaleLabel || m.label;
+      return m.maleLabel || m.label;
+    }
+    return m.label;
+  };
+
   const concluir = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     const dorObj = DORES.find((d) => d.id === dor);
-    const momentoObj = MOMENTOS.find((m) => m.id === momento);
     const faixaObj = FAIXAS_ETARIAS.find((f) => f.id === faixa);
+    const finalPersonaLabel = getPersonaLabel();
 
     onFinished({
       persona: momento || 'faculdade',
-      personaLabel: momentoObj?.label || 'Faculdade',
+      categoria: momento || 'faculdade',
+      genero: genero || 'unissex',
+      personaLabel: finalPersonaLabel,
       faixa: faixaObj?.label || faixa || null,
       nome: (nome || '').trim(),
       dorId: dor,
@@ -677,24 +726,76 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                   {MOMENTOS.map((m) => {
                     const isSel = momento === m.id;
                     return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => setMomento(m.id)}
-                        className={`w-full flex items-center gap-3.5 py-4 px-1 text-left transition-colors cursor-pointer ${
-                          isSel ? 'triagem-row-sel bg-white/[0.02]' : 'hover:bg-white/[0.01]'
-                        }`}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <b className={`text-[15.5px] block leading-tight ${isSel ? 'text-white font-extrabold' : 'text-[#EFECE4] font-bold'}`}>
-                            {m.label}
-                          </b>
-                          <span className="text-[13px] text-[#9C968A] block mt-1 leading-snug">
-                            {m.desc}
-                          </span>
-                        </div>
-                        <span className="triagem-dot" />
-                      </button>
+                      <div key={m.id} className="border-b border-[#2B2B31] last:border-b-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMomento(m.id);
+                            if (!m.hasGender) {
+                              setGenero('unissex');
+                            } else if (!genero || genero === 'unissex') {
+                              // Padrão inicial masculino para conveniência
+                              setGenero('m');
+                            }
+                          }}
+                          className={`w-full flex items-center gap-3.5 py-4 px-1 text-left transition-colors cursor-pointer ${
+                            isSel ? 'triagem-row-sel bg-white/[0.02]' : 'hover:bg-white/[0.01]'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <b className={`text-[15.5px] block leading-tight ${isSel ? 'text-white font-extrabold' : 'text-[#EFECE4] font-bold'}`}>
+                              {m.label}
+                            </b>
+                            <span className="text-[13px] text-[#9C968A] block mt-1 leading-snug">
+                              {m.desc}
+                            </span>
+                          </div>
+                          <span className="triagem-dot" />
+                        </button>
+
+                        {/* Se selecionado e possui distinção de gênero (Advogado(a), Concurseiro(a), Professor(a)) */}
+                        {isSel && m.hasGender && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            transition={{ duration: 0.25 }}
+                            className="pb-4 pt-1 px-1 flex flex-col gap-2"
+                          >
+                            <span className="text-[11.5px] font-semibold text-[#D9A82E] uppercase tracking-wider">
+                              Como prefere ser chamado(a)?
+                            </span>
+                            <div className="grid grid-cols-2 gap-2.5">
+                              {/* Opção Masculino / Menino */}
+                              <button
+                                type="button"
+                                onClick={() => setGenero('m')}
+                                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl border transition-all text-sm font-bold cursor-pointer ${
+                                  genero === 'm'
+                                    ? 'bg-[#D9A82E]/15 border-[#D9A82E] text-white shadow-sm ring-1 ring-[#D9A82E]/40'
+                                    : 'bg-[#1D1D21] border-[#383840] text-[#9C968A] hover:border-[#55534C] hover:text-[#EFECE4]'
+                                }`}
+                              >
+                                <span className="text-base">👨‍⚖️</span>
+                                <span>{m.maleLabel}</span>
+                              </button>
+
+                              {/* Opção Feminino / Menina */}
+                              <button
+                                type="button"
+                                onClick={() => setGenero('f')}
+                                className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl border transition-all text-sm font-bold cursor-pointer ${
+                                  genero === 'f'
+                                    ? 'bg-[#D9A82E]/15 border-[#D9A82E] text-white shadow-sm ring-1 ring-[#D9A82E]/40'
+                                    : 'bg-[#1D1D21] border-[#383840] text-[#9C968A] hover:border-[#55534C] hover:text-[#EFECE4]'
+                                }`}
+                              >
+                                <span className="text-base">👩‍⚖️</span>
+                                <span>{m.femaleLabel}</span>
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
@@ -798,10 +899,10 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
                 <div className="mt-6 border-t border-[#2B2B31] divide-y divide-[#2B2B31]">
                   <div className="py-3.5 px-0.5">
                     <b className="block text-[10.5px] font-extrabold tracking-[0.22em] text-[#D9A82E] mb-1 uppercase">
-                      SEU MOMENTO
+                      SEU PERFIL NO VACATIO
                     </b>
                     <span className="text-[15px] text-[#EFECE4] leading-snug">
-                      {MOMENTOS.find((m) => m.id === momento)?.label || 'Faculdade'}
+                      {getPersonaLabel()}
                     </span>
                   </div>
 

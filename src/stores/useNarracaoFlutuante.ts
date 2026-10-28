@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { toast } from 'sonner';
 import type { ArtigoLei } from '@/data/mockData';
 
 interface AdoptPayload {
@@ -86,6 +87,10 @@ export const useNarracaoFlutuante = create<State>((set, get) => ({
     const a = get().audio;
     if (!a) return;
     if (a.paused) {
+      if (typeof navigator !== 'undefined' && !navigator.onLine && a.src && /^https?:\/\//i.test(a.src)) {
+        toast.error('Conecte-se à internet para reproduzir áudios e narrações.');
+        return;
+      }
       a.play().catch(() => {});
     } else {
       a.pause();

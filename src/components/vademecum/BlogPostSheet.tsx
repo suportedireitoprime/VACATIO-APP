@@ -285,6 +285,11 @@ export default function BlogPostSheet({ post, onClose, showGoTo = false, inline 
       return;
     }
 
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      toast.error('Conecte-se à internet para reproduzir áudios e narrações.');
+      return;
+    }
+
     setIsLoadingAudio(true);
 
     const defaultR2Url = `https://pub-0c1a0e4ebbdd44dfa883dd36c269f19f.r2.dev/blog/audios/${post.id}.mp3`;

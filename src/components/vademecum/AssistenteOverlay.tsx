@@ -339,7 +339,13 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
     }
   }, [voice.partial, voice.listening]);
   const toggleMic = () => {
-    if (!voice.listening) baseInputRef.current = input;
+    if (!voice.listening) {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        toast.error('Você está sem conexão com a internet para reconhecimento de voz.');
+        return;
+      }
+      baseInputRef.current = input;
+    }
     voice.toggle();
   };
 
@@ -428,6 +434,12 @@ const AssistenteOverlay = ({ open, onClose }: Props) => {
   const sendMessage = async () => {
     const text = input.trim();
     if ((!text && !attachment) || loading || streamingId) return;
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      toast.error('Você está sem conexão com a internet. O Chat Jurídico com IA precisa de conexão para responder.');
+      return;
+    }
+
     if (!chatLimit.canUse) { setGateFeature('chat_juridico'); return; }
     chatLimit.register();
 

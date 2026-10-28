@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { db } from '@/services/offlineDb';
+import { toast } from 'sonner';
 
 export interface SpotifyTrack {
   id: string; // Ex: 'cp::1' ou 'aula::cp::1'
@@ -247,6 +248,11 @@ export const useSpotifyAudioStore = create<SpotifyAudioStoreState>((set, get) =>
       console.warn('[SpotifyStore] Falha ao checar áudio offline:', e);
     }
 
+    if (!newObjectUrl && typeof navigator !== 'undefined' && !navigator.onLine) {
+      toast.error('Conecte-se à internet para reproduzir áudios e narrações.');
+      return;
+    }
+
     // Atualiza fila de reprodução
     let queue = newQueue || get().queue;
     let queueIndex = queue.findIndex((t) => t.id === track.id);
@@ -322,6 +328,11 @@ export const useSpotifyAudioStore = create<SpotifyAudioStoreState>((set, get) =>
       _audioElement.pause();
       set({ isPlaying: false });
     } else {
+      const { audioObjectUrl } = get();
+      if (!audioObjectUrl && typeof navigator !== 'undefined' && !navigator.onLine) {
+        toast.error('Conecte-se à internet para reproduzir áudios e narrações.');
+        return;
+      }
       _audioElement.play().catch(console.warn);
       set({ isPlaying: true });
     }

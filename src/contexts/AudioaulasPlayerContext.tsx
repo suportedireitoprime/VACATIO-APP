@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState,
 import { supabase } from '@/integrations/supabase/client';
 import { registrarMidia, clearMediaSession } from '@/lib/mediaSession';
 import { telaAcesa } from '@/lib/nativo/telaAcordada';
-import { fonteDeAudio } from '@/lib/nativo/audioOffline';
+import { fonteDeAudio, estaBaixado } from '@/lib/nativo/audioOffline';
 import { notifyMediaPlay, subscribeMediaPlay } from '@/lib/mediaCoordinator';
 import { toast } from 'sonner';
 import { AUDIOAULAS_ACERVO_INICIAL } from '@/data/audioaulasAcervo';
@@ -392,6 +392,14 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
       const intro = introAudioRef.current;
       if (!a.url_audio) return;
 
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        const salvoLocal = await estaBaixado(audioIdOf(a));
+        if (!salvoLocal) {
+          toast.error('Conecte-se à internet para reproduzir áudios e narrações.');
+          return;
+        }
+      }
+
       if (customFila) {
         setFilaCustom(customFila);
       }
@@ -528,6 +536,18 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
       el.pause();
       setTocando(false);
     } else {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        void estaBaixado(audioIdOf(atual)).then((salvoLocal) => {
+          if (!salvoLocal) {
+            toast.error('Conecte-se à internet para reproduzir áudios e narrações.');
+          } else {
+            notifyMediaPlay('audioaula');
+            el.play().catch(() => setTocando(false));
+            setTocando(true);
+          }
+        });
+        return;
+      }
       notifyMediaPlay('audioaula');
       el.play().catch((err) => {
         console.error('[AudioaulasPlayer] Erro ao alternar reprodução:', err);

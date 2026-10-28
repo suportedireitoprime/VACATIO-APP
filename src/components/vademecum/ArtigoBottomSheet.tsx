@@ -958,6 +958,11 @@ const ArtigoBottomSheet = ({
   }, []);
 
   const playNarracao = useCallback(async (audioUrl: string, options?: { onRecover?: () => void }) => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine && /^https?:\/\//i.test(audioUrl)) {
+      toast.error('Conecte-se à internet para reproduzir áudios e narrações.');
+      return false;
+    }
+
     // Se havia outro artigo tocando no player flutuante, encerra
     closeFlutuante();
     if (narracaoAudioRef.current) {

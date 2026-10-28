@@ -75,14 +75,6 @@ export const DESKTOP_TOOL_GROUPS: DesktopToolGroup[] = [
     ],
   },
   {
-    id: 'inteligencia-artificial',
-    label: 'Inteligência Artificial',
-    hint: 'Ferramentas guiadas por IA Generativa',
-    tools: [
-      { id: 'me-explique', label: 'Me Explique', desc: 'Aponte a câmera para o livro e ouça a explicação ao vivo', icon: Camera, route: '/me-explique', color: '#10B981' },
-    ],
-  },
-  {
     id: 'estudo',
     label: 'Estudo e conta',
     hint: 'Sua trilha, seus materiais e sua assinatura',

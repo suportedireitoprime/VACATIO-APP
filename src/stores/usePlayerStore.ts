@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { registrarMidia, clearMediaSession } from '@/lib/mediaSession';
 import { notifyMediaPlay } from '@/lib/mediaCoordinator';
+import { toast } from 'sonner';
 
 interface PlayerState {
   currentUrl: string | null;
@@ -25,13 +26,18 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   audio: null,
 
   play: (url, artigoNumero, leiNome) => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine && /^https?:\/\//i.test(url)) {
+      toast.error('Conecte-se à internet para reproduzir áudios e narrações.');
+      return;
+    }
+
     const prev = get().audio;
     if (prev) {
       prev.pause();
       prev.src = '';
     }
 
-    notifyMediaPlay('artigo');
+    notifyMediaPlay('narracao');
 
     const audio = new Audio(url);
     audio.onended = () => {
@@ -83,6 +89,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       audio.pause();
       set({ isPlaying: false });
     } else {
+      if (typeof navigator !== 'undefined' && !navigator.onLine && audio.src && /^https?:\/\//i.test(audio.src)) {
+        toast.error('Conecte-se à internet para reproduzir áudios e narrações.');
+        return;
+      }
       audio.play().catch(() => {});
       set({ isPlaying: true });
     }

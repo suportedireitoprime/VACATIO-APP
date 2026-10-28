@@ -2,6 +2,8 @@ import TriagemMinimalista, { type TriagemMinimalistaResult } from './TriagemMini
 
 export type CadastroResult = {
   persona: string | null;
+  categoria?: string | null;
+  genero?: string | null;
   personaLabel: string | null;
   faixa: string | null;
   nome: string;
@@ -50,6 +52,8 @@ export default function CadastroOnboardingOverlay({
       onFinished={(r: TriagemMinimalistaResult) => {
         onFinished({
           persona: r.persona,
+          categoria: r.categoria,
+          genero: r.genero,
           personaLabel: r.personaLabel,
           faixa: r.faixa,
           nome: r.nome,
