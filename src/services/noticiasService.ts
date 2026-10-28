@@ -1,14 +1,13 @@
 import { supabase } from '@/integrations/supabase/client';
 import { bundle } from '@/services/offlineBundle';
 
-
-export type NoticiaFonte = 'migalhas';
+export type NoticiaFonte = 'migalhas' | 'stf' | 'camara' | 'senado';
 
 export interface Noticia {
   id: string;
   titulo: string;
   resumo: string;
-  conteudo: string;          // markdown do Migalhas (lazy)
+  conteudo: string;          // markdown do Migalhas/STF/Câmara/Senado (lazy)
   conteudo_md?: string | null;
   imagem_url: string | null;
   categoria: string;
@@ -17,9 +16,9 @@ export interface Noticia {
   fonte: NoticiaFonte;
 }
 
-const SNAPSHOT_KEY = 'noticias:snapshot:v4';
+const SNAPSHOT_KEY = 'noticias:snapshot:v5';
 const SNAPSHOT_TTL_MS = 24 * 60 * 60 * 1000; // 24h (offline-friendly)
-const MIN_REFETCH_MS = 15 * 60 * 1000;  // 15 min entre revalidações
+const MIN_REFETCH_MS = 10 * 60 * 1000;  // 10 min entre revalidações
 
 let noticiasCache: Noticia[] | null = null;
 let fetchPromise: Promise<void> | null = null;
@@ -59,7 +58,7 @@ hydrateFromStorage();
 function persistSnapshot(items: Noticia[]) {
   try {
     if (typeof window === 'undefined') return;
-    const payload = JSON.stringify({ savedAt: Date.now(), items: items.slice(0, 40) });
+    const payload = JSON.stringify({ savedAt: Date.now(), items: items.slice(0, 80) });
     localStorage.setItem(SNAPSHOT_KEY, payload);
     sessionStorage.setItem(SNAPSHOT_KEY, payload);
   } catch {
@@ -94,22 +93,37 @@ export async function prefetchNoticias(force = false): Promise<void> {
   }
 
   // Colunas leves: SEM conteudo_md (o markdown é buscado sob demanda ao abrir).
-  const MIGALHAS_COLS_LIST = 'id, titulo, resumo, imagem_url, categoria, link, data_publicacao';
+  const COLS_LIST = 'id, titulo, resumo, imagem_url, categoria, link, data_publicacao';
 
   fetchPromise = (async () => {
-    const juridicas = await supabase
-      .from('noticias_juridicas' as any)
-      .select(MIGALHAS_COLS_LIST)
-      .not('imagem_url', 'is', null)
-      .neq('imagem_url', '')
-      .order('data_publicacao', { ascending: false })
-      .limit(40);
+    const [juridicas, stf, camara, senado] = await Promise.all([
+      supabase
+        .from('noticias_juridicas' as any)
+        .select(COLS_LIST)
+        .order('data_publicacao', { ascending: false })
+        .limit(30),
+      supabase
+        .from('noticias_stf' as any)
+        .select(COLS_LIST)
+        .order('data_publicacao', { ascending: false })
+        .limit(30),
+      supabase
+        .from('noticias_camara' as any)
+        .select(COLS_LIST)
+        .order('data_publicacao', { ascending: false })
+        .limit(30),
+      supabase
+        .from('noticias_senado' as any)
+        .select(COLS_LIST)
+        .order('data_publicacao', { ascending: false })
+        .limit(30),
+    ]);
 
     const combined: Noticia[] = [];
 
+    // 1. Migalhas (Jurídicas)
     if (!juridicas.error && juridicas.data) {
       for (const n of juridicas.data as any[]) {
-        if (!n.imagem_url?.trim()) continue;
         combined.push({
           id: `migalhas:${n.id}`,
           titulo: n.titulo,
@@ -121,6 +135,60 @@ export async function prefetchNoticias(force = false): Promise<void> {
           link: n.link,
           data_publicacao: n.data_publicacao,
           fonte: 'migalhas',
+        });
+      }
+    }
+
+    // 2. STF
+    if (!stf.error && stf.data) {
+      for (const n of stf.data as any[]) {
+        combined.push({
+          id: `stf:${n.id}`,
+          titulo: n.titulo,
+          resumo: n.resumo || '',
+          conteudo: n.resumo || '',
+          conteudo_md: null,
+          imagem_url: n.imagem_url,
+          categoria: n.categoria || 'STF',
+          link: n.link,
+          data_publicacao: n.data_publicacao,
+          fonte: 'stf',
+        });
+      }
+    }
+
+    // 3. Câmara dos Deputados
+    if (!camara.error && camara.data) {
+      for (const n of camara.data as any[]) {
+        combined.push({
+          id: `camara:${n.id}`,
+          titulo: n.titulo,
+          resumo: n.resumo || '',
+          conteudo: n.resumo || '',
+          conteudo_md: null,
+          imagem_url: n.imagem_url,
+          categoria: n.categoria || 'Câmara dos Deputados',
+          link: n.link,
+          data_publicacao: n.data_publicacao,
+          fonte: 'camara',
+        });
+      }
+    }
+
+    // 4. Senado Federal
+    if (!senado.error && senado.data) {
+      for (const n of senado.data as any[]) {
+        combined.push({
+          id: `senado:${n.id}`,
+          titulo: n.titulo,
+          resumo: n.resumo || '',
+          conteudo: n.resumo || '',
+          conteudo_md: null,
+          imagem_url: n.imagem_url,
+          categoria: n.categoria || 'Senado Federal',
+          link: n.link,
+          data_publicacao: n.data_publicacao,
+          fonte: 'senado',
         });
       }
     }
@@ -159,8 +227,27 @@ export async function prefetchNoticias(force = false): Promise<void> {
 }
 
 /**
+ * Determina a tabela correta para buscar markdown com base no ID
+ */
+function getTableFromId(id: string): { tableName: string; dbId: string } {
+  if (id.startsWith('stf:')) {
+    return { tableName: 'noticias_stf', dbId: id.slice('stf:'.length) };
+  }
+  if (id.startsWith('camara:')) {
+    return { tableName: 'noticias_camara', dbId: id.slice('camara:'.length) };
+  }
+  if (id.startsWith('senado:')) {
+    return { tableName: 'noticias_senado', dbId: id.slice('senado:'.length) };
+  }
+  if (id.startsWith('migalhas:')) {
+    return { tableName: 'noticias_juridicas', dbId: id.slice('migalhas:'.length) };
+  }
+  return { tableName: 'noticias_juridicas', dbId: id };
+}
+
+/**
  * Busca o conteúdo markdown da notícia sob demanda (ao abrir).
- * Evita puxar `conteudo_md` de 40 notícias na listagem.
+ * Evita puxar `conteudo_md` na listagem inicial.
  */
 export async function fetchNoticiaConteudo(id: string): Promise<string | null> {
   const cached = conteudoCache.get(id);
@@ -177,14 +264,17 @@ export async function fetchNoticiaConteudo(id: string): Promise<string | null> {
       return persisted;
     }
   } catch { /* ignore */ }
+
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;
-  const dbId = id.startsWith('migalhas:') ? id.slice('migalhas:'.length) : id;
+  const { tableName, dbId } = getTableFromId(id);
+
   try {
     const { data, error } = await supabase
-      .from('noticias_juridicas' as any)
+      .from(tableName as any)
       .select('conteudo_md')
       .eq('id', dbId)
       .maybeSingle();
+
     if (error || !data) return null;
     const md = (data as any).conteudo_md as string | null;
     if (md) {
@@ -202,8 +292,7 @@ export async function fetchNoticiaConteudo(id: string): Promise<string | null> {
   }
 }
 
-// Refresh em background — apenas UMA vez, muito depois do boot, para manter o cache
-// morno sem virar um loop de 5 minutos (que era um dos maiores ofensores de egress).
+// Refresh em background — apenas UMA vez, após o boot
 if (typeof window !== 'undefined') {
   const scheduleRefresh = () => {
     setTimeout(() => prefetchNoticias().catch(() => {}), 30_000);

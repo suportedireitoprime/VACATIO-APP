@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Landmark, Clock, ExternalLink, Loader2, X, Share2, Scale, MessageCircle, Calendar, Info } from 'lucide-react';
+import { Landmark, Clock, ExternalLink, Loader2, X, Share2, Scale, MessageCircle, Calendar, Info, Building2, Gavel } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { getNoticiasCache, prefetchNoticias, fetchNoticiaConteudo, type Noticia } from '@/services/noticiasService';
+import { getNoticiasCache, prefetchNoticias, fetchNoticiaConteudo, type Noticia, type NoticiaFonte } from '@/services/noticiasService';
 import { useReadNoticias } from '@/hooks/useNoticiaTracking';
 import { newsImg } from '@/lib/cdnImg';
 import NoticiaComentarios from '@/components/vademecum/NoticiaComentarios';
@@ -23,8 +23,6 @@ import { LoadingState, EmptyState } from '@/components/ui/states';
 import { Newspaper } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-
-
 
 const WEEKDAYS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 const MONTHS = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
@@ -48,7 +46,6 @@ function formatDateFull(dateStr: string) {
 }
 
 function getDayList(centerDate: Date, count = 5): Date[] {
-  // Most recent day first (esquerda), datas passadas à direita.
   const days: Date[] = [];
   for (let i = 0; i < count; i++) {
     const d = new Date(centerDate);
@@ -57,7 +54,6 @@ function getDayList(centerDate: Date, count = 5): Date[] {
   }
   return days;
 }
-
 
 function dayLabel(date: Date): string {
   const today = new Date();
@@ -71,6 +67,23 @@ function formatFullDate(date: Date): string {
   return `${weekdayFull[date.getDay()]}, ${date.getDate()} de ${monthFull[date.getMonth()]} de ${date.getFullYear()}`;
 }
 
+type CategoriaFiltro = 'todas' | 'migalhas' | 'stf' | 'camara' | 'senado';
+
+interface CategoriaTab {
+  id: CategoriaFiltro;
+  label: string;
+  shortLabel: string;
+  icon: typeof Scale;
+}
+
+const CATEGORIA_TABS: CategoriaTab[] = [
+  { id: 'todas', label: 'Todas as Notícias', shortLabel: 'Todas', icon: Newspaper },
+  { id: 'migalhas', label: 'Notícias Jurídicas', shortLabel: 'Jurídicas', icon: Scale },
+  { id: 'stf', label: 'STF', shortLabel: 'STF', icon: Gavel },
+  { id: 'camara', label: 'Câmara dos Deputados', shortLabel: 'Câmara', icon: Building2 },
+  { id: 'senado', label: 'Senado Federal', shortLabel: 'Senado', icon: Landmark },
+];
+
 const Noticias = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -81,11 +94,10 @@ const Noticias = () => {
   const [loading, setLoading] = useState<boolean>(() => getNoticiasCache() === null);
   const [selectedNoticia, setSelectedNoticia] = useState<Noticia | null>(null);
   const [dataFiltro, setDataFiltro] = useState<string>(''); // '' = todas, 'YYYY-MM-DD' = dia
-  const [comentariosOpen, setComentariosOpen] = useState(false);
-  const [comentariosCount, setComentariosCount] = useState(0);
+  const [categoriaAtiva, setCategoriaAtiva] = useState<CategoriaFiltro>('todas');
   const [infoOpen, setInfoOpen] = useState(false);
 
-  // Abre a notícia e lazy-carrega o conteúdo markdown (a lista não traz mais o corpo completo)
+  // Abre a notícia e lazy-carrega o conteúdo markdown
   const openNoticia = (n: Noticia) => {
     markRead(n.id);
     setSelectedNoticia(n);
@@ -98,14 +110,13 @@ const Noticias = () => {
   };
 
   useEffect(() => {
-    if (getNoticiasCache()) return; // já hidratado no state inicial
+    if (getNoticiasCache()) return;
     prefetchNoticias().then(() => {
       const data = getNoticiasCache();
       if (data) setNoticias(data);
       setLoading(false);
     });
   }, []);
-
 
   // Auto-open noticia from navigation state or ?item= query param
   useEffect(() => {
@@ -118,38 +129,8 @@ const Noticias = () => {
     const found = noticias.find(n => n.id === noticiaId);
     if (found) {
       openNoticia(found);
-      return;
     }
-    // Fallback: fetch directly if not in cached list
-    let cancel = false;
-    supabase
-      .from('noticias_juridicas')
-      .select('*')
-      .eq('id', noticiaId)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancel && data) { markRead((data as any).id); setSelectedNoticia(data as any); }
-      });
-    return () => { cancel = true; };
   }, [noticias, location.state, location.search, selectedNoticia?.id]);
-
-  // Contagem de comentários ao abrir notícia
-  useEffect(() => {
-    if (!selectedNoticia) {
-      setComentariosCount(0);
-      setComentariosOpen(false);
-      return;
-    }
-    let cancel = false;
-    supabase
-      .from('noticias_comentarios')
-      .select('*', { count: 'exact', head: true })
-      .eq('noticia_ref', selectedNoticia.id)
-      .then(({ count }) => {
-        if (!cancel) setComentariosCount(count ?? 0);
-      });
-    return () => { cancel = true; };
-  }, [selectedNoticia]);
 
   const toYMD = (d: Date) => {
     const y = d.getFullYear();
@@ -163,124 +144,76 @@ const Noticias = () => {
 
   const datasDisponiveis = useMemo(() => {
     const set = new Set<string>();
-    for (const n of noticias) set.add(toYMD(new Date(n.data_publicacao)));
+    for (const n of noticias) {
+      if (categoriaAtiva === 'todas' || n.fonte === categoriaAtiva) {
+        set.add(toYMD(new Date(n.data_publicacao)));
+      }
+    }
     return Array.from(set).sort((a, b) => b.localeCompare(a));
-  }, [noticias]);
+  }, [noticias, categoriaAtiva]);
 
-  const labelData = (ymd: string) => {
-    if (ymd === todayYMD) return 'Hoje';
-    if (ymd === yesterdayYMD) return 'Ontem';
-    const [, m, d] = ymd.split('-');
-    const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    return `${parseInt(d, 10)} ${meses[parseInt(m, 10) - 1]}`;
-  };
-
-  // Default filter: hoje sempre (mais recente à esquerda). Usuário pode escolher outro dia.
+  // Se o dia filtrado atual não tiver notícias nesta categoria, não trava em vazio se hoje tiver
   useEffect(() => {
     if (!dataFiltro) {
       setDataFiltro(todayYMD);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-
   const finalFiltered = useMemo(() => {
-    const filtered = !dataFiltro
-      ? noticias
-      : noticias.filter(n => toYMD(new Date(n.data_publicacao)) === dataFiltro);
+    let filtered = noticias;
+
+    // Filtro por fonte/categoria
+    if (categoriaAtiva !== 'todas') {
+      filtered = filtered.filter(n => n.fonte === categoriaAtiva);
+    }
+
+    // Filtro por dia selecionado
+    if (dataFiltro) {
+      const itemsDoDia = filtered.filter(n => toYMD(new Date(n.data_publicacao)) === dataFiltro);
+      // Se não houver itens exatamente na data selecionada mas o usuário selecionou, mantém a lista do dia (ou vazia se não houver)
+      filtered = itemsDoDia;
+    }
 
     return [...filtered].sort((a, b) => {
       const dateDiff = new Date(b.data_publicacao).getTime() - new Date(a.data_publicacao).getTime();
       if (dateDiff !== 0) return dateDiff;
       return b.id.localeCompare(a.id);
     });
-  }, [noticias, dataFiltro]);
+  }, [noticias, categoriaAtiva, dataFiltro]);
 
   const heroNoticia = finalFiltered.length > 0 ? finalFiltered[0] : null;
   const listNoticias = finalFiltered.slice(1);
 
-
-  const compartilhar = async (n: Noticia) => {
-    const shareData = {
-      title: n.titulo,
-      text: n.resumo || n.titulo,
-      url: n.link,
-    };
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(`${n.titulo}\n${n.link}`);
-        toast.success('Link copiado');
-      }
-    } catch {
-      /* user cancelled */
+  const fonteLabel = (f: NoticiaFonte) => {
+    switch (f) {
+      case 'stf': return 'STF';
+      case 'camara': return 'Câmara dos Deputados';
+      case 'senado': return 'Senado Federal';
+      case 'migalhas': return 'Notícias Jurídicas';
+      default: return 'Notícias';
     }
   };
 
-  const fonteLabel = (_f: Noticia['fonte']) => 'Migalhas';
-  const FonteIcon = (_props: { fonte: Noticia['fonte'] }) => <Scale className="w-3 h-3" />;
+  const FonteIcon = ({ fonte }: { fonte: NoticiaFonte }) => {
+    switch (fonte) {
+      case 'stf': return <Gavel className="w-3 h-3" />;
+      case 'camara': return <Building2 className="w-3 h-3" />;
+      case 'senado': return <Landmark className="w-3 h-3" />;
+      default: return <Scale className="w-3 h-3" />;
+    }
+  };
 
-  const ContentViewer = ({ noticia }: { noticia: Noticia }) => (
-    <div className="space-y-4">
-      {noticia.imagem_url && (
-        <img
-          src={newsImg(noticia.imagem_url!, 960)}
-          alt={noticia.titulo}
-          className="w-full max-h-52 object-cover rounded-xl -mx-1"
-          decoding="async"
-        />
-      )}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary text-primary-foreground uppercase tracking-wide">
-          <FonteIcon fonte={noticia.fonte} />
-          {fonteLabel(noticia.fonte)}
-        </span>
-        {noticia.categoria && (
-          <span className="px-2 py-0.5 rounded-md bg-primary/15 text-primary text-[10px] font-bold">
-            {noticia.categoria}
-          </span>
-        )}
-      </div>
-      <h2 className="font-display text-xl text-foreground leading-tight font-bold">
-        {noticia.titulo}
-      </h2>
-      <p className="text-muted-foreground text-xs font-body flex items-center gap-1.5">
-        <Clock className="w-3 h-3" />
-        {new Date(noticia.data_publicacao).toLocaleDateString('pt-BR')} –{' '}
-        {new Date(noticia.data_publicacao).toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        })}
-      </p>
-
-      {noticia.conteudo_md ? (
-        <div className="prose prose-sm max-w-none dark:prose-invert font-body prose-headings:font-display prose-headings:text-foreground prose-p:text-foreground/90 prose-p:my-3 prose-p:leading-relaxed prose-a:text-primary prose-strong:text-foreground prose-img:rounded-lg prose-img:my-4">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{noticia.conteudo_md}</ReactMarkdown>
-        </div>
-      ) : (
-        <div className="text-[15px] font-body leading-relaxed text-foreground whitespace-pre-line">
-          {noticia.conteudo || noticia.resumo || 'Conteúdo não disponível.'}
-        </div>
-      )}
-
-      {/* espaço para não ficar sob os FABs */}
-      <div className="h-24" />
-    </div>
-  );
-
-  // Faixa de dias: hoje à esquerda, passado à direita.
   const centerDate = useMemo(() => new Date(), []);
   const dayList = useMemo(() => getDayList(centerDate, 5), [centerDate]);
   const availableDatesSet = useMemo(() => new Set(datasDisponiveis), [datasDisponiveis]);
 
-
   return (
     <div className="min-h-dvh bg-background pb-[calc(5.5rem+var(--sai-bottom))] lg:pb-0">
-      {/* Gradient header — same pattern as Novidades */}
-      <div className="bg-gradient-to-b from-primary/30 via-primary/15 to-background pb-4">
+      {/* Header com gradiente */}
+      <div className="bg-gradient-to-b from-primary/30 via-primary/15 to-background pb-3">
         <PageHeader
-          title="Notícias Legislativas"
-          subtitle="Últimas do mundo jurídico"
+          title="Notícias Jurídicas & Oficiais"
+          subtitle="STF, Congresso e Mundo Jurídico"
           onBack={() => navigate(-1)}
           rightAction={
             <button
@@ -296,8 +229,7 @@ const Noticias = () => {
           }
         />
 
-        {/* Info panel — desce de cima */}
-
+        {/* Info panel retrátil */}
         <AnimatePresence initial={false}>
           {infoOpen && (
             <motion.div
@@ -311,30 +243,47 @@ const Noticias = () => {
               <div className="mt-1 mb-2 rounded-2xl border border-primary/30 bg-card/60 backdrop-blur-sm p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <Info className="w-4 h-4 text-primary" />
-                  <h3 className="font-display text-sm font-bold text-foreground">O que é esta seção?</h3>
+                  <h3 className="font-display text-sm font-bold text-foreground">Fontes Oficiais & Jurídicas</h3>
                 </div>
                 <p className="font-body text-[12.5px] leading-relaxed text-muted-foreground">
-                  Aqui você acompanha as <strong className="text-foreground">Notícias Legislativas</strong> em tempo real:
-                  o que a Câmara dos Deputados aprova, o que o Senado discute e as
-                  principais matérias jurídicas publicadas pelo <strong className="text-foreground">Migalhas</strong>.
+                  Acompanhe em tempo real as atualizações oficiais do <strong className="text-foreground">STF</strong>,
+                  da <strong className="text-foreground">Câmara dos Deputados</strong>, do <strong className="text-foreground">Senado Federal</strong> e
+                  as matérias do <strong className="text-foreground">Migalhas</strong>.
                 </p>
                 <p className="font-body text-[12.5px] leading-relaxed text-muted-foreground">
-                  Use o calendário acima para navegar por dia — <strong className="text-foreground">o dia atual fica sempre à esquerda</strong> e
-                  os anteriores à direita. Toque em uma notícia para ler o conteúdo completo,
-                  comentar com outros estudantes e compartilhar.
-                </p>
-                <p className="font-body text-[11.5px] leading-relaxed text-muted-foreground/80 italic">
-                  Ideal para se manter atualizado para provas da OAB, concursos e para acompanhar
-                  o que está mudando na legislação brasileira.
+                  Alterne entre as categorias acima ou filtre pelos dias da semana para estudar novidades legislativas e jurisprudenciais.
                 </p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
+        {/* Menu de Alternância de Categorias (Todas, Migalhas, STF, Câmara, Senado) */}
+        <div className="px-3 pt-1 pb-2 max-w-3xl mx-auto">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+            {CATEGORIA_TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = categoriaAtiva === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setCategoriaAtiva(tab.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-display font-medium shrink-0 transition-all ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]'
+                      : 'bg-card/70 border border-border/70 text-muted-foreground hover:text-foreground hover:bg-card'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isMobile ? tab.shortLabel : tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-        {/* Day calendar strip — same style as Radar de Leis */}
-        <div className="flex justify-between gap-1.5 px-3 py-3 max-w-3xl mx-auto">
+        {/* Calendário com faixa de dias */}
+        <div className="flex justify-between gap-1.5 px-3 py-2 max-w-3xl mx-auto">
           {dayList.map((day, idx) => {
             const key = toYMD(day);
             const isSelected = dataFiltro === key;
@@ -346,9 +295,9 @@ const Noticias = () => {
               <button
                 key={key}
                 onClick={() => setDataFiltro(key)}
-                className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-3 min-h-[64px] rounded-2xl transition-all shadow-lg shadow-black/20 ${
+                className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[60px] rounded-2xl transition-all shadow-md ${
                   isSelected
-                    ? 'bg-primary shadow-primary/30'
+                    ? 'bg-primary text-primary-foreground shadow-primary/30'
                     : 'bg-card/40 text-foreground hover:bg-card/60'
                 }`}
               >
@@ -361,8 +310,8 @@ const Noticias = () => {
                     {MONTHS[day.getMonth()]}
                   </span>
                 )}
-                <span className={`text-xs font-body font-semibold uppercase tracking-wide ${isSelected ? 'text-black' : 'text-foreground/85'}`}>{label}</span>
-                <span className={`text-2xl font-display font-bold leading-none ${isSelected ? 'text-black' : 'text-foreground'}`}>{day.getDate()}</span>
+                <span className={`text-[11px] font-body font-semibold uppercase tracking-wide ${isSelected ? 'text-black' : 'text-foreground/85'}`}>{label}</span>
+                <span className={`text-xl font-display font-bold leading-none ${isSelected ? 'text-black' : 'text-foreground'}`}>{day.getDate()}</span>
                 {hasData && !isSelected && (
                   <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                 )}
@@ -371,174 +320,173 @@ const Noticias = () => {
           })}
         </div>
 
-        {/* Selected date label */}
-        <div className="flex items-center gap-2 px-5 pb-1 max-w-3xl mx-auto">
-          <Calendar className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs font-display text-primary">
-            {formatFullDate(dataFiltro ? new Date(dataFiltro + 'T00:00:00') : centerDate)}
-          </span>
+        {/* Label de data selecionada */}
+        <div className="flex items-center justify-between px-5 pt-1 max-w-3xl mx-auto">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs font-display text-primary">
+              {formatFullDate(dataFiltro ? new Date(dataFiltro + 'T00:00:00') : centerDate)}
+            </span>
+          </div>
+          {dataFiltro && (
+            <button
+              onClick={() => setDataFiltro('')}
+              className="text-[11px] text-muted-foreground hover:text-primary transition-colors"
+            >
+              Ver todas as datas
+            </button>
+          )}
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
+        {heroNoticia && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => { openNoticia(heroNoticia); }}
+            className="overflow-hidden bg-card border-y md:border md:rounded-2xl border-border cursor-pointer hover:border-primary/30 transition-colors -mx-4 md:mx-0 shadow-sm"
+          >
+            {heroNoticia.imagem_url ? (
+              <div className="relative h-48 md:h-44 overflow-hidden news-cover-shine">
+                <img
+                  src={newsImg(heroNoticia.imagem_url!, 960)}
+                  srcSet={`${newsImg(heroNoticia.imagem_url!, 640)} 640w, ${newsImg(heroNoticia.imagem_url!, 960)} 960w`}
+                  sizes="(max-width: 768px) 100vw, 960px"
+                  alt={heroNoticia.titulo}
+                  className="w-full h-full object-cover"
+                  fetchPriority="high"
+                  decoding="async"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
+                {!isRead(heroNoticia.id) && (
+                  <span className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary/40 text-primary-foreground border border-primary/60 backdrop-blur-sm uppercase tracking-wide shadow-lg">
+                    Novo
+                  </span>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary text-primary-foreground uppercase tracking-wide">
+                      <FonteIcon fonte={heroNoticia.fonte} />
+                      {fonteLabel(heroNoticia.fonte)}
+                    </span>
+                    {heroNoticia.categoria && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary/30 text-white backdrop-blur-sm">
+                        {heroNoticia.categoria}
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="font-display text-lg md:text-xl text-white leading-tight font-bold">
+                    {heroNoticia.titulo}
+                  </h2>
+                  <div className="flex items-center gap-1.5 text-white/80 text-[11px] font-body">
+                    <Clock className="w-3 h-3" />
+                    {formatDateFull(heroNoticia.data_publicacao)}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="relative p-5 bg-gradient-to-br from-primary/15 via-card to-card">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary text-primary-foreground uppercase tracking-wide">
+                      <FonteIcon fonte={heroNoticia.fonte} />
+                      {fonteLabel(heroNoticia.fonte)}
+                    </span>
+                    {heroNoticia.categoria && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary text-primary-foreground">
+                        {heroNoticia.categoria}
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="font-display text-lg text-foreground leading-tight font-bold">
+                    {heroNoticia.titulo}
+                  </h2>
+                  {heroNoticia.resumo && (
+                    <p className="text-muted-foreground text-xs font-body line-clamp-2">
+                      {heroNoticia.resumo}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-body">
+                    <Clock className="w-3 h-3" />
+                    {formatDateFull(heroNoticia.data_publicacao)}
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
 
-
-
-        {/* Sem spinner: quando não há cache, mostramos a lista assim que chegar; nunca bloqueia a UI */}
-
-        {(
-          <>
-
-            {/* Hero card — edge-to-edge no mobile */}
-            {heroNoticia && (
+        {/* Lista de notícias */}
+        <div className="space-y-3 -mx-4 md:mx-0">
+          {listNoticias.map((item, i) => {
+            const { time } = formatDateParts(item.data_publicacao);
+            return (
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
+                key={item.id}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                onClick={() => { openNoticia(heroNoticia); }}
-                className="overflow-hidden bg-card border-y md:border md:rounded-2xl border-border cursor-pointer hover:border-primary/30 transition-colors -mx-4 md:mx-0"
+                transition={{ delay: i * 0.02 }}
+                onClick={() => {
+                  openNoticia(item);
+                  import('@/lib/continuity').then(m => m.recordActivity({ path: `/noticias?item=${item.id}`, label: item.titulo, kind: 'noticia' }));
+                }}
+                className="group flex items-stretch gap-0 bg-card border-y md:border md:rounded-2xl border-border hover:border-primary/40 active:bg-secondary/30 transition-colors cursor-pointer overflow-hidden shadow-sm"
               >
-                {heroNoticia.imagem_url ? (
-                  <div className="relative h-44 md:h-40 overflow-hidden news-cover-shine">
+                {/* Thumbnail */}
+                {item.imagem_url ? (
+                  <div className="w-28 sm:w-36 shrink-0 relative overflow-hidden news-cover-shine bg-muted">
                     <img
-                      src={newsImg(heroNoticia.imagem_url!, 960)}
-                      srcSet={`${newsImg(heroNoticia.imagem_url!, 640)} 640w, ${newsImg(heroNoticia.imagem_url!, 960)} 960w`}
-                      sizes="(max-width: 768px) 100vw, 960px"
-                      alt={heroNoticia.titulo}
-                      className="w-full h-full object-cover"
-                      fetchPriority="high"
+                      src={newsImg(item.imagem_url!, 240)}
+                      alt={item.titulo}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
                       decoding="async"
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
-                    {!isRead(heroNoticia.id) && (
-                      <span className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary/40 text-primary-foreground border border-primary/60 backdrop-blur-sm uppercase tracking-wide shadow-lg">
+                    {!isRead(item.id) && (
+                      <span className="absolute bottom-1.5 left-1.5 z-10 inline-flex items-center text-[9px] font-bold px-1.5 py-[1px] rounded bg-primary/80 text-primary-foreground backdrop-blur-sm uppercase tracking-wide">
                         Novo
                       </span>
                     )}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary text-primary-foreground uppercase tracking-wide">
-                          {fonteLabel(heroNoticia.fonte)}
-                        </span>
-                        {heroNoticia.categoria && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary text-primary-foreground">
-                            {heroNoticia.categoria}
-                          </span>
-                        )}
-                      </div>
-                      <h2 className="font-display text-lg text-white leading-tight">
-                        {heroNoticia.titulo}
-                      </h2>
-                      <div className="flex items-center gap-1.5 text-white/70 text-[11px] font-body">
-                        <Clock className="w-3 h-3" />
-                        {formatDateFull(heroNoticia.data_publicacao)}
-                      </div>
-                    </div>
                   </div>
                 ) : (
-                  <div className="relative p-5 bg-gradient-to-br from-primary/15 via-card to-card">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary text-primary-foreground uppercase tracking-wide">
-                          {fonteLabel(heroNoticia.fonte)}
-                        </span>
-                        {heroNoticia.categoria && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary text-primary-foreground">
-                            {heroNoticia.categoria}
-                          </span>
-                        )}
-                      </div>
-                      <h2 className="font-display text-lg text-foreground leading-tight">
-                        {heroNoticia.titulo}
-                      </h2>
-                      {heroNoticia.resumo && (
-                        <p className="text-muted-foreground text-xs font-body line-clamp-2">
-                          {heroNoticia.resumo}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-body">
-                        <Clock className="w-3 h-3" />
-                        {formatDateFull(heroNoticia.data_publicacao)}
-                      </div>
-                    </div>
-                  </div>
+                  <div className="w-2 shrink-0 bg-primary/60" />
                 )}
+
+                {/* Conteúdo */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between gap-2 p-3.5 sm:p-4">
+                  <h3 className="font-display text-[14.5px] sm:text-base text-foreground leading-snug line-clamp-3 group-hover:text-primary transition-colors">
+                    {item.titulo}
+                  </h3>
+                  <div className="flex items-center gap-2 flex-wrap text-[11px] font-body text-muted-foreground">
+                    <span className="inline-flex items-center gap-1 text-primary font-semibold">
+                      <Clock className="w-3 h-3" />
+                      {time}
+                    </span>
+                    <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+                    <span className="inline-flex items-center gap-1 font-medium">
+                      <FonteIcon fonte={item.fonte} />
+                      {fonteLabel(item.fonte)}
+                    </span>
+                  </div>
+                </div>
               </motion.div>
-            )}
+            );
+          })}
+        </div>
 
-            {/* List cards */}
-            <div className="space-y-3 -mx-4 md:mx-0">
-              {listNoticias.map((item, i) => {
-                const { time } = formatDateParts(item.data_publicacao);
-                return (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                    onClick={() => { openNoticia(item); import('@/lib/continuity').then(m => m.recordActivity({ path: `/noticias?item=${item.id}`, label: item.titulo, kind: 'noticia' })); }}
-                    className="group flex items-stretch gap-0 bg-card border-y md:border md:rounded-2xl border-border hover:border-primary/40 active:bg-secondary/30 transition-colors cursor-pointer overflow-hidden"
-                  >
-                    {/* Thumbnail */}
-                    {item.imagem_url ? (
-                      <div className="w-28 sm:w-32 shrink-0 relative overflow-hidden news-cover-shine">
-                        <img
-                          src={newsImg(item.imagem_url!, 240)}
-                          alt={item.titulo}
-                          className="absolute inset-0 w-full h-full object-cover"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        {!isRead(item.id) && (
-                          <span className="absolute bottom-1.5 left-1.5 z-10 inline-flex items-center text-[9px] font-bold px-1.5 py-[1px] rounded bg-primary/40 text-primary-foreground border border-primary/60 backdrop-blur-sm uppercase tracking-wide">
-                            Novo
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="w-2 shrink-0 bg-primary/60" />
-                    )}
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-between gap-2 p-4">
-                      <h3 className="font-display text-[15px] sm:text-base text-foreground leading-snug line-clamp-3 group-hover:text-primary transition-colors">
-                        {item.titulo}
-                      </h3>
-                      <div className="flex items-center gap-2 flex-wrap text-[11px] font-body text-muted-foreground">
-                        <span className="inline-flex items-center gap-1 text-primary font-semibold">
-                          <Clock className="w-3 h-3" />
-                          {time}
-                        </span>
-                        <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-                        <span className="inline-flex items-center gap-1">
-                          <FonteIcon fonte={item.fonte} />
-                          {fonteLabel(item.fonte)}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-
-            {finalFiltered.length === 0 && (
-              loading ? (
-                <LoadingState variant="list" rows={4} label="Carregando notícias" />
-              ) : (
-                <EmptyState
-                  icon={Newspaper}
-                  title={noticias.length === 0 ? 'Nenhuma notícia disponível' : 'Sem resultados'}
-                  description={
-                    noticias.length === 0
-                      ? 'Ainda não há notícias carregadas. Tente novamente em instantes.'
-                      : 'Não encontramos notícias para esta busca ou data. Tente outro filtro.'
-                  }
-                />
-              )
-            )}
-
-          </>
+        {finalFiltered.length === 0 && (
+          loading ? (
+            <LoadingState variant="list" rows={4} label="Carregando notícias" />
+          ) : (
+            <EmptyState
+              icon={Newspaper}
+              title="Nenhuma notícia nesta categoria/data"
+              description="Não encontramos notícias publicadas com os filtros selecionados. Tente selecionar outra data ou categoria."
+            />
+          )
         )}
       </div>
 
@@ -546,13 +494,11 @@ const Noticias = () => {
         noticia={selectedNoticia}
         onClose={() => {
           setSelectedNoticia(null);
-          // Limpa ?item= da URL para não reabrir ao voltar/atualizar
           if (new URLSearchParams(location.search).get('item')) {
             navigate('/noticias', { replace: true });
           }
         }}
       />
-
     </div>
   );
 };
