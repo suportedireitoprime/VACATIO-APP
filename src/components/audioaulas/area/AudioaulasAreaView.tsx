@@ -21,7 +21,8 @@ import { getAreaTheme } from '@/lib/audioaulasThemes';
 import { useAudioaulasProgresso, calcularProgressoMateria } from '@/lib/audioaulasProgresso';
 import { AudioaulasMateriaAulaItem } from './AudioaulasMateriaAulaItem';
 
-const LousaMagicaModal = React.lazy(() => import('@/components/audioaulas/lousa/LousaMagicaModal'));
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
+const LousaMagicaModal = lazyWithRetry(() => import('@/components/audioaulas/lousa/LousaMagicaModal'));
 
 interface AudioaulasAreaViewProps {
   area: string;

@@ -17,11 +17,13 @@ import { AudioAppBottomNav } from '@/components/audio/AudioAppBottomNav';
 import { audioIdOf } from '@/contexts/AudioaulasPlayerContext';
 import { motion } from 'framer-motion';
 
-// Componentes pesados ou secundários carregados sob demanda
-const ShapeGrid = React.lazy(() => import('@/components/ui/ShapeGrid'));
-const AudioaulasPlaylistsView = React.lazy(() => import('@/components/audioaulas/home/AudioaulasPlaylistsView').then(m => ({ default: m.AudioaulasPlaylistsView || m.default })));
-const AudioaulasAreaView = React.lazy(() => import('@/components/audioaulas/area/AudioaulasAreaView').then(m => ({ default: m.AudioaulasAreaView || m.default })));
-const AudioaulasPlayerModal = React.lazy(() => import('@/components/audioaulas/home/AudioaulasPlayerModal').then(m => ({ default: m.AudioaulasPlayerModal || m.default })));
+import AudioaulasAreaView from '@/components/audioaulas/area/AudioaulasAreaView';
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
+
+// Componentes secundários carregados com retry resiliente
+const ShapeGrid = lazyWithRetry(() => import('@/components/ui/ShapeGrid'));
+const AudioaulasPlaylistsView = lazyWithRetry(() => import('@/components/audioaulas/home/AudioaulasPlaylistsView').then(m => ({ default: m.AudioaulasPlaylistsView || m.default })));
+const AudioaulasPlayerModal = lazyWithRetry(() => import('@/components/audioaulas/home/AudioaulasPlayerModal').then(m => ({ default: m.AudioaulasPlayerModal || m.default })));
 
 const Audioaulas = () => {
   const navigate = useNavigate();
