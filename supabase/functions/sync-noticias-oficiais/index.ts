@@ -100,25 +100,67 @@ async function fetchViaBrowserless(url: string, browserlessKey: string): Promise
 }
 
 // -------------------------------------------------------------
-// 1. Scraping STF
+// 1. Scraping STF (Oficial + Matérias Jurídicas do STF em Tempo Real)
 // -------------------------------------------------------------
 async function scrapeSTF(browserlessKey: string): Promise<NoticiaItem[]> {
   const items: NoticiaItem[] = [];
+
+  // 1.1 Extrai notícias em tempo real de julgamentos do STF (de hoje e ontem)
   try {
-    // Busca os posts via WordPress REST API oficial do STF (usando Browserless para garantir render/bypass)
-    const apiUrl = 'https://noticias.stf.jus.br/wp-json/wp/v2/posts?_embed=1&per_page=20';
-    console.log('[STF] Buscando via Browserless:', apiUrl);
+    const migalhasUrl = 'https://www.migalhas.com.br/quentes';
+    console.log('[STF] Buscando matérias do STF em tempo real:', migalhasUrl);
+    const html = await fetchViaBrowserless(migalhasUrl, browserlessKey);
+    const regex = /<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+    let m;
+    const stfLinks: string[] = [];
+    while ((m = regex.exec(html)) !== null) {
+      const text = m[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      const href = m[1];
+      if ((text.toLowerCase().includes('stf') || text.toLowerCase().includes('supremo')) && text.length > 20) {
+        if (!stfLinks.includes(href) && href.includes('/quentes/')) {
+          stfLinks.push(href);
+        }
+      }
+    }
+
+    for (const link of stfLinks.slice(0, 15)) {
+      try {
+        const artHtml = await fetchViaBrowserless(link, browserlessKey);
+        const og = (prop: string) => artHtml.match(new RegExp(`<meta[^>]+property="${prop}"[^>]+content="([^"]+)"`, 'i'))?.[1] || null;
+        const titulo = og('og:title')?.replace(/\s*-\s*Migalhas\s*$/, '').trim() || '';
+        const resumo = og('og:description') || '';
+        const imagem_url = og('og:image');
+        const data_publicacao = og('article:published_time') || new Date().toISOString();
+        const bodyMatch = artHtml.match(/class="[^"]*topico__body[^"]*"[^>]*>([\s\S]*?)(?:<\/article>|<footer|<div[^>]*class="[^"]*(topico__compartilhar|topico__tags|topico__autor|materia__autor))/i);
+        const conteudo_md = bodyMatch ? htmlToMarkdown(bodyMatch[1]) : resumo;
+
+        if (titulo && link) {
+          items.push({
+            titulo,
+            resumo: resumo || titulo,
+            conteudo_md: conteudo_md || resumo || titulo,
+            imagem_url: imagem_url || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80',
+            categoria: 'STF',
+            link,
+            data_publicacao,
+          });
+        }
+      } catch (e) {
+        console.error('[STF] Erro ao extrair matéria do STF:', e);
+      }
+    }
+  } catch (err) {
+    console.error('[STF] Erro ao buscar matérias em tempo real:', err);
+  }
+
+  // 1.2 Complementa com posts institucionais da API WP do STF
+  try {
+    const apiUrl = 'https://noticias.stf.jus.br/wp-json/wp/v2/posts?_embed=1&per_page=15';
     const raw = await fetchViaBrowserless(apiUrl, browserlessKey);
-    
-    // Como Browserless /content embrulha em <html><body><pre>{...}</pre></body></html> quando o destino é JSON:
     let jsonStr = raw;
     const preMatch = raw.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
-    if (preMatch) {
-      jsonStr = preMatch[1];
-    } else if (raw.includes('<html')) {
-      // Remove tags se for HTML
-      jsonStr = raw.replace(/<[^>]+>/g, '').trim();
-    }
+    if (preMatch) jsonStr = preMatch[1];
+    else if (raw.includes('<html')) jsonStr = raw.replace(/<[^>]+>/g, '').trim();
 
     const posts = JSON.parse(decodeHtml(jsonStr));
     if (Array.isArray(posts)) {
@@ -128,12 +170,11 @@ async function scrapeSTF(browserlessKey: string): Promise<NoticiaItem[]> {
         const link = p.link || '';
         const rawContent = p.content?.rendered || '';
         const conteudo_md = htmlToMarkdown(rawContent);
-        
+
         let imagem_url: string | null = null;
         if (p._embedded?.['wp:featuredmedia']?.[0]?.source_url) {
           imagem_url = p._embedded['wp:featuredmedia'][0].source_url;
         } else {
-          // Extrair primeira imagem do conteúdo
           const imgMatch = rawContent.match(/<img[^>]+src="([^">]+)"/i);
           if (imgMatch) imagem_url = imgMatch[1];
         }
@@ -154,8 +195,9 @@ async function scrapeSTF(browserlessKey: string): Promise<NoticiaItem[]> {
       }
     }
   } catch (err) {
-    console.error('[STF] Erro ao extrair:', err);
+    console.error('[STF WP] Erro ao extrair:', err);
   }
+
   return items;
 }
 

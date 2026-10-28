@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { getNoticiasCache, prefetchNoticias, fetchNoticiaConteudo, type Noticia, type NoticiaFonte } from '@/services/noticiasService';
+import { getNoticiasCache, prefetchNoticias, subscribeNoticias, fetchNoticiaConteudo, type Noticia, type NoticiaFonte } from '@/services/noticiasService';
 import { useReadNoticias } from '@/hooks/useNoticiaTracking';
 import { newsImg } from '@/lib/cdnImg';
 import NoticiaComentarios from '@/components/vademecum/NoticiaComentarios';
@@ -110,12 +110,20 @@ const Noticias = () => {
   };
 
   useEffect(() => {
-    if (getNoticiasCache()) return;
     prefetchNoticias().then(() => {
       const data = getNoticiasCache();
       if (data) setNoticias(data);
       setLoading(false);
     });
+
+    const unsubscribe = subscribeNoticias((freshData) => {
+      setNoticias(freshData);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   // Auto-open noticia from navigation state or ?item= query param
