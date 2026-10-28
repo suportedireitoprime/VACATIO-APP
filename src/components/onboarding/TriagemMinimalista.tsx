@@ -199,7 +199,7 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
   const progressPercent = Math.round((step / (TOTAL_STEPS - 1)) * 100);
 
   return (
-    <div className="triagem-root min-h-dvh w-full flex items-center justify-center bg-[#08080B] text-[#EFECE4] select-none p-0 sm:p-4">
+    <div className="triagem-root min-h-dvh w-full flex items-center justify-center bg-[#101014] text-[#EFECE4] select-none p-0 sm:p-4">
       <style>{`
         .triagem-root {
           --ink: #EFECE4;
@@ -210,10 +210,11 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
         .triagem-phone {
-          width: min(410px, 100%);
+          width: 100%;
+          max-width: 440px;
           height: 100dvh;
-          min-height: 580px;
-          background: var(--paper);
+          min-height: 100dvh;
+          background: #101014;
           position: relative;
           display: flex;
           flex-direction: column;
@@ -221,9 +222,10 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
         }
         @media (min-width: 640px) {
           .triagem-phone {
-            height: min(820px, calc(100dvh - 32px));
+            height: min(840px, calc(100dvh - 32px));
+            min-height: 600px;
             border-radius: 36px;
-            border: 2px solid #2E2E35;
+            border: 1px solid #2B2B33;
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
           }
         }
@@ -235,14 +237,18 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-top: 18px;
+          margin-top: 14px;
+          height: 190px;
+          max-height: 200px;
+          width: 100%;
+          overflow: hidden;
         }
         .triagem-pic::before {
           content: "";
           position: absolute;
-          inset: 8% 12%;
-          background: radial-gradient(ellipse at center, rgba(217,168,46,0.28), transparent 65%);
-          filter: blur(26px);
+          inset: 4% 15%;
+          background: radial-gradient(ellipse at center, rgba(217,168,46,0.22), transparent 65%);
+          filter: blur(24px);
           opacity: 0;
           animation: triagemGlowIn 0.8s ease 0.1s forwards;
           z-index: 0;
@@ -255,9 +261,10 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
           position: relative;
           z-index: 1;
           max-width: 100%;
-          max-height: 310px;
+          max-height: 100%;
+          height: 180px;
           width: auto;
-          height: auto;
+          object-fit: contain;
           display: inline-block;
           will-change: transform, opacity;
           opacity: 0;

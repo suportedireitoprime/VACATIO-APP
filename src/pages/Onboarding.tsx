@@ -100,9 +100,8 @@ const Onboarding = () => {
     }
   };
 
-  const concluirNotificacoes = (granted: boolean) => {
+  const concluirNotificacoes = (_granted: boolean) => {
     setPedirNotificacoes(false);
-    toast.success(granted ? 'Notificações ativadas. Bora estudar!' : 'Bora estudar!');
     
     if (user) {
       try { localStorage.setItem(`onboarding_completed:${user.id}`, '1'); } catch {}
@@ -119,10 +118,10 @@ const Onboarding = () => {
   };
 
   return (
-    <main className="min-h-dvh bg-black">
+    <main className="min-h-dvh bg-[#101014]">
       {!pedirNotificacoes && !saving && <CadastroOnboardingOverlay open onFinished={finalizar} />}
       {saving && (
-        <div className="min-h-dvh flex flex-col items-center justify-center bg-black gap-3 text-white px-4">
+        <div className="min-h-dvh flex flex-col items-center justify-center bg-[#101014] gap-3 text-white px-4">
           <Loader2 className="w-9 h-9 animate-spin text-primary" />
           <p className="text-sm font-medium text-zinc-300">Personalizando seu Vacatio…</p>
         </div>
