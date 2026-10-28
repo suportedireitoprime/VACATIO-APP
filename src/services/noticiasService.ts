@@ -16,7 +16,7 @@ export interface Noticia {
   fonte: NoticiaFonte;
 }
 
-const SNAPSHOT_KEY = 'noticias:snapshot:v5';
+const SNAPSHOT_KEY = 'noticias:snapshot:v6';
 const SNAPSHOT_TTL_MS = 24 * 60 * 60 * 1000; // 24h (offline-friendly)
 const MIN_REFETCH_MS = 10 * 60 * 1000;  // 10 min entre revalidações
 
@@ -121,25 +121,11 @@ export async function prefetchNoticias(force = false): Promise<void> {
 
     const combined: Noticia[] = [];
 
-    // 1. Migalhas (Jurídicas)
-    if (!juridicas.error && juridicas.data) {
-      for (const n of juridicas.data as any[]) {
-        combined.push({
-          id: `migalhas:${n.id}`,
-          titulo: n.titulo,
-          resumo: n.resumo || '',
-          conteudo: n.resumo || '',
-          conteudo_md: null,
-          imagem_url: n.imagem_url,
-          categoria: n.categoria || 'Notícia Jurídica',
-          link: n.link,
-          data_publicacao: n.data_publicacao,
-          fonte: 'migalhas',
-        });
-      }
-    }
+    // Prioridade: fontes oficiais primeiro, depois Migalhas
+    // Isso garante que artigos do STF/Câmara/Senado não sejam sobrescritos
+    // pela mesma matéria que aparece em noticias_juridicas (Migalhas)
 
-    // 2. STF
+    // 1. STF (prioridade máxima)
     if (!stf.error && stf.data) {
       for (const n of stf.data as any[]) {
         combined.push({
@@ -157,7 +143,7 @@ export async function prefetchNoticias(force = false): Promise<void> {
       }
     }
 
-    // 3. Câmara dos Deputados
+    // 2. Câmara dos Deputados
     if (!camara.error && camara.data) {
       for (const n of camara.data as any[]) {
         combined.push({
@@ -175,7 +161,7 @@ export async function prefetchNoticias(force = false): Promise<void> {
       }
     }
 
-    // 4. Senado Federal
+    // 3. Senado Federal
     if (!senado.error && senado.data) {
       for (const n of senado.data as any[]) {
         combined.push({
@@ -189,6 +175,24 @@ export async function prefetchNoticias(force = false): Promise<void> {
           link: n.link,
           data_publicacao: n.data_publicacao,
           fonte: 'senado',
+        });
+      }
+    }
+
+    // 4. Migalhas (Jurídicas) — por último para evitar sobrepor fontes oficiais
+    if (!juridicas.error && juridicas.data) {
+      for (const n of juridicas.data as any[]) {
+        combined.push({
+          id: `migalhas:${n.id}`,
+          titulo: n.titulo,
+          resumo: n.resumo || '',
+          conteudo: n.resumo || '',
+          conteudo_md: null,
+          imagem_url: n.imagem_url,
+          categoria: n.categoria || 'Notícia Jurídica',
+          link: n.link,
+          data_publicacao: n.data_publicacao,
+          fonte: 'migalhas',
         });
       }
     }
@@ -213,7 +217,16 @@ export async function prefetchNoticias(force = false): Promise<void> {
       }
     }
 
-    noticiasCache = sortNoticias(combined);
+    // Deduplica por link (mesmo artigo pode estar em múltiplas tabelas)
+    const seenLinks = new Set<string>();
+    const deduped = combined.filter((n) => {
+      if (!n.link) return true;
+      if (seenLinks.has(n.link)) return false;
+      seenLinks.add(n.link);
+      return true;
+    });
+
+    noticiasCache = sortNoticias(deduped);
     lastFetchTime = Date.now();
     persistSnapshot(noticiasCache);
     notify();
