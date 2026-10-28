@@ -1,13 +1,13 @@
 import { supabase } from '@/integrations/supabase/client';
 import { bundle } from '@/services/offlineBundle';
 
-export type NoticiaFonte = 'migalhas' | 'stf' | 'camara' | 'senado';
+export type NoticiaFonte = 'migalhas';
 
 export interface Noticia {
   id: string;
   titulo: string;
   resumo: string;
-  conteudo: string;          // markdown do Migalhas/STF/Câmara/Senado (lazy)
+  conteudo: string;          // markdown do Migalhas (lazy)
   conteudo_md?: string | null;
   imagem_url: string | null;
   categoria: string;
@@ -16,7 +16,7 @@ export interface Noticia {
   fonte: NoticiaFonte;
 }
 
-const SNAPSHOT_KEY = 'noticias:snapshot:v6';
+const SNAPSHOT_KEY = 'noticias:snapshot:v9';
 const SNAPSHOT_TTL_MS = 24 * 60 * 60 * 1000; // 24h (offline-friendly)
 const MIN_REFETCH_MS = 10 * 60 * 1000;  // 10 min entre revalidações
 
@@ -96,92 +96,17 @@ export async function prefetchNoticias(force = false): Promise<void> {
   const COLS_LIST = 'id, titulo, resumo, imagem_url, categoria, link, data_publicacao';
 
   fetchPromise = (async () => {
-    const [juridicas, stf, camara, senado] = await Promise.all([
-      supabase
-        .from('noticias_juridicas' as any)
-        .select(COLS_LIST)
-        .order('data_publicacao', { ascending: false })
-        .limit(30),
-      supabase
-        .from('noticias_stf' as any)
-        .select(COLS_LIST)
-        .order('data_publicacao', { ascending: false })
-        .limit(30),
-      supabase
-        .from('noticias_camara' as any)
-        .select(COLS_LIST)
-        .order('data_publicacao', { ascending: false })
-        .limit(30),
-      supabase
-        .from('noticias_senado' as any)
-        .select(COLS_LIST)
-        .order('data_publicacao', { ascending: false })
-        .limit(30),
-    ]);
+    const { data: juridicas, error } = await supabase
+      .from('noticias_juridicas' as any)
+      .select(COLS_LIST)
+      .order('data_publicacao', { ascending: false })
+      .limit(60);
 
     const combined: Noticia[] = [];
 
-    // Prioridade: fontes oficiais primeiro, depois Migalhas
-    // Isso garante que artigos do STF/Câmara/Senado não sejam sobrescritos
-    // pela mesma matéria que aparece em noticias_juridicas (Migalhas)
-
-    // 1. STF (prioridade máxima)
-    if (!stf.error && stf.data) {
-      for (const n of stf.data as any[]) {
-        combined.push({
-          id: `stf:${n.id}`,
-          titulo: n.titulo,
-          resumo: n.resumo || '',
-          conteudo: n.resumo || '',
-          conteudo_md: null,
-          imagem_url: n.imagem_url,
-          categoria: n.categoria || 'STF',
-          link: n.link,
-          data_publicacao: n.data_publicacao,
-          fonte: 'stf',
-        });
-      }
-    }
-
-    // 2. Câmara dos Deputados
-    if (!camara.error && camara.data) {
-      for (const n of camara.data as any[]) {
-        combined.push({
-          id: `camara:${n.id}`,
-          titulo: n.titulo,
-          resumo: n.resumo || '',
-          conteudo: n.resumo || '',
-          conteudo_md: null,
-          imagem_url: n.imagem_url,
-          categoria: n.categoria || 'Câmara dos Deputados',
-          link: n.link,
-          data_publicacao: n.data_publicacao,
-          fonte: 'camara',
-        });
-      }
-    }
-
-    // 3. Senado Federal
-    if (!senado.error && senado.data) {
-      for (const n of senado.data as any[]) {
-        combined.push({
-          id: `senado:${n.id}`,
-          titulo: n.titulo,
-          resumo: n.resumo || '',
-          conteudo: n.resumo || '',
-          conteudo_md: null,
-          imagem_url: n.imagem_url,
-          categoria: n.categoria || 'Senado Federal',
-          link: n.link,
-          data_publicacao: n.data_publicacao,
-          fonte: 'senado',
-        });
-      }
-    }
-
-    // 4. Migalhas (Jurídicas) — por último para evitar sobrepor fontes oficiais
-    if (!juridicas.error && juridicas.data) {
-      for (const n of juridicas.data as any[]) {
+    // Migalhas (Notícias Jurídicas)
+    if (!error && juridicas) {
+      for (const n of juridicas as any[]) {
         combined.push({
           id: `migalhas:${n.id}`,
           titulo: n.titulo,
@@ -217,7 +142,7 @@ export async function prefetchNoticias(force = false): Promise<void> {
       }
     }
 
-    // Deduplica por link (mesmo artigo pode estar em múltiplas tabelas)
+    // Deduplica por link
     const seenLinks = new Set<string>();
     const deduped = combined.filter((n) => {
       if (!n.link) return true;
@@ -243,19 +168,8 @@ export async function prefetchNoticias(force = false): Promise<void> {
  * Determina a tabela correta para buscar markdown com base no ID
  */
 function getTableFromId(id: string): { tableName: string; dbId: string } {
-  if (id.startsWith('stf:')) {
-    return { tableName: 'noticias_stf', dbId: id.slice('stf:'.length) };
-  }
-  if (id.startsWith('camara:')) {
-    return { tableName: 'noticias_camara', dbId: id.slice('camara:'.length) };
-  }
-  if (id.startsWith('senado:')) {
-    return { tableName: 'noticias_senado', dbId: id.slice('senado:'.length) };
-  }
-  if (id.startsWith('migalhas:')) {
-    return { tableName: 'noticias_juridicas', dbId: id.slice('migalhas:'.length) };
-  }
-  return { tableName: 'noticias_juridicas', dbId: id };
+  const dbId = id.startsWith('migalhas:') ? id.slice('migalhas:'.length) : id;
+  return { tableName: 'noticias_juridicas', dbId };
 }
 
 /**

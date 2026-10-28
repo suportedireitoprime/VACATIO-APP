@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Landmark, Clock, ExternalLink, Loader2, X, Share2, Scale, MessageCircle, Calendar, Info, Building2, Gavel } from 'lucide-react';
+import { Clock, ExternalLink, Loader2, X, Share2, Scale, MessageCircle, Calendar, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
@@ -67,22 +67,7 @@ function formatFullDate(date: Date): string {
   return `${weekdayFull[date.getDay()]}, ${date.getDate()} de ${monthFull[date.getMonth()]} de ${date.getFullYear()}`;
 }
 
-type CategoriaFiltro = 'todas' | 'migalhas' | 'stf' | 'camara' | 'senado';
 
-interface CategoriaTab {
-  id: CategoriaFiltro;
-  label: string;
-  shortLabel: string;
-  icon: typeof Scale;
-}
-
-const CATEGORIA_TABS: CategoriaTab[] = [
-  { id: 'todas', label: 'Todas as Notícias', shortLabel: 'Todas', icon: Newspaper },
-  { id: 'migalhas', label: 'Notícias Jurídicas', shortLabel: 'Jurídicas', icon: Scale },
-  { id: 'stf', label: 'STF', shortLabel: 'STF', icon: Gavel },
-  { id: 'camara', label: 'Câmara dos Deputados', shortLabel: 'Câmara', icon: Building2 },
-  { id: 'senado', label: 'Senado Federal', shortLabel: 'Senado', icon: Landmark },
-];
 
 const Noticias = () => {
   const navigate = useNavigate();
@@ -94,7 +79,6 @@ const Noticias = () => {
   const [loading, setLoading] = useState<boolean>(() => getNoticiasCache() === null);
   const [selectedNoticia, setSelectedNoticia] = useState<Noticia | null>(null);
   const [dataFiltro, setDataFiltro] = useState<string>(''); // '' = todas, 'YYYY-MM-DD' = dia
-  const [categoriaAtiva, setCategoriaAtiva] = useState<CategoriaFiltro>('todas');
   const [infoOpen, setInfoOpen] = useState(false);
 
   // Abre a notícia e lazy-carrega o conteúdo markdown
@@ -153,12 +137,10 @@ const Noticias = () => {
   const datasDisponiveis = useMemo(() => {
     const set = new Set<string>();
     for (const n of noticias) {
-      if (categoriaAtiva === 'todas' || n.fonte === categoriaAtiva) {
-        set.add(toYMD(new Date(n.data_publicacao)));
-      }
+      set.add(toYMD(new Date(n.data_publicacao)));
     }
     return Array.from(set).sort((a, b) => b.localeCompare(a));
-  }, [noticias, categoriaAtiva]);
+  }, [noticias]);
 
   // Se o dia filtrado atual não tiver notícias nesta categoria, não trava em vazio se hoje tiver
   useEffect(() => {
@@ -170,16 +152,9 @@ const Noticias = () => {
   const finalFiltered = useMemo(() => {
     let filtered = noticias;
 
-    // Filtro por fonte/categoria
-    if (categoriaAtiva !== 'todas') {
-      filtered = filtered.filter(n => n.fonte === categoriaAtiva);
-    }
-
     // Filtro por dia selecionado
     if (dataFiltro) {
-      const itemsDoDia = filtered.filter(n => toYMD(new Date(n.data_publicacao)) === dataFiltro);
-      // Se não houver itens exatamente na data selecionada mas o usuário selecionou, mantém a lista do dia (ou vazia se não houver)
-      filtered = itemsDoDia;
+      filtered = filtered.filter(n => toYMD(new Date(n.data_publicacao)) === dataFiltro);
     }
 
     return [...filtered].sort((a, b) => {
@@ -187,29 +162,13 @@ const Noticias = () => {
       if (dateDiff !== 0) return dateDiff;
       return b.id.localeCompare(a.id);
     });
-  }, [noticias, categoriaAtiva, dataFiltro]);
+  }, [noticias, dataFiltro]);
 
   const heroNoticia = finalFiltered.length > 0 ? finalFiltered[0] : null;
   const listNoticias = finalFiltered.slice(1);
 
-  const fonteLabel = (f: NoticiaFonte) => {
-    switch (f) {
-      case 'stf': return 'STF';
-      case 'camara': return 'Câmara dos Deputados';
-      case 'senado': return 'Senado Federal';
-      case 'migalhas': return 'Notícias Jurídicas';
-      default: return 'Notícias';
-    }
-  };
-
-  const FonteIcon = ({ fonte }: { fonte: NoticiaFonte }) => {
-    switch (fonte) {
-      case 'stf': return <Gavel className="w-3 h-3" />;
-      case 'camara': return <Building2 className="w-3 h-3" />;
-      case 'senado': return <Landmark className="w-3 h-3" />;
-      default: return <Scale className="w-3 h-3" />;
-    }
-  };
+  const fonteLabel = (_f?: NoticiaFonte) => 'Notícia Jurídica';
+  const FonteIcon = (_props: { fonte?: NoticiaFonte }) => <Scale className="w-3 h-3" />;
 
   const centerDate = useMemo(() => new Date(), []);
   const dayList = useMemo(() => getDayList(centerDate, 5), [centerDate]);
@@ -220,8 +179,8 @@ const Noticias = () => {
       {/* Header com gradiente */}
       <div className="bg-gradient-to-b from-primary/30 via-primary/15 to-background pb-3">
         <PageHeader
-          title="Notícias Jurídicas & Oficiais"
-          subtitle="STF, Congresso e Mundo Jurídico"
+          title="Notícias Jurídicas"
+          subtitle="Mundo Jurídico & Migalhas"
           onBack={() => navigate(-1)}
           rightAction={
             <button
@@ -251,15 +210,13 @@ const Noticias = () => {
               <div className="mt-1 mb-2 rounded-2xl border border-primary/30 bg-card/60 backdrop-blur-sm p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <Info className="w-4 h-4 text-primary" />
-                  <h3 className="font-display text-sm font-bold text-foreground">Fontes Oficiais & Jurídicas</h3>
+                  <h3 className="font-display text-sm font-bold text-foreground">Notícias Jurídicas — Migalhas</h3>
                 </div>
                 <p className="font-body text-[12.5px] leading-relaxed text-muted-foreground">
-                  Acompanhe em tempo real as atualizações oficiais do <strong className="text-foreground">STF</strong>,
-                  da <strong className="text-foreground">Câmara dos Deputados</strong>, do <strong className="text-foreground">Senado Federal</strong> e
-                  as matérias do <strong className="text-foreground">Migalhas</strong>.
+                  Acompanhe em tempo real as novidades, análises e desdobramentos do mundo jurídico trazidas diretamente do <strong className="text-foreground">Migalhas</strong>.
                 </p>
                 <p className="font-body text-[12.5px] leading-relaxed text-muted-foreground">
-                  Alterne entre as categorias acima ou filtre pelos dias da semana para estudar novidades legislativas e jurisprudenciais.
+                  Filtre pelos dias da semana acima para estudar as matérias e decisões mais recentes.
                 </p>
               </div>
             </motion.div>
@@ -491,8 +448,8 @@ const Noticias = () => {
           ) : (
             <EmptyState
               icon={Newspaper}
-              title="Nenhuma notícia nesta categoria/data"
-              description="Não encontramos notícias publicadas com os filtros selecionados. Tente selecionar outra data ou categoria."
+              title="Nenhuma notícia nesta data"
+              description="Não encontramos notícias publicadas para o dia selecionado. Tente selecionar outra data ou tocar em ver todas as datas."
             />
           )
         )}
