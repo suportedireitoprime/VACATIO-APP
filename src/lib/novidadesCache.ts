@@ -1,4 +1,5 @@
 import type { ArtigoLei } from '@/data/mockData';
+import { getPrecomputedNovidades } from '@/data/novidadesProntas';
 
 export type ModItem = { 
   artigo: ArtigoLei; 
@@ -16,12 +17,23 @@ const novidadesMemoryCache = new Map<string, ModItem[]>();
 
 export function getCachedNovidades(key?: string): ModItem[] | null {
   if (!key) return null;
-  const k = key.toLowerCase();
+  const k = key.toLowerCase().trim();
+  
+  // 1. Memória rápida (0ms)
   if (novidadesMemoryCache.has(k)) {
     return novidadesMemoryCache.get(k)!;
   }
+
+  // 2. Base pré-computada instantânea (0ms no Frame 0)
+  const precomputed = getPrecomputedNovidades(k);
+  if (precomputed && precomputed.length > 0) {
+    novidadesMemoryCache.set(k, precomputed);
+    return precomputed;
+  }
+
+  // 3. Cache local persistente do navegador
   try {
-    const raw = sessionStorage.getItem(`novidades_cache_${k}`);
+    const raw = localStorage.getItem(`novidades_cache_v2_${k}`) || sessionStorage.getItem(`novidades_cache_${k}`);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -35,10 +47,12 @@ export function getCachedNovidades(key?: string): ModItem[] | null {
 
 export function saveCachedNovidades(key: string, items: ModItem[]): void {
   if (!key || !items || items.length === 0) return;
-  const k = key.toLowerCase();
-  novidadesMemoryCache.set(k, items);
+  const k = key.toLowerCase().trim();
+  const sliced = items.slice(0, 35);
+  novidadesMemoryCache.set(k, sliced);
   try {
-    sessionStorage.setItem(`novidades_cache_${k}`, JSON.stringify(items.slice(0, 35)));
+    localStorage.setItem(`novidades_cache_v2_${k}`, JSON.stringify(sliced));
+    sessionStorage.setItem(`novidades_cache_${k}`, JSON.stringify(sliced));
   } catch {}
 }
 

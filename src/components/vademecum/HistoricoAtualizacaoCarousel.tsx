@@ -55,7 +55,7 @@ export default function HistoricoAtualizacaoCarousel({
     return items;
   }, [artigos, dbAlteracoes, leiKey]);
 
-  const itemsToRender = computedItems || cachedItems;
+  const itemsToRender = (computedItems && computedItems.length > 0) ? computedItems : cachedItems;
 
   // Se ainda não temos dados mas os artigos estão em carregamento,
   // renderiza um Skeleton idêntico imediatamente para evitar qualquer salto de layout ("sobe depois")

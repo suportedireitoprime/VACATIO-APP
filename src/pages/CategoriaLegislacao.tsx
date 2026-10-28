@@ -3103,7 +3103,7 @@ const CategoriaLegislacao = () => {
               artigos={artigos} 
               dbAlteracoes={dbAlteracoes} 
               leiAccent={leiAccent} 
-              leiKey={selectedTabelaNome || selectedLeiId || undefined}
+              leiKey={selectedTabelaNome || selectedLeiId || initialLei?.tabela_nome || initialLei?.id || leiSlugParam || undefined}
               onOpenNovidade={(item) => {
                 setOpenFromNovidades(true);
                 openArtigoWithRecent(item.artigo);
