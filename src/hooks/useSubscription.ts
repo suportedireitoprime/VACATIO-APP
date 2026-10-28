@@ -1,16 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { getTrialState, activateTrial3Days, subscribeTrialChanges, type TrialState } from '@/lib/trialService';
 
-interface SubscriptionState {
+export interface SubscriptionState {
   isPremium: boolean;
   loading: boolean;
   plano: string | null;
   expiresAt: string | null;
   startedAt: string | null;
-  source: 'play' | 'apple' | 'asaas' | null;
+  source: 'play' | 'apple' | 'asaas' | 'trial' | null;
   status: string | null;
   isAdminOverride: boolean;
+  isTrialActive: boolean;
+  trialUsed: boolean;
+  trialHoursRemaining: number;
+  trialExpiresAt: string | null;
+  activateTrial: () => Promise<void>;
   refresh: () => void;
 }
 
@@ -24,6 +30,17 @@ const ACTIVE_STATUSES = [
   'SUBSCRIPTION_STATE_ACTIVE',
   'SUBSCRIPTION_STATE_IN_GRACE_PERIOD',
 ] as const;
+
+interface RawSubscriptionState {
+  isPremium: boolean;
+  loading: boolean;
+  plano: string | null;
+  expiresAt: string | null;
+  startedAt: string | null;
+  source: 'play' | 'apple' | 'asaas' | null;
+  status: string | null;
+  isAdminOverride: boolean;
+}
 
 interface Options {
   /** Se true, faz polling curto (6× a cada 1s) até detectar Premium. Usar logo após uma compra. */
@@ -39,7 +56,7 @@ export function useSubscription(options: Options = {}): SubscriptionState {
   const cacheKey = user ? `vacatio:sub:${user.id}` : null;
   const emailLower = (user?.email || '').toLowerCase();
   const isAdminEmail = ADMIN_EMAILS.has(emailLower);
-  const [state, setState] = useState<Omit<SubscriptionState, 'refresh'>>(() => {
+  const [state, setState] = useState<RawSubscriptionState>(() => {
     if (isAdminEmail) {
       const startedAt = new Date();
       const expiresAt = new Date(startedAt);
@@ -66,7 +83,7 @@ export function useSubscription(options: Options = {}): SubscriptionState {
     }
     return { isPremium: false, loading: true, plano: null, expiresAt: null, startedAt: null, source: null, status: null, isAdminOverride: false };
   });
-  const persist = useCallback((s: Omit<SubscriptionState, 'refresh'>) => {
+  const persist = useCallback((s: RawSubscriptionState) => {
     setState(s);
     if (cacheKey && typeof localStorage !== 'undefined') {
       try { localStorage.setItem(cacheKey, JSON.stringify({ ...s, loading: false })); } catch { /* ignore */ }
@@ -237,6 +254,30 @@ export function useSubscription(options: Options = {}): SubscriptionState {
     };
   }, [user, nonce, pollOnMount]);
 
+  const [trial, setTrial] = useState<TrialState>(() => getTrialState(user?.id));
+
+  // Sincroniza o estado do trial com mudanças em tempo real e expiração
+  useEffect(() => {
+    setTrial(getTrialState(user?.id));
+    const unsubscribe = subscribeTrialChanges(() => {
+      setTrial(getTrialState(user?.id));
+    });
+    // Verifica a cada minuto se o trial expirou
+    const interval = setInterval(() => {
+      setTrial(getTrialState(user?.id));
+    }, 60000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
+  }, [user?.id]);
+
+  const activateTrial = useCallback(async () => {
+    const res = await activateTrial3Days(user?.id);
+    setTrial(res);
+  }, [user?.id]);
+
   // GA4: dispara `assinatura_ativada` na primeira vez que o Premium fica ativo
   // (ignora admin override para evitar ruído em contas internas).
   useEffect(() => {
@@ -248,5 +289,26 @@ export function useSubscription(options: Options = {}): SubscriptionState {
     ).catch(() => {});
   }, [state.isPremium, state.loading, state.isAdminOverride, state.plano, state.source]);
 
-  return { ...state, refresh };
+  // Se a assinatura de loja/admin não estiver ativa mas o trial de 3 dias estiver ativo,
+  // concede acesso Premium total imediatamente
+  const isEffectivePremium = state.isPremium || trial.isTrialActive;
+  const effectivePlano = state.plano || (trial.isTrialActive ? 'trial_3_dias' : null);
+  const effectiveSource = state.source || (trial.isTrialActive ? 'trial' : null);
+  const effectiveExpiresAt = state.expiresAt || (trial.isTrialActive ? trial.expiresAt : null);
+  const effectiveStartedAt = state.startedAt || (trial.isTrialActive ? trial.startedAt : null);
+
+  return {
+    ...state,
+    isPremium: isEffectivePremium,
+    plano: effectivePlano,
+    source: effectiveSource,
+    expiresAt: effectiveExpiresAt,
+    startedAt: effectiveStartedAt,
+    isTrialActive: trial.isTrialActive,
+    trialUsed: trial.trialUsed,
+    trialHoursRemaining: trial.hoursRemaining,
+    trialExpiresAt: trial.expiresAt,
+    activateTrial,
+    refresh,
+  };
 }

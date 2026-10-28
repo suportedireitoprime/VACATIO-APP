@@ -1124,6 +1124,11 @@ const ArtigoBottomSheet = ({
       return;
     }
 
+    if (!isPremium) {
+      openPremiumGate('narracao', 'Ouvir artigos narrados e audioleis completas é exclusivo para assinantes.');
+      return;
+    }
+
     if (narracaoPlaying) {
       if (narracaoAudioRef.current) {
         narracaoAudioRef.current.pause();
@@ -2704,6 +2709,10 @@ Separe cada julgado com:
               <>
                 <motion.button
                   onClick={() => {
+                    if (!isPremium) {
+                      openPremiumGate('favorito', 'Favoritar artigos e montar sua pasta pessoal é exclusivo para assinantes.');
+                      return;
+                    }
                     import('@/lib/appEvents').then(({ appEvents }) =>
                       appEvents.favoritarArtigo({ tabela: tabelaNome, numero: artigo.numero, on: !isFavorito })
                     ).catch(() => {});
@@ -2856,9 +2865,18 @@ Separe cada julgado com:
         </AnimatePresence>
 
         <Tabs value={activeTab} onValueChange={(v) => {
-          if (!isPremium && (v === 'explicacao' || v === 'exemplo')) {
-            const label = v === 'explicacao' ? 'Explicação' : 'Exemplo';
-            strictGateFeature(v as PremiumFeatureKey, () => setActiveTab(v));
+          if (!isPremium && v !== 'artigo') {
+            const keyMap: Record<string, PremiumFeatureKey> = {
+              ideia: 'ideia',
+              explicacao: 'explicacao',
+              desdobramento: 'desdobramento',
+              exemplo: 'exemplo',
+              termos: 'termos',
+              jurisprudencia: 'jurisprudencia',
+              historico: 'historico',
+            };
+            const gateKey = keyMap[v] || 'default';
+            strictGateFeature(gateKey, () => setActiveTab(v));
             return;
           }
           setActiveTab(v);
@@ -3718,7 +3736,13 @@ Separe cada julgado com:
               <div aria-hidden="true" />
             ) : (
               <button
-                onClick={() => setShowPraticarSheet(true)}
+                onClick={() => {
+                  if (!isPremium) {
+                    openPremiumGate('praticar', 'Praticar com flashcards e questões é exclusivo para assinantes.');
+                    return;
+                  }
+                  setShowPraticarSheet(true);
+                }}
                 className="flex flex-col items-center justify-end gap-1.5 py-1.5 text-foreground hover:text-primary transition-colors"
               >
                 <Target className="w-7 h-7 sm:w-8 sm:h-8" />
@@ -3814,7 +3838,14 @@ Separe cada julgado com:
               <div aria-hidden="true" />
             ) : (
               <button
-                onClick={() => { setShowAnotacoesSheet(true); setShowFontControls(false); }}
+                onClick={() => {
+                  if (!isPremium) {
+                    openPremiumGate('anotacoes', 'Fazer anotações no artigo é exclusivo para assinantes.');
+                    return;
+                  }
+                  setShowAnotacoesSheet(true);
+                  setShowFontControls(false);
+                }}
                 className="relative flex flex-col items-center justify-end gap-1.5 py-1.5 text-foreground hover:text-primary transition-colors"
               >
                 <span className="relative">
@@ -3845,7 +3876,13 @@ Separe cada julgado com:
               </button>
             ) : (
               <button
-                onClick={() => setActiveActionMenu('grifar')}
+                onClick={() => {
+                  if (!isPremium) {
+                    openPremiumGate('grifo', 'Grifar artigos com cores, por voz ou IA é exclusivo para assinantes.');
+                    return;
+                  }
+                  setActiveActionMenu('grifar');
+                }}
                 className={`relative flex flex-col items-center justify-end gap-1.5 py-1.5 transition-colors ${activeActionMenu === 'grifar' || magicMode || highlightMode ? 'text-amber-400' : 'text-foreground hover:text-primary'}`}
               >
                 <span className="relative">
@@ -4482,7 +4519,13 @@ Separe cada julgado com:
             </span>
           </button>
           <button
-            onClick={() => setShowPraticarSheet(true)}
+            onClick={() => {
+              if (!isPremium) {
+                openPremiumGate('praticar', 'Praticar com flashcards e questões é exclusivo para assinantes.');
+                return;
+              }
+              setShowPraticarSheet(true);
+            }}
             className="group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md bg-card/95 text-foreground hover:bg-secondary transition-all"
             title="Praticar"
           >
@@ -4490,7 +4533,13 @@ Separe cada julgado com:
             <span className="font-display text-[13px] font-bold tracking-wider max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-1">Praticar</span>
           </button>
           <button
-            onClick={() => setShowAnotacoesSheet(true)}
+            onClick={() => {
+              if (!isPremium) {
+                openPremiumGate('anotacoes', 'Fazer anotações no artigo é exclusivo para assinantes.');
+                return;
+              }
+              setShowAnotacoesSheet(true);
+            }}
             className="group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md bg-card/95 text-foreground hover:bg-secondary transition-all"
             title="Anotações"
           >
@@ -4498,7 +4547,13 @@ Separe cada julgado com:
             <span className="font-display text-[13px] font-bold tracking-wider max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-1">Anotações</span>
           </button>
           <button
-            onClick={() => setActiveActionMenu('grifar')}
+            onClick={() => {
+              if (!isPremium) {
+                openPremiumGate('grifo', 'Grifar artigos com cores, por voz ou IA é exclusivo para assinantes.');
+                return;
+              }
+              setActiveActionMenu('grifar');
+            }}
             className="group flex items-center gap-3 rounded-2xl px-3.5 py-3.5 shadow-xl border border-white/10 backdrop-blur-md bg-card/95 text-foreground hover:bg-secondary transition-all"
             title="Grifar"
           >

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useGatedFeature } from '@/hooks/useGatedFeature';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useAudioaulasPlayer, audioIdOf, type AulaAudio } from '@/contexts/AudioaulasPlayerContext';
 import { listarAudiosOffline, assinarAudioOffline } from '@/lib/nativo/audioOffline';
 import { normalizar, AUDIOAULAS_CATALOGO_AREAS } from '@/lib/audioaulasHelper';
@@ -150,24 +151,20 @@ export function useAudioaulas(areaAtual: string | null) {
     return [];
   }, [aba, aulas, favoritos, baixadas, busca]);
 
+  const { isPremium } = useSubscription();
+
   const handleTocarAula = useCallback(
     async (a: AulaAudio) => {
-      if (gateMes.blocked) {
+      if (!isPremium) {
         gateMes.openGate();
         return;
       }
-      if (gateDia.blocked) {
-        gateDia.openGate();
-        return;
-      }
-      void gateDia.run();
-      void gateMes.run();
 
       const filaAtual = areaAtual ? daArea : aba === 'aulas' ? aulas : listaAba;
       await tocar(a, filaAtual);
       setAberto(true);
     },
-    [gateDia, gateMes, areaAtual, daArea, aba, aulas, listaAba, tocar, setAberto],
+    [isPremium, gateMes, areaAtual, daArea, aba, aulas, listaAba, tocar, setAberto],
   );
 
   return {

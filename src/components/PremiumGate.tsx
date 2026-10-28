@@ -1,74 +1,291 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Crown, X, Volume2, Sparkles, BookOpen, MessageCircle, Scale, PlayCircle,
   Network, Bell, Download, StickyNote, Highlighter, FileText, Layers,
   HelpCircle, Map, Radar, Newspaper, Library, GraduationCap, Bot, ChevronLeft,
-  type LucideIcon,
+  Lock, Unlock, CheckCircle2, ArrowRight, ShieldCheck, Flame, Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { BENEFICIOS_PREMIUM } from '@/lib/premiumBeneficios';
+import { useSubscription } from '@/hooks/useSubscription';
+import { haptic } from '@/lib/nativeHaptics';
 
+import capa1 from '@/assets/capas/capa-1.webp';
+import capa2 from '@/assets/capas/capa-2.webp';
+import capa3 from '@/assets/capas/capa-3.webp';
+import capa4 from '@/assets/capas/capa-4.webp';
+import capa5 from '@/assets/capas/capa-5.webp';
+
+const CAPAS_FUNDO = [capa3, capa1, capa2, capa4, capa5];
 
 export type PremiumFeatureKey =
   | 'narracao' | 'explicacao' | 'exemplo' | 'termos' | 'perguntar'
   | 'jurisprudencia' | 'videoaula' | 'grafo' | 'mapa_mental' | 'lembretes'
   | 'baixar' | 'anotacoes' | 'grifo' | 'flashcards' | 'questoes'
-  | 'praticar' | 'favorito'
+  | 'praticar' | 'favorito' | 'ideia' | 'desdobramento' | 'historico'
   | 'radar' | 'blog' | 'biblioteca' | 'aprender' | 'horus'
-  | 'chat_juridico' | 'chat_web' | 'chat_anexo' | 'default';
+  | 'chat_juridico' | 'chat_web' | 'chat_anexo' | 'audioaula' | 'default';
 
-
-type FeatureInfo = { title: string; description: string; icon: LucideIcon };
+type FeatureInfo = {
+  title: string;
+  tagline: string;
+  description: string;
+  icon: any;
+};
 
 const FEATURES: Record<PremiumFeatureKey, FeatureInfo> = {
-  narracao:      { title: 'Ouvir sem interrupções', description: 'Escute qualquer artigo com narração ilimitada. Assine para desbloquear.', icon: Volume2 },
-  explicacao:    { title: 'Explicações ilimitadas', description: 'Peça à IA para explicar qualquer artigo, sem limite diário. Assine para desbloquear.', icon: Sparkles },
-  exemplo:       { title: 'Exemplos práticos ilimitados', description: 'Gere exemplos do dia a dia para cada artigo sem restrição. Assine para desbloquear.', icon: BookOpen },
-  termos:        { title: 'Termos jurídicos explicados', description: 'Traduza o vocabulário técnico do artigo em linguagem simples. Assine para desbloquear.', icon: BookOpen },
-  perguntar:     { title: 'Pergunte à IA sobre o artigo', description: 'Tire dúvidas específicas do artigo com a assistente jurídica. Assine para desbloquear.', icon: MessageCircle },
-  jurisprudencia:{ title: 'Jurisprudência do STF e STJ', description: 'Consulte súmulas, temas e acórdãos ligados ao artigo. Assine para desbloquear.', icon: Scale },
-  videoaula:     { title: 'Videoaulas sem limite', description: 'Assista aulas em vídeo sobre cada artigo sem restrição diária. Assine para desbloquear.', icon: PlayCircle },
-  grafo:         { title: 'Grafo de conexões', description: 'Veja como o artigo se conecta a outros dispositivos e temas. Assine para desbloquear.', icon: Network },
-  mapa_mental:   { title: 'Mapas mentais ilimitados', description: 'Gere mapas mentais do artigo para estudo rápido. Assine para desbloquear.', icon: Map },
-  lembretes:     { title: 'Lembretes por local e horário', description: 'Programe alertas de estudo por hora ou geolocalização. Assine para desbloquear.', icon: Bell },
-  baixar:        { title: 'Baixar artigos em PDF', description: 'Salve artigos em PDF, imagem, lei seca ou comentada. Assine para desbloquear.', icon: Download },
-  anotacoes:     { title: 'Anotações pessoais', description: 'Faça anotações em cada artigo e sincronize entre dispositivos. Assine para desbloquear.', icon: StickyNote },
-  grifo:         { title: 'Grifos ilimitados', description: 'Grife trechos manualmente, por voz, foto ou com a IA. Assine para desbloquear.', icon: Highlighter },
-  flashcards:    { title: 'Flashcards ilimitados', description: 'Estude com flashcards gerados automaticamente pela IA. Assine para desbloquear.', icon: Layers },
-  questoes:      { title: 'Questões OAB/concurso', description: 'Pratique com questões geradas a partir de qualquer conteúdo. Assine para desbloquear.', icon: HelpCircle },
-  praticar:      { title: 'Praticar sem limite', description: 'Questões e flashcards gerados a partir de qualquer artigo. Assine para desbloquear.', icon: Layers },
-  favorito:      { title: 'Favoritos ilimitados', description: 'Salve quantos artigos quiser nos seus favoritos. Assine para desbloquear.', icon: Highlighter },
-  radar:         { title: 'Radar Legislativo', description: 'Acompanhe projetos de lei em tempo real com análise da IA. Assine para desbloquear.', icon: Radar },
-  blog:          { title: 'Blogger Jurídico completo', description: 'Leia todos os artigos exclusivos do blog sem limites. Assine para desbloquear.', icon: Newspaper },
-  biblioteca:    { title: 'Biblioteca completa', description: 'No plano gratuito você lê 1 livro por mês. Assine para ler todo o acervo — leitura nativa, PDF, folheada, offline e desktop.', icon: Library },
-  aprender:      { title: 'Trilha Aprender ilimitada', description: 'Estude com trilhas guiadas e conteúdo sem limite diário. Assine para desbloquear.', icon: GraduationCap },
-  horus:         { title: 'Horus 24h no WhatsApp', description: 'Sua assistente jurídica pessoal disponível 24h no WhatsApp. Assine para desbloquear.', icon: Bot },
-  chat_juridico: { title: 'Chat Jurídico ilimitado', description: 'No plano gratuito você tem 1 interação por dia no Chat Jurídico. Assine para conversar sem limites.', icon: MessageCircle },
-  chat_web:      { title: 'Pesquisar na internet', description: 'A busca em tempo real na internet dentro do Chat Jurídico é exclusiva para assinantes.', icon: Sparkles },
-  chat_anexo:    { title: 'Enviar áudio, PDF e fotos', description: 'Analisar documentos, imagens e áudios no Chat Jurídico é exclusivo para assinantes.', icon: FileText },
-
-  default:       { title: 'Funcionalidade Premium', description: 'Assine para desbloquear esta função e aproveitar todos os recursos sem limites.', icon: Crown },
+  narracao: {
+    title: 'Audioleis Completas',
+    tagline: 'Ouça qualquer artigo ou lei sem limites',
+    description: 'Narrações em alta definição com voz humana natural e velocidade ajustável para estudar em qualquer lugar.',
+    icon: Volume2,
+  },
+  audioaula: {
+    title: 'Audioaulas com Especialistas',
+    tagline: '+120 aulas práticas e doutrinárias',
+    description: 'Aprenda direito com os melhores professores e especialistas em formato direto de áudio.',
+    icon: GraduationCap,
+  },
+  videoaula: {
+    title: 'Videoaulas Exclusivas',
+    tagline: 'Aulas em vídeo completas sem restrição',
+    description: 'Explicações audiovisuais aprofundadas dos principais temas e artigos da legislação.',
+    icon: PlayCircle,
+  },
+  blog: {
+    title: 'Blog Jurídico Exclusivo',
+    tagline: '+100 artigos e doutrinas completos',
+    description: 'Análises de jurisprudência, resenhas doutrinárias e novidades comentadas por especialistas.',
+    icon: Newspaper,
+  },
+  ideia: {
+    title: 'Ideia Central do Artigo',
+    tagline: 'Síntese inteligente com IA',
+    description: 'Compreenda imediatamente a intenção e a finalidade prática do dispositivo legal em segundos.',
+    icon: Sparkles,
+  },
+  explicacao: {
+    title: 'Explicação Didática com IA',
+    tagline: 'Sem juridiquês, direto ao ponto',
+    description: 'Tradução do artigo em linguagem clara, humana e descomplicada para qualquer nível de estudo.',
+    icon: BookOpen,
+  },
+  desdobramento: {
+    title: 'Raio-X Esquematizado',
+    tagline: 'Desdobramento de caput, incisos e parágrafos',
+    description: 'Visualização esquematizada parte a parte das hipóteses, requisitos e consequências do artigo.',
+    icon: Scale,
+  },
+  exemplo: {
+    title: 'Exemplos Práticos do Cotidiano',
+    tagline: 'Casos concretos do dia a dia',
+    description: 'Veja como o artigo é aplicado na prática com exemplos reais de tribunais e situações comuns.',
+    icon: BookOpen,
+  },
+  termos: {
+    title: 'Termos Jurídicos Explicados',
+    tagline: 'Dicionário contextual do artigo',
+    description: 'Tradução precisa de cada vocábulo em latim e expressão técnica utilizada na lei.',
+    icon: FileText,
+  },
+  jurisprudencia: {
+    title: 'Jurisprudência do STF e STJ',
+    tagline: 'Súmulas, temas e acórdãos em vigor',
+    description: 'Decisões consolidadas e súmulas vinculantes diretamente associadas a este artigo.',
+    icon: Scale,
+  },
+  historico: {
+    title: 'Histórico Legislativo',
+    tagline: 'Evolução e redações anteriores',
+    description: 'Veja todas as alterações legislativas, revogações e inclusões feitas neste dispositivo.',
+    icon: Layers,
+  },
+  grifo: {
+    title: 'Grifar Artigos Sem Limite',
+    tagline: 'Manual, por voz e Grifo Mágico com IA',
+    description: 'Destaque trechos essenciais, pegadinhas de prova e requisitos com cores personalizadas.',
+    icon: Highlighter,
+  },
+  anotacoes: {
+    title: 'Anotações Pessoais',
+    tagline: 'Caderno de notas sincronizado',
+    description: 'Escreva suas observações em cada artigo e acerte revisões no celular ou computador.',
+    icon: StickyNote,
+  },
+  favorito: {
+    title: 'Favoritos Ilimitados',
+    tagline: 'Sua pasta pessoal de leis e artigos',
+    description: 'Salve quantos artigos e códigos quiser para consulta instantânea em um toque.',
+    icon: Heart,
+  },
+  praticar: {
+    title: 'Modo Praticar & Memorização',
+    tagline: 'Flashcards, questões e quizzes com IA',
+    description: 'Treine com questões baseadas em provas da OAB e concursos públicos de todo o país.',
+    icon: Layers,
+  },
+  flashcards: {
+    title: 'Flashcards Ilimitados',
+    tagline: 'Repetição espaçada inteligente',
+    description: 'Cartões de memorização gerados a partir do artigo para fixar prazos e exceções.',
+    icon: Layers,
+  },
+  questoes: {
+    title: 'Questões OAB e Concursos',
+    tagline: 'Bateria de testes comentados',
+    description: 'Resolva exercícios formulados especificamente sobre a lei que você está estudando.',
+    icon: HelpCircle,
+  },
+  chat_juridico: {
+    title: 'Chat Jurídico com IA',
+    tagline: 'Assistente 24h fundamentada nas leis',
+    description: 'Tire dúvidas pontuais com respostas embasadas na Constituição e nos principais códigos do Brasil.',
+    icon: MessageCircle,
+  },
+  chat_web: {
+    title: 'Pesquisa Jurídica na Web',
+    tagline: 'Busca em tempo real na internet',
+    description: 'Consulte informações e julgados atualizados de hoje diretamente na conversa.',
+    icon: Sparkles,
+  },
+  chat_anexo: {
+    title: 'Análise de Documentos e Áudio',
+    tagline: 'Envie PDFs, petições e imagens',
+    description: 'Faça upload de contratos, pareceres e áudios para resumo e análise jurídica automática.',
+    icon: FileText,
+  },
+  biblioteca: {
+    title: 'Biblioteca Digital Completa',
+    tagline: 'Leitura irrestrita de livros e manuais',
+    description: 'Acesse todo o acervo doutrinário e livros de grandes referências do direito sem restrição mensal.',
+    icon: Library,
+  },
+  radar: {
+    title: 'Radar Legislativo',
+    tagline: 'Acompanhe projetos de lei em tempo real',
+    description: 'Notificações antecipadas sobre votações e mudanças no Congresso Nacional.',
+    icon: Radar,
+  },
+  aprender: {
+    title: 'Trilhas Aprender',
+    tagline: 'Jornadas guiadas de estudo',
+    description: 'Siga cronogramas prontos para OAB, carreiras jurídicas e faculdade.',
+    icon: GraduationCap,
+  },
+  horus: {
+    title: 'Horus no WhatsApp',
+    tagline: 'Sua assistente no celular 24 horas',
+    description: 'Tire dúvidas jurídicas diretamente no seu WhatsApp particular a qualquer hora.',
+    icon: Bot,
+  },
+  grafo: {
+    title: 'Grafo de Conexões Jurídicas',
+    tagline: 'Mapeamento visual de normas',
+    description: 'Entenda como o artigo se conecta com súmulas, decretos e outras leis.',
+    icon: Network,
+  },
+  mapa_mental: {
+    title: 'Mapas Mentais com IA',
+    tagline: 'Esquemas visuais de memorização',
+    description: 'Transforme artigos complexos em mapas mentais intuitivos e prontos para revisar.',
+    icon: Map,
+  },
+  lembretes: {
+    title: 'Lembretes de Estudo',
+    tagline: 'Alertas por horário e local',
+    description: 'Receba notificações no momento certo para revisar o que você estudou.',
+    icon: Bell,
+  },
+  baixar: {
+    title: 'Baixar em PDF e Imagem',
+    tagline: 'Estudo impresso e offline',
+    description: 'Exporte artigos comentados, grifados e esquematizados em alta resolução.',
+    icon: Download,
+  },
+  perguntar: {
+    title: 'Perguntas ao Artigo',
+    tagline: 'Tire dúvidas específicas do texto',
+    description: 'Converse diretamente com o artigo e resolva questionamentos de hermenêutica.',
+    icon: MessageCircle,
+  },
+  default: {
+    title: 'Recurso Exclusivo',
+    tagline: 'Disponível no Plano Completo',
+    description: 'Desbloqueie todo o ecossistema do Vacatio para acelerar seus estudos com ferramentas ilimitadas.',
+    icon: Crown,
+  },
 };
 
 interface PremiumGateProps {
   open: boolean;
   onClose: () => void;
-  /** Chave da funcionalidade — mostra ícone, título e descrição personalizados. */
   feature?: PremiumFeatureKey;
-  /** Override manual (opcional). */
   title?: string;
   description?: string;
-  /** Texto extra tipo "Você já usou 1 de 1 narração hoje" */
   usageLabel?: string;
-  /** Callback para botão especial da narração (ouvir exemplo). */
   onListenExample?: () => void;
-  /** Callback para botão especial da biblioteca (ver exemplo 5 pgs). */
   onLibraryExample?: () => void;
 }
 
-const PremiumGate = ({
+const ACERVO_ITEMS = [
+  {
+    icon: Volume2,
+    color: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+    title: 'Audioleis (+2.000 narrações)',
+    desc: 'Artigos e leis completas narrados em alta qualidade para você ouvir em qualquer lugar.',
+  },
+  {
+    icon: GraduationCap,
+    color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    title: 'Audioaulas (+120 aulas)',
+    desc: 'Aulas didáticas gravadas por especialistas e organizadas por disciplinas jurídicas.',
+  },
+  {
+    icon: Newspaper,
+    color: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
+    title: 'Blog Jurídico (+100 artigos)',
+    desc: 'Doutrina comentada, artigos de profundidade e atualizações diárias dos tribunais.',
+  },
+  {
+    icon: Sparkles,
+    color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    title: 'Recursos de Artigo com IA',
+    desc: 'Ideia central, Explicação didática, Raio-X esquematizado, Exemplos práticos e Jurisprudência.',
+  },
+  {
+    icon: Highlighter,
+    color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+    title: 'Grifar Artigos Ilimitado',
+    desc: 'Grifos manuais em cores, grifo por voz natural e destaques automáticos com IA.',
+  },
+  {
+    icon: Heart,
+    color: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
+    title: 'Favoritos Ilimitados',
+    desc: 'Salve todas as suas leis e artigos mais importantes para acesso imediato.',
+  },
+  {
+    icon: MessageCircle,
+    color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
+    title: 'Chat Jurídico com IA',
+    desc: 'Inteligência artificial brasileira para tirar dúvidas e formular análises de casos.',
+  },
+  {
+    icon: Library,
+    color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    title: 'Biblioteca Digital',
+    desc: 'Leitura de livros, manuais e doutrinas completas sem nenhuma trava mensal.',
+  },
+  {
+    icon: Layers,
+    color: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+    title: 'Praticar & Memorizar',
+    desc: 'Questões OAB e concursos, flashcards com repetição espaçada e desafios.',
+  },
+];
+
+export default function PremiumGate({
   open,
   onClose,
   feature = 'default',
@@ -77,202 +294,359 @@ const PremiumGate = ({
   usageLabel,
   onListenExample,
   onLibraryExample,
-}: PremiumGateProps) => {
+}: PremiumGateProps) {
   const navigate = useNavigate();
+  const { trialUsed, isTrialActive, activateTrial } = useSubscription();
+
+  const [step, setStep] = useState<'paywall' | 'detail' | 'success'>('paywall');
+  const [activating, setActivating] = useState(false);
+  const [capaIdx, setCapaIdx] = useState(0);
+
+  // Informações da ferramenta que disparou o paywall
   const info = FEATURES[feature] ?? FEATURES.default;
   const Icon = info.icon;
-  const shownTitle = title ?? info.title;
-  const shownDesc = description ?? info.description;
-  const [showBenefits, setShowBenefits] = useState(false);
-  useEffect(() => { if (!open) setShowBenefits(false); }, [open]);
+  const displayTitle = title ?? info.title;
+  const displayDesc = description ?? info.description;
 
+  // Reseta para o primeiro passo sempre que abrir
+  useEffect(() => {
+    if (open) {
+      setStep('paywall');
+      setActivating(false);
+      // Alterna capa de fundo aleatoriamente para dinamismo premium
+      setCapaIdx(Math.floor(Math.random() * CAPAS_FUNDO.length));
+    }
+  }, [open]);
 
+  // Handler de ativação dos 3 dias grátis
+  const handleStartTrial = async () => {
+    if (activating) return;
+    setActivating(true);
+    haptic.selection();
+
+    try {
+      await activateTrial();
+      setStep('success');
+      haptic.notification('success');
+
+      // Fecha o paywall após a animação cinematográfica
+      setTimeout(() => {
+        onClose();
+        setStep('paywall');
+        setActivating(false);
+      }, 2200);
+    } catch (e) {
+      console.warn('[PremiumGate] Erro ao ativar trial:', e);
+      setActivating(false);
+    }
+  };
+
+  if (!open) return null;
 
   const content = (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[10050]"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ opacity: 0, y: '100%' }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: '100%' }}
-            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-            className="fixed inset-x-0 bottom-0 z-[10051] flex items-end justify-center px-4 pb-[max(1rem,var(--sai-bottom,var(--sai-bottom)))] pointer-events-none"
-          >
-            <div className="relative w-full max-w-[340px] bg-card border border-border rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 pointer-events-auto">
-              {/* Header banner */}
-              <div className="bg-primary py-3 px-6 flex items-center justify-center relative">
-                <span className="text-[10px] font-extrabold tracking-[0.2em] uppercase text-primary-foreground">
-                  Funcionalidade Premium
-                </span>
-                <button
-                  onClick={onClose}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-primary-foreground/10 transition-colors"
-                >
-                  <X className="w-4 h-4 text-primary-foreground" />
-                </button>
-              </div>
+    <div className="fixed inset-0 z-[10050] bg-black text-white overflow-hidden flex flex-col font-sans select-none">
+      {/* ─── FUNDO CINEMATOGRÁFICO DE DIREITO COM VINHETA LUXUOSA ─── */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <motion.img
+          key={`capa-gate-${capaIdx}`}
+          initial={{ scale: 1.05, opacity: 0 }}
+          animate={{ scale: 1.12, opacity: 0.38 }}
+          transition={{ duration: 1.2, ease: 'easeOut' }}
+          src={CAPAS_FUNDO[capaIdx]}
+          alt="Direito"
+          className="w-full h-full object-cover object-center filter saturate-90 brightness-90"
+        />
+        {/* Gradientes e vinheta escura profunda */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-black/70" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_30%,rgba(0,0,0,0.9)_100%)]" />
+      </div>
 
-              <div className="p-8 flex flex-col items-center text-center">
-                {/* Icon */}
-                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mb-5 shadow-[0_0_30px_rgba(255,213,0,0.2)]">
-                  <Icon className="w-8 h-8 text-primary-foreground" />
+      {/* ─── TOPO SEGURO COM BOTÃO FECHAR (X) ─── */}
+      <div className="relative z-20 shrink-0 pt-[max(0.75rem,var(--sai-top,0px))] px-4 pb-2 flex items-center justify-between">
+        {step === 'detail' ? (
+          <button
+            onClick={() => setStep('paywall')}
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition flex items-center justify-center backdrop-blur-md border border-white/10 text-white/90"
+            aria-label="Voltar"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-[11px] font-bold tracking-widest uppercase">
+              <Crown className="w-3.5 h-3.5" />
+              Recurso Exclusivo
+            </span>
+          </div>
+        )}
+
+        <button
+          onClick={onClose}
+          className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition flex items-center justify-center backdrop-blur-md border border-white/10 text-white/90 shadow-lg"
+          aria-label="Fechar"
+        >
+          <X className="w-5 h-5 text-white" />
+        </button>
+      </div>
+
+      {/* ─── CORPO CENTRAL DINÂMICO CONFORME O PASSO ─── */}
+      <div className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,var(--sai-bottom,0px))] flex flex-col justify-between max-w-lg mx-auto w-full">
+        <AnimatePresence mode="wait">
+          {/* ══════════════════════════════════════════════════════════════
+              PASSO 1: BANNER PAYWALL DE TELA INTEIRA (MINIMALISTA)
+             ══════════════════════════════════════════════════════════════ */}
+          {step === 'paywall' && (
+            <motion.div
+              key="step-paywall"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.28 }}
+              className="flex-1 flex flex-col justify-between py-2"
+            >
+              {/* Bloco Superior: Ícone e Apresentação da Função */}
+              <div className="flex flex-col items-center text-center mt-3 sm:mt-6">
+                {/* Ícone com anel dourado e brilho */}
+                <div className="relative mb-4">
+                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-500/20 via-amber-400/30 to-amber-300/10 border border-amber-400/40 flex items-center justify-center shadow-[0_0_40px_rgba(251,191,36,0.25)] backdrop-blur-md">
+                    <Icon className="w-10 h-10 text-amber-300" strokeWidth={1.8} />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-md">
+                    <Lock className="w-3.5 h-3.5" />
+                  </div>
                 </div>
 
-                {/* Explanatory title */}
-                <h3 className="font-display text-xl text-foreground mb-2 tracking-wide">
-                  {shownTitle}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                  {shownDesc}
+                <span className="text-xs uppercase tracking-[0.25em] text-amber-400/90 font-bold mb-1">
+                  Exclusivo para assinantes
+                </span>
+
+                <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight max-w-sm">
+                  {displayTitle}
+                </h1>
+
+                <p className="text-amber-200/80 text-xs sm:text-sm font-medium mt-1 mb-3">
+                  {info.tagline}
+                </p>
+
+                <p className="text-neutral-300/80 text-xs sm:text-sm leading-relaxed max-w-xs sm:max-w-sm mb-4">
+                  {displayDesc}
                 </p>
 
                 {usageLabel && (
-                  <div className="text-[11px] text-primary bg-primary/10 border border-primary/30 rounded-lg py-1.5 px-3 mb-5">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-neutral-300 text-xs mb-3">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
                     {usageLabel}
                   </div>
                 )}
+              </div>
 
-                {/* Price highlight - before CTA (plano anual) */}
-                <div className="flex flex-col items-center mb-6">
-                  <span className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">
-                    Plano anual — a partir de
-                  </span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-muted-foreground text-sm font-medium">R$</span>
-                    <span className="text-foreground text-3xl font-bold tracking-tight">15,83</span>
-                    <span className="text-muted-foreground text-sm">/mês</span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground/80 mt-1">
-                    12x sem juros · R$ 189,90/ano
-                  </span>
-                </div>
-
-                {/* CTA Button */}
-                <button
-                  onClick={() => { onClose(); navigate('/assinatura?plano=anual&trial=1'); }}
-                  className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary-light transition-all active:scale-[0.98] shadow-lg shadow-primary/20 mb-3"
-                >
-                  Começar 7 dias grátis
-                </button>
-
+              {/* Bloco Inferior: Botões Principais ("Testar 3 dias gratuitos" e "Ver planos") */}
+              <div className="space-y-3 pt-4 shrink-0">
+                {/* Botão de Amostra para Narração se disponível */}
                 {feature === 'narracao' && onListenExample && (
                   <button
                     onClick={onListenExample}
-                    className="w-full py-3 rounded-xl border border-primary/30 bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors active:scale-[0.98] mb-3 flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 text-white text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-[0.98]"
                   >
-                    <Volume2 className="w-4 h-4" />
-                    Ouvir exemplo (Art. 4º - CP)
+                    <Volume2 className="w-4 h-4 text-amber-300" />
+                    Ouvir demonstração gratuita
                   </button>
                 )}
 
+                {/* Botão de Amostra para Biblioteca se disponível */}
                 {feature === 'biblioteca' && onLibraryExample && (
                   <button
                     onClick={onLibraryExample}
-                    className="w-full py-3 rounded-xl border border-primary/30 bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors active:scale-[0.98] mb-3 flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 text-white text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-[0.98]"
                   >
-                    <BookOpen className="w-4 h-4" />
-                    Ver exemplo prático (5 págs)
+                    <BookOpen className="w-4 h-4 text-amber-300" />
+                    Ler demonstração (5 páginas)
                   </button>
                 )}
 
-                {/* Ver mais benefícios */}
+                {/* BOTÃO 1: TESTAR 3 DIAS GRATUITOS (OU JÁ UTILIZADO) */}
+                {trialUsed && !isTrialActive ? (
+                  <div className="w-full py-3.5 px-4 rounded-2xl bg-white/5 border border-white/10 text-neutral-400 text-xs font-medium flex items-center justify-center gap-2 select-none">
+                    <CheckCircle2 className="w-4 h-4 text-neutral-500" />
+                    <span>Teste gratuito de 3 dias já utilizado</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setStep('detail')}
+                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-black font-extrabold text-sm sm:text-base tracking-wide shadow-[0_0_30px_rgba(251,191,36,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 group relative overflow-hidden"
+                  >
+                    <Flame className="w-5 h-5 text-black shrink-0 animate-bounce" />
+                    <span>Testar 3 dias gratuitos</span>
+                    <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-1 transition-transform" />
+                  </button>
+                )}
+
+                {/* BOTÃO 2: VER PLANOS */}
                 <button
-                  onClick={() => setShowBenefits(true)}
-                  className="w-full py-3 rounded-xl border border-border bg-secondary/50 text-foreground font-semibold text-sm hover:bg-secondary transition-colors active:scale-[0.98] mb-3"
+                  onClick={() => {
+                    onClose();
+                    navigate('/assinatura');
+                  }}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xs sm:text-sm tracking-wide active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
-                  Ver mais benefícios
+                  <Crown className="w-4 h-4 text-amber-300" />
+                  <span>Ver planos e assinaturas</span>
                 </button>
 
-                {/* Secondary Action */}
-                <button
-                  onClick={() => { onClose(); navigate('/assinatura'); }}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors border-b border-transparent hover:border-border pb-0.5"
-                >
-                  Ver outros planos
-                </button>
+                <p className="text-center text-[10.5px] text-neutral-400/70 pt-1">
+                  Cancele a qualquer momento nas configurações da loja.
+                </p>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
 
-          {/* Camada de benefícios */}
-          <AnimatePresence>
-            {showBenefits && (
-              <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-                className="fixed inset-x-0 bottom-0 z-[10052] max-h-[88dvh] bg-card border-t border-border rounded-t-3xl overflow-hidden flex flex-col"
-              >
-                <div className="bg-primary py-3 px-4 flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => setShowBenefits(false)}
-                    aria-label="Voltar"
-                    className="p-1.5 rounded-full hover:bg-primary-foreground/10 transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4 text-primary-foreground" />
-                  </button>
-                  <span className="flex-1 text-center text-[10px] font-extrabold tracking-[0.2em] uppercase text-primary-foreground">
-                    Tudo que você desbloqueia
+          {/* ══════════════════════════════════════════════════════════════
+              PASSO 2: TELA DETALHADA DO QUE SERÁ DESBLOQUEADO NO TRIAL
+             ══════════════════════════════════════════════════════════════ */}
+          {step === 'detail' && (
+            <motion.div
+              key="step-detail"
+              initial={{ opacity: 0, x: 25 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -25 }}
+              transition={{ duration: 0.25 }}
+              className="flex-1 flex flex-col justify-between py-1"
+            >
+              <div className="flex flex-col">
+                <div className="text-center pt-1 pb-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold tracking-widest uppercase">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    3 Dias Grátis · Sem Cobrança Hoje
                   </span>
-                  <button
-                    onClick={() => { setShowBenefits(false); onClose(); }}
-                    aria-label="Fechar"
-                    className="p-1.5 rounded-full hover:bg-primary-foreground/10 transition-colors"
-                  >
-                    <X className="w-4 h-4 text-primary-foreground" />
-                  </button>
+                  <h2 className="font-display text-xl sm:text-2xl font-extrabold text-white mt-2 leading-tight">
+                    Tudo que você desbloqueia agora
+                  </h2>
+                  <p className="text-neutral-300/80 text-xs mt-1">
+                    Acesso irrestrito a todo o acervo jurídico e ferramentas de IA por 72 horas:
+                  </p>
                 </div>
 
-                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-3 max-w-md mx-auto w-full">
-                  {BENEFICIOS_PREMIUM.map((b) => {
-                    const BIcon = b.icon;
+                {/* Lista de Recursos Desbloqueados com contagens reais */}
+                <div className="space-y-2.5 my-2 max-h-[50dvh] overflow-y-auto pr-1">
+                  {ACERVO_ITEMS.map((item, idx) => {
+                    const ItemIcon = item.icon;
                     return (
-                      <div key={b.title} className="flex gap-3 items-start">
-                        <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                          <BIcon className="w-4 h-4 text-primary" />
+                      <motion.div
+                        key={item.title}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.03 }}
+                        className="flex items-start gap-3 p-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
+                      >
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${item.color}`}>
+                          <ItemIcon className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-foreground leading-tight">{b.title}</p>
-                          <p className="text-xs text-muted-foreground leading-snug mt-0.5">{b.description}</p>
+                          <p className="text-xs sm:text-sm font-bold text-white leading-tight">
+                            {item.title}
+                          </p>
+                          <p className="text-[11px] text-neutral-300/70 leading-snug mt-0.5">
+                            {item.desc}
+                          </p>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
+              </div>
 
-                <div className="shrink-0 border-t border-border px-5 pt-3 pb-[max(1rem,var(--sai-bottom,var(--sai-bottom)))] bg-card max-w-md mx-auto w-full">
-                  <button
-                    onClick={() => { setShowBenefits(false); onClose(); navigate('/assinatura?plano=anual&trial=1'); }}
-                    className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary-light transition-all active:scale-[0.98] shadow-lg shadow-primary/20"
-                  >
-                    Começar 7 dias grátis
-                  </button>
-                  <button
-                    onClick={() => { setShowBenefits(false); onClose(); navigate('/assinatura'); }}
-                    className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Ver outros planos
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </>
-      )}
-    </AnimatePresence>
+              {/* Botão de Ativação do Trial */}
+              <div className="pt-3 shrink-0">
+                <button
+                  onClick={handleStartTrial}
+                  disabled={activating}
+                  className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-black font-extrabold text-base tracking-wide shadow-[0_0_35px_rgba(251,191,36,0.4)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 select-none"
+                >
+                  <Unlock className="w-5 h-5 text-black" />
+                  <span>{activating ? 'Ativando seu acesso...' : 'Ativar 3 dias grátis agora'}</span>
+                </button>
+                <p className="text-center text-[10.5px] text-neutral-400/80 mt-2">
+                  Você não paga nada hoje. O teste expira automaticamente em 72h.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ══════════════════════════════════════════════════════════════
+              PASSO 3: ANIMAÇÃO CINEMATOGRÁFICA DE DESBLOQUEIO
+             ══════════════════════════════════════════════════════════════ */}
+          {step === 'success' && (
+            <motion.div
+              key="step-success"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1 flex flex-col items-center justify-center text-center py-8"
+            >
+              {/* Cadeado abrindo com anéis e partículas de luz */}
+              <div className="relative mb-6">
+                <motion.div
+                  initial={{ scale: 0.5, rotate: -20 }}
+                  animate={{ scale: [0.5, 1.15, 1], rotate: [0, 10, 0] }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="w-24 h-24 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 text-black flex items-center justify-center shadow-[0_0_60px_rgba(251,191,36,0.6)]"
+                >
+                  <Unlock className="w-12 h-12 stroke-[2.2]" />
+                </motion.div>
+
+                {/* Pulso de luz expansivo */}
+                <div className="absolute inset-0 rounded-full bg-amber-400/40 animate-ping pointer-events-none" style={{ animationDuration: '1.4s' }} />
+
+                {/* Partículas douradas decorativas */}
+                {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+                  <motion.div
+                    key={deg}
+                    initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+                    animate={{
+                      opacity: 0,
+                      x: Math.cos((deg * Math.PI) / 180) * 80,
+                      y: Math.sin((deg * Math.PI) / 180) * 80,
+                      scale: 0.3,
+                    }}
+                    transition={{ duration: 1.2, ease: 'easeOut' }}
+                    className="absolute top-1/2 left-1/2 w-2.5 h-2.5 -ml-1.5 -mt-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_#fde047]"
+                  />
+                ))}
+              </div>
+
+              <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight"
+              >
+                Acesso Total Liberado!
+              </motion.h2>
+
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-amber-300 text-sm font-semibold mt-2"
+              >
+                Aproveite suas 72 horas gratuitas
+              </motion.p>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-neutral-300/80 text-xs mt-1 max-w-xs"
+              >
+                Todas as audioaulas, áudios de lei, recursos com IA e ferramentas estão prontos para você.
+              </motion.p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   );
 
-
   return createPortal(content, document.body);
-};
-
-export default PremiumGate;
+}

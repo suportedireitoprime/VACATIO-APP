@@ -44,6 +44,7 @@ import BlogCoverImage from '@/components/BlogCoverImage';
 import { blogThumb } from '@/lib/blogImg';
 import { useBlogPostsCache } from '@/hooks/useBlogPostsCache';
 import { useFeatureLimit } from '@/hooks/useFeatureLimit';
+import { useSubscription } from '@/hooks/useSubscription';
 import PremiumGate from '@/components/PremiumGate';
 import { useIsDesktop } from '@/hooks/use-desktop';
 import { EmptyState } from '@/components/ui/states';
@@ -258,6 +259,7 @@ const Blog = () => {
 
   const isPostRead = (id: string) => readPostIds.has(id);
 
+  const { isPremium } = useSubscription();
   const { canUse, register } = useFeatureLimit('blog_read');
   const { posts: allPosts, loaded: blogLoaded } = useBlogPostsCache();
 
@@ -400,7 +402,7 @@ const Blog = () => {
   }, [baseCategoryPosts, filterTab, favPostIds, searchQuery, trendingMetrics]);
 
   const openPost = (post: BlogPost) => {
-    if (!canUse) {
+    if (!isPremium) {
       setGateOpen(true);
       return;
     }
