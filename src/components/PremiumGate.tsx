@@ -43,7 +43,7 @@ const FEATURES: Record<PremiumFeatureKey, FeatureInfo> = {
   },
   audioaula: {
     title: 'Audioaulas com Especialistas',
-    tagline: '+120 aulas práticas e doutrinárias',
+    tagline: '+2.230 aulas práticas e doutrinárias',
     description: 'Aprenda direito com os melhores professores e especialistas em formato direto de áudio.',
     icon: GraduationCap,
   },
@@ -55,7 +55,7 @@ const FEATURES: Record<PremiumFeatureKey, FeatureInfo> = {
   },
   blog: {
     title: 'Blog Jurídico Exclusivo',
-    tagline: '+100 artigos e doutrinas completos',
+    tagline: '+490 artigos e doutrinas completos',
     description: 'Análises de jurisprudência, resenhas doutrinárias e novidades comentadas por especialistas.',
     icon: Newspaper,
   },
@@ -230,58 +230,52 @@ interface PremiumGateProps {
 
 const ACERVO_ITEMS = [
   {
-    icon: Volume2,
-    color: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
-    title: 'Audioleis (+2.000 narrações)',
-    desc: 'Artigos e leis completas narrados em alta qualidade para você ouvir em qualquer lugar.',
-  },
-  {
     icon: GraduationCap,
     color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    title: 'Audioaulas (+120 aulas)',
-    desc: 'Aulas didáticas gravadas por especialistas e organizadas por disciplinas jurídicas.',
+    title: 'Audioaulas (+2.230 aulas gravadas)',
+    desc: '2.234 aulas didáticas completas em áudio organizadas por disciplinas jurídicas com especialistas.',
+  },
+  {
+    icon: Volume2,
+    color: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+    title: 'Audioleis Completas',
+    desc: 'Narrações em áudio de alta fidelidade com voz humana dos principais códigos e leis brasileiras.',
   },
   {
     icon: Newspaper,
     color: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
-    title: 'Blog Jurídico (+100 artigos)',
-    desc: 'Doutrina comentada, artigos de profundidade e atualizações diárias dos tribunais.',
-  },
-  {
-    icon: Sparkles,
-    color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    title: 'Recursos de Artigo com IA',
-    desc: 'Ideia central, Explicação didática, Raio-X esquematizado, Exemplos práticos e Jurisprudência.',
-  },
-  {
-    icon: Highlighter,
-    color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
-    title: 'Grifar Artigos Ilimitado',
-    desc: 'Grifos manuais em cores, grifo por voz natural e destaques automáticos com IA.',
-  },
-  {
-    icon: Heart,
-    color: 'text-pink-400 bg-pink-500/10 border-pink-500/20',
-    title: 'Favoritos Ilimitados',
-    desc: 'Salve todas as suas leis e artigos mais importantes para acesso imediato.',
-  },
-  {
-    icon: MessageCircle,
-    color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
-    title: 'Chat Jurídico com IA',
-    desc: 'Inteligência artificial brasileira para tirar dúvidas e formular análises de casos.',
+    title: 'Blog Jurídico (+490 artigos & doutrinas)',
+    desc: '499 publicações com doutrina comentada, jurisprudência recente e análises de impacto prático.',
   },
   {
     icon: Library,
-    color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    title: 'Biblioteca Digital',
-    desc: 'Leitura de livros, manuais e doutrinas completas sem nenhuma trava mensal.',
+    color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    title: 'Biblioteca Digital (+430 obras & manuais)',
+    desc: '402 manuais de exame da OAB e 35 clássicos do Direito para leitura irrestrita no app.',
+  },
+  {
+    icon: Sparkles,
+    color: 'text-teal-400 bg-teal-500/10 border-teal-500/20',
+    title: 'Vade Mecum (+138 leis & 40.000 artigos com IA)',
+    desc: '7 recursos em cada artigo: Ideia Central, Explicação Didática, Raio-X, Prática, Termos e Jurisprudência.',
+  },
+  {
+    icon: Bot,
+    color: 'text-violet-400 bg-violet-500/10 border-violet-500/20',
+    title: 'Horus no WhatsApp (24 Horas)',
+    desc: 'Assistente jurídica de IA diretamente no seu WhatsApp pessoal para responder dúvidas a qualquer hora.',
   },
   {
     icon: Layers,
     color: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-    title: 'Praticar & Memorizar',
-    desc: 'Questões OAB e concursos, flashcards com repetição espaçada e desafios.',
+    title: 'Praticar, Flashcards & Questões',
+    desc: 'Flashcards inteligentes com repetição espaçada e banco com centenas de questões comentadas.',
+  },
+  {
+    icon: Highlighter,
+    color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+    title: 'Grifos por Voz & Anotações Ilimitadas',
+    desc: 'Grifo manual em cores, Grifo Mágico com IA e anotações pessoais sincronizadas na nuvem.',
   },
 ];
 
@@ -350,15 +344,15 @@ export default function PremiumGate({
         <motion.img
           key={`capa-gate-${capaIdx}`}
           initial={{ scale: 1.05, opacity: 0 }}
-          animate={{ scale: 1.12, opacity: 0.38 }}
+          animate={{ scale: 1.12, opacity: 0.72 }}
           transition={{ duration: 1.2, ease: 'easeOut' }}
           src={CAPAS_FUNDO[capaIdx]}
           alt="Direito"
-          className="w-full h-full object-cover object-center filter saturate-90 brightness-90"
+          className="w-full h-full object-cover object-center filter saturate-105 brightness-100"
         />
-        {/* Gradientes e vinheta escura profunda */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-black/70" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_30%,rgba(0,0,0,0.9)_100%)]" />
+        {/* Gradientes translúcidos elegantes mantendo o fundo bem nítido e visível */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/35" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(0,0,0,0.75)_100%)]" />
       </div>
 
       {/* ─── TOPO SEGURO COM BOTÃO FECHAR (X) ─── */}

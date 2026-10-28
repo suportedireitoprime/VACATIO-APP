@@ -223,29 +223,6 @@ const Noticias = () => {
           )}
         </AnimatePresence>
 
-        {/* Menu de Alternância de Categorias (Todas, Migalhas, STF, Câmara, Senado) */}
-        <div className="px-3 pt-1 pb-2 max-w-3xl mx-auto">
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-            {CATEGORIA_TABS.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = categoriaAtiva === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setCategoriaAtiva(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-display font-medium shrink-0 transition-all ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]'
-                      : 'bg-card/70 border border-border/70 text-muted-foreground hover:text-foreground hover:bg-card'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5 shrink-0" />
-                  <span>{isMobile ? tab.shortLabel : tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
         {/* Calendário com faixa de dias */}
         <div className="flex justify-between gap-1.5 px-3 py-2 max-w-3xl mx-auto">
