@@ -1069,8 +1069,8 @@ REGRAS DE ESTILO E FORMATO:
                       <p className="font-body text-[15px] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                     )}
                   </div>
-                </div>
-              </motion.div>;
+                </motion.div>
+              );
             })}
             </div>
 
