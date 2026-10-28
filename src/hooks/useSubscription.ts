@@ -245,6 +245,7 @@ export function useSubscription(options: Options = {}): SubscriptionState {
       .channel(`sub-${user.id}-${Math.random().toString(36).slice(2, 10)}`)
       .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'play_subscriptions', filter: `user_id=eq.${user.id}` }, () => { fetchOnce(); })
       .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'apple_subscriptions', filter: `user_id=eq.${user.id}` }, () => { fetchOnce(); })
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assinaturas', filter: `user_id=eq.${user.id}` }, () => { fetchOnce(); })
       .subscribe();
 
     return () => {

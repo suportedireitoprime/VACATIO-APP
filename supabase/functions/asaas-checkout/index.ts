@@ -163,6 +163,8 @@ Deno.serve(async (req) => {
       invoiceUrl = sub.invoiceUrl;
     }
 
+    let actualPaymentId = sub.id;
+
     if (!invoiceUrl || isPixPlan || billingType === 'PIX' || billingType === 'UNDEFINED') {
       if (!isInstallment) {
         let payRes = await asaasRequest(`/subscriptions/${sub.id}/payments`, 'GET');
@@ -175,6 +177,7 @@ Deno.serve(async (req) => {
 
         if (payRes.data && payRes.data.length > 0) {
           const payment = payRes.data[0];
+          actualPaymentId = payment.id || sub.id;
           invoiceUrl = invoiceUrl || payment.invoiceUrl;
           
           if (billingType === 'PIX' || billingType === 'UNDEFINED') {
@@ -192,11 +195,54 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Grava vínculo inicial na tabela assinaturas para que o webhook e o app rastreiem
+    try {
+      const adminSupabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+
+      const isConfirmedNow = isCreditCard && ['CONFIRMED', 'RECEIVED', 'ACTIVE'].includes(String(sub.status).toUpperCase());
+      const planCategory = plan === 'anual_pix' ? 'anual' : plan;
+      const cycleDays = planCategory === 'anual' ? 370 : 34;
+      const initialExpires = isConfirmedNow
+        ? new Date(Date.now() + cycleDays * 24 * 3600 * 1000).toISOString()
+        : null;
+
+      const { data: existingSub } = await adminSupabase
+        .from('assinaturas')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1)
+        .maybeSingle();
+
+      const recordData: any = {
+        user_id: user.id,
+        plano: planCategory,
+        status: isConfirmedNow ? 'ACTIVE' : 'pending',
+        asaas_customer_id: customerId,
+        asaas_subscription_id: sub.id || actualPaymentId,
+        updated_at: new Date().toISOString(),
+      };
+      if (initialExpires) {
+        recordData.expires_at = initialExpires;
+      }
+
+      if (existingSub) {
+        await adminSupabase.from('assinaturas').update(recordData).eq('id', existingSub.id);
+      } else {
+        await adminSupabase.from('assinaturas').insert(recordData);
+      }
+    } catch (dbErr) {
+      console.warn('[asaas-checkout] Falha silenciosa ao registrar pré-assinatura:', dbErr);
+    }
+
     return new Response(JSON.stringify({ 
       invoiceUrl, 
       pixQrCode, 
       pixCopyPaste,
-      status: sub.status 
+      status: sub.status,
+      paymentId: actualPaymentId
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

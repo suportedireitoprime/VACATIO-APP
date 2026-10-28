@@ -190,11 +190,13 @@ export default function Assinatura() {
           setPixConfirmed(true);
           toast.success("Pagamento PIX confirmado! 🎉");
           clearInterval(interval);
+          refreshSubscription();
+          navigate("/assinatura?welcome=1", { replace: true });
         }
       } catch {}
     }, 5000);
     return () => clearInterval(interval);
-  }, [pixPaymentId, pixConfirmed]);
+  }, [pixPaymentId, pixConfirmed, refreshSubscription, navigate]);
 
   // ── Is Promo 24h ──
   const isPromo = useMemo(() => {
@@ -291,7 +293,9 @@ export default function Assinatura() {
         track('subscription_payment_initiated', { plano: planId, metodo: 'pix', payment_id: data.invoiceUrl });
         setPixQrImage(`data:image/png;base64,${data.pixQrCode}`);
         setPixPayload(data.pixCopyPaste);
-        // Assas invoice check via webhook is asynchronous, the user will be updated once confirmed
+        if (data?.paymentId) {
+          setPixPaymentId(data.paymentId);
+        }
       } else if (data?.invoiceUrl) {
          window.open(data.invoiceUrl, '_blank');
          toast.success("Boleto/Pix gerado em nova aba!");
