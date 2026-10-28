@@ -22,6 +22,7 @@ interface Row {
   provider?: string | null;
   acessos?: number | null;
   avatar_url?: string | null;
+  minutos_dia?: number | null;
 }
 
 const ProviderTag = ({ provider }: { provider?: string | null }) => {
@@ -271,6 +272,8 @@ export function AdminHojeCards() {
           subtitle: id === 'online' ? rotaParaFuncao(r.subtitle).label : r.subtitle,
           meta: hora(r.at),
           acessos: typeof r.acessos === 'number' ? r.acessos : null,
+          avatar_url: r.avatar_url || null,
+          minutos_dia: typeof r.minutos_dia === 'number' ? r.minutos_dia : null,
         }));
       }
       
@@ -297,7 +300,7 @@ export function AdminHojeCards() {
         setRows((current) => current.map((r) => ({ 
           ...r, 
           provider: map.get(r.userId || r.key) || r.provider,
-          avatar_url: avatarMap.get(r.userId || r.key) || null
+          avatar_url: r.avatar_url || avatarMap.get(r.userId || r.key) || null
         })));
       }
     } finally {
@@ -508,7 +511,14 @@ export function AdminHojeCards() {
                         )}
                       </div>
                       {r.subtitle && (
-                        <div className="font-body text-[11px] text-muted-foreground truncate">{r.subtitle}</div>
+                        <div className="font-body text-[11px] text-muted-foreground flex items-center gap-1.5 truncate">
+                          <span className="truncate">{r.subtitle}</span>
+                          {r.minutos_dia != null && r.minutos_dia > 0 && (
+                            <span className="inline-flex items-center gap-0.5 shrink-0 font-bold text-emerald-400 text-[10.5px]">
+                              · {r.minutos_dia}min
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
                     <ProviderTag provider={r.provider} />
