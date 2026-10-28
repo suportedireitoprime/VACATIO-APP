@@ -733,11 +733,10 @@ function AnimatedRoutes() {
           <Route path="/omniroute" element={<Navigate to="/admin-omniroute" replace />} />
           <Route path="/omni-route" element={<Navigate to="/admin-omniroute" replace />} />
           <Route path="/assinatura" element={<ProtectedRoute><PageTransition><Assinatura /></PageTransition></ProtectedRoute>} />
+          <Route path="/planos/ativos" element={<ProtectedRoute><PageTransition><PlanosAtivos /></PageTransition></ProtectedRoute>} />
           <Route path="/planos" element={<Navigate to="/assinatura" replace />} />
-          <Route path="/planos/*" element={<Navigate to="/assinatura" replace />} />
           <Route path="/suporte" element={<ProtectedRoute><PageTransition><Suporte /></PageTransition></ProtectedRoute>} />
           <Route path="/opiniao" element={<ProtectedRoute><PageTransition><Opiniao /></PageTransition></ProtectedRoute>} />
-          <Route path="/planos/ativos" element={<ProtectedRoute><PageTransition><PlanosAtivos /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-aprender" element={<ProtectedRoute><PageTransition><AdminAprender /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-aprender-aulas" element={<ProtectedRoute><PageTransition><AdminAprenderAulas /></PageTransition></ProtectedRoute>} />
           <Route path="/admin-aprender-livros" element={<Navigate to="/admin-aprender" replace />} />
