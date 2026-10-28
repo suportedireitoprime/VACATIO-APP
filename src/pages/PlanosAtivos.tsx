@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/vademecum/PageHeader';
 
 const PlanosAtivos = () => {
   const navigate = useNavigate();
-  const { isPremium, loading, plano, expiresAt, startedAt, source, isAdminOverride } = useSubscription();
+  const { isPremium, loading, plano, expiresAt, startedAt, source, status, isAdminOverride } = useSubscription();
 
   if (!loading && !isPremium) {
     return <Navigate to="/assinatura" replace />;
