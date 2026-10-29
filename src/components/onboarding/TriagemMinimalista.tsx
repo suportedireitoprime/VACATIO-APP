@@ -307,7 +307,14 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
 
       <div className="triagem-phone">
         {/* Topbar */}
-        <header className="flex items-center gap-3 px-5 pt-4 pb-2 shrink-0 border-b border-white/[0.04]">
+        <header
+          className="flex items-center gap-3 px-5 pb-2 shrink-0 border-b border-white/[0.04]"
+          style={{
+            paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 1rem)',
+            paddingLeft: 'calc(1.25rem + var(--sai-left, env(safe-area-inset-left, 0px)))',
+            paddingRight: 'calc(1.25rem + var(--sai-right, env(safe-area-inset-right, 0px)))',
+          }}
+        >
           {step > 0 ? (
             <button
               type="button"
@@ -946,7 +953,14 @@ export default function TriagemMinimalista({ onFinished, initialName, previewMod
         </div>
 
         {/* Footer Actions */}
-        <footer className="p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shrink-0 flex flex-col items-center gap-2">
+        <footer
+          className="p-5 shrink-0 flex flex-col items-center gap-2"
+          style={{
+            paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 1.75rem)',
+            paddingLeft: 'calc(1.25rem + var(--sai-left, env(safe-area-inset-left, 0px)))',
+            paddingRight: 'calc(1.25rem + var(--sai-right, env(safe-area-inset-right, 0px)))',
+          }}
+        >
           {step === 0 && (
             <>
               <button

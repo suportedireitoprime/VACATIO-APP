@@ -1048,16 +1048,16 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
 
       {/* Bottom Sheet Drawer for Auth Form */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="bg-neutral-950 border-neutral-800 text-white px-6 pt-3 pb-[max(calc(env(safe-area-inset-bottom,0px)+2.5rem),3.25rem)] outline-none overflow-hidden max-h-[90dvh] rounded-t-[28px]">
-          {/* Barra de arraste (handle) no topo */}
-          <div className="w-12 h-1.5 rounded-full bg-white/20 mx-auto mb-2" />
-
+        <DrawerContent
+          hideHandle
+          className="bg-neutral-950 border-neutral-800 text-white px-6 pt-5 pb-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+3rem)] outline-none overflow-hidden max-h-[92dvh] rounded-t-[28px]"
+        >
           {/* Botão de fechar responsivo e confortável ao toque */}
           <button
             type="button"
             onClick={() => setDrawerOpen(false)}
             aria-label="Fechar"
-            className="absolute top-3.5 right-4 z-30 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white flex items-center justify-center transition-all cursor-pointer shadow-sm"
+            className="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white flex items-center justify-center transition-all cursor-pointer shadow-sm"
           >
             <X className="w-5 h-5 text-white" />
           </button>
@@ -1070,7 +1070,7 @@ const AuthFormScreen = ({ onBack }: { onBack: () => void }) => {
               {mode === 'login' ? 'Entre com Google ou e-mail' : mode === 'signup' ? 'Criar conta com Google ou e-mail' : 'Recupere sua senha'}
             </DrawerDescription>
           </DrawerHeader>
-          <div className="pt-2 overflow-y-auto max-h-[calc(90dvh-4rem)] flex flex-col justify-between">
+          <div className="pt-2 pb-6 overflow-y-auto max-h-[calc(92dvh-4rem)] flex flex-col justify-between">
             {renderFormBody()}
           </div>
         </DrawerContent>
