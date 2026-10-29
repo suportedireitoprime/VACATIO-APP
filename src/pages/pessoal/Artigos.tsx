@@ -58,7 +58,7 @@ const ArtigosPage = () => {
   for (const f of favs) (grupos[f.tabela_codigo] ||= []).push(f);
 
   return (
-    <div className="min-h-dvh bg-background text-foreground pb-24">
+    <div className="min-h-dvh bg-background text-foreground pb-[calc(7.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px))+var(--active-mini-player-offset,0px))]">
       <PageHeader
         title="Meus artigos"
         onBack={() => navigate(-1)}
@@ -70,7 +70,7 @@ const ArtigosPage = () => {
       />
 
 
-      <div className="max-w-2xl mx-auto px-4 py-4">
+      <div className="max-w-2xl mx-auto px-4 py-4 pb-12">
         {loading ? (
           <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
         ) : favs.length === 0 ? (

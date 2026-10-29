@@ -76,7 +76,7 @@ const FavoritosPage = ({ onClose }: { onClose?: () => void }) => {
   for (const f of favoritos) (grupos[f.tabela_codigo] ||= []).push(f);
 
   return (
-    <div className={onClose ? "pb-6" : "min-h-dvh bg-background text-foreground pb-24"}>
+    <div className={onClose ? "pb-[calc(2.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]" : "min-h-dvh bg-background text-foreground pb-[calc(7.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px))+var(--active-mini-player-offset,0px))]"}>
       <PageHeader
         title="Meus Favoritos"
         onBack={onClose || (() => navigate(-1))}
@@ -87,7 +87,7 @@ const FavoritosPage = ({ onClose }: { onClose?: () => void }) => {
         }
       />
 
-      <div className="max-w-2xl mx-auto px-4 py-4">
+      <div className="max-w-2xl mx-auto px-4 py-4 pb-12">
         {loading ? (
           <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
         ) : favoritos.length === 0 ? (

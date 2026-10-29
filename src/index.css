@@ -61,8 +61,9 @@ body {
 .pr-safe { padding-right: var(--sai-right, env(safe-area-inset-right, 0px)); }
 
 /* Utilitário para páginas com barra de navegação inferior e suporte a mini-player ativo */
-.pb-nav-safe {
-  padding-bottom: calc(5.5rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + var(--active-mini-player-offset, 0px));
+.pb-nav-safe,
+.safe-page-bottom {
+  padding-bottom: calc(6.5rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + var(--active-mini-player-offset, 0px)) !important;
 }
 
 /* ============================================================

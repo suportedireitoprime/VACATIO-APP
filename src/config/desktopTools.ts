@@ -48,7 +48,6 @@ export const DESKTOP_TOOL_GROUPS: DesktopToolGroup[] = [
     tools: [
       { id: 'audio-leis', label: 'Áudio Leis', desc: 'Narrações dos artigos de leis e códigos', icon: Mic, route: '/audio-leis', color: '#10B981' },
       { id: 'audioaulas', label: 'Audioaulas', desc: '124 aulas em áudio por área do Direito', icon: Headphones, route: '/audioaulas', color: '#EC4899' },
-      { id: 'desktop', label: 'Modo Desktop', desc: 'Acesso via computador', icon: Monitor, route: '/desktop', color: '#10B981' },
       { id: 'biblioteca', label: 'Biblioteca', desc: 'Livros, manuais e doutrinas', icon: Library, route: '/biblioteca', color: '#F59E0B' },
       { id: 'dicionario', label: 'Dicionário Jurídico', desc: 'Termos e conceitos do Direito', icon: BookOpenText, route: '/ferramentas/dicionario', color: '#3B82F6' },
       { id: 'resumos', label: 'Resumos Jurídicos', desc: 'Biblioteca por área, tema e subtema', icon: NotebookText, route: '/resumos-juridicos', color: '#A855F7' },
@@ -59,7 +58,6 @@ export const DESKTOP_TOOL_GROUPS: DesktopToolGroup[] = [
     label: 'Monitoramento',
     hint: 'Acompanhe alterações legislativas e notícias',
     tools: [
-      { id: 'radar-360', label: 'Radar 360', desc: 'Monitore votações, deputados e proposições', icon: ScanEye, route: '/radar', color: '#A78BFA' },
       { id: 'noticias', label: 'Notícias', desc: 'Notícias jurídicas e atualizações', icon: Newspaper, route: '/noticias', color: '#EC4899' },
       { id: 'boletins', label: 'Boletins Jurídicos', desc: 'Vídeo diário com as normas quentes', icon: Clapperboard, route: '/boletins', color: '#EF4444' },
     ],

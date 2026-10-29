@@ -27,14 +27,14 @@ const Ferramentas = () => {
     />
   );
 
-  const itemRadar360 = DESKTOP_TOOLS_FLAT.find(t => t.id === 'radar-360');
-  const itemDesktop = DESKTOP_TOOLS_FLAT.find(t => t.id === 'desktop');
   const itemBiblioteca = DESKTOP_TOOLS_FLAT.find(t => t.id === 'biblioteca');
   const itemDicionario = DESKTOP_TOOLS_FLAT.find(t => t.id === 'dicionario');
   const itemBoletins = DESKTOP_TOOLS_FLAT.find(t => t.id === 'boletins');
   const itemOffline = DESKTOP_TOOLS_FLAT.find(t => t.id === 'offline');
+  const itemAudioLeis = DESKTOP_TOOLS_FLAT.find(t => t.id === 'audio-leis');
+  const itemAudioaulas = DESKTOP_TOOLS_FLAT.find(t => t.id === 'audioaulas');
   
-  const primaryTools = [itemRadar360, itemDesktop, itemBiblioteca, itemDicionario, itemBoletins, itemOffline].filter(Boolean);
+  const primaryTools = [itemBiblioteca, itemDicionario, itemBoletins, itemOffline, itemAudioLeis, itemAudioaulas].filter(Boolean);
 
   const toolsList = (
     <div className="space-y-6">

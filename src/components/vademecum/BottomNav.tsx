@@ -155,10 +155,7 @@ const BottomNav = ({ forceVisible = false }: BottomNavProps = {}) => {
 
 
   const FERRAMENTAS: Array<{ id: string; label: string; desc: string; icon: any; action: () => void; hot?: boolean; prefetch?: PrefetchKey }> = [
-    { id: 'desktop', label: 'Desktop', desc: 'Versão para computador', icon: Monitor, action: () => navigate('/desktop'), hot: true, prefetch: 'desktop' },
-
     { id: 'dicionario', label: 'Dicionário Jurídico', desc: 'Consulte termos e conceitos do Direito', icon: BookOpen, action: () => navigate('/ferramentas/dicionario'), prefetch: 'dicionario' },
-    { id: 'radar', label: 'Radar 360', desc: 'Projetos em tramitação no Congresso', icon: ScanEye, action: () => navigate('/radar'), prefetch: 'radar' },
     { id: 'novidades', label: 'Novidades', desc: 'Resenha diária do Planalto', icon: Bell, action: () => navigate('/novidades'), prefetch: 'novidades' },
     { id: 'locais', label: 'Locais Jurídicos', desc: 'Tribunais, cartórios, delegacias e museus perto de você', icon: Scale, action: () => navigate('/ferramentas/locais'), prefetch: 'locais' },
     { id: 'assistente', label: 'Assistente IA', desc: 'IA jurídica para tirar dúvidas', icon: Bot, action: () => navigate('/assistente-horus'), prefetch: 'assistenteHorus' },

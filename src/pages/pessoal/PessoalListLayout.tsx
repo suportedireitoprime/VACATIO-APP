@@ -30,7 +30,7 @@ export default function PessoalListLayout({
 }: Props) {
   const navigate = useNavigate();
   return (
-    <div className={onClose ? "pb-6" : "min-h-dvh bg-background text-foreground pb-[calc(6rem+var(--sai-bottom,var(--sai-bottom)))]"}>
+    <div className={onClose ? "pb-[calc(2.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]" : "min-h-dvh bg-background text-foreground pb-[calc(7.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px))+var(--active-mini-player-offset,0px))]"}>
       <PageHeader
         title={title}
         subtitle={typeof count === "number" ? `${count} ${count === 1 ? "item" : "itens"}` : undefined}
@@ -52,7 +52,7 @@ export default function PessoalListLayout({
           )
         }
       />
-      <div className="max-w-2xl mx-auto px-4 pt-4">
+      <div className="max-w-2xl mx-auto px-4 pt-4 pb-12">
         {loading && !children ? (
           <div className="space-y-3">
             {[0, 1, 2, 3].map((i) => (

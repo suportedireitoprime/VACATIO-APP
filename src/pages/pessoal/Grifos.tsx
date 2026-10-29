@@ -71,7 +71,7 @@ const GrifosPage = ({ onClose }: { onClose?: () => void }) => {
   }
 
   return (
-    <div className={onClose ? "pb-6" : "min-h-dvh bg-background text-foreground pb-24"}>
+    <div className={onClose ? "pb-[calc(2.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px)))]" : "min-h-dvh bg-background text-foreground pb-[calc(7.5rem+var(--sai-bottom,env(safe-area-inset-bottom,0px))+var(--active-mini-player-offset,0px))]"}>
       <PageHeader
         title="Meus grifos"
         onBack={onClose || (() => navigate(-1))}
@@ -82,7 +82,7 @@ const GrifosPage = ({ onClose }: { onClose?: () => void }) => {
         }
       />
 
-      <div className="max-w-2xl mx-auto px-4 py-4">
+      <div className="max-w-2xl mx-auto px-4 py-4 pb-12">
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -145,7 +145,7 @@ const GrifosPage = ({ onClose }: { onClose?: () => void }) => {
       {/* FAB para Anotações */}
       <button
         onClick={() => navigate('/pessoal/anotacoes')}
-        className="fixed bottom-[calc(var(--sai-bottom,0px)+5rem)] right-5 z-50 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.5)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+        className="fixed bottom-[calc(var(--sai-bottom,env(safe-area-inset-bottom,0px))+5.5rem)] right-[calc(var(--sai-right,env(safe-area-inset-right,0px))+1.25rem)] z-40 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.55)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
         aria-label="Minhas Anotações"
       >
         <div className="absolute inset-0 rounded-full bg-white/20" />
