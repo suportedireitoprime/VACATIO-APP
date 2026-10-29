@@ -114,6 +114,7 @@ interface ArtigoBottomSheetProps {
   modificationInfo?: ModificationInfo | null;
   breadcrumb?: { parte?: string; titulo?: string; tituloDesc?: string } | null;
   initialTab?: string;
+  initialPraticarMode?: ModoPraticarId | null;
   onNext?: () => void;
   onPrev?: () => void;
   isFromNovidades?: boolean;
@@ -389,6 +390,7 @@ const ArtigoBottomSheet = ({
   modificationInfo, 
   breadcrumb,
   initialTab,
+  initialPraticarMode,
   onNext,
   onPrev,
   isFromNovidades = false,
@@ -451,8 +453,15 @@ const ArtigoBottomSheet = ({
   const [fontSize, setFontSize] = useState(18);
   const [showFontControls, setShowFontControls] = useState(false);
   const [showCommentPanel, setShowCommentPanel] = useState(false);
-  const [showPraticarSheet, setShowPraticarSheet] = useState(false);
-  const [activePraticarMode, setActivePraticarMode] = useState<ModoPraticarId | null>(null);
+  const [showPraticarSheet, setShowPraticarSheet] = useState(!!initialPraticarMode);
+  const [activePraticarMode, setActivePraticarMode] = useState<ModoPraticarId | null>(initialPraticarMode || null);
+
+  useEffect(() => {
+    if (initialPraticarMode) {
+      setShowPraticarSheet(true);
+      setActivePraticarMode(initialPraticarMode);
+    }
+  }, [initialPraticarMode, artigo?.id]);
   
   const [videoaula, setVideoaula] = useState<{ titulo: string; url: string; canal: string; videoId: string; transcricao?: string } | null>(null);
   const [videoaulasLoading, setVideoaulasLoading] = useState(false);
@@ -4048,54 +4057,41 @@ Separe cada julgado com:
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 className="fixed inset-0 z-[10002] bg-card flex flex-col w-full h-full max-h-screen overflow-hidden pb-[var(--sai-bottom,env(safe-area-inset-bottom,0px))]"
               >
-                <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border/80 bg-background/50 backdrop-blur-md shrink-0 pt-[max(0.875rem,env(safe-area-inset-top))]">
-                  {activePraticarMode ? (
-                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                      <button
-                        onClick={() => setActivePraticarMode(null)}
-                        className="h-9 px-3 rounded-xl bg-secondary/80 hover:bg-secondary active:scale-95 transition-all flex items-center gap-1.5 text-foreground shrink-0 border border-border/50 text-xs font-semibold shadow-sm"
-                        aria-label="Voltar para opções de estudo"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        <span>Voltar</span>
-                      </button>
-                      <div className="flex items-center gap-2 min-w-0">
-                        {activePraticarMode === 'questoes' && <Target className="w-5 h-5 text-[#FACC15] shrink-0" strokeWidth={2.2} />}
-                        {activePraticarMode === 'flashcards' && <Layers className="w-5 h-5 text-[#34D399] shrink-0" strokeWidth={2.2} />}
-                        {activePraticarMode === 'licoes' && <Pencil className="w-5 h-5 text-[#38BDF8] shrink-0" strokeWidth={2.2} />}
-                        <h3 className="font-heading text-base sm:text-lg font-bold text-foreground truncate">
-                          {activePraticarMode === 'questoes'
-                            ? `Questões • Art. ${artigo?.numero}`
-                            : activePraticarMode === 'flashcards'
-                            ? `Flashcards • Art. ${artigo?.numero}`
-                            : activePraticarMode === 'licoes'
-                            ? `Lições • Art. ${artigo?.numero}`
-                            : activePraticarMode === 'complete'
-                            ? `Complete o Artigo • Art. ${artigo?.numero}`
-                            : activePraticarMode === 'monte'
-                            ? `Monte o Artigo • Art. ${artigo?.numero}`
-                            : activePraticarMode === 'verdadeiro_falso'
-                            ? `Certo ou Errado • Art. ${artigo?.numero}`
-                            : 'Praticar'}
-                        </h3>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                      <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
-                      <h3 className="font-heading text-base sm:text-lg font-bold text-foreground truncate">
-                        Praticar • Art. {artigo?.numero}
-                      </h3>
-                    </div>
-                  )}
-
+                <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-b border-border/80 bg-background/50 backdrop-blur-md shrink-0 pt-[max(0.875rem,env(safe-area-inset-top))]">
                   <button
-                    onClick={() => setShowPraticarSheet(false)}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-secondary/80 hover:bg-secondary active:scale-95 transition-all flex items-center justify-center text-foreground/80 hover:text-foreground shrink-0 border border-border/50 shadow-sm"
-                    aria-label="Fechar"
+                    onClick={() => {
+                      if (activePraticarMode && !initialPraticarMode) {
+                        setActivePraticarMode(null);
+                      } else {
+                        setShowPraticarSheet(false);
+                      }
+                    }}
+                    className="w-10 h-10 rounded-full bg-secondary/80 hover:bg-secondary border border-border/60 flex items-center justify-center text-foreground transition-all active:scale-95 shrink-0 shadow-sm"
+                    aria-label="Voltar"
                   >
-                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <ChevronLeft className="w-5 h-5" />
                   </button>
+
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    {activePraticarMode === 'questoes' && <Target className="w-5 h-5 text-[#FACC15] shrink-0" strokeWidth={2.2} />}
+                    {activePraticarMode === 'flashcards' && <Layers className="w-5 h-5 text-[#34D399] shrink-0" strokeWidth={2.2} />}
+                    {activePraticarMode === 'licoes' && <Pencil className="w-5 h-5 text-[#38BDF8] shrink-0" strokeWidth={2.2} />}
+                    <h3 className="font-heading text-base sm:text-lg font-bold text-foreground truncate uppercase tracking-wider">
+                      {activePraticarMode === 'questoes'
+                        ? `Questões • Art. ${artigo?.numero}`
+                        : activePraticarMode === 'flashcards'
+                        ? `Flashcards • Art. ${artigo?.numero}`
+                        : activePraticarMode === 'licoes'
+                        ? `Lições • Art. ${artigo?.numero}`
+                        : activePraticarMode === 'complete'
+                        ? `Complete o Artigo • Art. ${artigo?.numero}`
+                        : activePraticarMode === 'monte'
+                        ? `Monte o Artigo • Art. ${artigo?.numero}`
+                        : activePraticarMode === 'verdadeiro_falso'
+                        ? `Certo ou Errado • Art. ${artigo?.numero}`
+                        : `Praticar • Art. ${artigo?.numero}`}
+                    </h3>
+                  </div>
                 </div>
 
                 {/* Se um modo interativo estiver ativo, renderiza sua tela dedicada em tela cheia */}

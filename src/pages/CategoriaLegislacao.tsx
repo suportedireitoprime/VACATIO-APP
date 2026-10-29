@@ -244,6 +244,7 @@ const CategoriaLegislacao = () => {
   const [isAulasOpen, setIsAulasOpen] = useState(false);
   const [isAudioaulasOpen, setIsAudioaulasOpen] = useState(false);
   const [isLicoesOpen, setIsLicoesOpen] = useState(false);
+  const [openArtigoPraticarMode, setOpenArtigoPraticarMode] = useState<any | null>(null);
   const [isFlashcardsOpen, setIsFlashcardsOpen] = useState(false);
   const [isQuestoesOpen, setIsQuestoesOpen] = useState(false);
   const [isMapasOpen, setIsMapasOpen] = useState(false);
@@ -2787,6 +2788,7 @@ const CategoriaLegislacao = () => {
               onClose={() => setIsLicoesOpen(false)}
               onArtigoSelect={(artigo) => {
                 setIsLicoesOpen(false);
+                setOpenArtigoPraticarMode('licoes');
                 openArtigoWithRecent(artigo);
               }}
             />
@@ -3342,7 +3344,8 @@ const CategoriaLegislacao = () => {
         <ArtigoBottomSheet
           artigo={openArtigo}
           initialTab={openFromNovidades ? 'historico' : 'artigo'}
-          onClose={() => { setOpenArtigo(null); setOpenFromNovidades(false); setOpenModInfo(null); setSearchQuery(''); }}
+          initialPraticarMode={openArtigoPraticarMode}
+          onClose={() => { setOpenArtigo(null); setOpenFromNovidades(false); setOpenModInfo(null); setSearchQuery(''); setOpenArtigoPraticarMode(null); }}
           forceShowRedacao={openFromNovidades}
           isFromNovidades={openFromNovidades}
           modificationInfo={openModInfo}
