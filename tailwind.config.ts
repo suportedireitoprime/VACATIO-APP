@@ -115,6 +115,14 @@ export default {
       },
     },
     extend: {
+      transitionDuration: {
+        '700': '700ms',
+        '800': '800ms',
+        '1400': '1400ms',
+      },
+      transitionTimingFunction: {
+        'bounce-out': 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
       fontFamily: {
         display: ['"Bebas Neue"', '"Barlow Condensed"', 'system-ui', 'sans-serif'],
         body: ['"Barlow"', 'system-ui', 'sans-serif'],

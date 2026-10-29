@@ -75,9 +75,9 @@ import Landing from "./pages/Landing.tsx";
 import SmartLink from "./pages/SmartLink.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
-import AdminFuncoes from "./pages/AdminFuncoes.tsx";
-import AdminPush from "./pages/AdminPush.tsx";
-import AdminPushSection from "./pages/AdminPushSection.tsx";
+const AdminFuncoes = lazy(() => import("./pages/AdminFuncoes.tsx"));
+const AdminPush = lazy(() => import("./pages/AdminPush.tsx"));
+const AdminPushSection = lazy(() => import("./pages/AdminPushSection.tsx"));
 import { supabase } from "@/integrations/supabase/client";
 import { markAppReady } from "@/lib/appReadyState";
 
@@ -163,10 +163,9 @@ const GeradorPost = lazy(() => import("./pages/GeradorPost.tsx"));
 const Blog = lazy(() => import("./pages/Blog.tsx"));
 const Newsletter = lazy(() => import("./pages/Newsletter.tsx"));
 const DesktopLinkConfirm = lazy(() => import("./pages/DesktopLinkConfirm.tsx"));
-// Biblioteca — eager para abrir sem Suspense fallback
-import Bibliotecas from "./pages/Bibliotecas.tsx";
-import BibliotecaCategoria from "./pages/BibliotecaCategoria.tsx";
-import BibliotecaOffline from "./pages/BibliotecaOffline.tsx";
+const Bibliotecas = lazy(routePrefetch.biblioteca);
+const BibliotecaCategoria = lazy(() => import("./pages/BibliotecaCategoria.tsx"));
+const BibliotecaOffline = lazy(() => import("./pages/BibliotecaOffline.tsx"));
 
 const CompressaoImagens = lazy(() => import("./pages/CompressaoImagens.tsx"));
 const AdminFuncoesAssinantes = lazy(() => import("./pages/AdminFuncoesAssinantes.tsx"));
@@ -190,9 +189,8 @@ const AdminAprenderLeis = lazy(() => import("./pages/AdminAprenderLeis.tsx"));
 const AdminAprenderLeisLaboratorio = lazy(() => import("./pages/AdminAprenderLeisLaboratorio.tsx"));
 const AdminAprenderLeisCriar = lazy(() => import("./pages/AdminAprenderLeisCriar.tsx"));
 const AdminAudioAulas = lazy(() => import("./pages/AdminAudioAulas.tsx"));
-// AudioAulas e AudioLeisPage — eager para abrir sem Suspense fallback (0ms)
-import AudioAulas from "./pages/AudioAulas.tsx";
-import AudioLeisPage from "./pages/AudioLeisPage.tsx";
+const AudioAulas = lazy(routePrefetch.audioaulas);
+const AudioLeisPage = lazy(routePrefetch.audioLeis);
 const AdminNarracaoArtigos = lazy(() => import("./pages/AdminNarracaoArtigos.tsx"));
 const AdminRoboResumos = lazy(() => import("./pages/AdminRoboResumos.tsx"));
 const AdminPopularConteudo = lazy(() => import("./pages/AdminPopularConteudo.tsx"));

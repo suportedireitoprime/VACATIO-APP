@@ -118,7 +118,7 @@ export default function HorusExamplesCarousel() {
             return (
               <div
                 key={ex.id}
-                className="absolute top-1/2 left-1/2 transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                className="absolute top-1/2 left-1/2 transition-all duration-700 ease-bounce-out"
                 style={{
                   width: cardW,
                   height: 150,

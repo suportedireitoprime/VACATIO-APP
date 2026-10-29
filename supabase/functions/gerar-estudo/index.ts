@@ -20,13 +20,17 @@ async function resolveLeiId(tabelaNome: string): Promise<string | null> {
   const head = (parts[0] || "").toLowerCase();
   const tail = parts.slice(1).join("-").toLowerCase();
   const headNoDigits = head.replace(/\d+$/, "");
-  const candidates = Array.from(new Set([
-    tabelaNome.toLowerCase(),
-    head,
-    headNoDigits,
-    tail,
-    tail ? `estatuto-${tail.replace(/^estatuto-?/, "")}` : "",
-  ].filter(Boolean)));
+  const candidates = Array.from(
+    new Set(
+      [
+        tabelaNome.toLowerCase(),
+        head,
+        headNoDigits,
+        tail,
+        tail ? `estatuto-${tail.replace(/^estatuto-?/, "")}` : "",
+      ].filter(Boolean),
+    ),
+  );
 
   const { data } = await supabase
     .from("vade_mecum_leis")
@@ -36,19 +40,28 @@ async function resolveLeiId(tabelaNome: string): Promise<string | null> {
   return data?.[0]?.id ?? null;
 }
 
-async function fetchArticleText(tabelaNome: string, artigoNumero: string): Promise<string> {
+async function fetchArticleText(
+  tabelaNome: string,
+  artigoNumero: string,
+): Promise<string> {
   const leiId = await resolveLeiId(tabelaNome);
   if (!leiId) throw new Error(`Lei não encontrada para tabela: ${tabelaNome}`);
 
-  const normalized = String(artigoNumero).replace(/^art\.?\s*/i, "").trim();
+  const normalized = String(artigoNumero)
+    .replace(/^art\.?\s*/i, "")
+    .trim();
   const withoutOrdinal = normalized.replace(/[º°]$/, "").trim();
-  const candidates = Array.from(new Set([
-    String(artigoNumero).trim(),
-    normalized,
-    withoutOrdinal,
-    `${normalized}º`,
-    `${withoutOrdinal}º`,
-  ].filter(Boolean)));
+  const candidates = Array.from(
+    new Set(
+      [
+        String(artigoNumero).trim(),
+        normalized,
+        withoutOrdinal,
+        `${normalized}º`,
+        `${withoutOrdinal}º`,
+      ].filter(Boolean),
+    ),
+  );
 
   const { data, error } = await supabase
     .from("vade_mecum_artigos")
@@ -59,7 +72,8 @@ async function fetchArticleText(tabelaNome: string, artigoNumero: string): Promi
     .limit(1);
 
   const row = data?.[0];
-  if (error || !row) throw new Error(`Artigo não encontrado: ${tabelaNome}.${artigoNumero}`);
+  if (error || !row)
+    throw new Error(`Artigo não encontrado: ${tabelaNome}.${artigoNumero}`);
 
   let text = `Art. ${row.numero}`;
   if (row.epigrafe) text += ` — ${row.epigrafe}`;
@@ -87,15 +101,16 @@ async function callAi(prompt: string): Promise<string> {
               responseMimeType: "application/json",
             },
           }),
-        }
+        },
       );
 
       if (res.ok) {
         const json = await res.json();
-        const raw = json?.candidates?.[0]?.content?.parts
-          ?.map((part: { text?: string }) => part.text ?? "")
-          .join("")
-          .trim() ?? "";
+        const raw =
+          json?.candidates?.[0]?.content?.parts
+            ?.map((part: { text?: string }) => part.text ?? "")
+            .join("")
+            .trim() ?? "";
         if (raw) return raw;
       }
     } catch (_e) {
@@ -106,21 +121,28 @@ async function callAi(prompt: string): Promise<string> {
   // 2. Tenta Lovable Gateway
   if (LOVABLE_API_KEY) {
     try {
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Lovable-API-Key": LOVABLE_API_KEY,
-          "Content-Type": "application/json",
+      const resp = await fetch(
+        "https://ai.gateway.lovable.dev/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Lovable-API-Key": LOVABLE_API_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            response_format: { type: "json_object" },
+            messages: [
+              {
+                role: "system",
+                content:
+                  "Você é um jurista e professor de Direito. Retorne exclusivamente JSON estrito.",
+              },
+              { role: "user", content: prompt },
+            ],
+          }),
         },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          response_format: { type: "json_object" },
-          messages: [
-            { role: "system", content: "Você é um jurista e professor de Direito. Retorne exclusivamente JSON estrito." },
-            { role: "user", content: prompt },
-          ],
-        }),
-      });
+      );
       if (resp.ok) {
         const data = await resp.json();
         const text = data?.choices?.[0]?.message?.content ?? "";
@@ -135,24 +157,32 @@ async function callAi(prompt: string): Promise<string> {
 }
 
 function extractJson(raw: string): unknown {
-  const cleaned = raw.trim()
+  const cleaned = raw
+    .trim()
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
   const hasArray = cleaned.includes("[");
   const hasObj = cleaned.includes("{");
-  const startChar = hasArray && (!hasObj || cleaned.indexOf("[") < cleaned.indexOf("{")) ? "[" : "{";
+  const startChar =
+    hasArray && (!hasObj || cleaned.indexOf("[") < cleaned.indexOf("{"))
+      ? "["
+      : "{";
   const start = cleaned.indexOf(startChar);
-  const end = startChar === "[" ? cleaned.lastIndexOf("]") : cleaned.lastIndexOf("}");
+  const end =
+    startChar === "[" ? cleaned.lastIndexOf("]") : cleaned.lastIndexOf("}");
   if (start === -1 || end === -1 || end <= start) {
-    throw new Error("Não foi possível extrair JSON da resposta: " + raw.slice(0, 300));
+    throw new Error(
+      "Não foi possível extrair JSON da resposta: " + raw.slice(0, 300),
+    );
   }
   return JSON.parse(cleaned.slice(start, end + 1));
 }
 
 function gerarQuestoesFallback(artigoNum: string, texto: string, lei: string) {
-  const clean = texto.replace(/\n+/g, ' ').trim();
-  const trecho = clean.slice(0, 160) || `O artigo estabelece preceito vinculante aplicável.`;
+  const clean = texto.replace(/\n+/g, " ").trim();
+  const trecho =
+    clean.slice(0, 160) || `O artigo estabelece preceito vinculante aplicável.`;
 
   const qList = [
     {
@@ -167,7 +197,8 @@ function gerarQuestoesFallback(artigoNum: string, texto: string, lei: string) {
       },
       gabarito: "A",
       comentario: `Correta a alternativa A. Reflete o núcleo normativo expressamente estipulado no dispositivo.`,
-      exemplo_pratico: "Aplicação imediata em caso concreto regulado pelo diploma legal.",
+      exemplo_pratico:
+        "Aplicação imediata em caso concreto regulado pelo diploma legal.",
     },
     {
       tipo: "multipla_escolha",
@@ -181,7 +212,8 @@ function gerarQuestoesFallback(artigoNum: string, texto: string, lei: string) {
       },
       gabarito: "A",
       comentario: `Correta a alternativa A. Pelo princípio da legalidade, a norma tem eficácia vinculante aos destinatários da jurisdição.`,
-      exemplo_pratico: "Respeito ao princípio da legalidade nas relações jurídicas.",
+      exemplo_pratico:
+        "Respeito ao princípio da legalidade nas relações jurídicas.",
     },
     {
       tipo: "multipla_escolha",
@@ -195,7 +227,8 @@ function gerarQuestoesFallback(artigoNum: string, texto: string, lei: string) {
       },
       gabarito: "A",
       comentario: `Correta a alternativa A. A cogência da legislação impede seu afastamento discricionário desprovido de suporte legal.`,
-      exemplo_pratico: "Atuação de órgãos públicos e privados em conformidade com o regramento.",
+      exemplo_pratico:
+        "Atuação de órgãos públicos e privados em conformidade com o regramento.",
     },
     {
       tipo: "multipla_escolha",
@@ -209,7 +242,8 @@ function gerarQuestoesFallback(artigoNum: string, texto: string, lei: string) {
       },
       gabarito: "A",
       comentario: `Correta a alternativa A. A correlação necessária entre fato e norma fundamenta a eficácia legal.`,
-      exemplo_pratico: "Constatação dos requisitos fáticos antes de exigir a obrigação.",
+      exemplo_pratico:
+        "Constatação dos requisitos fáticos antes de exigir a obrigação.",
     },
     {
       tipo: "multipla_escolha",
@@ -223,16 +257,22 @@ function gerarQuestoesFallback(artigoNum: string, texto: string, lei: string) {
       },
       gabarito: "A",
       comentario: `Correta a alternativa A. É cânone fundamental de hermenêutica que normas de exceção interpretam-se estritamente.`,
-      exemplo_pratico: "Análise restrita de hipóteses de isenção ou impedimento.",
+      exemplo_pratico:
+        "Análise restrita de hipóteses de isenção ou impedimento.",
     },
   ];
 
   return qList;
 }
 
-function gerarFlashcardsFallback(artigoNum: string, texto: string, lei: string) {
-  const clean = texto.replace(/\n+/g, ' ').trim();
-  const trecho = clean.slice(0, 180) || `Preceito do Art. ${artigoNum} de ${lei}.`;
+function gerarFlashcardsFallback(
+  artigoNum: string,
+  texto: string,
+  lei: string,
+) {
+  const clean = texto.replace(/\n+/g, " ").trim();
+  const trecho =
+    clean.slice(0, 180) || `Preceito do Art. ${artigoNum} de ${lei}.`;
 
   return [
     {
@@ -264,19 +304,28 @@ function gerarFlashcardsFallback(artigoNum: string, texto: string, lei: string) 
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS")
+    return new Response(null, { headers: corsHeaders });
 
   try {
     const body = await req.json();
     const { tabela_nome, artigo_numero, mode, artigo_texto, lei_nome } = body;
     if (!tabela_nome || !artigo_numero || !mode) {
       return new Response(
-        JSON.stringify({ error: "Parâmetros obrigatórios: tabela_nome, artigo_numero, mode" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Parâmetros obrigatórios: tabela_nome, artigo_numero, mode",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
-    const numLimpo = String(artigo_numero).replace(/^[^\d]*/, '').trim() || String(artigo_numero);
+    const numLimpo =
+      String(artigo_numero)
+        .replace(/^[^\d]*/, "")
+        .trim() || String(artigo_numero);
     const friendlyLei = lei_nome || tabela_nome;
 
     // 1. Verifica cache no Supabase primeiro
@@ -298,8 +347,12 @@ Deno.serve(async (req) => {
         } catch {}
       }
     } else {
-      const cacheTable = (mode === "questoes" || mode === "licoes") ? "study_questions" : "study_flashcards";
-      const cacheCol = (mode === "questoes" || mode === "licoes") ? "questions" : "cards";
+      const cacheTable =
+        mode === "questoes" || mode === "licoes"
+          ? "study_questions"
+          : "study_flashcards";
+      const cacheCol =
+        mode === "questoes" || mode === "licoes" ? "questions" : "cards";
 
       const { data: cached } = await supabase
         .from(cacheTable)
@@ -310,9 +363,12 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (cached?.[cacheCol]) {
-        return new Response(JSON.stringify({ data: cached[cacheCol], cached: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ data: cached[cacheCol], cached: true }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
     }
 
@@ -326,10 +382,14 @@ Deno.serve(async (req) => {
           const { data: rows } = await supabase
             .from(tabela_nome)
             .select("texto, caput, numero")
-            .or(`numero.eq.${numLimpo},numero.eq.Art. ${numLimpo},numero.eq.${artigo_numero}`)
+            .or(
+              `numero.eq.${numLimpo},numero.eq.Art. ${numLimpo},numero.eq.${artigo_numero}`,
+            )
             .limit(1);
           if (rows?.[0]) {
-            articleText = `Art. ${rows[0].numero}\n${rows[0].texto || rows[0].caput || ""}`;
+            articleText = `Art. ${rows[0].numero}\n${
+              rows[0].texto || rows[0].caput || ""
+            }`;
           }
         } catch {}
       }
@@ -403,9 +463,19 @@ ${articleText}`;
           explicacao: `Regramento geral previsto no Art. ${numLimpo} de ${friendlyLei}.`,
           exemplo: `Aplicação prática do dispositivo legal.`,
           children: [
-            { label: "Núcleo da Norma", explicacao: "Comando principal da lei", exemplo: "Caso concreto", children: [] },
-            { label: "Eficácia e Aplicação", explicacao: "Vinculação direta às partes", exemplo: "Observância obrigatória", children: [] },
-          ]
+            {
+              label: "Núcleo da Norma",
+              explicacao: "Comando principal da lei",
+              exemplo: "Caso concreto",
+              children: [],
+            },
+            {
+              label: "Eficácia e Aplicação",
+              explicacao: "Vinculação direta às partes",
+              exemplo: "Observância obrigatória",
+              children: [],
+            },
+          ],
         };
       }
     }
@@ -413,20 +483,30 @@ ${articleText}`;
     // 4. Salva no cache do Supabase
     try {
       if (mode === "mapa_mental") {
-        await supabase.from("artigo_ai_cache").upsert({
-          tabela_nome,
-          artigo_numero: numLimpo,
-          modo: "mapa_mental",
-          conteudo: JSON.stringify(parsed),
-        }, { onConflict: "tabela_nome,artigo_numero,modo" });
+        await supabase.from("artigo_ai_cache").upsert(
+          {
+            tabela_nome,
+            artigo_numero: numLimpo,
+            modo: "mapa_mental",
+            conteudo: JSON.stringify(parsed),
+          },
+          { onConflict: "tabela_nome,artigo_numero,modo" },
+        );
       } else {
-        const cacheTable = (mode === "questoes" || mode === "licoes") ? "study_questions" : "study_flashcards";
-        const cacheCol = (mode === "questoes" || mode === "licoes") ? "questions" : "cards";
-        await supabase.from(cacheTable).upsert({
-          tabela_nome,
-          artigo_numero: numLimpo,
-          [cacheCol]: parsed,
-        }, { onConflict: "tabela_nome,artigo_numero" });
+        const cacheTable =
+          mode === "questoes" || mode === "licoes"
+            ? "study_questions"
+            : "study_flashcards";
+        const cacheCol =
+          mode === "questoes" || mode === "licoes" ? "questions" : "cards";
+        await supabase.from(cacheTable).upsert(
+          {
+            tabela_nome,
+            artigo_numero: numLimpo,
+            [cacheCol]: parsed,
+          },
+          { onConflict: "tabela_nome,artigo_numero" },
+        );
       }
     } catch (_saveErr) {
       console.warn("Aviso ao salvar cache no Supabase:", _saveErr);

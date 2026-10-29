@@ -352,7 +352,7 @@ const Aprender = () => {
                 alt=""
                 loading={i === 0 ? 'eager' : 'lazy'}
                 decoding="async"
-                className="absolute inset-y-0 right-0 h-full w-auto object-contain object-right transition-opacity duration-[1400ms] ease-in-out"
+                className="absolute inset-y-0 right-0 h-full w-auto object-contain object-right transition-opacity duration-1400 ease-in-out"
                 style={{ opacity: i === heroIdx ? 1 : 0 }}
               />
             ))}

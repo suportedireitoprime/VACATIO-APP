@@ -62,9 +62,16 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("tesseract.js")) return "ocr";
           if (id.includes("@tanstack/react-virtual")) return "virtual";
           if (id.includes("recharts") || id.includes("d3-")) return "charts";
+          if (id.includes("@nivo")) return "nivo-charts";
           if (id.includes("dexie")) return "dexie";
           if (id.includes("fuse.js")) return "search";
           if (id.includes("lucide-react")) return "icons";
+          if (id.includes("@aws-sdk")) return "aws-s3";
+          if (id.includes("@supabase")) return "supabase";
+          if (id.includes("@radix-ui")) return "radix";
+          if (id.includes("@dnd-kit")) return "dnd-kit";
+          if (id.includes("@tanstack/react-query")) return "query";
+          if (id.includes("@capacitor-community/sqlite")) return "sqlite";
         },
       },
     },
