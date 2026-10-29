@@ -63,6 +63,7 @@ import { toast } from 'sonner';
 import { requireOnline } from '@/lib/offlineFeatures';
 import { haptic } from '@/lib/nativeHaptics';
 
+import { getNomenJuris, sanitizePenalArticleText } from '@/data/nomenJurisPenal';
 import { setupMediaSession, clearMediaSession } from '@/lib/mediaSession';
 import GrifoMagicoLoader from '@/components/vademecum/GrifoMagicoLoader';
 import {
@@ -2194,29 +2195,51 @@ Separe cada julgado com:
 
   if (!artigo) return null;
 
-  const fullText = normalizeLegalLineBreaks(artigo.caput || '');
+  // Nomen juris & sanitização inteligente para Código Penal (CP) e Código Penal Militar (CPM)
+  const isCodigoPenal = Boolean(
+    leiSlug === 'cp' ||
+    leiSlug === 'cpm' ||
+    (tabelaNome && /^(CP_|CPM_)/i.test(tabelaNome)) ||
+    showNomenJuris
+  );
+
+  const sanitizedCaput = isCodigoPenal
+    ? sanitizePenalArticleText(artigo.caput || '', artigo.numero, leiSlug || tabelaNome)
+    : (artigo.caput || '');
+
+  const fullText = normalizeLegalLineBreaks(sanitizedCaput);
   const lines = fullText.split('\n').map(l => l.trim()).filter(Boolean);
   let nomenJuris: string | null = null;
   let contentLines = lines;
   const structuralPattern = /^(LIVRO|PARTE|TÍTULO)\s+/i;
   contentLines = contentLines.filter(l => !structuralPattern.test(l.trim()));
 
-  // Nomen juris only for CP (Código Penal) and CPM (Código Penal Militar)
-  const isCodigoPenal = tabelaNome && /^(CP_|CPM_)/i.test(tabelaNome);
-  if (isCodigoPenal && showNomenJuris && contentLines.length > 1) {
-    const firstLine = contentLines[0].trim();
-    const firstLineClean = firstLine.replace(/\s*\([^)]*\)\s*/g, '').trim();
-    const isNomen =
-      firstLineClean.length > 0 &&
-      firstLineClean.length <= 50 &&
-      /^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÚÇ]/.test(firstLineClean) &&
-      !/^(Art\.|§|Parágrafo|[IVXLC]+\s*[-–.]|[a-z]\))/i.test(firstLineClean) &&
-      !/[.;:!?]/.test(firstLineClean) &&
-      !/\b(não|será|é|foi|são|tem|houver|aplica|considera)\b/i.test(firstLineClean);
+  if (isCodigoPenal) {
+    nomenJuris = getNomenJuris(leiSlug || tabelaNome, artigo.numero, artigo.titulo);
 
-    if (isNomen) {
-      nomenJuris = firstLine;
-      contentLines = contentLines.slice(1);
+    if (contentLines.length > 0) {
+      const firstLine = contentLines[0].trim();
+      const firstLineClean = firstLine.replace(/\s*\([^)]*\)\s*/g, '').trim().toLowerCase();
+      const nomenClean = (nomenJuris || '').trim().toLowerCase();
+
+      // Se a primeira linha contiver apenas o nomen juris ou for idêntica a ele, consome a linha
+      if (nomenClean && (firstLineClean === nomenClean || firstLineClean.startsWith(nomenClean))) {
+        contentLines = contentLines.slice(1);
+      } else if (!nomenJuris && contentLines.length > 1) {
+        // Fallback heurístico caso não esteja no catálogo mas a primeira linha seja um título válido
+        const isNomen =
+          firstLineClean.length > 0 &&
+          firstLineClean.length <= 60 &&
+          /^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÚÇ]/i.test(firstLineClean) &&
+          !/^(Art\.|§|Parágrafo|[IVXLC]+\s*[-–.]|[a-z]\))/i.test(firstLineClean) &&
+          !/[.;:!?]/.test(firstLineClean) &&
+          !/\b(não|será|é|foi|são|tem|houver|aplica|considera)\b/i.test(firstLineClean);
+
+        if (isNomen) {
+          nomenJuris = firstLine;
+          contentLines = contentLines.slice(1);
+        }
+      }
     }
   }
 
@@ -2980,10 +3003,16 @@ Separe cada julgado com:
               className=""
             >
               {nomenJuris && (
-                <div className="mb-3">
-                  <h4 className="text-primary-light font-bold text-base">
+                <div className="mb-5 pt-1">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold uppercase tracking-wider mb-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    Nomen Juris
+                  </div>
+                  <h3 className="font-heading font-black text-xl sm:text-2xl text-primary tracking-wide uppercase leading-snug">
                     {showRedacao ? highlightTermos(nomenJuris, true) : stripRedacao(nomenJuris)}
-                  </h4>
+                  </h3>
+                  {/* Linha divisória e respiro antes do texto da norma */}
+                  <div className="h-px w-full bg-gradient-to-r from-primary/30 via-primary/10 to-transparent mt-3" />
                 </div>
               )}
 
@@ -2993,12 +3022,14 @@ Separe cada julgado com:
                 </div>
               )}
 
-              {/* Epígrafe do artigo (ex: "Anterioridade da Lei") */}
-              {artigo.titulo && !/^(PARTE|LIVRO|T[IÍ]TULO|CAP[IÍ]TULO|SEÇ[AÃ]O|SUBSEÇ[AÃ]O)\b/i.test(artigo.titulo) && (
-                <p className="mb-3 border-l-2 border-primary/70 pl-3 text-[13px] italic text-primary/90 font-body leading-snug">
-                  {artigo.titulo}
-                </p>
-              )}
+              {/* Epígrafe adicional do artigo caso não coincida com o nomenJuris já exibido */}
+              {artigo.titulo &&
+                (!nomenJuris || artigo.titulo.toLowerCase().trim() !== nomenJuris.toLowerCase().trim()) &&
+                !/^(PARTE|LIVRO|T[IÍ]TULO|CAP[IÍ]TULO|SEÇ[AÃ]O|SUBSEÇ[AÃ]O)\b/i.test(artigo.titulo) && (
+                  <p className="mb-4 border-l-2 border-primary/70 pl-3 text-[13px] italic text-primary/90 font-body leading-snug">
+                    {artigo.titulo}
+                  </p>
+                )}
 
 
               {/* Menu de alternância (Chips para alínea, caput, etc.) */}
