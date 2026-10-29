@@ -50,6 +50,7 @@ public class MainActivity extends BridgeActivity {
 
         // Antes do super.onCreate por causa do BridgeActivity/ComponentActivity.
         EdgeToEdge.enable(this);
+        registerPlugin(MediaNotificationPlugin.class);
         super.onCreate(savedInstanceState);
 
         try {
@@ -80,6 +81,7 @@ public class MainActivity extends BridgeActivity {
         webView.setHorizontalScrollBarEnabled(false);
         webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
 
         // Listener direto na WebView — é ela que efetivamente recebe os insets
         // em edge-to-edge no Capacitor.

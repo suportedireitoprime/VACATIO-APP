@@ -41,7 +41,7 @@ import { linkifyCrossReferences } from '@/lib/crossReferences';
 import brasaoImgAsset from '@/assets/brasao-republica.webp';
 const brasaoImg = brasaoImgAsset;
 
-import { useIsDesktop } from '@/hooks/use-desktop';
+import { useIsDesktop } from '@/hooks/use-desktop'; import { useIsTablet } from '@/hooks/use-tablet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useHighlights, type Highlight } from '@/hooks/useHighlights';
 import HighlightColorBar from './HighlightColorBar';
@@ -484,6 +484,8 @@ const ArtigoBottomSheet = ({
   const tooltipTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isDesktop = useIsDesktop();
+  const isTablet = useIsTablet();
+  const isCardModal = isDesktop || isTablet;
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [showSharePanel, setShowSharePanel] = useState(false);
@@ -2706,9 +2708,9 @@ Separe cada julgado com:
 
               {/* Sheet com mecânica nativa ultra fluida idêntica a Códigos */}
               <motion.div
-                initial={isDesktop ? { opacity: 0, scale: 0.95 } : { y: '100%' }}
-                animate={isDesktop ? { opacity: 1, scale: 1 } : { y: 0 }}
-                exit={isDesktop ? { opacity: 0, scale: 0.95 } : { y: '100%' }}
+                initial={isCardModal ? { opacity: 0, scale: 0.96 } : { y: '100%' }}
+                animate={isCardModal ? { opacity: 1, scale: 1 } : { y: 0 }}
+                exit={isCardModal ? { opacity: 0, scale: 0.96 } : { y: '100%' }}
                 transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   willChange: 'transform',
@@ -2717,12 +2719,12 @@ Separe cada julgado com:
                   backfaceVisibility: 'hidden',
                 }}
                 className={
-                  isDesktop
-                    ? "fixed inset-0 m-auto z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border border-white/10 bg-background p-0 shadow-2xl rounded-2xl h-[85vh] w-[640px] max-w-[90vw]"
+                  isCardModal
+                    ? "fixed inset-0 m-auto z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain border border-white/10 bg-background p-0 shadow-2xl rounded-2xl md:rounded-3xl h-[86vh] max-h-[880px] w-[700px] max-w-[94vw]"
                     : "fixed inset-x-0 bottom-0 z-[9999] flex min-h-0 flex-col gap-0 overflow-hidden overscroll-contain rounded-t-3xl border-t border-white/5 bg-background p-0 h-[96dvh] max-h-[96dvh]"
                 }
               >
-                {!isDesktop && (
+                {!isCardModal && (
                   <div className="shrink-0 flex justify-center pt-3 pb-1 bg-background">
                     <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
                   </div>
@@ -2954,7 +2956,7 @@ Separe cada julgado com:
           })()}
 
 
-          <TabsContent value="artigo" className="px-5 pb-[calc(9rem+var(--sai-bottom,var(--sai-bottom)))] pt-4 relative">
+          <TabsContent value="artigo" className="px-5 pb-[calc(9rem+var(--sai-bottom,var(--sai-bottom)))] pt-4 relative max-w-3xl mx-auto w-full">
             {/* Barra de progresso da narração (sticky no topo) */}
             {narracaoPlaying && (
               <div className="sticky top-0 z-30 -mx-5 -mt-4 mb-3 bg-background/95 backdrop-blur-md border-b border-white/5 px-5 py-2.5">
@@ -3793,8 +3795,8 @@ Separe cada julgado com:
 
         {/* Bottom nav bar — only visible on "artigo" tab; fixed as a flex item below the scrollable area */}
         {(activeTab ?? 'artigo') === 'artigo' && !isDesktop && (
-        <div className="shrink-0 relative z-[55] bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl shadow-lg shadow-black/10 pb-[var(--sai-bottom,var(--sai-bottom))]">
-          <div className="relative grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
+        <div className="shrink-0 relative z-[55] bg-card/95 backdrop-blur-md border-t border-border rounded-t-3xl md:rounded-b-3xl md:rounded-t-none shadow-lg shadow-black/10 pb-[var(--sai-bottom,var(--sai-bottom))] md:pb-2.5">
+          <div className="relative grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 md:pt-2 md:pb-2 max-w-lg mx-auto">
             {(highlightMode || voiceGrifoActive) ? (
               <button
                 onClick={() => setShowEraseSheet(true)}

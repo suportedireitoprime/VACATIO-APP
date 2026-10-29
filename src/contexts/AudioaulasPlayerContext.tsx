@@ -15,7 +15,7 @@ import {
   BGM_VOLUME_PADRAO,
 } from '@/lib/audioaulasBgm';
 import { salvarProgressoAula, marcarAulaConcluida } from '@/lib/audioaulasProgresso';
-import { atualizarNotificacaoPlayback, limparNotificacaoPlayback } from '@/lib/nativo/audioNotification';
+import { atualizarNotificacaoPlayback, limparNotificacaoPlayback, registrarCallbacksMediaNotification } from '@/lib/nativo/audioNotification';
 
 export interface AulaAudio {
   id: number;
@@ -313,14 +313,65 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
         /* ignore */
       }
     }
-    // Garante a limpeza de qualquer notificação local residual
+    // Sincroniza a notificação rica nativa estilo Spotify (MediaStyle / Lockscreen)
     void atualizarNotificacaoPlayback({
       aula: atual,
       tocando,
       tempo,
       dur,
+      canNext: atualIdx >= 0 && Boolean(fila[atualIdx + 1]),
+      canPrev: atualIdx > 0,
     });
-  }, [atual, tocando]);
+  }, [atual, tocando, atualIdx, fila, dur]);
+
+  // Registra os listeners da notificação nativa (Play, Pause, Próxima, Anterior, Seek)
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    void registrarCallbacksMediaNotification({
+      onTogglePlay: () => {
+        const el = audioRef.current;
+        if (!el) return;
+        if (el.paused) {
+          notifyMediaPlay('audioaula');
+          el.play().catch(() => {});
+          setTocando(true);
+        } else {
+          el.pause();
+          setTocando(false);
+        }
+      },
+      onPlay: () => {
+        const el = audioRef.current;
+        if (el) {
+          notifyMediaPlay('audioaula');
+          el.play().catch(() => {});
+          setTocando(true);
+        }
+      },
+      onPause: () => {
+        const el = audioRef.current;
+        if (el) {
+          el.pause();
+          setTocando(false);
+        }
+      },
+      onNext: () => pularRef.current(1),
+      onPrev: () => pularRef.current(-1),
+      onSeek: (pos) => {
+        const el = audioRef.current;
+        if (el && Number.isFinite(pos)) {
+          el.currentTime = pos;
+          setTempo(pos);
+        }
+      },
+    }).then((unsub) => {
+      cleanup = unsub;
+    });
+
+    return () => {
+      cleanup?.();
+    };
+  }, []);
 
   // Atualiza notificação quando o usuário sai do aplicativo para a Home/Background
   useEffect(() => {

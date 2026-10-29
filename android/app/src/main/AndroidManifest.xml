@@ -12,6 +12,7 @@
 
     <!-- Required for Foreground Services in Android 14+ -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <!-- Local Notifications and Alarms -->
@@ -64,5 +65,8 @@
         </provider>
 
         <activity android:name=".CrashActivity" android:exported="false" android:theme="@style/AppTheme" />
+
+        <!-- Receiver para comandos de mídia da barra de notificações (Play, Pause, Próxima, Anterior) -->
+        <receiver android:name=".MediaNotificationPlugin$MediaActionReceiver" android:exported="false" />
     </application>
 </manifest>

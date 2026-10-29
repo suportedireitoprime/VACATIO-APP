@@ -2553,13 +2553,13 @@ const CategoriaLegislacao = () => {
         aria-label="Navegação principal"
         role="navigation"
         data-bottom-nav
-        className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,0px)] transition-all duration-300 ease-out`}
+        className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-white/10 bg-[#1C1C1E] backdrop-blur-md rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.6),0_-2px_10px_rgba(0,0,0,0.4)] pb-[var(--sai-bottom,0px)] md:bottom-6 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[480px] md:max-w-[90vw] md:rounded-full md:border md:border-white/15 md:pb-0 md:shadow-[0_16px_40px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.08)] transition-all duration-300 ease-out`}
       >
         <div
           aria-hidden="true"
-          className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
+          className="absolute bottom-full left-0 right-0 h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none md:hidden"
         />
-        <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 max-w-lg mx-auto">
+        <div className="relative z-10 grid grid-cols-5 items-end px-1 pt-3.5 pb-3.5 md:pt-2 md:pb-2 max-w-lg mx-auto">
           {/* Favoritos */}
           <button
             onClick={() => setOverlayPanel('fav')}
@@ -2583,9 +2583,9 @@ const CategoriaLegislacao = () => {
             onClick={() => {
               setIsLocalSearchOpen(true);
             }}
-            className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 min-h-[6.25rem] min-w-[5.75rem] touch-manipulation select-none"
+            className="relative z-[80] flex flex-col items-center justify-end gap-1.5 -mt-11 md:-mt-8 min-h-[6.25rem] md:min-h-[5.5rem] min-w-[5.75rem] touch-manipulation select-none"
           >
-            <span className="relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 rounded-full flex items-center justify-center overflow-hidden bg-primary shadow-[0_8px_30px_rgba(0,0,0,0.6)] ring-1 ring-black/5 transition-transform active:scale-95">
+            <span className="relative w-[4.5rem] h-[4.5rem] sm:w-20 sm:h-20 md:w-16 md:h-16 rounded-full flex items-center justify-center overflow-hidden bg-primary shadow-[0_8px_30px_rgba(0,0,0,0.6)] ring-1 ring-black/5 transition-transform active:scale-95">
               <Search className="relative z-10 w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground drop-shadow-sm" strokeWidth={1.5} />
             </span>
             <span className="font-body text-[11px] sm:text-[12px] leading-tight text-center text-white drop-shadow-sm truncate px-0.5">Pesquisar</span>
