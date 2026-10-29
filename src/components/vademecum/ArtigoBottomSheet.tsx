@@ -3004,10 +3004,6 @@ Separe cada julgado com:
             >
               {nomenJuris && (
                 <div className="mb-5 pt-1">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold uppercase tracking-wider mb-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    Nomen Juris
-                  </div>
                   <h3 className="font-heading font-black text-xl sm:text-2xl text-primary tracking-wide uppercase leading-snug">
                     {showRedacao ? highlightTermos(nomenJuris, true) : stripRedacao(nomenJuris)}
                   </h3>

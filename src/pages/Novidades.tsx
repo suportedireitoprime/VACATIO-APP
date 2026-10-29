@@ -4,47 +4,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
   Scale,
-  Landmark,
-  FileText,
   Calendar,
   ExternalLink,
   ChevronRight,
   ChevronLeft,
   Search,
   RefreshCw,
-  Clock,
-  ArrowRight,
-  Shield,
   BookOpen,
-  Share2,
-  CheckCircle2,
-  AlertCircle,
-  FileCheck,
-  User,
-  Building,
-  Flame,
-  ArrowUpRight,
   X,
-  SlidersHorizontal,
-  Info,
+  FileCheck,
+  Building,
+  Filter,
 } from 'lucide-react';
 import { PageHeader } from '@/components/vademecum/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { getResenhaCache, setResenhaCache, prefetchResenha, type ResenhaItem } from '@/services/atualizacaoService';
+import { getResenhaCache, setResenhaCache, type ResenhaItem } from '@/services/atualizacaoService';
 import LeiOrdinariaDetail from '@/components/vademecum/LeiOrdinariaDetail';
 import type { LeiOrdinaria } from '@/services/legislacaoService';
-import {
-  getProposicoesEmTramitacao,
-  fetchHistoricoTramitacao,
-  type ProposicaoTramitando,
-  type TramitacaoPasso,
-} from '@/services/radarTramitacaoService';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TIPOS E MODELOS DE DADOS
@@ -66,272 +47,8 @@ export interface NovaLeiCardItem {
   destaqueBadge?: string;
 }
 
-export interface AlteracaoImpactanteItem {
-  id: string;
-  codigoId: string; // 'cp', 'cc', 'cf88', 'clt', 'cpc', 'cpp', 'cdc', 'eca'
-  codigoNome: string;
-  codigoSigla: string;
-  codigoCor: string;
-  artigoNumero: string;
-  artigoRotulo: string;
-  tema: string;
-  oQueMudou: string;
-  impactoPratico: string;
-  leiModificadora: string;
-  anoModificacao: number;
-  rotaLeitura: string;
-  tags: string[];
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
-// CATÁLOGO DE ALTERAÇÕES MAIS IMPACTANTES NOS GRANDES CÓDIGOS (CARROSSEL 2)
-// ─────────────────────────────────────────────────────────────────────────────
-
-const ALTERACOES_IMPACTANTES: AlteracaoImpactanteItem[] = [
-  {
-    id: 'cp-121-feminicidio',
-    codigoId: 'cp',
-    codigoNome: 'Código Penal',
-    codigoSigla: 'CP',
-    codigoCor: '#EF4444',
-    artigoNumero: '121',
-    artigoRotulo: 'Art. 121, § 2º-A e § 7º',
-    tema: 'Feminicídio Autônomo e Pena de 20 a 40 Anos',
-    oQueMudou: 'O feminicídio foi transformado em tipo penal autônomo (não mais qualificadora), com pena elevada para 20 a 40 anos de reclusão — a mais alta do Código Penal.',
-    impactoPratico: 'Endurecimento no cumprimento de pena, vedação à saída temporária e regras mais rigorosas para progressão de regime prisional.',
-    leiModificadora: 'Lei nº 14.994/2024 (Pacote Antifeminicídio)',
-    anoModificacao: 2024,
-    rotaLeitura: '/legislacao/codigos/cp/121',
-    tags: ['Penal', 'Feminicídio', 'Mulher', 'Pena Máxima'],
-  },
-  {
-    id: 'cp-146a-bullying',
-    codigoId: 'cp',
-    codigoNome: 'Código Penal',
-    codigoSigla: 'CP',
-    codigoCor: '#EF4444',
-    artigoNumero: '146-A',
-    artigoRotulo: 'Art. 146-A',
-    tema: 'Intimidação Sistemática (Bullying e Cyberbullying)',
-    oQueMudou: 'Tipificação penal expressa do bullying com multa, e do cyberbullying com pena de reclusão de 2 a 4 anos e multa quando praticado em redes sociais ou jogos virtuais.',
-    impactoPratico: 'Criminalização de perseguições em ambiente escolar e virtual, facilitando a responsabilização civil e criminal de agressores.',
-    leiModificadora: 'Lei nº 14.811/2024',
-    anoModificacao: 2024,
-    rotaLeitura: '/legislacao/codigos/cp/146-A',
-    tags: ['Penal', 'Bullying', 'Cyberbullying', 'Internet'],
-  },
-  {
-    id: 'cp-140-injuria-racial',
-    codigoId: 'cp',
-    codigoNome: 'Código Penal',
-    codigoSigla: 'CP',
-    codigoCor: '#EF4444',
-    artigoNumero: '140',
-    artigoRotulo: 'Art. 140, § 3º',
-    tema: 'Injúria Racial Equiparada ao Crime de Racismo',
-    oQueMudou: 'A ofensa discriminatória motivada por raça, cor, etnia ou procedência nacional passou para a Lei 7.716/89, tornando-se crime inafiançável e imprescritível.',
-    impactoPratico: 'Fim da prescrição penal da injúria racial e pena privativa de liberdade de 2 a 5 anos, sem possibilidade de arbitramento de fiança policial.',
-    leiModificadora: 'Lei nº 14.532/2023',
-    anoModificacao: 2023,
-    rotaLeitura: '/legislacao/codigos/cp/140',
-    tags: ['Penal', 'Injúria Racial', 'Racismo', 'Imprescritível'],
-  },
-  {
-    id: 'cp-171-fraude-eletronica',
-    codigoId: 'cp',
-    codigoNome: 'Código Penal',
-    codigoSigla: 'CP',
-    codigoCor: '#EF4444',
-    artigoNumero: '171',
-    artigoRotulo: 'Art. 171, § 2º-B',
-    tema: 'Fraude Eletrônica (Golpes do PIX, Redes Sociais e Phishing)',
-    oQueMudou: 'Criação da qualificadora de Fraude Eletrônica com pena de reclusão de 4 a 8 anos para estelionatos cometidos por meio digital, telefônico ou redes sociais.',
-    impactoPratico: 'Aumento significativo da repressão a quadrilhas virtuais e afastamento de benefícios despenalizadores nos golpes eletrônicos.',
-    leiModificadora: 'Lei nº 14.155/2021',
-    anoModificacao: 2021,
-    rotaLeitura: '/legislacao/codigos/cp/171',
-    tags: ['Penal', 'PIX', 'Golpes Digitais', 'Estelionato'],
-  },
-  {
-    id: 'cc-1584-guarda',
-    codigoId: 'cc',
-    codigoNome: 'Código Civil',
-    codigoSigla: 'CC',
-    codigoCor: '#F59E0B',
-    artigoNumero: '1584',
-    artigoRotulo: 'Art. 1.584, § 2º',
-    tema: 'Vedação à Guarda Compartilhada em Risco de Violência',
-    oQueMudou: 'A aplicação da guarda compartilhada foi expressamente proibida quando houver indício ou probabilidade de risco de violência doméstica ou familiar por um dos genitores.',
-    impactoPratico: 'Proteção imediata aos filhos e à vítima de violência, exigindo consulta prévia pelo magistrado sobre processos de violência doméstica.',
-    leiModificadora: 'Lei nº 14.713/2023',
-    anoModificacao: 2023,
-    rotaLeitura: '/legislacao/codigos/cc/1584',
-    tags: ['Civil', 'Família', 'Guarda', 'Violência Doméstica'],
-  },
-  {
-    id: 'cc-421a-contratos',
-    codigoId: 'cc',
-    codigoNome: 'Código Civil',
-    codigoSigla: 'CC',
-    codigoCor: '#F59E0B',
-    artigoNumero: '421-A',
-    artigoRotulo: 'Art. 421-A',
-    tema: 'Liberdade Contratual e Intervenção Mínima Judicial',
-    oQueMudou: 'Consagrou a presunção de paridade e simetria dos contratos civis e empresariais, restringindo a revisão judicial apenas a casos excepcionais e limitados.',
-    impactoPratico: 'Maior segurança jurídica nos negócios entre empresas e valorização da alocação de riscos acordada livremente pelas partes.',
-    leiModificadora: 'Lei nº 13.874/2019 (Liberdade Econômica)',
-    anoModificacao: 2019,
-    rotaLeitura: '/legislacao/codigos/cc/421-A',
-    tags: ['Civil', 'Contratos', 'Empresarial', 'Autonomia'],
-  },
-  {
-    id: 'cc-853a-garantias',
-    codigoId: 'cc',
-    codigoNome: 'Código Civil',
-    codigoSigla: 'CC',
-    codigoCor: '#F59E0B',
-    artigoNumero: '853-A',
-    artigoRotulo: 'Art. 853-A',
-    tema: 'Execução Extrajudicial de Hipoteca em Cartório',
-    oQueMudou: 'Autorizou a execução extrajudicial da hipoteca perante o Cartório de Registro de Imóveis, sem necessidade de morosa ação judicial.',
-    impactoPratico: 'Redução do custo do crédito imobiliário e recuperação substancialmente mais célere dos ativos dados em garantia.',
-    leiModificadora: 'Lei nº 14.711/2023 (Marco Legal das Garantias)',
-    anoModificacao: 2023,
-    rotaLeitura: '/legislacao/codigos/cc/853-A',
-    tags: ['Civil', 'Imóveis', 'Garantias', 'Cartório'],
-  },
-  {
-    id: 'clt-461-igualdade-salarial',
-    codigoId: 'clt',
-    codigoNome: 'Consolidação das Leis do Trabalho',
-    codigoSigla: 'CLT',
-    codigoCor: '#8B5CF6',
-    artigoNumero: '461',
-    artigoRotulo: 'Art. 461, § 6º',
-    tema: 'Igualdade Salarial entre Homens e Mulheres (Multa de 10x)',
-    oQueMudou: 'Em caso de discriminação de remuneração por motivo de sexo, etnia ou raça, o empregador deverá pagar as diferenças devidas acrescidas de multa de 10 vezes o novo salário.',
-    impactoPratico: 'Obrigatoriedade de relatórios de transparência salarial e mitigação rigorosa da histórica disparidade de remuneração de gênero no mercado.',
-    leiModificadora: 'Lei nº 14.611/2023',
-    anoModificacao: 2023,
-    rotaLeitura: '/legislacao/codigos/clt/461',
-    tags: ['Trabalhista', 'Igualdade Salarial', 'Mulher', 'Multa'],
-  },
-  {
-    id: 'clt-75b-teletrabalho',
-    codigoId: 'clt',
-    codigoNome: 'Consolidação das Leis do Trabalho',
-    codigoSigla: 'CLT',
-    codigoCor: '#8B5CF6',
-    artigoNumero: '75-B',
-    artigoRotulo: 'Art. 75-B e 75-C',
-    tema: 'Regulamentação Definitiva do Teletrabalho e Modelo Híbrido',
-    oQueMudou: 'Esclareceu que a ida presencial para tarefas específicas não descaracteriza o teletrabalho, regulamentando o regime híbrido e o trabalho remoto por tarefa vs. jornada.',
-    impactoPratico: 'Garantia de segurança jurídica para contratos em home office e extensão do regime a estagiários e jovens aprendizes.',
-    leiModificadora: 'Lei nº 14.442/2022',
-    anoModificacao: 2022,
-    rotaLeitura: '/legislacao/codigos/clt/75-B',
-    tags: ['Trabalhista', 'Home Office', 'Teletrabalho', 'Jornada'],
-  },
-  {
-    id: 'cf88-198-saude',
-    codigoId: 'cf88',
-    codigoNome: 'Constituição Federal',
-    codigoSigla: 'CF/88',
-    codigoCor: '#EAB308',
-    artigoNumero: '198',
-    artigoRotulo: 'Art. 198, §§ 14 a 16',
-    tema: 'Aposentadoria Especial e Insalubridade aos Agentes de Saúde',
-    oQueMudou: 'Inserção de regras constitucionais para aposentadoria especial, adicional de insalubridade e transição para o regime estatutário aos Agentes Comunitários (ACS/ACE).',
-    impactoPratico: 'Fim da precarização dos agentes de saúde e combate a endemias nos municípios, garantindo estabilidade funcional até 2028.',
-    leiModificadora: 'Emenda Constitucional nº 140/2026',
-    anoModificacao: 2026,
-    rotaLeitura: '/legislacao/constituicao/cf88/198',
-    tags: ['Constitucional', 'SUS', 'Saúde', 'Aposentadoria'],
-  },
-  {
-    id: 'cf88-156a-tributaria',
-    codigoId: 'cf88',
-    codigoNome: 'Constituição Federal',
-    codigoSigla: 'CF/88',
-    codigoCor: '#EAB308',
-    artigoNumero: '156-A',
-    artigoRotulo: 'Art. 156-A e 195, V',
-    tema: 'Reforma Tributária do Consumo (IBS, CBS e Fim do ICMS/ISS)',
-    oQueMudou: 'Criação do Imposto sobre Bens e Serviços (IBS) e da Contribuição sobre Bens e Serviços (CBS), iniciando a transição para tributação no destino com não-cumulatividade plena.',
-    impactoPratico: 'Extinção gradual de PIS/Cofins, IPI, ICMS e ISS até 2033, eliminando a guerra fiscal e simplificando o sistema tributário nacional.',
-    leiModificadora: 'Emenda Constitucional nº 132/2023 e LC 214/2025',
-    anoModificacao: 2024,
-    rotaLeitura: '/legislacao/constituicao/cf88/156-A',
-    tags: ['Constitucional', 'Tributário', 'IBS', 'CBS', 'Consumo'],
-  },
-  {
-    id: 'cpp-3a-juiz-garantias',
-    codigoId: 'cpp',
-    codigoNome: 'Código de Processo Penal',
-    codigoSigla: 'CPP',
-    codigoCor: '#EC4899',
-    artigoNumero: '3-A',
-    artigoRotulo: 'Art. 3º-A a 3º-F',
-    tema: 'Juiz das Garantias (Constitucionalidade Chancelada pelo STF)',
-    oQueMudou: 'Separação estrutural entre o juiz que atua na fase do inquérito e o juiz que instrui e julga o processo penal de mérito.',
-    impactoPratico: 'Garantia de maior imparcialidade do julgador de mérito, que não fica previamente contaminado pelas provas colhidas na fase inquisitorial.',
-    leiModificadora: 'Lei nº 13.964/2019 (Pacote Anticrime / STF)',
-    anoModificacao: 2023,
-    rotaLeitura: '/legislacao/codigos/cpp/3-A',
-    tags: ['Processo Penal', 'Juiz das Garantias', 'Inquérito', 'Imparcialidade'],
-  },
-  {
-    id: 'cpc-246-citacao-eletronica',
-    codigoId: 'cpc',
-    codigoNome: 'Código de Processo Civil',
-    codigoSigla: 'CPC',
-    codigoCor: '#3B82F6',
-    artigoNumero: '246',
-    artigoRotulo: 'Art. 246',
-    tema: 'Citação Eletrônica Preferencial e Domicílio Judicial',
-    oQueMudou: 'A citação judicial passou a ser realizada preferencialmente por meio eletrônico em até 2 dias úteis via Domicílio Judicial Eletrônico e e-mails cadastrados.',
-    impactoPratico: 'Celeridade nos atos processuais e penalidade para partes que não confirmarem a citação no prazo legal sem justa causa.',
-    leiModificadora: 'Lei nº 14.195/2021',
-    anoModificacao: 2021,
-    rotaLeitura: '/legislacao/codigos/cpc/246',
-    tags: ['Processo Civil', 'Citação', 'Domicílio Eletrônico', 'Celeridade'],
-  },
-  {
-    id: 'eca-18b-henry-borel',
-    codigoId: 'eca',
-    codigoNome: 'Estatuto da Criança e do Adolescente',
-    codigoSigla: 'ECA',
-    codigoCor: '#F43F5E',
-    artigoNumero: '18-B',
-    artigoRotulo: 'Art. 18-B',
-    tema: 'Medidas Protetivas de Urgência para Menores (Lei Henry Borel)',
-    oQueMudou: 'Possibilidade de concessão imediata de medidas protetivas de urgência para crianças e adolescentes em risco doméstico, com afastamento do agressor do lar.',
-    impactoPratico: 'Mecanismo similar ao da Lei Maria da Penha voltado exclusivamente para a infância e juventude contra abusadores e agressores familiares.',
-    leiModificadora: 'Lei nº 14.344/2022 (Lei Henry Borel)',
-    anoModificacao: 2022,
-    rotaLeitura: '/legislacao/estatutos/eca/18-B',
-    tags: ['Estatutos', 'Criança', 'Violência Infantil', 'Henry Borel'],
-  },
-  {
-    id: 'cdc-54a-superendividamento',
-    codigoId: 'cdc',
-    codigoNome: 'Código de Defesa do Consumidor',
-    codigoSigla: 'CDC',
-    codigoCor: '#F97316',
-    artigoNumero: '54-A',
-    artigoRotulo: 'Art. 54-A a 54-G',
-    tema: 'Prevenção e Tratamento do Superendividamento',
-    oQueMudou: 'Dever dos bancos e instituições de conceder crédito responsável, proibição de assédio publicitário a idosos e procedimento de repactuação global de dívidas.',
-    impactoPratico: 'Preservação obrigatória do mínimo existencial do consumidor e audiência conciliatória com todos os credores reunidos.',
-    leiModificadora: 'Lei nº 14.181/2021 (Lei do Superendividamento)',
-    anoModificacao: 2021,
-    rotaLeitura: '/legislacao/codigos/cdc/54-A',
-    tags: ['Consumidor', 'Crédito', 'Superendividamento', 'Mínimo Existencial'],
-  },
-];
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CURADORIA DE NOVAS LEIS DESTACADAS (CARROSSEL 1)
+// CATÁLOGO DE NOVAS LEIS DO PLANALTO
 // ─────────────────────────────────────────────────────────────────────────────
 
 const NOVAS_LEIS_CURADAS: NovaLeiCardItem[] = [
@@ -340,7 +57,7 @@ const NOVAS_LEIS_CURADAS: NovaLeiCardItem[] = [
     tipoAto: 'Emenda Constitucional',
     numeroAto: 'EC nº 140/2026',
     ano: 2026,
-    tituloCurto: 'Aposentadoria Especial e Insalubridade para Agentes de Saúde',
+    tituloCurto: 'Aposentadoria Especial de Agentes de Saúde e Endemias',
     ementa: 'Altera o art. 198 da CF para dispor sobre a aposentadoria especial, o adicional de insalubridade e a regularização de vínculos dos Agentes Comunitários de Saúde e de Combate às Endemias.',
     dataPublicacao: '2026-10-18',
     url: 'https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc140.htm',
@@ -448,53 +165,65 @@ const NOVAS_LEIS_CURADAS: NovaLeiCardItem[] = [
 // Helper de cores por tipo de ato
 const TIPO_ATO_COLORS: Record<string, { badge: string; border: string; glow: string; text: string }> = {
   'Emenda Constitucional': {
-    badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
     border: 'border-emerald-500/30 hover:border-emerald-500/60',
-    glow: 'from-emerald-500/10 via-transparent to-transparent',
+    glow: 'from-emerald-500/10 via-card/90 to-card/90',
     text: 'text-emerald-400',
   },
-  'Lei': {
-    badge: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
-    border: 'border-sky-500/30 hover:border-sky-500/60',
-    glow: 'from-sky-500/10 via-transparent to-transparent',
-    text: 'text-sky-400',
-  },
   'Lei Complementar': {
-    badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+    border: 'border-rose-500/30 hover:border-rose-500/60',
+    glow: 'from-rose-500/10 via-card/90 to-card/90',
+    text: 'text-rose-400',
+  },
+  'Lei': {
+    badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
     border: 'border-amber-500/30 hover:border-amber-500/60',
-    glow: 'from-amber-500/10 via-transparent to-transparent',
+    glow: 'from-amber-500/10 via-card/90 to-card/90',
     text: 'text-amber-400',
   },
-  'Decreto': {
-    badge: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
-    border: 'border-purple-500/30 hover:border-purple-500/60',
-    glow: 'from-purple-500/10 via-transparent to-transparent',
-    text: 'text-purple-400',
+  'Lei Ordinária': {
+    badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    border: 'border-amber-500/30 hover:border-amber-500/60',
+    glow: 'from-amber-500/10 via-card/90 to-card/90',
+    text: 'text-amber-400',
   },
   'Medida Provisória': {
-    badge: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
-    border: 'border-rose-500/30 hover:border-rose-500/60',
-    glow: 'from-rose-500/10 via-transparent to-transparent',
-    text: 'text-rose-400',
+    badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+    border: 'border-purple-500/30 hover:border-purple-500/60',
+    glow: 'from-purple-500/10 via-card/90 to-card/90',
+    text: 'text-purple-400',
+  },
+  'Decreto': {
+    badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
+    border: 'border-sky-500/30 hover:border-sky-500/60',
+    glow: 'from-sky-500/10 via-card/90 to-card/90',
+    text: 'text-sky-400',
   },
 };
 
-function getTipoColors(tipo: string) {
-  return TIPO_ATO_COLORS[tipo] || {
-    badge: 'bg-muted text-muted-foreground border-border',
-    border: 'border-border/40 hover:border-border',
-    glow: 'from-white/5 to-transparent',
-    text: 'text-foreground',
-  };
-}
+const getTipoColors = (tipo?: string) => {
+  if (!tipo) return TIPO_ATO_COLORS['Lei'];
+  const match = Object.keys(TIPO_ATO_COLORS).find((k) => tipo.toLowerCase().includes(k.toLowerCase()));
+  return match ? TIPO_ATO_COLORS[match] : TIPO_ATO_COLORS['Lei'];
+};
 
-function formatDateBr(d?: string): string {
-  if (!d) return '';
-  const clean = d.slice(0, 10);
-  const [y, m, dia] = clean.split('-');
-  if (!y || !m || !dia) return d;
-  return `${dia}/${m}/${y}`;
-}
+const formatDateBr = (dateStr?: string) => {
+  if (!dateStr) return 'Recente';
+  try {
+    const parts = dateStr.slice(0, 10).split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('pt-BR');
+    }
+  } catch {}
+  return dateStr;
+};
+
+type TipoFiltroPlanalto = 'todos' | 'emenda' | 'lei' | 'complementar' | 'mp' | 'decreto';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENTE PRINCIPAL
@@ -505,38 +234,29 @@ export default function Novidades() {
 
   // Estados de dados
   const [resenhaItems, setResenhaItems] = useState<ResenhaItem[]>([]);
-  const [proposicoes, setProposicoes] = useState<ProposicaoTramitando[]>([]);
   const [loadingResenha, setLoadingResenha] = useState(true);
-  const [loadingProposicoes, setLoadingProposicoes] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Estados de pesquisa e filtro de seções
+  // Estados de pesquisa e filtro por tipo de ato do Planalto
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeSectionTab, setActiveSectionTab] = useState<'tudo' | 'leis' | 'impactos' | 'camara'>('tudo');
+  const [tipoFiltro, setTipoFiltro] = useState<TipoFiltroPlanalto>('todos');
 
   // Estados para modais e detalhes
   const [selectedLeiCard, setSelectedLeiCard] = useState<NovaLeiCardItem | null>(null);
-  const [selectedImpacto, setSelectedImpacto] = useState<AlteracaoImpactanteItem | null>(null);
-  const [selectedProposicao, setSelectedProposicao] = useState<ProposicaoTramitando | null>(null);
-  const [proposicaoHistorico, setProposicaoHistorico] = useState<TramitacaoPasso[]>([]);
-  const [loadingHistorico, setLoadingHistorico] = useState(false);
 
   // Visualizador completo de Lei do Planalto (LeiOrdinariaDetail)
   const [detailItem, setDetailItem] = useState<LeiOrdinaria | null>(null);
 
-  // Refs para controle de scroll horizontal suave
+  // Ref para controle de scroll horizontal do destaque
   const carousel1Ref = useRef<HTMLDivElement>(null);
-  const carousel2Ref = useRef<HTMLDivElement>(null);
-  const carousel3Ref = useRef<HTMLDivElement>(null);
 
   // ───────────────────────────────────────────────────────────────────────────
-  // CARREGAMENTO DOS DADOS (RESENHA DIÁRIA + PROPOSIÇÕES CÂMARA)
+  // CARREGAMENTO DOS DADOS (RESENHA DIÁRIA DO PLANALTO)
   // ───────────────────────────────────────────────────────────────────────────
 
   const loadData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
 
-    // 1. Resenha Diária do Planalto
     try {
       const cached = getResenhaCache();
       if (!isRefresh && cached && cached.length > 0) {
@@ -547,7 +267,7 @@ export default function Novidades() {
           .from('resenha_diaria' as any)
           .select('id,tipo_ato,numero_ato,ementa,url,data_publicacao,data_dou,texto_completo,explicacao')
           .order('data_dou', { ascending: false })
-          .limit(100);
+          .limit(150);
 
         if (data && data.length > 0) {
           setResenhaItems(data as unknown as ResenhaItem[]);
@@ -556,25 +276,13 @@ export default function Novidades() {
         setLoadingResenha(false);
       }
     } catch (err) {
-      console.warn('Erro ao carregar resenha:', err);
+      console.warn('Erro ao carregar resenha do Planalto:', err);
       setLoadingResenha(false);
-    }
-
-    // 2. Proposições da Câmara dos Deputados e Senado
-    try {
-      const props = await getProposicoesEmTramitacao(isRefresh);
-      if (props && props.length > 0) {
-        setProposicoes(props);
-      }
-      setLoadingProposicoes(false);
-    } catch (err) {
-      console.warn('Erro ao carregar proposições:', err);
-      setLoadingProposicoes(false);
     }
 
     if (isRefresh) {
       setRefreshing(false);
-      toast.success('Novidades legislativas atualizadas!');
+      toast.success('Leis do Planalto atualizadas!');
     }
   }, []);
 
@@ -585,32 +293,7 @@ export default function Novidades() {
     } catch {}
   }, [loadData]);
 
-  // Carrega histórico quando uma proposição é selecionada
-  useEffect(() => {
-    if (!selectedProposicao) {
-      setProposicaoHistorico([]);
-      return;
-    }
-    let isCancelled = false;
-    setLoadingHistorico(true);
-
-    fetchHistoricoTramitacao(selectedProposicao)
-      .then((passos) => {
-        if (!isCancelled) {
-          setProposicaoHistorico(passos);
-          setLoadingHistorico(false);
-        }
-      })
-      .catch(() => {
-        if (!isCancelled) setLoadingHistorico(false);
-      });
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [selectedProposicao]);
-
-  // Scroll horizontal helpers
+  // Scroll horizontal helper
   const scrollHoriz = (ref: React.RefObject<HTMLDivElement | null>, dir: 'left' | 'right') => {
     if (!ref.current) return;
     const amount = dir === 'left' ? -340 : 340;
@@ -618,10 +301,9 @@ export default function Novidades() {
   };
 
   // ───────────────────────────────────────────────────────────────────────────
-  // MESCLAGEM E FILTRAGEM DOS DADOS
+  // MESCLAGEM E FILTRAGEM DAS LEIS DO PLANALTO
   // ───────────────────────────────────────────────────────────────────────────
 
-  // Carrossel 1: Mescla leis curadas célebres com resenha diária ao vivo
   const mergedNovasLeis = useMemo<NovaLeiCardItem[]>(() => {
     const list: NovaLeiCardItem[] = [...NOVAS_LEIS_CURADAS];
     const seenNumbers = new Set(NOVAS_LEIS_CURADAS.map((c) => c.numeroAto.toLowerCase().replace(/\s+/g, '')));
@@ -647,49 +329,39 @@ export default function Novidades() {
       }
     });
 
-    return list;
+    // Ordena do mais recente para o mais antigo por data de publicação
+    return list.sort((a, b) => {
+      const dateA = a.dataPublicacao || a.dataDou || '';
+      const dateB = b.dataPublicacao || b.dataDou || '';
+      return dateB.localeCompare(dateA);
+    });
   }, [resenhaItems]);
 
-  // Filtros aplicados por busca (searchTerm)
+  // Filtros aplicados por busca (searchTerm) e por tipo de ato normativo
   const filteredNovasLeis = useMemo(() => {
-    if (!searchTerm.trim()) return mergedNovasLeis;
-    const term = searchTerm.toLowerCase();
-    return mergedNovasLeis.filter(
-      (item) =>
+    return mergedNovasLeis.filter((item) => {
+      // Filtro por tipo de ato do Planalto
+      if (tipoFiltro === 'emenda' && !item.tipoAto.toLowerCase().includes('emenda')) return false;
+      if (tipoFiltro === 'complementar' && !item.tipoAto.toLowerCase().includes('complementar')) return false;
+      if (tipoFiltro === 'mp' && !item.tipoAto.toLowerCase().includes('provisória') && !item.tipoAto.toLowerCase().includes('provisoria')) return false;
+      if (tipoFiltro === 'decreto' && !item.tipoAto.toLowerCase().includes('decreto')) return false;
+      if (tipoFiltro === 'lei') {
+        const t = item.tipoAto.toLowerCase();
+        if (t.includes('complementar') || t.includes('emenda') || t.includes('decreto')) return false;
+      }
+
+      // Filtro por termo de busca
+      if (!searchTerm.trim()) return true;
+      const term = searchTerm.toLowerCase();
+      return (
         item.numeroAto.toLowerCase().includes(term) ||
         item.tituloCurto.toLowerCase().includes(term) ||
         item.ementa.toLowerCase().includes(term) ||
-        item.tipoAto.toLowerCase().includes(term)
-    );
-  }, [mergedNovasLeis, searchTerm]);
-
-  const filteredImpactos = useMemo(() => {
-    if (!searchTerm.trim()) return ALTERACOES_IMPACTANTES;
-    const term = searchTerm.toLowerCase();
-    return ALTERACOES_IMPACTANTES.filter(
-      (item) =>
-        item.codigoNome.toLowerCase().includes(term) ||
-        item.codigoSigla.toLowerCase().includes(term) ||
-        item.artigoRotulo.toLowerCase().includes(term) ||
-        item.tema.toLowerCase().includes(term) ||
-        item.oQueMudou.toLowerCase().includes(term) ||
-        item.leiModificadora.toLowerCase().includes(term) ||
-        item.tags.some((t) => t.toLowerCase().includes(term))
-    );
-  }, [searchTerm]);
-
-  const filteredProposicoes = useMemo(() => {
-    if (!searchTerm.trim()) return proposicoes;
-    const term = searchTerm.toLowerCase();
-    return proposicoes.filter(
-      (p) =>
-        p.codigoIdentificacao.toLowerCase().includes(term) ||
-        p.ementa.toLowerCase().includes(term) ||
-        p.autorNome.toLowerCase().includes(term) ||
-        (p.leiAlvo && p.leiAlvo.toLowerCase().includes(term)) ||
-        (p.autorPartido && p.autorPartido.toLowerCase().includes(term))
-    );
-  }, [proposicoes, searchTerm]);
+        item.tipoAto.toLowerCase().includes(term) ||
+        (item.dataPublicacao && item.dataPublicacao.includes(term))
+      );
+    });
+  }, [mergedNovasLeis, searchTerm, tipoFiltro]);
 
   // Abre visualizador completo se solicitado
   if (detailItem) {
@@ -703,7 +375,7 @@ export default function Novidades() {
       ───────────────────────────────────────────────────────────────────── */}
       <PageHeader
         title="Novidades"
-        subtitle="Atualizações legislativas, alterações nos códigos e projetos no Congresso"
+        subtitle="Leis e atos normativos publicados no Portal do Planalto com datas oficiais"
         onBack={() => navigate(-1)}
         rightAction={
           <button
@@ -720,7 +392,7 @@ export default function Novidades() {
 
       <main className="flex-1 overflow-y-auto pb-32">
         {/* ───────────────────────────────────────────────────────────────────
-            BARRA DE BUSCA E CHIPS DE NAVEGAÇÃO RÁPIDA
+            BARRA DE BUSCA E CHIPS DE TIPOS DE LEIS DO PLANALTO
         ─────────────────────────────────────────────────────────────────── */}
         <div className="px-4 pt-4 pb-2 max-w-7xl mx-auto w-full space-y-3">
           {/* Campo de Busca Rápida */}
@@ -730,7 +402,7 @@ export default function Novidades() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Pesquisar por lei, código, artigo, tema ou parlamentar..."
+              placeholder="Pesquisar por número da lei, ano, data ou ementa..."
               className="w-full h-11 pl-10 pr-10 rounded-xl bg-card/70 border border-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-muted-foreground/70 outline-none transition-all"
             />
             {searchTerm && (
@@ -744,415 +416,240 @@ export default function Novidades() {
             )}
           </div>
 
-          {/* Chips de Seções para Filtragem Rápida */}
+          {/* Chips por Tipo de Ato do Planalto */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
             <button
               type="button"
-              onClick={() => setActiveSectionTab('tudo')}
+              onClick={() => setTipoFiltro('todos')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all ${
-                activeSectionTab === 'tudo'
+                tipoFiltro === 'todos'
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-card/70 border border-white/10 text-muted-foreground hover:text-foreground'
               }`}
             >
-              Tudo
+              Todas ({mergedNovasLeis.length})
             </button>
             <button
               type="button"
-              onClick={() => setActiveSectionTab('leis')}
+              onClick={() => setTipoFiltro('emenda')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 flex items-center gap-1.5 transition-all ${
-                activeSectionTab === 'leis'
+                tipoFiltro === 'emenda'
                   ? 'bg-emerald-500 text-white shadow-sm'
                   : 'bg-card/70 border border-white/10 text-muted-foreground hover:text-foreground'
               }`}
             >
-              <FileCheck className="w-3.5 h-3.5" />
-              <span>Novas Leis</span>
-              <span className="opacity-80 text-[10px]">({filteredNovasLeis.length})</span>
+              <span>Emendas Constitucionais</span>
             </button>
             <button
               type="button"
-              onClick={() => setActiveSectionTab('impactos')}
+              onClick={() => setTipoFiltro('complementar')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 flex items-center gap-1.5 transition-all ${
-                activeSectionTab === 'impactos'
+                tipoFiltro === 'complementar'
                   ? 'bg-rose-500 text-white shadow-sm'
                   : 'bg-card/70 border border-white/10 text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Flame className="w-3.5 h-3.5" />
-              <span>Grandes Códigos</span>
-              <span className="opacity-80 text-[10px]">({filteredImpactos.length})</span>
+              <span>Leis Complementares</span>
             </button>
             <button
               type="button"
-              onClick={() => setActiveSectionTab('camara')}
+              onClick={() => setTipoFiltro('lei')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 flex items-center gap-1.5 transition-all ${
-                activeSectionTab === 'camara'
+                tipoFiltro === 'lei'
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'bg-card/70 border border-white/10 text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <span>Leis Ordinárias</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTipoFiltro('mp')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 flex items-center gap-1.5 transition-all ${
+                tipoFiltro === 'mp'
+                  ? 'bg-purple-500 text-white shadow-sm'
+                  : 'bg-card/70 border border-white/10 text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <span>Medidas Provisórias</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTipoFiltro('decreto')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 flex items-center gap-1.5 transition-all ${
+                tipoFiltro === 'decreto'
                   ? 'bg-sky-500 text-white shadow-sm'
                   : 'bg-card/70 border border-white/10 text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Landmark className="w-3.5 h-3.5" />
-              <span>Câmara dos Deputados</span>
-              <span className="opacity-80 text-[10px]">({filteredProposicoes.length})</span>
+              <span>Decretos</span>
             </button>
           </div>
         </div>
 
         {/* ───────────────────────────────────────────────────────────────────
-            CARROSSEL 1: NOVIDADES LEGISLATIVAS (NOVAS LEIS PROMULGADAS)
+            SEÇÃO DE LEIS DO PLANALTO: CARROSSEL DE DESTAQUES RECENTES
         ─────────────────────────────────────────────────────────────────── */}
-        {(activeSectionTab === 'tudo' || activeSectionTab === 'leis') && (
-          <section className="pt-5 pb-2">
-            <div className="px-4 max-w-7xl mx-auto flex items-center justify-between gap-3 mb-2.5">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <h2 className="text-base sm:text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-                    Novidades Legislativas
-                    <Badge variant="outline" className="text-[10px] font-normal border-emerald-500/30 text-emerald-400">
-                      Novas Leis
-                    </Badge>
-                  </h2>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Leis recém-promulgadas, Emendas Constitucionais e atos publicados no Planalto
-                </p>
+        <section className="pt-4 pb-2">
+          <div className="px-4 max-w-7xl mx-auto flex items-center justify-between gap-3 mb-2.5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <h2 className="text-base sm:text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
+                  Novidades Legislativas do Planalto
+                  <Badge variant="outline" className="text-[10px] font-normal border-emerald-500/30 text-emerald-400">
+                    {filteredNovasLeis.length} {filteredNovasLeis.length === 1 ? 'ato' : 'atos'}
+                  </Badge>
+                </h2>
               </div>
-
-              {/* Botões desktop de navegação */}
-              <div className="hidden sm:flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => scrollHoriz(carousel1Ref, 'left')}
-                  className="w-8 h-8 rounded-full bg-card border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
-                  aria-label="Rolar para esquerda"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollHoriz(carousel1Ref, 'right')}
-                  className="w-8 h-8 rounded-full bg-card border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
-                  aria-label="Rolar para direita"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Leis recém-publicadas no Diário Oficial da União (DOU) e Portal do Planalto
+              </p>
             </div>
 
-            {/* Carrossel de Novas Leis */}
-            <div
-              ref={carousel1Ref}
-              className="flex gap-3.5 px-4 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pt-1 pb-3"
-            >
-              {filteredNovasLeis.map((lei) => {
-                const colors = getTipoColors(lei.tipoAto);
-                return (
-                  <div
-                    key={lei.id}
-                    onClick={() => setSelectedLeiCard(lei)}
-                    className={`w-[82vw] sm:w-[350px] md:w-[370px] shrink-0 snap-start rounded-2xl bg-gradient-to-b ${colors.glow} bg-card/80 border ${colors.border} p-4 flex flex-col justify-between shadow-lg cursor-pointer hover:shadow-emerald-500/5 hover:-translate-y-0.5 active:scale-[0.98] transition-all`}
-                  >
-                    <div>
-                      {/* Top Header do Card */}
-                      <div className="flex items-center justify-between gap-2 mb-2.5">
-                        <Badge variant="outline" className={`text-[11px] font-medium ${colors.badge}`}>
-                          {lei.tipoAto}
-                        </Badge>
-                        <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                          <Calendar className="w-3 h-3 opacity-70" />
-                          {formatDateBr(lei.dataPublicacao)}
-                        </span>
-                      </div>
-
-                      {/* Título e Número */}
-                      <h3 className="font-bold text-foreground text-sm sm:text-base leading-snug line-clamp-1 mb-1">
-                        {lei.numeroAto}
-                      </h3>
-                      {lei.destaqueBadge && (
-                        <span className="inline-block px-2 py-0.5 mb-2 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                          {lei.destaqueBadge}
-                        </span>
-                      )}
-
-                      {/* Ementa / Síntese */}
-                      <p className="text-xs text-muted-foreground/90 line-clamp-3 leading-relaxed">
-                        {lei.ementa}
-                      </p>
-                    </div>
-
-                    {/* Rodapé com Ação */}
-                    <div className="pt-4 border-t border-white/5 flex items-center justify-between mt-3">
-                      <span className="text-[11px] font-medium text-emerald-400 flex items-center gap-1">
-                        Ver resumo e detalhes
-                      </span>
-                      <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-foreground">
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Botões desktop de navegação */}
+            <div className="hidden sm:flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => scrollHoriz(carousel1Ref, 'left')}
+                className="w-8 h-8 rounded-full bg-card border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
+                aria-label="Rolar para esquerda"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollHoriz(carousel1Ref, 'right')}
+                className="w-8 h-8 rounded-full bg-card border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
+                aria-label="Rolar para direita"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
-          </section>
-        )}
+          </div>
 
-        {/* ───────────────────────────────────────────────────────────────────
-            CARROSSEL 2: ALTERAÇÕES MAIS IMPACTANTES (GRANDES CÓDIGOS)
-        ─────────────────────────────────────────────────────────────────── */}
-        {(activeSectionTab === 'tudo' || activeSectionTab === 'impactos') && (
-          <section className="pt-6 pb-2">
-            <div className="px-4 max-w-7xl mx-auto flex items-center justify-between gap-3 mb-2.5">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-rose-500" />
-                  <h2 className="text-base sm:text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-                    Alterações Mais Impactantes
-                    <Badge variant="outline" className="text-[10px] font-normal border-rose-500/30 text-rose-400">
-                      Grandes Códigos
-                    </Badge>
-                  </h2>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Artigos modificados e novidades essenciais no CP, CC, CF/88, CLT, CPC, CPP, CDC e ECA
-                </p>
-              </div>
-
-              {/* Botões desktop de navegação */}
-              <div className="hidden sm:flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => scrollHoriz(carousel2Ref, 'left')}
-                  className="w-8 h-8 rounded-full bg-card border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
-                  aria-label="Rolar para esquerda"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollHoriz(carousel2Ref, 'right')}
-                  className="w-8 h-8 rounded-full bg-card border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
-                  aria-label="Rolar para direita"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Carrossel de Alterações Impactantes */}
-            <div
-              ref={carousel2Ref}
-              className="flex gap-3.5 px-4 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pt-1 pb-3"
-            >
-              {filteredImpactos.map((item) => (
+          {/* Carrossel de Novas Leis */}
+          <div
+            ref={carousel1Ref}
+            className="flex gap-3.5 px-4 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pt-1 pb-3"
+          >
+            {filteredNovasLeis.slice(0, 10).map((lei) => {
+              const colors = getTipoColors(lei.tipoAto);
+              return (
                 <div
-                  key={item.id}
-                  onClick={() => setSelectedImpacto(item)}
-                  className="w-[84vw] sm:w-[360px] md:w-[380px] shrink-0 snap-start rounded-2xl bg-card/85 border border-white/10 hover:border-white/20 p-4 flex flex-col justify-between shadow-lg cursor-pointer hover:-translate-y-0.5 active:scale-[0.98] transition-all relative overflow-hidden group"
+                  key={lei.id}
+                  onClick={() => setSelectedLeiCard(lei)}
+                  className={`w-[84vw] sm:w-[350px] md:w-[370px] shrink-0 snap-start rounded-2xl bg-gradient-to-b ${colors.glow} bg-card/85 border ${colors.border} p-4 flex flex-col justify-between shadow-lg cursor-pointer hover:shadow-emerald-500/5 hover:-translate-y-0.5 active:scale-[0.98] transition-all`}
                 >
-                  {/* Faixa lateral indicativa da matéria */}
-                  <div
-                    className="absolute top-0 left-0 bottom-0 w-1.5"
-                    style={{ backgroundColor: item.codigoCor }}
-                  />
-
                   <div>
-                    {/* Top Header: Badge do Código + Artigo */}
-                    <div className="flex items-center justify-between gap-2 mb-2 pl-1.5">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white shadow-sm"
-                          style={{ backgroundColor: item.codigoCor }}
-                        >
-                          {item.codigoSigla}
-                        </span>
-                        <span className="text-xs font-semibold text-foreground/90">{item.artigoRotulo}</span>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] font-medium border-white/10 text-muted-foreground">
-                        {item.anoModificacao}
+                    {/* Top Header do Card: Tipo de Ato + DATA OFICIAL DO PLANALTO */}
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <Badge variant="outline" className={`text-[11px] font-medium ${colors.badge}`}>
+                        {lei.tipoAto}
                       </Badge>
+                      <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formatDateBr(lei.dataPublicacao)}
+                      </span>
                     </div>
 
-                    {/* Tema Principal da Mudança */}
-                    <h3 className="font-bold text-foreground text-sm sm:text-base leading-snug line-clamp-2 mb-2 pl-1.5">
-                      {item.tema}
+                    {/* Título e Número */}
+                    <h3 className="font-bold text-foreground text-sm sm:text-base leading-snug line-clamp-1 mb-1">
+                      {lei.numeroAto}
                     </h3>
+                    {lei.destaqueBadge && (
+                      <span className="inline-block px-2 py-0.5 mb-2 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        {lei.destaqueBadge}
+                      </span>
+                    )}
 
-                    {/* O Que Mudou */}
-                    <div className="pl-1.5 space-y-1.5">
-                      <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
-                        {item.oQueMudou}
-                      </p>
-                      <div className="pt-1 flex items-center gap-1.5 text-[11px] text-amber-400 font-medium">
-                        <Sparkles className="w-3 h-3 shrink-0" />
-                        <span className="truncate">{item.leiModificadora}</span>
-                      </div>
-                    </div>
+                    {/* Ementa Oficial */}
+                    <p className="text-xs text-muted-foreground/90 line-clamp-3 leading-relaxed">
+                      {lei.ementa}
+                    </p>
                   </div>
 
-                  {/* Rodapé com botão direto para ler no código */}
-                  <div className="pt-3.5 border-t border-white/5 flex items-center justify-between mt-3 pl-1.5">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(item.rotaLeitura);
-                      }}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
-                    >
-                      <span>Abrir Artigo no Código</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                  {/* Rodapé com Ação */}
+                  <div className="pt-4 border-t border-white/5 flex items-center justify-between mt-3">
+                    <span className="text-[11px] font-medium text-emerald-400 flex items-center gap-1">
+                      Ver resumo e detalhes
+                    </span>
                     <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-foreground">
                       <ChevronRight className="w-4 h-4" />
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
+              );
+            })}
+          </div>
+        </section>
 
         {/* ───────────────────────────────────────────────────────────────────
-            CARROSSEL 3: O QUE PODE ACONTECER (CÂMARA DOS DEPUTADOS)
+            FEED COMPLETO: TODAS AS LEIS DO PLANALTO EM LISTA/GRADE ORGANIZADA
         ─────────────────────────────────────────────────────────────────── */}
-        {(activeSectionTab === 'tudo' || activeSectionTab === 'camara') && (
-          <section className="pt-6 pb-4">
-            <div className="px-4 max-w-7xl mx-auto flex items-center justify-between gap-3 mb-2.5">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Landmark className="w-4 h-4 text-sky-400" />
-                  <h2 className="text-base sm:text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-                    O Que Pode Acontecer
-                    <Badge variant="outline" className="text-[10px] font-normal border-sky-500/30 text-sky-400">
-                      Congresso Nacional
-                    </Badge>
-                  </h2>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Projetos de Lei e PECs em tramitação que visam alterar leis e artigos vigentes
-                </p>
-              </div>
+        <section className="pt-4 px-4 max-w-7xl mx-auto">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <FileCheck className="w-4 h-4 text-emerald-400" />
+              Todas as Publicações Recentes ({filteredNovasLeis.length})
+            </h3>
+            <span className="text-xs text-muted-foreground">Mais recentes primeiro</span>
+          </div>
 
-              {/* Botões desktop de navegação */}
-              <div className="hidden sm:flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => scrollHoriz(carousel3Ref, 'left')}
-                  className="w-8 h-8 rounded-full bg-card border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
-                  aria-label="Rolar para esquerda"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollHoriz(carousel3Ref, 'right')}
-                  className="w-8 h-8 rounded-full bg-card border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
-                  aria-label="Rolar para direita"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+          {filteredNovasLeis.length === 0 ? (
+            <div className="p-8 text-center bg-card/40 border border-white/5 rounded-2xl">
+              <p className="text-sm text-muted-foreground">Nenhuma lei encontrada para o filtro ou termo pesquisado.</p>
             </div>
-
-            {/* Carrossel de Proposições da Câmara */}
-            <div
-              ref={carousel3Ref}
-              className="flex gap-3.5 px-4 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pt-1 pb-3"
-            >
-              {loadingProposicoes && proposicoes.length === 0 ? (
-                // Skeletons de carregamento
-                Array.from({ length: 4 }).map((_, i) => (
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {filteredNovasLeis.map((lei) => {
+                const colors = getTipoColors(lei.tipoAto);
+                return (
                   <div
-                    key={`skel-${i}`}
-                    className="w-[84vw] sm:w-[360px] md:w-[380px] shrink-0 snap-start rounded-2xl bg-card/60 border border-white/5 p-4 flex flex-col justify-between animate-pulse h-[210px]"
-                  >
-                    <div className="space-y-3">
-                      <div className="w-28 h-5 rounded bg-white/10" />
-                      <div className="w-full h-8 rounded bg-white/5" />
-                      <div className="w-3/4 h-4 rounded bg-white/5" />
-                    </div>
-                    <div className="w-32 h-4 rounded bg-white/10" />
-                  </div>
-                ))
-              ) : (
-                filteredProposicoes.map((prop) => (
-                  <div
-                    key={prop.id}
-                    onClick={() => setSelectedProposicao(prop)}
-                    className="w-[84vw] sm:w-[360px] md:w-[380px] shrink-0 snap-start rounded-2xl bg-gradient-to-b from-sky-500/10 via-card/90 to-card/90 border border-sky-500/20 hover:border-sky-500/50 p-4 flex flex-col justify-between shadow-lg cursor-pointer hover:-translate-y-0.5 active:scale-[0.98] transition-all group"
+                    key={`feed-${lei.id}`}
+                    onClick={() => setSelectedLeiCard(lei)}
+                    className={`rounded-2xl bg-card/80 border ${colors.border} p-4 flex flex-col justify-between shadow-md cursor-pointer hover:bg-card hover:-translate-y-0.5 active:scale-[0.98] transition-all`}
                   >
                     <div>
-                      {/* Top Header: Tipo/Número + Tag de Lei Alvo */}
+                      {/* Top Header: Tipo de Ato + DATA DE PUBLICAÇÃO */}
                       <div className="flex items-center justify-between gap-2 mb-2">
-                        <Badge variant="outline" className="text-xs font-bold bg-sky-500/20 text-sky-300 border-sky-500/40">
-                          {prop.codigoIdentificacao}
+                        <Badge variant="outline" className={`text-[10px] font-medium ${colors.badge}`}>
+                          {lei.tipoAto}
                         </Badge>
-                        <span className="text-[10px] uppercase font-semibold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
-                          {prop.casa === 'senado' ? 'Senado' : 'Câmara'}
+                        <span className="text-[11px] font-bold text-foreground/90 bg-white/5 px-2 py-0.5 rounded border border-white/10 flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-emerald-400" />
+                          {formatDateBr(lei.dataPublicacao)}
                         </span>
                       </div>
 
-                      {/* Tag de Lei Alvo (se houver) */}
-                      {prop.leiAlvo && (
-                        <div className="mb-2">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                            <Scale className="w-3 h-3" />
-                            <span>Altera: {prop.leiAlvo}</span>
-                          </span>
-                        </div>
-                      )}
+                      {/* Título / Número da Lei */}
+                      <h4 className="font-bold text-foreground text-sm leading-snug mb-1">
+                        {lei.numeroAto}
+                      </h4>
 
-                      {/* Ementa do Projeto */}
-                      <p className="text-xs text-muted-foreground/90 line-clamp-3 leading-relaxed mb-3">
-                        {prop.ementa}
+                      {/* Ementa Oficial */}
+                      <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed mt-1">
+                        {lei.ementa}
                       </p>
-
-                      {/* Autor Parlamentar */}
-                      <div className="flex items-center gap-2.5 pt-1">
-                        {prop.autorFotoUrl ? (
-                          <img
-                            src={prop.autorFotoUrl}
-                            alt={prop.autorNome}
-                            className="w-7 h-7 rounded-full object-cover border border-white/10 shrink-0"
-                            loading="lazy"
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          <div className="w-7 h-7 rounded-full bg-sky-500/20 text-sky-300 flex items-center justify-center text-xs font-bold shrink-0">
-                            <User className="w-3.5 h-3.5" />
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium text-foreground truncate">{prop.autorNome}</p>
-                          <p className="text-[10px] text-muted-foreground truncate">
-                            {prop.autorPartido ? `${prop.autorPartido}-${prop.autorUf || ''}` : prop.autorCargo || 'Parlamentar'}
-                          </p>
-                        </div>
-                      </div>
                     </div>
 
-                    {/* Rodapé com Situação e Ação */}
+                    {/* Rodapé do card */}
                     <div className="pt-3 border-t border-white/5 flex items-center justify-between mt-3">
-                      <span className="text-[11px] font-medium text-sky-400 flex items-center gap-1 truncate max-w-[200px]">
-                        <Clock className="w-3 h-3 shrink-0" />
-                        <span className="truncate">{prop.situacao || 'Em tramitação'}</span>
+                      <span className="text-[11px] font-medium text-emerald-400 flex items-center gap-1">
+                        Ver detalhes
                       </span>
-                      <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-foreground">
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     </div>
                   </div>
-                ))
-              )}
+                );
+              })}
             </div>
-          </section>
-        )}
+          )}
+        </section>
       </main>
 
       {/* ─────────────────────────────────────────────────────────────────────
-          MODAL / BOTTOM SHEET: DETALHE DE NOVA LEI (CARROSSEL 1)
+          MODAL / BOTTOM SHEET: DETALHE DE NOVA LEI DO PLANALTO
       ───────────────────────────────────────────────────────────────────── */}
       <Sheet open={!!selectedLeiCard} onOpenChange={(open) => !open && setSelectedLeiCard(null)}>
         <SheetContent side="bottom" className="max-h-[88vh] rounded-t-3xl border-t border-white/10 bg-card p-0 flex flex-col">
@@ -1163,9 +660,9 @@ export default function Novidades() {
                   <Badge variant="outline" className={getTipoColors(selectedLeiCard.tipoAto).badge}>
                     {selectedLeiCard.tipoAto}
                   </Badge>
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
                     <Calendar className="w-3.5 h-3.5" />
-                    Publicação: {formatDateBr(selectedLeiCard.dataPublicacao)}
+                    Data de Publicação: {formatDateBr(selectedLeiCard.dataPublicacao)}
                   </span>
                 </div>
                 <SheetTitle className="text-lg sm:text-xl font-bold leading-snug text-foreground">
@@ -1179,6 +676,17 @@ export default function Novidades() {
               </SheetHeader>
 
               <ScrollArea className="flex-1 p-5 space-y-4">
+                {/* Data e Fonte */}
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Building className="w-4 h-4 text-emerald-400" />
+                    <span>Fonte: Diário Oficial da União / Portal do Planalto</span>
+                  </div>
+                  <span className="text-xs font-semibold text-foreground">
+                    {formatDateBr(selectedLeiCard.dataPublicacao)}
+                  </span>
+                </div>
+
                 {/* Ementa Oficial */}
                 <div>
                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
@@ -1234,227 +742,11 @@ export default function Novidades() {
                       className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Acessar Portal do Planalto
+                      Acessar no Portal do Planalto
                     </Button>
                   )
                 )}
                 <Button variant="outline" onClick={() => setSelectedLeiCard(null)} className="border-white/10">
-                  Fechar
-                </Button>
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
-
-      {/* ─────────────────────────────────────────────────────────────────────
-          MODAL / BOTTOM SHEET: DETALHE DE ALTERAÇÃO IMPACTANTE (CARROSSEL 2)
-      ───────────────────────────────────────────────────────────────────── */}
-      <Sheet open={!!selectedImpacto} onOpenChange={(open) => !open && setSelectedImpacto(null)}>
-        <SheetContent side="bottom" className="max-h-[88vh] rounded-t-3xl border-t border-white/10 bg-card p-0 flex flex-col">
-          {selectedImpacto && (
-            <div className="flex flex-col h-full overflow-hidden">
-              <SheetHeader className="p-5 pb-3 border-b border-white/10 text-left">
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="px-2.5 py-0.5 rounded-full text-xs font-bold text-white shadow-sm"
-                      style={{ backgroundColor: selectedImpacto.codigoCor }}
-                    >
-                      {selectedImpacto.codigoSigla}
-                    </span>
-                    <span className="text-xs font-semibold text-muted-foreground">
-                      {selectedImpacto.codigoNome}
-                    </span>
-                  </div>
-                  <Badge variant="outline" className="text-xs border-white/10 text-muted-foreground">
-                    Ano: {selectedImpacto.anoModificacao}
-                  </Badge>
-                </div>
-                <SheetTitle className="text-lg sm:text-xl font-bold leading-snug text-foreground">
-                  {selectedImpacto.artigoRotulo} — {selectedImpacto.tema}
-                </SheetTitle>
-                <SheetDescription className="text-xs font-medium text-amber-400">
-                  Alterado por: {selectedImpacto.leiModificadora}
-                </SheetDescription>
-              </SheetHeader>
-
-              <ScrollArea className="flex-1 p-5 space-y-4">
-                {/* O Que Mudou */}
-                <div>
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                    O Que Mudou na Lei
-                  </h4>
-                  <p className="text-sm text-foreground/90 leading-relaxed bg-white/[0.03] border border-white/5 p-3.5 rounded-xl">
-                    {selectedImpacto.oQueMudou}
-                  </p>
-                </div>
-
-                {/* Impacto Prático */}
-                <div>
-                  <h4 className="text-xs font-semibold text-rose-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                    <Flame className="w-3.5 h-3.5" />
-                    Impacto Jurídico e Prático
-                  </h4>
-                  <p className="text-sm text-foreground/90 leading-relaxed bg-rose-500/[0.06] border border-rose-500/20 p-3.5 rounded-xl">
-                    {selectedImpacto.impactoPratico}
-                  </p>
-                </div>
-
-                {/* Tags */}
-                <div className="pt-1">
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedImpacto.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2.5 py-0.5 rounded-full text-[11px] bg-white/[0.05] border border-white/10 text-muted-foreground"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </ScrollArea>
-
-              {/* Botões de Ação */}
-              <div className="p-4 border-t border-white/10 bg-background/80 flex items-center gap-3">
-                <Button
-                  onClick={() => {
-                    const rota = selectedImpacto.rotaLeitura;
-                    setSelectedImpacto(null);
-                    navigate(rota);
-                  }}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                >
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Abrir Artigo no Código
-                </Button>
-                <Button variant="outline" onClick={() => setSelectedImpacto(null)} className="border-white/10">
-                  Fechar
-                </Button>
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
-
-      {/* ─────────────────────────────────────────────────────────────────────
-          MODAL / BOTTOM SHEET: DETALHE DE PROPOSIÇÃO CÂMARA (CARROSSEL 3)
-      ───────────────────────────────────────────────────────────────────── */}
-      <Sheet open={!!selectedProposicao} onOpenChange={(open) => !open && setSelectedProposicao(null)}>
-        <SheetContent side="bottom" className="max-h-[88vh] rounded-t-3xl border-t border-white/10 bg-card p-0 flex flex-col">
-          {selectedProposicao && (
-            <div className="flex flex-col h-full overflow-hidden">
-              <SheetHeader className="p-5 pb-3 border-b border-white/10 text-left">
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <Badge variant="outline" className="text-xs font-bold bg-sky-500/20 text-sky-300 border-sky-500/40">
-                    {selectedProposicao.codigoIdentificacao}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground uppercase font-semibold">
-                    {selectedProposicao.casa === 'senado' ? 'Senado Federal' : 'Câmara dos Deputados'}
-                  </span>
-                </div>
-                <SheetTitle className="text-lg sm:text-xl font-bold leading-snug text-foreground">
-                  Proposição Legislativa
-                </SheetTitle>
-                {selectedProposicao.leiAlvo && (
-                  <SheetDescription className="text-xs font-semibold text-amber-400">
-                    Pretende alterar: {selectedProposicao.leiAlvo}
-                  </SheetDescription>
-                )}
-              </SheetHeader>
-
-              <ScrollArea className="flex-1 p-5 space-y-4">
-                {/* Autor */}
-                <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.03] border border-white/5">
-                  {selectedProposicao.autorFotoUrl ? (
-                    <img
-                      src={selectedProposicao.autorFotoUrl}
-                      alt={selectedProposicao.autorNome}
-                      className="w-12 h-12 rounded-full object-cover border border-white/15"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-sky-500/20 text-sky-300 flex items-center justify-center font-bold">
-                      <User className="w-6 h-6" />
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-bold text-foreground">{selectedProposicao.autorNome}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedProposicao.autorPartido ? `${selectedProposicao.autorPartido} / ${selectedProposicao.autorUf || ''}` : selectedProposicao.autorCargo || 'Autor da Proposição'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Ementa do Projeto */}
-                <div>
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                    Ementa da Proposição
-                  </h4>
-                  <p className="text-sm text-foreground/90 leading-relaxed bg-white/[0.03] border border-white/5 p-3.5 rounded-xl">
-                    {selectedProposicao.ementa}
-                  </p>
-                </div>
-
-                {/* Situação Atual */}
-                <div>
-                  <h4 className="text-xs font-semibold text-sky-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    Situação Atual de Tramitação
-                  </h4>
-                  <div className="p-3.5 rounded-xl bg-sky-500/[0.06] border border-sky-500/20 text-xs sm:text-sm text-foreground/90">
-                    <p className="font-semibold text-sky-300">{selectedProposicao.situacao || 'Em tramitação'}</p>
-                    {selectedProposicao.orgao && (
-                      <p className="text-muted-foreground text-xs mt-1">Órgão atual: {selectedProposicao.orgao}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Linha do Tempo / Últimos Passos de Tramitação */}
-                <div className="pt-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Últimas Tramitações
-                  </h4>
-                  {loadingHistorico ? (
-                    <div className="p-4 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
-                      <RefreshCw className="w-4 h-4 animate-spin text-sky-400" />
-                      <span>Consultando histórico oficial...</span>
-                    </div>
-                  ) : proposicaoHistorico.length > 0 ? (
-                    <div className="space-y-2 border-l-2 border-sky-500/30 pl-3 ml-2">
-                      {proposicaoHistorico.map((passo, idx) => (
-                        <div key={`passo-${idx}`} className="text-xs space-y-0.5">
-                          <span className="text-[10px] font-semibold text-sky-400">
-                            {formatDateBr(passo.dataHora)} {passo.siglaOrgao ? `• ${passo.siglaOrgao}` : ''}
-                          </span>
-                          <p className="text-foreground/90 leading-snug">{passo.descricao}</p>
-                          {passo.despacho && (
-                            <p className="text-muted-foreground/80 text-[11px] italic">{passo.despacho}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground italic">
-                      Histórico detalhado disponível no portal oficial.
-                    </p>
-                  )}
-                </div>
-              </ScrollArea>
-
-              {/* Botões de Ação */}
-              <div className="p-4 border-t border-white/10 bg-background/80 flex items-center gap-3">
-                {selectedProposicao.urlTramitacao && (
-                  <Button
-                    onClick={() => window.open(selectedProposicao.urlTramitacao, '_blank')}
-                    className="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-semibold"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Acompanhar no Portal Oficial
-                  </Button>
-                )}
-                <Button variant="outline" onClick={() => setSelectedProposicao(null)} className="border-white/10">
                   Fechar
                 </Button>
               </div>
