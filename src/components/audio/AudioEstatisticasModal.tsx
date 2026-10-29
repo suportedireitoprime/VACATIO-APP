@@ -133,12 +133,12 @@ export const AudioEstatisticasModal: React.FC<AudioEstatisticasModalProps> = ({
                   <div className="flex items-center gap-2">
                     <span
                       className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${
-                        isPurple ? 'bg-purple-400' : 'bg-blue-400'
+                        isPurple ? 'bg-purple-400' : 'bg-zinc-300'
                       }`}
                     />
                     <span
                       className={`font-card text-[11px] font-bold uppercase tracking-wider ${
-                        isPurple ? 'text-purple-300' : 'text-blue-300'
+                        isPurple ? 'text-purple-300' : 'text-zinc-200'
                       }`}
                     >
                       Métricas & Desempenho
@@ -217,7 +217,7 @@ export const AudioEstatisticasModal: React.FC<AudioEstatisticasModalProps> = ({
                 <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col justify-between backdrop-blur-md">
                   <div className="flex items-center justify-between text-zinc-400 mb-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider">Fixados</span>
-                    <Headphones className="w-4 h-4 text-blue-400" />
+                    <Headphones className="w-4 h-4 text-zinc-300" />
                   </div>
                   <div>
                     <div className="text-xl sm:text-2xl font-black text-white">{stats.artigosOuvidosCount}</div>

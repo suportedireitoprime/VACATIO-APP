@@ -152,12 +152,12 @@ export const AudioRecentesModal: React.FC<AudioRecentesModalProps> = ({
                   <div className="flex items-center gap-2">
                     <span
                       className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${
-                        isPurple ? 'bg-purple-400' : 'bg-blue-400'
+                        isPurple ? 'bg-purple-400' : 'bg-zinc-300'
                       }`}
                     />
                     <span
                       className={`font-card text-[11px] font-bold uppercase tracking-wider ${
-                        isPurple ? 'text-purple-300' : 'text-blue-300'
+                        isPurple ? 'text-purple-300' : 'text-zinc-200'
                       }`}
                     >
                       {isPurple ? 'Áudio Leis' : 'Áudio Aulas'}
@@ -179,7 +179,7 @@ export const AudioRecentesModal: React.FC<AudioRecentesModalProps> = ({
                       className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white shadow-lg active:scale-95 transition cursor-pointer ${
                         isPurple
                           ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/30'
-                          : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/30'
+                          : 'bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 shadow-md'
                       }`}
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
@@ -197,7 +197,7 @@ export const AudioRecentesModal: React.FC<AudioRecentesModalProps> = ({
                   </>
                 )}
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-xs font-semibold text-zinc-300 shadow-sm backdrop-blur-md font-card">
-                  <History className={`w-3.5 h-3.5 ${isPurple ? 'text-purple-400' : 'text-blue-400'}`} />
+                  <History className={`w-3.5 h-3.5 ${isPurple ? 'text-purple-400' : 'text-zinc-300'}`} />
                   <span>{totalRecentes} {totalRecentes === 1 ? 'item' : 'itens'}</span>
                 </span>
               </div>
@@ -209,7 +209,7 @@ export const AudioRecentesModal: React.FC<AudioRecentesModalProps> = ({
                 <div className="relative flex items-center w-full">
                   <Search
                     className={`w-4 h-4 absolute left-3.5 pointer-events-none ${
-                      isPurple ? 'text-purple-400' : 'text-blue-400'
+                      isPurple ? 'text-purple-400' : 'text-zinc-300'
                     }`}
                   />
                   <input
@@ -244,7 +244,7 @@ export const AudioRecentesModal: React.FC<AudioRecentesModalProps> = ({
                 <>
                   {aulasFiltradas.length === 0 ? (
                     <div className="py-20 text-center flex flex-col items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4 text-blue-400">
+                      <div className="w-16 h-16 rounded-full bg-zinc-800/60 border border-zinc-700/60 flex items-center justify-center mb-4 text-zinc-300">
                         <History className="w-8 h-8" />
                       </div>
                       <h2 className="text-lg font-bold text-white mb-1">
@@ -264,7 +264,7 @@ export const AudioRecentesModal: React.FC<AudioRecentesModalProps> = ({
                           <div
                             key={aula.id}
                             onClick={() => onTocarAula && onTocarAula(aula, aulasFiltradas)}
-                            className="group relative flex items-center gap-3.5 p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-blue-500/30 transition-all cursor-pointer shadow-md"
+                            className="group relative flex items-center gap-3.5 p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-primary/40 transition-all cursor-pointer shadow-md"
                           >
                             <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-white/10 shadow-sm">
                               <CapaOtimizada
@@ -276,17 +276,17 @@ export const AudioRecentesModal: React.FC<AudioRecentesModalProps> = ({
                                 <Play className="w-5 h-5 text-white fill-current" />
                               </div>
                               {isPlaying && (
-                                <div className="absolute inset-0 bg-blue-600/60 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-primary/80 flex items-center justify-center">
                                   <Pause className="w-5 h-5 text-white fill-current" />
                                 </div>
                               )}
                             </div>
 
                             <div className="flex-1 min-w-0">
-                              <span className="text-[10px] uppercase font-bold tracking-wider text-blue-400 block truncate">
+                              <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 block truncate">
                                 {aula.area || 'Direito'}
                               </span>
-                              <h3 className="text-sm font-bold text-white truncate group-hover:text-blue-300 transition-colors">
+                              <h3 className="text-sm font-bold text-white truncate group-hover:text-primary transition-colors">
                                 {aula.titulo}
                               </h3>
                               <p className="text-xs text-zinc-400 truncate mt-0.5">
@@ -301,7 +301,7 @@ export const AudioRecentesModal: React.FC<AudioRecentesModalProps> = ({
                                 haptic.selection();
                                 if (onTocarAula) onTocarAula(aula, aulasFiltradas);
                               }}
-                              className="w-9 h-9 rounded-full bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white flex items-center justify-center transition shrink-0 active:scale-95"
+                              className="w-9 h-9 rounded-full bg-zinc-800 hover:bg-primary text-zinc-200 hover:text-white flex items-center justify-center transition shrink-0 active:scale-95"
                               aria-label={isPlaying ? 'Pausar aula' : 'Ouvir aula'}
                             >
                               {isPlaying ? (

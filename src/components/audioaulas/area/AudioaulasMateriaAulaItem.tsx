@@ -13,6 +13,25 @@ import { BotaoDownloadAudio } from '@/components/audioaulas/home/BotaoDownloadAu
 import { temLousaMagica } from '@/data/lousas/lousaRegistry';
 import { haptic } from '@/lib/nativeHaptics';
 
+const formatarTituloMateria = (nome: string): string => {
+  if (!nome) return '';
+  const minusculas = new Set([
+    'de', 'da', 'do', 'das', 'dos', 'em', 'na', 'no', 'nas', 'nos',
+    'e', 'a', 'o', 'as', 'os', 'para', 'com', 'por', 'ou'
+  ]);
+  const siglas = new Set(['oab', 'clt', 'cpc', 'cpp', 'cc', 'cp', 'eca', 'cdc', 'ctn', 'stf', 'stj', 'tst']);
+
+  return nome
+    .split(' ')
+    .map((palavra, idx) => {
+      const pLower = palavra.toLowerCase();
+      if (siglas.has(pLower)) return palavra.toUpperCase();
+      if (idx > 0 && minusculas.has(pLower)) return pLower;
+      return palavra.charAt(0).toUpperCase() + palavra.slice(1).toLowerCase();
+    })
+    .join(' ');
+};
+
 interface AudioaulasMateriaAulaItemProps {
   aula: AulaAudio;
   indice: number;
@@ -156,12 +175,12 @@ export const AudioaulasMateriaAulaItem: React.FC<AudioaulasMateriaAulaItemProps>
 
           {/* Tipografia suave e elegante: font-medium, sem negrito pesado */}
           <h3
-            className="font-medium text-[14px] sm:text-[15px] text-zinc-100 truncate mt-1 tracking-normal transition-colors drop-shadow-sm leading-snug"
+            className="font-card font-semibold text-[14.5px] sm:text-[15.5px] text-zinc-100 truncate mt-1 tracking-tight transition-colors drop-shadow-sm leading-snug"
             style={{
               color: isAtivo ? theme.primaryLight : undefined,
             }}
           >
-            {aula.titulo}
+            {formatarTituloMateria(aula.titulo)}
           </h3>
 
           {/* Barra de Progresso da Aula */}

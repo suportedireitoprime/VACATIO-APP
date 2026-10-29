@@ -48,7 +48,7 @@ export const AudioNavigationSwitcher: React.FC<AudioNavigationSwitcherProps> = (
         onClick={() => navigate('/audioaulas')}
         className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
           active === 'aulas'
-            ? 'bg-blue-600 text-white shadow-md shadow-blue-600/40'
+            ? 'bg-zinc-700 text-white shadow-md border border-zinc-600/60'
             : 'text-zinc-400 hover:text-white hover:bg-white/5'
         }`}
       >

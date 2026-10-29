@@ -191,7 +191,7 @@ const TEMAS_AREAS: { re: RegExp; tema: AreaTheme }[] = [
 ];
 
 // Tema fallback padrão (Azul Tecnológico Vacatio)
-const TEMA_PADRAO = criarTema('Geral', '#3b82f6', '#bfdbfe', '#1d4ed8');
+const TEMA_PADRAO = criarTema('Geral', '#52525b', '#e4e4e7', '#27272a');
 
 /**
  * Retorna o tema visual e cromático predominante de uma área do Direito.

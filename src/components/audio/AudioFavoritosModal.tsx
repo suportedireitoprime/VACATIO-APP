@@ -141,12 +141,12 @@ export const AudioFavoritosModal: React.FC<AudioFavoritosModalProps> = ({
                   <div className="flex items-center gap-2">
                     <span
                       className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${
-                        isPurple ? 'bg-purple-400' : 'bg-blue-400'
+                        isPurple ? 'bg-purple-400' : 'bg-zinc-300'
                       }`}
                     />
                     <span
                       className={`font-card text-[11px] font-bold uppercase tracking-wider ${
-                        isPurple ? 'text-purple-300' : 'text-blue-300'
+                        isPurple ? 'text-purple-300' : 'text-zinc-200'
                       }`}
                     >
                       {isPurple ? 'Áudio Leis' : 'Áudio Aulas'}
@@ -167,7 +167,7 @@ export const AudioFavoritosModal: React.FC<AudioFavoritosModalProps> = ({
                     className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white shadow-lg active:scale-95 transition cursor-pointer ${
                       isPurple
                         ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/30'
-                        : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/30'
+                        : 'bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 shadow-md'
                     }`}
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
@@ -187,7 +187,7 @@ export const AudioFavoritosModal: React.FC<AudioFavoritosModalProps> = ({
                 <div className="relative flex items-center w-full">
                   <Search
                     className={`w-4 h-4 absolute left-3.5 pointer-events-none ${
-                      isPurple ? 'text-purple-400' : 'text-blue-400'
+                      isPurple ? 'text-purple-400' : 'text-zinc-300'
                     }`}
                   />
                   <input
@@ -222,7 +222,7 @@ export const AudioFavoritosModal: React.FC<AudioFavoritosModalProps> = ({
                 <>
                   {aulasFiltradas.length === 0 ? (
                     <div className="py-20 px-4 flex flex-col items-center text-center font-card max-w-md mx-auto">
-                      <div className="w-16 h-16 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 shadow-xl">
+                      <div className="w-16 h-16 rounded-3xl bg-zinc-800/60 border border-zinc-700/60 flex items-center justify-center text-zinc-300 mb-4 shadow-xl">
                         <Heart className="w-8 h-8" />
                       </div>
                       <h3 className="text-lg font-bold text-white mb-1.5">
@@ -246,7 +246,7 @@ export const AudioFavoritosModal: React.FC<AudioFavoritosModalProps> = ({
                           className={`w-full group flex items-center justify-between gap-3.5 p-3 sm:p-4 rounded-2xl border transition-all duration-200 text-left cursor-pointer backdrop-blur-md shadow-md ${
                             isThisPlaying
                               ? 'bg-blue-950/40 border-blue-500/50 shadow-blue-900/30 ring-1 ring-blue-500/30'
-                              : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 hover:border-blue-500/40'
+                              : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 hover:border-primary/40'
                           }`}
                         >
                           {/* Miniatura da Capa 4:5 */}
@@ -258,7 +258,7 @@ export const AudioFavoritosModal: React.FC<AudioFavoritosModalProps> = ({
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 brightness-[1.03] contrast-[1.02]"
                             />
                             {isThisPlaying && (
-                              <div className="absolute inset-0 bg-blue-600/60 backdrop-blur-[2px] flex items-center justify-center">
+                              <div className="absolute inset-0 bg-primary/80 backdrop-blur-[2px] flex items-center justify-center">
                                 <Volume2 className="w-5 h-5 text-white animate-pulse" />
                               </div>
                             )}
@@ -266,14 +266,14 @@ export const AudioFavoritosModal: React.FC<AudioFavoritosModalProps> = ({
 
                           {/* Informações da Aula */}
                           <div className="min-w-0 flex-1">
-                            <p className="font-card font-bold text-sm sm:text-base text-white line-clamp-2 leading-snug group-hover:text-blue-300 transition-colors">
+                            <p className="font-card font-bold text-sm sm:text-base text-white line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                               {aula.titulo}
                             </p>
                             <p className="font-card text-xs text-zinc-400 mt-1 line-clamp-1">
                               {aula.tema || aula.area}
                             </p>
                             <div className="flex items-center gap-2 mt-1.5">
-                              <span className="font-card text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-md">
+                              <span className="font-card text-[10px] font-bold text-zinc-300 bg-zinc-800/60 border border-zinc-700/60 px-2 py-0.5 rounded-md">
                                 {aula.area}
                               </span>
                             </div>
@@ -304,7 +304,7 @@ export const AudioFavoritosModal: React.FC<AudioFavoritosModalProps> = ({
                               }}
                               aria-label={isThisPlaying ? 'Pausar' : 'Tocar'}
                               className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white shadow-md active:scale-95 transition ${
-                                isThisPlaying ? 'bg-blue-600' : 'bg-white/10 group-hover:bg-blue-600'
+                                isThisPlaying ? 'bg-primary' : 'bg-white/10 group-hover:bg-primary'
                               }`}
                             >
                               {isThisPlaying ? (

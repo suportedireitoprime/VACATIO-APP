@@ -175,7 +175,7 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
                   aria-label={`Ver cenário ${cen.tag}`}
                   className={`transition-all duration-300 rounded-full cursor-pointer ${
                     idx === cenarioIndex
-                      ? 'w-5 h-1.5 bg-sky-400 shadow-md shadow-sky-500/50'
+                      ? 'w-5 h-1.5 bg-zinc-200 shadow-md shadow-zinc-400/40'
                       : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/80'
                   }`}
                 />
@@ -200,8 +200,7 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
               <div
                 className="absolute inset-0"
                 style={{
-                  background:
-                    'linear-gradient(135deg, #2563eb 0%, #1d4ed8 45%, #1e40af 85%, #0f172a 100%)',
+                  background: 'linear-gradient(135deg, #27272a 0%, #1c1c1f 45%, #121214 85%, #09090b 100%)',
                 }}
               />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(147,197,253,0.35),transparent_65%)]" />
@@ -271,7 +270,7 @@ export const AudioaulasHero: React.FC<AudioaulasHeroProps> = React.memo(
             {/* Tag de Narrações Disponíveis com Altura Confortável e Animação de Reflexo */}
             <div className="mt-3.5 flex items-center">
               <span className="tag-narracoes-shine inline-flex items-center gap-2 px-4 py-2.5 sm:px-4.5 sm:py-3 min-h-[42px] sm:min-h-[46px] rounded-xl sm:rounded-2xl bg-black/45 text-white border border-white/20 font-bold text-xs sm:text-[13px] shadow-lg backdrop-blur-md">
-                <Headphones className="w-4 h-4 text-sky-300 shrink-0" />
+                <Headphones className="w-4 h-4 text-zinc-200 shrink-0" />
                 <span className="tracking-wide">
                   {!loading && totalAulas > 0
                     ? `${totalAulas.toLocaleString('pt-BR')} áudio aulas`

@@ -74,11 +74,11 @@ export default function GlobalAudioaulasMiniPlayer() {
           className="fixed left-0 right-0 z-[80] px-3 pointer-events-none md:left-auto md:right-6 md:px-0"
           style={{
             bottom: navHeight
-              ? `${navHeight + 16}px`
-              : `calc(1rem + var(--sai-bottom, 0px))`,
+              ? `max(${navHeight + 24}px, calc(5.5rem + var(--sai-bottom, 0px)))`
+              : `calc(5.5rem + var(--sai-bottom, 0px))`,
           }}
         >
-          <div className="pointer-events-auto mx-auto max-w-md md:w-[410px] min-h-[58px] sm:min-h-[64px] rounded-full border border-white/15 bg-[#0f0f0f]/95 backdrop-blur-md shadow-2xl shadow-black/80 flex items-center gap-2.5 pl-2 pr-2.5 py-2 sm:py-2.5 relative overflow-hidden transition-all hover:scale-[1.01] active:scale-[0.99]">
+          <div className="pointer-events-auto mx-auto max-w-md md:w-[410px] min-h-[66px] sm:min-h-[72px] rounded-2xl sm:rounded-full border border-white/20 bg-[#121214]/95 backdrop-blur-xl shadow-2xl shadow-black/90 flex items-center gap-2.5 sm:gap-3 pl-3 pr-3 py-2.5 sm:py-3 relative overflow-hidden transition-all hover:scale-[1.01] active:scale-[0.99]">
             {/* Efeito de brilho/reflexo passando */}
             <motion.div
               aria-hidden
@@ -98,7 +98,7 @@ export default function GlobalAudioaulasMiniPlayer() {
             <button
               onClick={togglePlay}
               aria-label={tocando ? 'Pausar' : 'Continuar'}
-              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-primary hover:bg-primary/90 active:scale-95 transition flex items-center justify-center relative z-10 shadow-lg shadow-black/40"
+              className="flex-shrink-0 w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-primary hover:bg-primary/90 active:scale-95 transition flex items-center justify-center relative z-10 shadow-lg shadow-black/50"
             >
               {tocando ? (
                 <Pause className="w-5 h-5 text-primary-foreground" fill="currentColor" />
@@ -134,10 +134,10 @@ export default function GlobalAudioaulasMiniPlayer() {
               className="flex-1 min-w-0 text-left px-1.5 relative z-10 flex flex-col justify-center"
               aria-label="Abrir aula"
             >
-              <p className="text-[13px] sm:text-[14px] font-semibold text-white truncate leading-snug">
+              <p className="font-card text-[14px] sm:text-[15px] font-semibold text-white truncate leading-snug">
                 {atual.titulo}
               </p>
-              <p className="text-[11px] sm:text-[12px] text-white/70 truncate leading-snug mt-0.5">
+              <p className="font-card text-[11.5px] sm:text-[12.5px] text-zinc-300 truncate leading-snug mt-0.5">
                 {atual.area} {atual.tema ? `• ${atual.tema}` : ''}
               </p>
             </button>

@@ -37,9 +37,9 @@ export const AudioActionShortcuts: React.FC<AudioActionShortcutsProps> = memo(
         id: 'recentes',
         label: 'Recentes',
         icon: History,
-        color: isPurple ? '#C084FC' : '#60A5FA',
+        color: isPurple ? '#C084FC' : '#d4d4d8',
         badge: badgeRecentesFinal,
-        badgeColor: isPurple ? '#9333EA' : '#2563EB',
+        badgeColor: isPurple ? '#9333EA' : '#52525b',
         action: acaoRecentes,
       },
       {
@@ -55,9 +55,9 @@ export const AudioActionShortcuts: React.FC<AudioActionShortcutsProps> = memo(
         id: 'estatistica',
         label: 'Estatística',
         icon: BarChart3,
-        color: isPurple ? '#A78BFA' : '#38BDF8',
+        color: isPurple ? '#A78BFA' : '#d4d4d8',
         badge: 0,
-        badgeColor: isPurple ? '#7C3AED' : '#0284C7',
+        badgeColor: isPurple ? '#7C3AED' : '#52525b',
         action: onEstatistica,
       },
       {
