@@ -110,6 +110,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           appEvents.login(provider);
           // Sync Leis Recentes / Artigos Recentes do Supabase pro localStorage
           import('@/lib/leisRecentes').then((m) => m.syncRecentesFromSupabase().catch(() => {}));
+          // Se o usuário veio de um clique em "Testar 3 dias gratuitos", ativa imediatamente
+          try {
+            if (typeof localStorage !== 'undefined' && localStorage.getItem('vacatio:start_trial_after_login') === 'true') {
+              localStorage.removeItem('vacatio:start_trial_after_login');
+              import('@/lib/trialService').then((m) => m.activateTrial3Days(session?.user?.id)).catch(() => {});
+            }
+          } catch { /* ignore */ }
         } else if (_event === 'SIGNED_OUT') appEvents.logout();
       }).catch(() => {});
     });

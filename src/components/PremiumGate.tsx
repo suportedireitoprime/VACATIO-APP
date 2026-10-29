@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/hooks/useAuth';
 import { haptic } from '@/lib/nativeHaptics';
 
 import capa1 from '@/assets/capas/capa-1.webp';
@@ -290,6 +291,7 @@ export default function PremiumGate({
   onLibraryExample,
 }: PremiumGateProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { trialUsed, isTrialActive, activateTrial } = useSubscription();
 
   const [step, setStep] = useState<'paywall' | 'detail' | 'success'>('paywall');
@@ -315,6 +317,17 @@ export default function PremiumGate({
   // Handler de ativação dos 3 dias grátis
   const handleStartTrial = async () => {
     if (activating) return;
+
+    // Se não estiver logado, direciona para entrar/cadastrar e salvar o trial
+    if (!user) {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('vacatio:start_trial_after_login', 'true');
+      }
+      onClose();
+      navigate('/auth?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
+      return;
+    }
+
     setActivating(true);
     haptic.selection();
 

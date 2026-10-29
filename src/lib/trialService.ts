@@ -130,11 +130,38 @@ export async function activateTrial3Days(userId?: string | null): Promise<TrialS
     window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: payload }));
   }
 
-  // Sincronizar com lembretes/tabela no Supabase
+  // Obter userId se não tiver sido passado
+  let targetUid = userId;
+  if (!targetUid) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      targetUid = user?.id || null;
+    } catch { /* ignore */ }
+  }
+
+  // Persistir diretamente no Supabase em trial_reminders para alimentar métricas do Admin
+  if (targetUid) {
+    try {
+      const reminderAt = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString();
+      await supabase.from('trial_reminders').insert({
+        user_id: targetUid,
+        plano: 'trial_3_dias',
+        trial_days: 3,
+        trial_started_at: startedAt,
+        trial_ends_at: expiresAt,
+        reminder_at: reminderAt,
+        status: 'scheduled',
+      });
+    } catch (e) {
+      console.warn('[trialService] Falha ao gravar trial_reminders no Supabase:', e);
+    }
+  }
+
+  // Sincronizar com lembretes/notificações push locais
   try {
     await scheduleTrialReminder('mensal');
   } catch (e) {
-    console.warn('[trialService] Falha ao agendar no Supabase:', e);
+    console.warn('[trialService] Falha ao agendar lembrete:', e);
   }
 
   return {
