@@ -8,24 +8,12 @@ import {
   ArrowUpRight,
   Flame,
   Search,
-  Scale,
-  ScrollText,
-  Landmark,
-  Users,
-  Gavel,
-  Shield,
-  Crown,
-  HeartHandshake,
-  Hourglass,
-  Eye,
   BookOpen,
-  Share2,
-  Copy,
   ChevronRight,
   Check,
-  Layers,
   X,
-  type LucideIcon,
+  Share2,
+  Copy,
 } from 'lucide-react';
 import { haptic } from '@/lib/nativeHaptics';
 import { PageHeader } from '@/components/vademecum/PageHeader';
@@ -55,23 +43,6 @@ import {
 import { recordActivity } from '@/lib/continuity';
 import { supabase } from '@/integrations/supabase/client';
 
-// Mapeamento dos ícones para as categorias do Blog
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  Hourglass,
-  Scale,
-  ScrollText,
-  Landmark,
-  Users,
-  Gavel,
-  Shield,
-  Crown,
-  HeartHandshake,
-  Eye,
-  Flame,
-  Layers,
-  BookOpen,
-};
-
 function formatDate(iso: string) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -79,6 +50,20 @@ function formatDate(iso: string) {
   const day = d.getDate();
   const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   return `${day} ${months[d.getMonth()]} · ${d.getFullYear()}`;
+}
+
+/**
+ * Torna títulos em ALL CAPS confortáveis e fáceis de ler, preservando títulos já formatados.
+ */
+function formatTitleReadable(title: string): string {
+  if (!title) return '';
+  const trimmed = title.trim();
+  const isAllCaps = trimmed === trimmed.toUpperCase() && /[A-ZÀ-Ú]/.test(trimmed);
+  if (!isAllCaps) return trimmed;
+
+  return trimmed
+    .toLowerCase()
+    .replace(/(^\p{L})|([:—–-]\s*\p{L})/gu, (char) => char.toUpperCase());
 }
 
 const Blog = () => {
@@ -213,7 +198,7 @@ const Blog = () => {
 
   const { isPremium } = useSubscription();
   const { register } = useFeatureLimit('blog_read');
-  const { posts: allPosts, loaded: blogLoaded } = useBlogPostsCache();
+  const { posts: allPosts } = useBlogPostsCache();
   const safePosts = useMemo(() => (Array.isArray(allPosts) ? allPosts : []), [allPosts]);
 
   // Auto-open post from query param
@@ -286,20 +271,16 @@ const Blog = () => {
     return result;
   }, [safePosts, trendingPostIds]);
 
-  // Montagem das abas do menu de alternância: Todos, depois História das Leis, e depois as demais matérias
+  // Montagem das abas idênticas ao estilo do início do app:
+  // Todos, depois História das Leis, e depois as demais matérias
   const tabsList = useMemo(() => {
     const list: Array<{
       id: string;
       label: string;
-      iconName?: string;
-      count: number;
-      accentColor?: string;
     }> = [
       {
         id: 'todos',
         label: 'Todos',
-        iconName: 'Layers',
-        count: safePosts.length,
       },
     ];
 
@@ -308,23 +289,17 @@ const Blog = () => {
       list.push({
         id: cat.id,
         label: cat.titulo,
-        iconName: cat.iconName,
-        count: countsByCategory.get(cat.id) || 0,
-        accentColor: cat.accentColor,
       });
     }
 
-    // Adiciona também a opção Em Alta para acesso rápido
+    // Adiciona também a opção Em Alta
     list.push({
       id: 'em-alta',
       label: 'Em Alta',
-      iconName: 'Flame',
-      count: trendingPosts.length,
-      accentColor: '#f97316',
     });
 
     return list;
-  }, [safePosts.length, countsByCategory, trendingPosts.length]);
+  }, []);
 
   // Filtragem dos artigos conforme a aba ativa e a busca por texto
   const filteredPosts = useMemo(() => {
@@ -350,7 +325,7 @@ const Blog = () => {
     return list;
   }, [safePosts, activeTab, trendingPosts, searchQuery]);
 
-  // Artigos paginados para evitar renderização pesada no DOM
+  // Artigos paginados para rolagem 60 FPS
   const displayedPosts = useMemo(() => {
     return filteredPosts.slice(0, displayLimit);
   }, [filteredPosts, displayLimit]);
@@ -370,6 +345,13 @@ const Blog = () => {
     register(post.id);
     recordActivity({ path: `/blog?post=${post.id}`, label: post.titulo, kind: 'blog' });
   };
+
+  // Nome amigável da aba selecionada para o cabeçalho
+  const activeTabLabel = useMemo(() => {
+    if (activeTab === 'todos') return 'Todas as Matérias';
+    if (activeTab === 'em-alta') return 'Artigos Em Alta';
+    return tabsList.find((t) => t.id === activeTab)?.label || 'Matérias';
+  }, [activeTab, tabsList]);
 
   return (
     <div className="min-h-dvh bg-background pb-[calc(7rem+var(--sai-bottom,0px))] lg:pb-12 text-foreground relative overflow-hidden">
@@ -426,9 +408,9 @@ const Blog = () => {
               <div className="mt-3 mb-2 rounded-2xl border border-primary/30 bg-card/70 backdrop-blur-md p-4 space-y-2 shadow-lg">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-primary" />
-                  <h3 className="font-display text-sm font-bold text-foreground">Como funciona o Blog Jurídico</h3>
+                  <h3 className="font-card text-sm font-bold text-foreground">Como funciona o Blog Jurídico</h3>
                 </div>
-                <p className="font-body text-xs leading-relaxed text-muted-foreground">
+                <p className="font-card text-xs leading-relaxed text-muted-foreground">
                   Artigos profundos, didáticos e sem juridiquês, divididos em <strong className="text-foreground">10 trilhas fundamentais</strong>.
                   Cada trilha reúne dezenas de artigos com tabelas comparativas, exemplos práticos e análises dos bastidores do poder.
                 </p>
@@ -442,26 +424,26 @@ const Blog = () => {
           <section className="space-y-3.5">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2.5">
-                <Flame className="w-6 h-6 text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.65)] animate-pulse shrink-0" />
+                <Flame className="w-5 h-5 text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.65)] animate-pulse shrink-0" />
                 <div>
-                  <h2 className="font-display text-base sm:text-lg font-bold text-foreground leading-tight tracking-tight uppercase">
+                  <h2 className="font-card text-base sm:text-lg font-bold text-foreground leading-tight tracking-tight">
                     Em Alta
                   </h2>
-                  <p className="text-[11.5px] text-muted-foreground font-body">
+                  <p className="text-[12px] text-muted-foreground font-card">
                     Artigos mais lidos e comentados da semana
                   </p>
                 </div>
               </div>
 
-              {/* Botão Ver todos cinza com texto branco */}
+              {/* Botão Ver todos igual ao estilo das pílulas */}
               <button
                 type="button"
                 onClick={() => handleTabChange('em-alta')}
                 aria-label="Ver todos os artigos em alta"
-                className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-full text-xs font-semibold bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white border border-zinc-600/60 shadow-md transition-all active:scale-95 cursor-pointer touch-manipulation shrink-0"
+                className="inline-flex items-center justify-center gap-1.5 min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-card font-semibold bg-secondary/80 hover:bg-secondary text-foreground border border-border/50 shadow-sm transition-all active:scale-95 cursor-pointer touch-manipulation shrink-0"
               >
-                <span className="text-white font-medium">Ver todos</span>
-                <ChevronRight className="w-3.5 h-3.5 text-white stroke-[2.5]" />
+                <span>Ver todos</span>
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground stroke-[2.5]" />
               </button>
             </div>
 
@@ -472,64 +454,66 @@ const Blog = () => {
                 const isRead = isPostRead(post.id);
                 const fallbackImg = firstImageByCategory.get(post.tema) || '';
                 const cover = post.imagem_url || fallbackImg;
+                const cleanTitle = formatTitleReadable(post.titulo);
+                const cleanTema = post.tema.replace(/^[0-9]{2}\s*-\s*/, '');
 
                 return (
                   <div
                     key={post.id}
                     onClick={() => openPost(post)}
-                    className="snap-start shrink-0 w-[270px] sm:w-[300px] rounded-2xl border border-border/50 bg-card/60 backdrop-blur-md overflow-hidden hover:border-primary/40 hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between"
+                    className="snap-start shrink-0 w-[270px] sm:w-[300px] rounded-2xl border border-border/50 bg-card/70 backdrop-blur-md overflow-hidden hover:border-primary/40 hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between"
                   >
                     <div className="aspect-[16/9] w-full relative overflow-hidden bg-black/50">
                       <BlogCoverImage
                         postId={post.id}
                         remoteUrl={blogThumb(cover)}
-                        alt={post.titulo}
+                        alt={cleanTitle}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
 
                       {/* Badge de categoria no topo */}
                       <div className="absolute top-2.5 left-2.5 z-10">
                         <span
-                          className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase shadow-md backdrop-blur-md"
+                          className="px-2 py-0.5 rounded-md text-[10px] font-card font-bold tracking-wide uppercase shadow-md backdrop-blur-md"
                           style={{ background: themeColor.chip, color: themeColor.chipText }}
                         >
-                          {post.tema.replace(/^[0-9]{2}\s*-\s*/, '')}
+                          {cleanTema}
                         </span>
                       </div>
 
                       {/* Tag Lido / Não lido */}
                       <div className="absolute bottom-2.5 left-2.5 z-10">
                         {isRead ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-emerald-600/95 backdrop-blur-md px-2.5 py-0.5 rounded-full shadow-md">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-card font-bold text-white bg-emerald-600/95 backdrop-blur-md px-2 py-0.5 rounded-md shadow-md">
                             <Check className="w-3 h-3 stroke-[3]" />
                             Lido
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-zinc-300 bg-zinc-900/85 border border-white/10 backdrop-blur-md px-2.5 py-0.5 rounded-full shadow-sm">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-card font-medium text-zinc-300 bg-zinc-900/85 border border-white/10 backdrop-blur-md px-2 py-0.5 rounded-md shadow-sm">
                             Não lido
                           </span>
                         )}
                       </div>
 
                       {/* Tempo de leitura */}
-                      <div className="absolute bottom-2.5 right-2.5 z-10 flex items-center gap-1 text-[10.5px] font-medium text-white/90 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-full">
-                        <Clock className="w-3 h-3" />
+                      <div className="absolute bottom-2.5 right-2.5 z-10 flex items-center gap-1 text-[11px] font-card font-medium text-white/90 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-md">
+                        <Clock className="w-3 h-3 text-primary" />
                         {post.tempo_leitura_min} min
                       </div>
                     </div>
 
-                    <div className="p-3.5 pb-3 flex-1 flex items-start">
-                      <h3 className="font-display text-[13.5px] sm:text-sm font-semibold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
-                        {post.titulo}
+                    <div className="p-3.5 pb-2.5 flex-1 flex items-start">
+                      <h3 className="font-card text-[14.5px] sm:text-[15.5px] font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors tracking-tight">
+                        {cleanTitle}
                       </h3>
                     </div>
 
-                    <div className="px-3.5 py-2.5 bg-muted/60 dark:bg-zinc-800/60 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <div className="px-3.5 py-2.5 bg-muted/40 dark:bg-zinc-800/40 border-t border-border/40 flex items-center justify-between text-[11.5px] font-card text-muted-foreground">
                       <span>{formatDate(post.data_publicacao)}</span>
-                      <span className="inline-flex items-center gap-0.5 text-primary font-semibold group-hover:translate-x-0.5 transition-transform">
-                        Ler artigo <ArrowUpRight className="w-3 h-3" />
+                      <span className="inline-flex items-center gap-0.5 text-primary font-semibold group-hover:translate-x-0.5 transition-transform text-xs">
+                        Ler artigo <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
                       </span>
                     </div>
                   </div>
@@ -538,64 +522,45 @@ const Blog = () => {
             </div>
           </section>
 
-          {/* 2. SEÇÃO DE MATÉRIAS: TÍTULO + MENU DE ALTERNÂNCIA + LISTA ESTILO NOTÍCIA JURÍDICA */}
-          <section className="space-y-4 pt-2">
-            {/* Título da seção */}
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                  <BookOpen className="w-4 h-4" />
-                </div>
-                <div>
-                  <h2 className="font-display text-base sm:text-lg font-bold text-foreground leading-tight tracking-tight uppercase">
-                    Matérias
-                  </h2>
-                  <p className="text-[11.5px] text-muted-foreground font-body">
-                    Selecione a matéria para filtrar os artigos
-                  </p>
-                </div>
-              </div>
-
-              <span className="text-[11.5px] font-bold text-muted-foreground bg-secondary/80 px-2.5 py-1 rounded-full border border-border/50">
-                {filteredPosts.length} {filteredPosts.length === 1 ? 'artigo' : 'artigos'}
-              </span>
-            </div>
-
-            {/* Menu de Alternância (Pills Horizontais roláveis) */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 snap-x">
+          {/* 2. SEÇÃO DE MATÉRIAS: TÍTULO + MENU DE ALTERNÂNCIA (IGUAL INÍCIO DO APP) + LISTA */}
+          <section className="space-y-4 pt-1">
+            {/* Menu de Alternância (Exatamente como o do Início do App) */}
+            <div className="flex gap-2 overflow-x-auto scrollbar-none px-4 -mx-4 pb-1 pt-1 snap-x">
               {tabsList.map((tab) => {
                 const isSelected = activeTab === tab.id;
-                const Icon = tab.iconName && CATEGORY_ICONS[tab.iconName] ? CATEGORY_ICONS[tab.iconName] : BookOpen;
-
                 return (
                   <button
                     key={tab.id}
                     type="button"
                     onClick={() => handleTabChange(tab.id)}
-                    className={`snap-start shrink-0 inline-flex items-center gap-2 min-h-[42px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer touch-manipulation active:scale-95 shadow-sm ${
+                    className={`snap-start min-h-[44px] px-5 py-2.5 rounded-full text-[13.5px] font-card font-medium flex items-center justify-center whitespace-nowrap transition-all active:scale-95 touch-manipulation cursor-pointer ${
                       isSelected
-                        ? 'bg-primary text-primary-foreground shadow-primary/25 shadow-md border border-primary font-bold'
-                        : 'bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground border border-border/50 font-medium'
+                        ? 'bg-primary text-white shadow-md shadow-primary/25 font-semibold'
+                        : 'bg-secondary/60 text-muted-foreground border border-border/50 hover:bg-secondary hover:text-foreground'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-primary-foreground' : 'text-primary'}`} />
-                    <span className="whitespace-nowrap">{tab.label}</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
-                        isSelected
-                          ? 'bg-black/25 text-primary-foreground font-bold'
-                          : 'bg-muted/80 text-muted-foreground'
-                      }`}
-                    >
-                      {tab.count}
-                    </span>
+                    {tab.label}
                   </button>
                 );
               })}
             </div>
 
-            {/* Campo de Busca Rápida */}
-            <div className="relative pt-1">
+            {/* Cabeçalho da Seção com traço vertical (Estilo do Início do App) */}
+            <div className="flex items-center justify-between px-1 pt-1">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-5 rounded-full bg-primary shrink-0" />
+                <h3 className="font-card text-foreground text-[17px] font-semibold tracking-[-0.01em]">
+                  {activeTabLabel}
+                </h3>
+              </div>
+
+              <span className="text-[12px] font-card text-muted-foreground font-medium">
+                {filteredPosts.length} {filteredPosts.length === 1 ? 'artigo' : 'artigos'}
+              </span>
+            </div>
+
+            {/* Campo de Busca Rápida Estilizado */}
+            <div className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
@@ -604,102 +569,105 @@ const Blog = () => {
                   setSearchQuery(e.target.value);
                   setDisplayLimit(25);
                 }}
-                placeholder="Pesquisar artigos por título ou assunto..."
-                className="w-full h-10 pl-10 pr-9 rounded-xl bg-card/60 backdrop-blur-sm border border-border/60 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                placeholder="Pesquisar artigos por tema ou palavra-chave..."
+                className="w-full h-11 pl-10 pr-9 rounded-2xl bg-secondary/40 border border-border/60 text-xs sm:text-sm text-foreground font-card placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary/60 focus:bg-secondary/70 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
                   aria-label="Limpar pesquisa"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
-            {/* Lista no estilo Notícia Jurídica: Capa à Esquerda | Detalhes à Direita */}
-            <div className="space-y-3 pt-1">
+            {/* Lista no estilo Notícia Jurídica: Capa à Esquerda | Detalhes à Direita com Tipografia Legível */}
+            <div className="space-y-3.5 pt-1">
               {displayedPosts.length > 0 ? (
                 displayedPosts.map((post, idx) => {
                   const themeColor = getTemaColor(post.tema);
                   const isRead = isPostRead(post.id);
-                  // Primeira imagem da categoria caso o artigo não tenha imagem própria
                   const fallbackCatImg = firstImageByCategory.get(post.tema) || '';
                   const coverUrl = post.imagem_url || fallbackCatImg;
+                  const cleanTitle = formatTitleReadable(post.titulo);
+                  const cleanTema = post.tema.replace(/^[0-9]{2}\s*-\s*/, '');
 
                   const cardItem = (
                     <motion.div
                       key={post.id}
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: Math.min(idx, 10) * 0.02, duration: 0.2 }}
+                      transition={{ delay: Math.min(idx, 8) * 0.02, duration: 0.2 }}
                       onClick={() => openPost(post)}
-                      className="group flex items-stretch gap-0 bg-card border rounded-2xl border-border/60 hover:border-primary/40 active:bg-secondary/30 transition-all cursor-pointer overflow-hidden shadow-sm hover:shadow-md"
+                      className="group relative flex items-stretch bg-card/75 backdrop-blur-md border border-border/50 rounded-2xl hover:border-primary/40 active:bg-secondary/30 transition-all cursor-pointer overflow-hidden shadow-sm hover:shadow-md"
                     >
-                      {/* Capa do lado esquerdo (igual notícia jurídica) */}
-                      <div className="w-28 sm:w-36 shrink-0 relative overflow-hidden bg-black/40 border-r border-border/40">
+                      {/* Capa do lado esquerdo */}
+                      <div className="w-28 sm:w-36 shrink-0 relative overflow-hidden bg-black/40 border-r border-border/30">
                         <BlogCoverImage
                           postId={post.id}
                           remoteUrl={blogThumb(coverUrl)}
-                          alt={post.titulo}
+                          alt={cleanTitle}
                           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           loading={idx < 5 ? 'eager' : 'lazy'}
                         />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+
                         {/* Tag Lido / Não lido */}
                         <div className="absolute bottom-1.5 left-1.5 z-10">
                           {isRead ? (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-white bg-emerald-600/95 backdrop-blur-md px-1.5 py-0.5 rounded shadow-sm">
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-card font-bold text-white bg-emerald-600/90 backdrop-blur-md px-1.5 py-0.5 rounded-md shadow-sm">
                               <Check className="w-2.5 h-2.5 stroke-[3]" />
                               Lido
                             </span>
                           ) : (
-                            <span className="inline-flex items-center text-[9px] font-semibold text-zinc-300 bg-zinc-950/80 backdrop-blur-md px-1.5 py-0.5 rounded shadow-sm">
+                            <span className="inline-flex items-center text-[9px] font-card font-medium text-zinc-300 bg-zinc-950/80 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-white/10 shadow-sm">
                               Não lido
                             </span>
                           )}
                         </div>
                       </div>
 
-                      {/* Conteúdo do lado direito (igual notícia jurídica) */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5 p-3 sm:p-3.5">
+                      {/* Conteúdo do lado direito com tipografia font-card altamente legível */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5 p-3.5 sm:p-4">
                         <div>
                           {/* Badge da matéria */}
-                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                          <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                             <span
-                              className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
+                              className="text-[10px] font-card font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
                               style={{ background: themeColor.chip, color: themeColor.chipText }}
                             >
-                              {post.tema.replace(/^[0-9]{2}\s*-\s*/, '')}
+                              {cleanTema}
                             </span>
                           </div>
 
-                          {/* Título */}
-                          <h3 className="font-display text-[13.5px] sm:text-[15px] font-bold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
-                            {post.titulo}
+                          {/* Título com tipografia font-card (Plus Jakarta Sans) de leitura fluida */}
+                          <h3 className="font-card text-[15px] sm:text-[16px] font-bold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors tracking-tight">
+                            {cleanTitle}
                           </h3>
 
                           {/* Resumo */}
                           {post.resumo && (
-                            <p className="mt-1 text-xs text-muted-foreground line-clamp-2 font-body leading-relaxed">
+                            <p className="mt-1.5 text-xs sm:text-[13px] text-muted-foreground/90 line-clamp-2 font-card leading-relaxed">
                               {post.resumo}
                             </p>
                           )}
                         </div>
 
                         {/* Rodapé com tempo de leitura, data e 'Ler artigo' */}
-                        <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1.5 border-t border-border/30">
+                        <div className="flex items-center justify-between text-xs font-card text-muted-foreground pt-2 border-t border-border/30">
                           <div className="flex items-center gap-2">
                             <span className="inline-flex items-center gap-1 font-medium text-foreground/85">
-                              <Clock className="w-3 h-3 text-primary" />
+                              <Clock className="w-3.5 h-3.5 text-primary" />
                               {post.tempo_leitura_min} min
                             </span>
                             <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-                            <span>{formatDate(post.data_publicacao)}</span>
+                            <span className="text-[11.5px]">{formatDate(post.data_publicacao)}</span>
                           </div>
-                          <span className="inline-flex items-center gap-0.5 text-primary font-semibold group-hover:translate-x-0.5 transition-transform text-[11px]">
-                            Ler artigo <ChevronRight className="w-3 h-3" />
+                          <span className="inline-flex items-center gap-0.5 text-primary font-semibold group-hover:translate-x-0.5 transition-transform text-xs">
+                            Ler artigo <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
                           </span>
                         </div>
                       </div>
@@ -752,7 +720,7 @@ const Blog = () => {
                   <Button
                     variant="outline"
                     onClick={() => setDisplayLimit((prev) => prev + 25)}
-                    className="rounded-full px-6 py-2 min-h-[42px] text-xs font-semibold border-border/60 hover:bg-muted"
+                    className="rounded-full px-6 py-2.5 min-h-[44px] text-xs font-card font-semibold border-border/60 hover:bg-muted"
                   >
                     Carregar mais artigos ({filteredPosts.length - displayLimit} restantes)
                   </Button>
