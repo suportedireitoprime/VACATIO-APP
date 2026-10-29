@@ -2,8 +2,15 @@ import { useMemo } from 'react';
 import { buildScene, PALETA, type Scene, type SceneNode } from '@/lib/visuaisJuridicos/layout';
 import type { VisualContent, VisualEstilo } from '@/lib/visuaisJuridicos/types';
 
-const SANS = 'Inter, "Helvetica Neue", Arial, sans-serif';
-const SERIF = 'Georgia, "Times New Roman", serif';
+const SANS = '"Plus Jakarta Sans", "Barlow", Inter, system-ui, sans-serif';
+const SERIF = '"Playfair Display", Georgia, "Times New Roman", serif';
+const DISPLAY = '"Bebas Neue", "Barlow Condensed", system-ui, sans-serif';
+
+function getFontFamily(node: { font?: 'display' | 'serif' | 'sans'; serif?: boolean }) {
+  if (node.font === 'display') return DISPLAY;
+  if (node.font === 'serif' || node.serif) return SERIF;
+  return SANS;
+}
 
 function renderNode(node: SceneNode, i: number) {
   switch (node.k) {
@@ -60,7 +67,7 @@ function renderNode(node: SceneNode, i: number) {
           fontWeight={node.weight ?? 400}
           fill={node.fill ?? PALETA.ink}
           textAnchor={node.anchor ?? 'start'}
-          fontFamily={node.serif ? SERIF : SANS}
+          fontFamily={getFontFamily(node)}
           fontStyle={node.italic ? 'italic' : undefined}
           letterSpacing={node.spacing}
         >
@@ -75,7 +82,11 @@ export function sceneToSvgMarkup(scene: Scene, estilo: VisualEstilo): string {
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   // Em atributos XML as aspas duplas da pilha de fontes precisam ser escapadas,
   // senão o SVG fica inválido e a exportação (PNG/PDF) falha ao carregar.
-  const fam = (serif?: boolean) => esc(serif ? SERIF : SANS);
+  const fam = (node: { font?: 'display' | 'serif' | 'sans'; serif?: boolean }) => {
+    if (node.font === 'display') return esc(DISPLAY);
+    if (node.font === 'serif' || node.serif) return esc(SERIF);
+    return esc(SANS);
+  };
 
   const body = scene.nodes
     .map((n) => {
@@ -86,7 +97,7 @@ export function sceneToSvgMarkup(scene: Scene, estilo: VisualEstilo): string {
       if (n.k === 'path')
         return `<path d="${n.d}" fill="${n.fill ?? 'none'}" stroke="${n.stroke ?? PALETA.ink}" stroke-width="${n.sw ?? 2}" stroke-linecap="round" stroke-linejoin="round"${n.transform ? ` transform="${n.transform}"` : ''}${n.opacity !== undefined ? ` opacity="${n.opacity}"` : ''}${n.dash ? ` stroke-dasharray="${n.dash}"` : ''}${n.arrow ? ' marker-end="url(#vj-arrow)"' : ''}/>`;
 
-      return `<text x="${n.x}" y="${n.y}" font-size="${n.size}" font-weight="${n.weight ?? 400}" fill="${n.fill ?? PALETA.ink}" text-anchor="${n.anchor ?? 'start'}" font-family="${fam(n.serif)}"${n.italic ? ' font-style="italic"' : ''}${n.spacing ? ` letter-spacing="${n.spacing}"` : ''}>${esc(n.text)}</text>`;
+      return `<text x="${n.x}" y="${n.y}" font-size="${n.size}" font-weight="${n.weight ?? 400}" fill="${n.fill ?? PALETA.ink}" text-anchor="${n.anchor ?? 'start'}" font-family="${fam(n)}"${n.italic ? ' font-style="italic"' : ''}${n.spacing ? ` letter-spacing="${n.spacing}"` : ''}>${esc(n.text)}</text>`;
     })
     .join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${scene.w} ${scene.h}" width="${scene.w}" height="${scene.h}"><defs><marker id="vj-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="${PALETA.wine}"/></marker><filter id="vj-rough"><feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G"/></filter></defs><g${estilo === 'rascunho' ? ' filter="url(#vj-rough)"' : ''}>${body}</g></svg>`;

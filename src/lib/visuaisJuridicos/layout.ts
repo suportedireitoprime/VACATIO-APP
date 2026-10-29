@@ -38,6 +38,7 @@ export type SceneNode =
       serif?: boolean;
       spacing?: number;
       italic?: boolean;
+      font?: 'display' | 'serif' | 'sans';
     };
 
 export interface Scene {
@@ -54,7 +55,7 @@ const FOOTER_H = 112;
 /* ------------------------------------------------------------------ medida */
 
 let ctx: CanvasRenderingContext2D | null | undefined;
-function measure(text: string, size: number, weight = 400, serif = false): number {
+function measure(text: string, size: number, weight = 400, font: 'sans' | 'serif' | 'display' | boolean = 'sans'): number {
   if (ctx === undefined) {
     try {
       ctx = document.createElement('canvas').getContext('2d');
@@ -62,18 +63,28 @@ function measure(text: string, size: number, weight = 400, serif = false): numbe
       ctx = null;
     }
   }
-  if (!ctx) return text.length * size * 0.52;
-  ctx.font = `${weight} ${size}px ${serif ? 'Georgia, "Times New Roman", serif' : 'Inter, "Helvetica Neue", Arial, sans-serif'}`;
+  const isDisplay = font === 'display';
+  const isSerif = font === 'serif' || font === true;
+  if (!ctx) {
+    const factor = isDisplay ? 0.44 : isSerif ? 0.54 : 0.52;
+    return text.length * size * factor;
+  }
+  const fontFam = isDisplay
+    ? '"Bebas Neue", "Barlow Condensed", system-ui, sans-serif'
+    : isSerif
+    ? '"Playfair Display", Georgia, "Times New Roman", serif'
+    : '"Plus Jakarta Sans", "Barlow", Inter, system-ui, sans-serif';
+  ctx.font = `${weight} ${size}px ${fontFam}`;
   return ctx.measureText(text).width;
 }
 
-function wrap(text: string, maxW: number, size: number, weight = 400, serif = false): string[] {
+function wrap(text: string, maxW: number, size: number, weight = 400, font: 'sans' | 'serif' | 'display' | boolean = 'sans'): string[] {
   const words = text.split(/\s+/).filter(Boolean);
   const lines: string[] = [];
   let cur = '';
   for (const word of words) {
     const next = cur ? `${cur} ${word}` : word;
-    if (measure(next, size, weight, serif) <= maxW || !cur) {
+    if (measure(next, size, weight, font) <= maxW || !cur) {
       cur = next;
     } else {
       lines.push(cur);
@@ -148,96 +159,182 @@ function glifo(tipo: string, cx: number, cy: number, size: number, cor: string, 
 }
 
 
-/** Assinatura vetorial da marca — nunca depende de imagem externa. */
+/** Assinatura vetorial da marca — idêntica à identidade visual oficial do Vacatio. */
 function marca(rightX: number, baseY: number): SceneNode[] {
   const nodes: SceneNode[] = [];
-  const nome = 'VACATIO VADE MECUM';
-  const traco = '— Estudos Jurídicos';
-  const nomeW = measure(nome, 24, 700, true) + nome.length * 3.4;
-  const emblemaX = rightX - nomeW - 70;
-  const emblemaY = baseY - 40;
+  const brandNome = 'VACATIO';
+  const brandSub = 'VADE MECUM';
 
+  // Larguras calculadas com as fontes do design system
+  const textW = measure(brandNome, 28, 700, 'display') + brandNome.length * 3;
+  const subW = measure(brandSub, 11, 700, 'sans') + brandSub.length * 2.2;
+  const maxW = Math.max(textW, subW);
+
+  const emblemW = 34;
+  const gap = 12;
+  const totalBrandW = emblemW + gap + maxW;
+  const startX = rightX - totalBrandW;
+  const ex = startX;
+  const ey = baseY - 22;
+
+  // Escudo externo vinho sofisticado
   nodes.push({
     k: 'path',
-    d: 'M18 2 L34 8 V22 C34 32 27 39 18 42 C9 39 2 32 2 22 V8 Z',
-    transform: `translate(${emblemaX} ${emblemaY})`,
+    d: 'M17 2 L31 7 V20 C31 29 23 35.5 17 38 C11 35.5 3 29 3 20 V7 Z',
+    transform: `translate(${ex} ${ey})`,
     stroke: PALETA.wine,
-    sw: 2.4,
-    fill: 'none',
+    sw: 2.2,
+    fill: 'rgba(122, 18, 32, 0.06)',
   });
+  // Balança da justiça interna dourada refinada
   nodes.push({
     k: 'path',
-    d: 'M18 11 V33 M8 17 H28 M8 17 L4 26 H12 Z M28 17 L24 26 H32 Z',
-    transform: `translate(${emblemaX} ${emblemaY})`,
-    stroke: PALETA.wine,
-    sw: 1.8,
+    d: 'M17 10 V30 M8 16 H26 M8 16 L4 24 H12 Z M26 16 L22 24 H30 Z',
+    transform: `translate(${ex} ${ey})`,
+    stroke: PALETA.gold,
+    sw: 1.6,
     fill: 'none',
   });
+
+  const textX = startX + emblemW + gap;
+  // Nome VACATIO na tipografia Display oficial (Bebas Neue / Barlow Condensed)
   nodes.push({
-    k: 'text', x: rightX, y: baseY - 14, text: nome, size: 24, weight: 700,
-    fill: PALETA.wine, serif: true, spacing: 3.4, anchor: 'end',
+    k: 'text',
+    x: textX,
+    y: baseY,
+    text: brandNome,
+    size: 28,
+    weight: 700,
+    fill: PALETA.wine,
+    font: 'display',
+    spacing: 3.2,
+    anchor: 'start',
   });
+
+  // Subtítulo VADE MECUM com tracking refinado
   nodes.push({
-    k: 'text', x: rightX, y: baseY + 12, text: traco, size: 16,
-    fill: PALETA.inkSoft, italic: true, spacing: 1.2, anchor: 'end',
+    k: 'text',
+    x: textX,
+    y: baseY + 16,
+    text: brandSub,
+    size: 11,
+    weight: 700,
+    fill: PALETA.inkSoft,
+    font: 'sans',
+    spacing: 2.2,
+    anchor: 'start',
   });
+
   return nodes;
 }
 
+const TIPO_LABELS: Record<string, string> = {
+  mapa_mental: 'MAPA MENTAL',
+  infografico: 'INFOGRÁFICO',
+  fluxograma: 'FLUXOGRAMA',
+  diagrama: 'DIAGRAMA',
+};
 
 function header(titulo: string, subtitulo: string | undefined, tipo: string): Frame {
   const nodes: SceneNode[] = [];
-  const innerW = W - PAD * 2 - 230;
-  
-  // Ajuste dinâmico do tamanho do título para caber idealmente em até 2 linhas
-  let tSize = 44;
-  let tLines = wrap(titulo, innerW, tSize, 700, true);
-  for (const s of [40, 36, 32, 28]) {
-    if (tLines.length <= 2) break;
-    tSize = s;
-    tLines = wrap(titulo, innerW, tSize, 700, true);
+  const innerW = W - PAD * 2 - 140; // 848px de largura útil
+
+  // 1. Badge superior indicando o tipo de visual
+  const labelTipo = TIPO_LABELS[tipo] || tipo.replace(/_/g, ' ').toUpperCase();
+  const badgeTextW = measure(labelTipo, 12, 700, 'sans') + labelTipo.length * 2.2;
+  const pillW = Math.max(90, Math.round(badgeTextW + 28));
+  const badgeH = 26;
+  const badgeY = 32;
+
+  // Caixa da tag (pill dourada translúcida)
+  nodes.push({
+    k: 'rect',
+    x: PAD,
+    y: badgeY,
+    w: pillW,
+    h: badgeH,
+    r: 6,
+    fill: 'rgba(195, 154, 43, 0.18)',
+    stroke: PALETA.gold,
+    sw: 1.2,
+  });
+
+  // Texto da tag
+  nodes.push({
+    k: 'text',
+    x: PAD + pillW / 2,
+    y: badgeY + 17,
+    text: labelTipo,
+    size: 12,
+    weight: 700,
+    fill: PALETA.gold,
+    spacing: 2.2,
+    anchor: 'middle',
+    font: 'sans',
+  });
+
+  // 2. Título responsivo
+  // Ajuste inteligente da fonte para equilibrar títulos curtos e longos
+  let tSize = 36;
+  if (titulo.length > 70) {
+    tSize = 27;
+  } else if (titulo.length > 45) {
+    tSize = 31;
   }
 
-  const sLines = subtitulo ? wrap(subtitulo, innerW + 70, 21, 400) : [];
-  const tLineH = tSize + 8;
-  const h = Math.max(190, 52 + tLines.length * tLineH + (sLines.length ? sLines.length * 29 + 10 : 0) + 40);
+  let tLines = wrap(titulo, innerW, tSize, 700, 'serif');
+  for (const s of [32, 29, 27, 25, 23]) {
+    if (tLines.length <= 2 || tSize <= s) break;
+    tSize = s;
+    tLines = wrap(titulo, innerW, tSize, 700, 'serif');
+  }
 
-  nodes.push({ k: 'rect', x: 0, y: 0, w: W, h, fill: PALETA.wineDeep });
+  const sLines = subtitulo ? wrap(subtitulo, innerW + 40, 18, 400, 'sans') : [];
+  const tLineH = Math.round(tSize * 1.28);
+  const sLineH = 26;
+
+  const titleStartY = badgeY + badgeH + 18;
+  const subStartY = titleStartY + tLines.length * tLineH + 6;
+  const contentBottom = subStartY + (sLines.length ? sLines.length * sLineH : 0);
+  const h = Math.max(195, contentBottom + 32);
+
+  nodes.unshift({ k: 'rect', x: 0, y: 0, w: W, h, fill: PALETA.wineDeep });
   nodes.push({ k: 'rect', x: 0, y: h - 6, w: W, h: 6, fill: PALETA.gold });
 
-  // Marca d'água vazada do formato — grande, à direita, sangrando na borda.
-  nodes.push(...glifo(tipo, W - 118, h / 2 - 6, 236, PALETA.white, 0.2, tipo === 'mapa_mental' ? 7 : 3.4));
+  // Marca d'água vazada do formato — grande, à direita, sangrando na borda
+  nodes.push(...glifo(tipo, W - 118, h / 2 - 3, 220, PALETA.white, 0.18, tipo === 'mapa_mental' ? 7 : 3.4));
 
-  let y = 52 + tSize * 0.8;
+  let y = titleStartY + Math.round(tSize * 0.85);
   tLines.forEach((l) => {
-    nodes.push({ k: 'text', x: PAD, y, text: l, size: tSize, weight: 700, fill: PALETA.white, serif: true });
+    nodes.push({ k: 'text', x: PAD, y, text: l, size: tSize, weight: 700, fill: PALETA.white, font: 'serif' });
     y += tLineH;
   });
+
   if (sLines.length) {
-    y += 6;
+    let sy = subStartY + 15;
     sLines.forEach((l) => {
-      nodes.push({ k: 'text', x: PAD, y, text: l, size: 21, fill: 'rgba(255,255,255,0.78)' });
-      y += 29;
+      nodes.push({ k: 'text', x: PAD, y, text: l, size: 18, fill: 'rgba(255, 255, 255, 0.82)', font: 'sans' });
+      sy += sLineH;
     });
   }
 
   return {
     nodes,
-    top: h + 44,
+    top: h + 42,
     footer: (totalH) => [
       { k: 'rect', x: 0, y: totalH - FOOTER_H, w: W, h: FOOTER_H, fill: PALETA.paperAlt },
       { k: 'rect', x: 0, y: totalH - FOOTER_H, w: W, h: 2, fill: PALETA.line },
-      { k: 'rect', x: PAD, y: totalH - FOOTER_H + 26, w: W - PAD * 2, h: 1, fill: PALETA.line },
-      ...marca(W - PAD, totalH - 34),
+      { k: 'rect', x: PAD, y: totalH - FOOTER_H + 20, w: W - PAD * 2, h: 1, fill: PALETA.line },
+      ...marca(W - PAD, totalH - FOOTER_H + 60),
     ],
   };
 }
 
 function fonteLine(fonte: string, totalH: number): SceneNode[] {
   if (!fonte) return [];
-  const lines = wrap(`Fonte: ${fonte}`, W - PAD * 2 - 400, 17, 400);
+  const lines = wrap(`Fonte: ${fonte}`, W - PAD * 2 - 320, 16, 400);
   return lines.slice(0, 2).map((l, i) => ({
-    k: 'text' as const, x: PAD, y: totalH - FOOTER_H + 58 + i * 22, text: l, size: 17, fill: PALETA.inkSoft, italic: true,
+    k: 'text' as const, x: PAD, y: totalH - FOOTER_H + 58 + i * 20, text: l, size: 15, fill: PALETA.inkSoft, italic: true,
   }));
 }
 
