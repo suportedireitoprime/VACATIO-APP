@@ -243,6 +243,25 @@ body {
     pointer-events: none !important;
   }
 
+  html, body, #root {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  article, [data-selectable="true"], .selectable-text {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  button, a, input, select, textarea, [role="button"], .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Barlow', system-ui, sans-serif;

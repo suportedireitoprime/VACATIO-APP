@@ -1,17 +1,36 @@
 import { Capacitor } from '@capacitor/core';
 
 /**
- * Wrapper de vibração tátil. Silencioso na web / se o plugin falhar.
- * Uso: `haptic.light()` em toques, `haptic.success()` ao acertar, etc.
+ * Wrapper de vibração tátil nativa ultra-rápida.
+ * Pré-carrega o módulo uma única vez no boot nativo para disparo em 0ms (sem delay de Promise).
  */
-async function run(fn: (h: typeof import('@capacitor/haptics')) => Promise<unknown> | unknown) {
+let hapticsModule: typeof import('@capacitor/haptics') | null = null;
+let loadingPromise: Promise<typeof import('@capacitor/haptics') | null> | null = null;
+
+if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
+  loadingPromise = import('@capacitor/haptics')
+    .then((mod) => {
+      hapticsModule = mod;
+      return mod;
+    })
+    .catch(() => null);
+}
+
+function run(fn: (h: typeof import('@capacitor/haptics')) => Promise<unknown> | unknown) {
   if (!Capacitor.isNativePlatform()) return;
-  try {
-    const mod = await import('@capacitor/haptics');
-    await fn(mod);
-  } catch (e) {
-    // silencioso — haptics é enhancement, nunca deve quebrar UX
+  if (hapticsModule) {
+    try {
+      void fn(hapticsModule);
+    } catch {}
+    return;
   }
+  loadingPromise?.then((mod) => {
+    if (mod) {
+      try {
+        void fn(mod);
+      } catch {}
+    }
+  });
 }
 
 export const haptic = {
