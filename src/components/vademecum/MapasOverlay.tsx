@@ -376,7 +376,7 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
                         key={t}
                         disabled={!!gerando}
                         onClick={() => gerarVisual(t)}
-                        className="w-full flex items-center gap-4 px-4 h-[84px] rounded-2xl bg-secondary/40 border border-border/50 active:scale-[0.99] transition disabled:opacity-50"
+                        className="group w-full flex items-center gap-4 px-4 h-[84px] rounded-2xl bg-secondary/40 border border-border/50 hover:bg-secondary/70 active:scale-[0.99] transition disabled:opacity-50"
                       >
                         <div className="relative overflow-hidden rounded-xl shrink-0">
                           <Icon
@@ -396,7 +396,7 @@ export function MapasOverlay({ capituloGroups, leiNome, onClose }: MapasOverlayP
                         {isGerando ? (
                           <Loader2 className="w-5 h-5 animate-spin text-primary shrink-0" />
                         ) : (
-                          <Sparkles className="w-5 h-5 text-muted-foreground shrink-0" />
+                          <ChevronRight className="w-5 h-5 text-muted-foreground/70 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
                         )}
                       </button>
                     );

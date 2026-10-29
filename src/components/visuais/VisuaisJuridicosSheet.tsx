@@ -675,7 +675,7 @@ export default function VisuaisJuridicosSheet({ open, onClose, tipoInicial, modo
                                   PRONTO
                                 </span>
                               ) : categoria === 'jurisprudencia' ? (
-                                <Sparkles className="w-5 h-5 text-muted-foreground" />
+                                <ChevronRight className="w-5 h-5 text-muted-foreground" />
                               ) : (
                                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
                               )}
@@ -832,7 +832,7 @@ export default function VisuaisJuridicosSheet({ open, onClose, tipoInicial, modo
                                   ) : pronto ? (
                                     <span className="rounded-full bg-primary/15 px-2 py-0.5 font-display text-[10px] font-bold tracking-wider text-primary">PRONTO</span>
                                   ) : (
-                                    <Sparkles className="w-5 h-5 text-muted-foreground" />
+                                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
                                   )}
                                 </span>
                               </button>
@@ -875,7 +875,7 @@ export default function VisuaisJuridicosSheet({ open, onClose, tipoInicial, modo
                                   ) : pronto ? (
                                     <span className="rounded-full bg-primary/15 px-2 py-0.5 font-display text-[10px] font-bold tracking-wider text-primary">PRONTO</span>
                                   ) : (
-                                    <Sparkles className="w-5 h-5 text-muted-foreground" />
+                                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
                                   )}
                                 </span>
                               </button>
