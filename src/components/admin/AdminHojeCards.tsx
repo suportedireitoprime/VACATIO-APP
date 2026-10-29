@@ -226,9 +226,25 @@ export function AdminHojeCards() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 30_000);
-    return () => clearInterval(t);
-  }, [load]);
+    const t = setInterval(load, 20_000);
+
+    const channel = supabase
+      .channel('admin-hoje-cards-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trial_reminders' }, () => {
+        load();
+        if (open === 'trial') fetchRows('trial', dia);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_activity_log' }, () => {
+        load();
+        if (open === 'online5m' || open === 'online') fetchRows(open, dia);
+      })
+      .subscribe();
+
+    return () => {
+      clearInterval(t);
+      supabase.removeChannel(channel);
+    };
+  }, [load, open, dia, fetchRows]);
 
   const fetchRows = useCallback(async (id: CardId, date: Date) => {
     setLoading(true);

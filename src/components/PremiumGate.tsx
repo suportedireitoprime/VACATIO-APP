@@ -478,14 +478,26 @@ export default function PremiumGate({
                     <span>Teste gratuito de 3 dias já utilizado</span>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => setStep('detail')}
-                    className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-black font-extrabold text-sm sm:text-base tracking-wide shadow-[0_0_30px_rgba(251,191,36,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 group relative overflow-hidden"
-                  >
-                    <Flame className="w-5 h-5 text-black shrink-0 animate-bounce" />
-                    <span>Testar 3 dias gratuitos</span>
-                    <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-1 transition-transform" />
-                  </button>
+                  <div className="space-y-1.5">
+                    <button
+                      onClick={handleStartTrial}
+                      disabled={activating}
+                      className="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-black font-extrabold text-sm sm:text-base tracking-wide shadow-[0_0_30px_rgba(251,191,36,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 group relative overflow-hidden disabled:opacity-75"
+                    >
+                      <Flame className="w-5 h-5 text-black shrink-0 animate-bounce" />
+                      <span>{activating ? 'Ativando seu teste...' : 'Testar 3 dias gratuitos'}</span>
+                      <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-1 transition-transform" />
+                    </button>
+                    <div className="text-center">
+                      <button
+                        type="button"
+                        onClick={() => setStep('detail')}
+                        className="text-[11px] text-amber-300/80 hover:text-amber-300 underline underline-offset-2 transition"
+                      >
+                        Ver acervo e recursos do teste →
+                      </button>
+                    </div>
+                  </div>
                 )}
 
                 {/* BOTÃO 2: VER PLANOS */}
