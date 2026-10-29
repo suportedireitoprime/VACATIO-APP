@@ -83,33 +83,12 @@ export async function atualizarNotificacaoPlayback({
       return;
     }
 
-    // Se estiver tocando, agenda notificação contínua (ongoing) no estilo Spotify
-    if (tocando) {
-      const subtitulo = aula.tema ? `${aula.area} · ${aula.tema}` : (aula.area || 'Áudio Aula');
-
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            id: AUDIO_PLAYBACK_NOTIFICATION_ID,
-            title: `▶ ${aula.titulo}`,
-            body: `${subtitulo} · Toque para voltar à aula`,
-            ongoing: true, // Fixa na barra enquanto o áudio estiver tocando
-            autoCancel: false,
-            channelId: CHANNEL_ID,
-            smallIcon: 'ic_stat_icon_config_sample',
-            extra: {
-              url: `/audioaulas?play_id=${aula.id}`,
-              aulaId: aula.id,
-            },
-          },
-        ],
-      });
-    } else {
-      // Se pausou, atualiza para não-ongoing ou cancela se preferir
-      await LocalNotifications.cancel({
-        notifications: [{ id: AUDIO_PLAYBACK_NOTIFICATION_ID }],
-      }).catch(() => {});
-    }
+    // O Android/iOS gerencia a reprodução através do MediaSession Player Nativo (Quick Settings/Lockscreen).
+    // Notificações locais comuns competem com o Player nativo e criam uma notificação de texto simples.
+    // Por isso, sempre garantimos o cancelamento de qualquer notificação local residual.
+    await LocalNotifications.cancel({
+      notifications: [{ id: AUDIO_PLAYBACK_NOTIFICATION_ID }],
+    }).catch(() => {});
   } catch (err) {
     console.warn('[AudioNotification] Falha ao atualizar notificação nativa:', err);
   }

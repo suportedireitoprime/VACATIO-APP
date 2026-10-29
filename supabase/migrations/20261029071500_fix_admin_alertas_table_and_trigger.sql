@@ -57,3 +57,4 @@ DROP TRIGGER IF EXISTS trg_alerta_trial_reminders ON public.trial_reminders;
 CREATE TRIGGER trg_alerta_trial_reminders
   AFTER INSERT ON public.trial_reminders
   FOR EACH ROW EXECUTE FUNCTION public.enfileirar_alerta_trial_app();
+

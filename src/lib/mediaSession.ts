@@ -61,12 +61,12 @@ export function setupMediaSession({
   try {
     const artworkList = absArtwork
       ? [
-          { src: absArtwork, sizes: '96x96', type: 'image/webp' },
-          { src: absArtwork, sizes: '128x128', type: 'image/webp' },
-          { src: absArtwork, sizes: '192x192', type: 'image/webp' },
-          { src: absArtwork, sizes: '256x256', type: 'image/webp' },
-          { src: absArtwork, sizes: '384x384', type: 'image/webp' },
-          { src: absArtwork, sizes: '512x512', type: 'image/webp' },
+          { src: absArtwork, sizes: '96x96' },
+          { src: absArtwork, sizes: '128x128' },
+          { src: absArtwork, sizes: '192x192' },
+          { src: absArtwork, sizes: '256x256' },
+          { src: absArtwork, sizes: '384x384' },
+          { src: absArtwork, sizes: '512x512' },
         ]
       : [];
 
@@ -76,6 +76,13 @@ export function setupMediaSession({
       album: album ?? 'Vacatio Áudio',
       artwork: artworkList,
     });
+
+    // Inicializa o estado do player nativo imediatamente
+    try {
+      ms.playbackState = audio.paused ? 'paused' : 'playing';
+    } catch {
+      /* ignore */
+    }
 
     const safeSetAction = (action: MediaSessionAction, handler: MediaSessionActionHandler | null) => {
       try {

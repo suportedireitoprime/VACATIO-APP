@@ -304,8 +304,16 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
     };
   }, [atual, atualIdx, fila]);
 
-  // Notificação persistente de reprodução nativa (estilo Spotify) no Capacitor
+  // Sincroniza estado de reprodução no MediaSession nativo (Player da barra de status e tela de bloqueio)
   useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.playbackState = tocando ? 'playing' : 'paused';
+      } catch {
+        /* ignore */
+      }
+    }
+    // Garante a limpeza de qualquer notificação local residual
     void atualizarNotificacaoPlayback({
       aula: atual,
       tocando,
