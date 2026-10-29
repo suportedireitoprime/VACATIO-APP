@@ -36,7 +36,11 @@ const Onboarding = () => {
     setSaving(true);
 
     // Marca imediatamente no cache local e emite evento para destravar o app
-    try { localStorage.setItem(`onboarding_completed:${user.id}`, '1'); } catch {}
+    try {
+      localStorage.setItem(`onboarding_completed:${user.id}`, '1');
+      localStorage.setItem(`triagem_concluida:${user.id}`, '1');
+      localStorage.removeItem('pending_triagem_respostas');
+    } catch {}
     try { window.sessionStorage.removeItem('just_signed_up'); } catch {}
     window.dispatchEvent(new CustomEvent('onboarding_completed'));
 
@@ -51,6 +55,7 @@ const Onboarding = () => {
         interesses: r.dorId ? [r.dorId] : (r.interesses || []),
         whatsapp_number: r.whatsapp || null,
         desktop_onboarding_done_at: new Date().toISOString(),
+        onboarding_completed_at: new Date().toISOString(),
       };
 
       // Salva no Supabase com timeout de segurança de 3.5s para nunca travar a tela

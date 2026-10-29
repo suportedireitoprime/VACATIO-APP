@@ -356,16 +356,31 @@ function ProtectedRoute({ children, requireOnboarding = true }: { children: Reac
         let done = false;
         let ok = false;
         for (let i = 0; i < 3; i++) {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('status_perfil, desktop_onboarding_done_at')
-            .eq('id', user.id)
-            .maybeSingle();
+          const [{ data: prof, error: errProf }, { data: triagem, error: errTriagem }] = await Promise.all([
+            supabase
+              .from('profiles')
+              .select('status_perfil, categoria_perfil, desktop_onboarding_done_at, onboarding_completed_at')
+              .eq('id', user.id)
+              .maybeSingle(),
+            supabase
+              .from('triagem_respostas' as any)
+              .select('id')
+              .eq('user_id', user.id)
+              .limit(1)
+              .maybeSingle(),
+          ]);
           if (cancelled) return;
-          if (error) break;
+          if (errProf && errTriagem) break;
           ok = true;
-          if (data) {
-            done = !!(data.desktop_onboarding_done_at || data.status_perfil);
+          const temPerfil = !!(
+            prof?.onboarding_completed_at ||
+            prof?.desktop_onboarding_done_at ||
+            prof?.status_perfil ||
+            prof?.categoria_perfil
+          );
+          const temTriagem = !!triagem?.id;
+          if (temPerfil || temTriagem) {
+            done = true;
             break;
           }
           await new Promise((r) => setTimeout(r, 400));

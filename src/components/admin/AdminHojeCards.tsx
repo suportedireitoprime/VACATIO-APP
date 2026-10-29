@@ -142,6 +142,85 @@ export function AdminHojeCards() {
   const [provRows, setProvRows] = useState<Row[]>([]);
   const [provLoading, setProvLoading] = useState(false);
 
+  const fetchRows = useCallback(async (id: CardId, date: Date) => {
+    setLoading(true);
+    setRows([]);
+    try {
+      let rawList: any[] = [];
+      if (id === 'online5m') {
+        const now = new Date();
+        const limitDate = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
+        const futureLimit = new Date(now.getTime() + 60 * 1000).toISOString();
+        const { data } = await supabase.from('user_activity_log')
+          .select('*')
+          .gte('last_seen_at', limitDate)
+          .lte('last_seen_at', futureLimit)
+          .order('last_seen_at', { ascending: false });
+
+        const nowMs = now.getTime();
+        const fiveMinMs = 5 * 60 * 1000;
+        const validRows = ((data as any[]) || []).filter((r) => {
+          if (!r.last_seen_at) return false;
+          const t = new Date(r.last_seen_at).getTime();
+          return t >= (nowMs - fiveMinMs) && t <= (nowMs + 60 * 1000);
+        });
+
+        rawList = validRows.map((r: any) => ({
+          key: r.user_id,
+          userId: r.user_id,
+          title: r.display_name || 'Usuário',
+          email: r.email || null,
+          subtitle: rotaParaFuncao(r.current_route).label,
+          meta: tempoAtras(r.last_seen_at),
+          acessos: typeof r.acessos_hoje === 'number' ? r.acessos_hoje : 1,
+          minutos_dia: r.segundos_hoje ? Math.max(1, Math.round(r.segundos_hoje / 60)) : 1,
+        }));
+      } else {
+        const { data } = await supabase.rpc('admin_lista_dia' as any, { _tipo: id, _dia: isoDate(date) });
+        rawList = ((data as any[]) || []).map((r) => ({
+          key: r.key,
+          userId: r.user_id,
+          title: r.title || 'Usuário',
+          email: r.email || null,
+          subtitle: id === 'online' ? rotaParaFuncao(r.subtitle).label : r.subtitle,
+          meta: hora(r.at),
+          acessos: typeof r.acessos === 'number' ? r.acessos : null,
+          avatar_url: r.avatar_url || null,
+          minutos_dia: typeof r.minutos_dia === 'number' ? r.minutos_dia : null,
+        }));
+      }
+      
+      const list = rawList;
+      setRows(list);
+      if (sameDay(date, new Date())) {
+        const seen = readSeen(id, date);
+        const anteriores = new Set(seen.keys);
+        const novos = seen.keys.length === 0 ? new Set<string>() : new Set(list.filter((r) => !anteriores.has(r.key)).map((r) => r.key));
+        setNovosKeys(novos);
+        writeSeen(id, date, { count: list.length, keys: list.map((r) => r.key) });
+        setSeenCounts((c) => ({ ...c, [id]: list.length }));
+      } else {
+        setNovosKeys(new Set());
+      }
+      const ids = Array.from(new Set(list.map((r) => r.userId).filter(Boolean))) as string[];
+      if (ids.length) {
+        const [{ data: provs }, { data: profiles }] = await Promise.all([
+          supabase.rpc('admin_user_auth_providers' as any, { _ids: ids }),
+          supabase.from('profiles' as any).select('id, avatar_url').in('id', ids)
+        ]);
+        const map = new Map<string, string>(((provs as any[]) || []).map((p) => [p.user_id, p.provider]));
+        const avatarMap = new Map<string, string>(((profiles as any[]) || []).map((p) => [p.id, p.avatar_url]));
+        setRows((current) => current.map((r) => ({ 
+          ...r, 
+          provider: map.get(r.userId || r.key) || r.provider,
+          avatar_url: r.avatar_url || avatarMap.get(r.userId || r.key) || null
+        })));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const abrirProvider = useCallback(
     async (p: string) => {
       setProvOpen(p);
@@ -226,84 +305,7 @@ export function AdminHojeCards() {
 
 
 
-  const fetchRows = useCallback(async (id: CardId, date: Date) => {
-    setLoading(true);
-    setRows([]);
-    try {
-      let rawList: any[] = [];
-      if (id === 'online5m') {
-        const now = new Date();
-        const limitDate = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
-        const futureLimit = new Date(now.getTime() + 60 * 1000).toISOString();
-        const { data } = await supabase.from('user_activity_log')
-          .select('*')
-          .gte('last_seen_at', limitDate)
-          .lte('last_seen_at', futureLimit)
-          .order('last_seen_at', { ascending: false });
 
-        const nowMs = now.getTime();
-        const fiveMinMs = 5 * 60 * 1000;
-        const validRows = ((data as any[]) || []).filter((r) => {
-          if (!r.last_seen_at) return false;
-          const t = new Date(r.last_seen_at).getTime();
-          return t >= (nowMs - fiveMinMs) && t <= (nowMs + 60 * 1000);
-        });
-
-        rawList = validRows.map((r: any) => ({
-          key: r.user_id,
-          userId: r.user_id,
-          title: r.display_name || 'Usuário',
-          email: r.email || null,
-          subtitle: rotaParaFuncao(r.current_route).label,
-          meta: tempoAtras(r.last_seen_at),
-          acessos: typeof r.acessos_hoje === 'number' ? r.acessos_hoje : 1,
-          minutos_dia: r.segundos_hoje ? Math.max(1, Math.round(r.segundos_hoje / 60)) : 1,
-        }));
-      } else {
-        const { data } = await supabase.rpc('admin_lista_dia' as any, { _tipo: id, _dia: isoDate(date) });
-        rawList = ((data as any[]) || []).map((r) => ({
-          key: r.key,
-          userId: r.user_id,
-          title: r.title || 'Usuário',
-          email: r.email || null,
-          subtitle: id === 'online' ? rotaParaFuncao(r.subtitle).label : r.subtitle,
-          meta: hora(r.at),
-          acessos: typeof r.acessos === 'number' ? r.acessos : null,
-          avatar_url: r.avatar_url || null,
-          minutos_dia: typeof r.minutos_dia === 'number' ? r.minutos_dia : null,
-        }));
-      }
-      
-      const list = rawList;
-      setRows(list);
-      if (sameDay(date, new Date())) {
-        const seen = readSeen(id, date);
-        const anteriores = new Set(seen.keys);
-        const novos = seen.keys.length === 0 ? new Set<string>() : new Set(list.filter((r) => !anteriores.has(r.key)).map((r) => r.key));
-        setNovosKeys(novos);
-        writeSeen(id, date, { count: list.length, keys: list.map((r) => r.key) });
-        setSeenCounts((c) => ({ ...c, [id]: list.length }));
-      } else {
-        setNovosKeys(new Set());
-      }
-      const ids = Array.from(new Set(list.map((r) => r.userId).filter(Boolean))) as string[];
-      if (ids.length) {
-        const [{ data: provs }, { data: profiles }] = await Promise.all([
-          supabase.rpc('admin_user_auth_providers' as any, { _ids: ids }),
-          supabase.from('profiles' as any).select('id, avatar_url').in('id', ids)
-        ]);
-        const map = new Map<string, string>(((provs as any[]) || []).map((p) => [p.user_id, p.provider]));
-        const avatarMap = new Map<string, string>(((profiles as any[]) || []).map((p) => [p.id, p.avatar_url]));
-        setRows((current) => current.map((r) => ({ 
-          ...r, 
-          provider: map.get(r.userId || r.key) || r.provider,
-          avatar_url: r.avatar_url || avatarMap.get(r.userId || r.key) || null
-        })));
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
     load();
