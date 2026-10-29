@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateOmniText } from '@/lib/omniRouteClient';
-import { toast } from 'sonner';
 
 // Fallbacks caso não exista o diretório em vacatio app
 import hero1 from '@/assets/aprender-hero/hero-1.webp';
@@ -17,6 +16,14 @@ import hero6 from '@/assets/aprender-hero/hero-6.webp';
 
 const HERO_ILLUSTRATIONS = [hero1, hero2, hero3, hero4, hero5, hero6];
 const OFFSETS = [0, 56, 84, 56, 0, -56, -84, -56];
+
+const PASSOS_GERACAO_QUESTOES = [
+  'Lendo caput, parágrafos e incisos do dispositivo',
+  'Identificando conceitos-chave e regras de aplicação',
+  'Estruturando 10 questões (conceito, sim/não e casos práticos)',
+  'Elaborando pegadinhas e alternativas plausíveis',
+  'Finalizando gabarito e comentários fundamentados',
+];
 
 import { formatCapituloDisplay } from '@/lib/capituloFormat';
 
@@ -55,11 +62,11 @@ interface QuestoesOverlayProps {
 }
 
 const TIPO_BADGES: Record<string, { label: string; cor: string }> = {
-  definicao: { label: 'Conceito & Definição', cor: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
-  caso_pratico: { label: 'Caso Prático', cor: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
-  sim_ou_nao: { label: 'Sim ou Não', cor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
-  requisitos: { label: 'Requisitos & Elementos', cor: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
-  pegadinha: { label: 'Ponto de Atenção', cor: 'bg-rose-500/20 text-rose-300 border-rose-500/30' },
+  definicao: { label: 'Conceito & Definição', cor: 'bg-amber-500/15 text-amber-300 border-amber-500/30' },
+  caso_pratico: { label: 'Caso Prático', cor: 'bg-purple-500/15 text-purple-300 border-purple-500/30' },
+  sim_ou_nao: { label: 'Sim ou Não', cor: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' },
+  requisitos: { label: 'Requisitos & Elementos', cor: 'bg-blue-500/15 text-blue-300 border-blue-500/30' },
+  pegadinha: { label: 'Ponto de Atenção', cor: 'bg-rose-500/15 text-rose-300 border-rose-500/30' },
 };
 
 function extrairTextoCompleto(artigo: any, numLimpo: string): string {
@@ -307,20 +314,36 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
   const [selectedCapitulo, setSelectedCapitulo] = useState<CapGroup | null>(null);
   const [selectedArtigo, setSelectedArtigo] = useState<ArtigoType | null>(null);
   const [gerando, setGerando] = useState(false);
+  const [passoGeracao, setPassoGeracao] = useState(0);
   const [pacoteAtivo, setPacoteAtivo] = useState<QuestoesPacote | null>(null);
   
   // Estado da sessão de questões em andamento
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [escolhaUsuario, setEscolhaUsuario] = useState<string | null>(null);
+  const [escolhaTemporaria, setEscolhaTemporaria] = useState<string | null>(null);
+  const [confirmado, setConfirmado] = useState(false);
   const [respostas, setRespostas] = useState<Record<number, string>>({});
   const [finalizado, setFinalizado] = useState(false);
 
+  // Rotação dos heros
   useEffect(() => {
     const id = setInterval(() => {
       setHeroIdx((i) => (i + 1) % HERO_ILLUSTRATIONS.length);
     }, 4500);
     return () => clearInterval(id);
   }, []);
+
+  // Animação de checklist enquanto gera
+  useEffect(() => {
+    if (!gerando) {
+      setPassoGeracao(0);
+      return;
+    }
+    setPassoGeracao(0);
+    const timer = setInterval(() => {
+      setPassoGeracao(prev => (prev < PASSOS_GERACAO_QUESTOES.length - 1 ? prev + 1 : prev));
+    }, 1800);
+    return () => clearInterval(timer);
+  }, [gerando]);
 
   const allCapitulos = useMemo(() => {
     return capituloGroups.flatMap(t => t.capitulos.map(c => ({ ...c, titulo: t.titulo }))).filter(c => c.artigos.length > 0);
@@ -332,7 +355,8 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
   const abrirQuestoesArtigo = async (artigo: ArtigoType) => {
     setSelectedArtigo(artigo);
     setCurrentIdx(0);
-    setEscolhaUsuario(null);
+    setEscolhaTemporaria(null);
+    setConfirmado(false);
     setRespostas({});
     setFinalizado(false);
 
@@ -415,23 +439,28 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
     }
   };
 
-  // Se o pacote de questões estiver ativo, renderiza o Quiz Runner completo
+  // Se o pacote de questões estiver ativo, renderiza o Quiz Runner completo em fundo CINZA sofisticado
   if (pacoteAtivo && selectedArtigo) {
     const qAtual = pacoteAtivo.questoes[currentIdx];
-    const respondeu = escolhaUsuario !== null;
-    const acertou = respondeu && escolhaUsuario === qAtual?.gabarito;
+    const acertou = confirmado && escolhaTemporaria === qAtual?.gabarito;
     const acertosTotais = pacoteAtivo.questoes.reduce((acc, q, i) => acc + (respostas[i] === q.gabarito ? 1 : 0), 0);
 
-    const handleSelecionar = (letra: string) => {
-      if (respondeu) return;
-      setEscolhaUsuario(letra);
-      setRespostas(prev => ({ ...prev, [currentIdx]: letra }));
+    const handleSelecionarAlternativa = (letra: string) => {
+      if (confirmado) return;
+      setEscolhaTemporaria(letra);
     };
 
-    const handleProxima = () => {
+    const handleConfirmarResposta = () => {
+      if (escolhaTemporaria === null) return;
+      setConfirmado(true);
+      setRespostas(prev => ({ ...prev, [currentIdx]: escolhaTemporaria }));
+    };
+
+    const handleAvancarProxima = () => {
       if (currentIdx < pacoteAtivo.questoes.length - 1) {
         setCurrentIdx(i => i + 1);
-        setEscolhaUsuario(null);
+        setEscolhaTemporaria(null);
+        setConfirmado(false);
       } else {
         setFinalizado(true);
       }
@@ -439,55 +468,51 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
 
     const handleReiniciar = () => {
       setCurrentIdx(0);
-      setEscolhaUsuario(null);
+      setEscolhaTemporaria(null);
+      setConfirmado(false);
       setRespostas({});
       setFinalizado(false);
     };
 
-    const badgeInfo = qAtual ? (TIPO_BADGES[qAtual.tipo] || { label: 'Questão', cor: 'bg-amber-500/20 text-amber-300 border-amber-500/30' }) : null;
+    const badgeInfo = qAtual ? (TIPO_BADGES[qAtual.tipo] || { label: 'Questão', cor: 'bg-zinc-800 text-zinc-300 border-zinc-700' }) : null;
 
     return (
       <div 
-        className="flex flex-col h-full bg-background relative w-full overflow-hidden text-white"
-        style={{ background: 'linear-gradient(180deg, hsl(45 90% 40%) 0%, hsl(45 95% 45%) 40%, hsl(45 85% 35%) 100%)' }}
+        className="flex flex-col h-full bg-[#121214] relative w-full overflow-hidden text-white font-body"
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.18),transparent_60%)]" />
-
-        {/* Top Header */}
+        {/* Top Header em cinza escuro */}
         <div 
-          className="flex items-center gap-3 px-4 pb-3 border-b border-white/10 relative z-20 shrink-0"
+          className="flex items-center gap-3 px-4 pb-3 border-b border-white/10 bg-[#18181b] relative z-20 shrink-0"
           style={{ paddingTop: 'calc(var(--sai-top, env(safe-area-inset-top, 0px)) + 14px)' }}
         >
           <button 
             onClick={() => { setPacoteAtivo(null); setSelectedArtigo(null); }}
-            className="w-10 h-10 rounded-full bg-black/30 border border-white/20 backdrop-blur-md flex items-center justify-center hover:bg-black/50 active:scale-95 transition-all shadow-sm shrink-0"
+            className="w-10 h-10 rounded-full bg-zinc-800/80 border border-white/15 flex items-center justify-center hover:bg-zinc-700 active:scale-95 transition-all shadow-sm shrink-0"
           >
-            <ArrowLeft className="w-5 h-5 text-white drop-shadow-md" />
+            <ArrowLeft className="w-5 h-5 text-zinc-200" />
           </button>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-display font-bold text-lg text-white truncate drop-shadow-md">
-                Art. {pacoteAtivo.artigoNumero} · {leiNome}
-              </span>
-            </div>
-            <p className="text-xs text-white/80 truncate font-body">
+            <h2 className="font-display font-bold text-lg text-white truncate">
+              Art. {pacoteAtivo.artigoNumero} · {leiNome}
+            </h2>
+            <p className="text-xs text-zinc-400 truncate">
               {finalizado ? 'Sessão concluída' : `Questão ${currentIdx + 1} de ${pacoteAtivo.questoes.length}`}
             </p>
           </div>
         </div>
 
         {/* Barra de Progresso Superior */}
-        <div className="w-full bg-black/40 h-1.5 shrink-0 relative z-20 overflow-hidden">
+        <div className="w-full bg-zinc-900 h-1.5 shrink-0 relative z-20 overflow-hidden">
           <div 
-            className="h-full bg-gradient-to-r from-amber-300 to-yellow-200 transition-all duration-300"
-            style={{ width: `${((currentIdx + (respondeu ? 1 : 0)) / pacoteAtivo.questoes.length) * 100}%` }}
+            className="h-full bg-gradient-to-r from-amber-400 to-yellow-300 transition-all duration-300"
+            style={{ width: `${((currentIdx + (confirmado ? 1 : 0)) / pacoteAtivo.questoes.length) * 100}%` }}
           />
         </div>
 
-        {/* Conteúdo Principal do Quiz */}
+        {/* Conteúdo Principal das Questões */}
         <div 
           className="flex-1 overflow-y-auto p-4 sm:p-6 relative z-10"
-          style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 24px)' }}
+          style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 120px)' }}
         >
           {finalizado ? (
             <motion.div 
@@ -495,19 +520,19 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
               animate={{ scale: 1, opacity: 1 }}
               className="max-w-md mx-auto my-auto text-center py-8 space-y-6"
             >
-              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center shadow-2xl border-4 border-white/40">
-                <Trophy className="w-12 h-12 text-amber-950" />
+              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-2xl border-4 border-amber-300/30">
+                <Trophy className="w-12 h-12 text-black" />
               </div>
 
               <div>
-                <span className="text-xs uppercase tracking-widest font-bold text-white/70">Resultado do Treino</span>
+                <span className="text-xs uppercase tracking-widest font-bold text-zinc-400">Resultado do Treino</span>
                 <h3 className="text-4xl font-display font-black text-white mt-1">
                   {acertosTotais} / {pacoteAtivo.questoes.length}
                 </h3>
-                <p className="text-sm text-white/90 font-medium mt-1">
+                <p className="text-sm text-amber-400 font-semibold mt-1">
                   {Math.round((acertosTotais / pacoteAtivo.questoes.length) * 100)}% de aproveitamento
                 </p>
-                <p className="text-xs text-white/70 mt-2 max-w-xs mx-auto">
+                <p className="text-xs text-zinc-400 mt-2 max-w-xs mx-auto leading-relaxed">
                   {acertosTotais >= 8 
                     ? 'Excelente! Você dominou o preceito normativo, as exceções e a aplicação prática deste artigo.'
                     : acertosTotais >= 5 
@@ -519,13 +544,13 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
               <div className="flex flex-col gap-3 pt-2">
                 <button
                   onClick={handleReiniciar}
-                  className="w-full h-12 rounded-2xl bg-white text-amber-950 font-display font-bold text-base flex items-center justify-center gap-2 shadow-lg hover:bg-white/90 active:scale-98 transition"
+                  className="w-full h-12 rounded-2xl bg-amber-400 hover:bg-amber-300 text-black font-display font-bold text-base flex items-center justify-center gap-2 shadow-lg active:scale-98 transition"
                 >
                   <RotateCcw className="w-4 h-4" /> Refazer Treino
                 </button>
                 <button
                   onClick={() => { setPacoteAtivo(null); setSelectedArtigo(null); }}
-                  className="w-full h-12 rounded-2xl bg-black/30 border border-white/20 text-white font-display font-bold text-base flex items-center justify-center gap-2 hover:bg-black/40 active:scale-98 transition"
+                  className="w-full h-12 rounded-2xl bg-zinc-800 border border-white/10 text-zinc-200 font-display font-bold text-base flex items-center justify-center gap-2 hover:bg-zinc-700 active:scale-98 transition"
                 >
                   <ArrowLeft className="w-4 h-4" /> Voltar para a Trilha
                 </button>
@@ -536,56 +561,61 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
               {/* Badges de Categoria e Dispositivo */}
               <div className="flex items-center gap-2 flex-wrap">
                 {badgeInfo && (
-                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border backdrop-blur-md uppercase tracking-wider ${badgeInfo.cor}`}>
+                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border uppercase tracking-wider ${badgeInfo.cor}`}>
                     {badgeInfo.label}
                   </span>
                 )}
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-black/40 text-white/90 border border-white/10 uppercase tracking-wider">
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-zinc-800 text-zinc-300 border border-white/10 uppercase tracking-wider">
                   Dispositivo: {qAtual.dispositivo}
                 </span>
               </div>
 
-              {/* Card do Enunciado */}
-              <div className="rounded-2xl bg-black/40 backdrop-blur-md border border-white/15 p-4 sm:p-5 shadow-xl">
-                <p className="text-[15px] sm:text-[16px] text-white leading-relaxed font-body font-medium select-text">
+              {/* Card do Enunciado em Cinza Escuro */}
+              <div className="rounded-2xl bg-[#1c1c20] border border-white/10 p-5 shadow-xl">
+                <p className="text-[15.5px] sm:text-[16.5px] text-zinc-100 leading-relaxed font-body font-medium select-text">
                   {qAtual.enunciado}
                 </p>
               </div>
 
-              {/* Lista de Alternativas */}
+              {/* Lista de Alternativas em Cinza (antes de responder) */}
               <div className="space-y-2.5 pt-1">
                 {qAtual.alternativas.map((alt) => {
-                  const isSelecionada = escolhaUsuario === alt.letra;
+                  const isSelecionada = escolhaTemporaria === alt.letra;
                   const isCorreta = alt.letra === qAtual.gabarito;
                   
-                  let estadoEstilo = 'bg-black/25 border-white/15 text-white hover:bg-black/40 hover:border-white/30';
-                  if (respondeu) {
+                  let estadoEstilo = 'bg-[#18181b] border-white/10 text-zinc-200 hover:border-white/20 hover:bg-[#202025]';
+                  let badgeEstilo = 'bg-zinc-800 border-zinc-700 text-zinc-300';
+
+                  if (!confirmado) {
+                    if (isSelecionada) {
+                      // Usuário selecionou mas ainda NÃO confirmou (apenas destaca a seleção)
+                      estadoEstilo = 'bg-amber-500/10 border-amber-400 text-white ring-1 ring-amber-400/50 shadow-md';
+                      badgeEstilo = 'bg-amber-400 border-amber-400 text-black font-black';
+                    }
+                  } else {
+                    // Já confirmou: revela acerto e erro
                     if (isCorreta) {
-                      estadoEstilo = 'bg-emerald-600/90 border-emerald-300 text-white shadow-lg ring-2 ring-emerald-300';
+                      estadoEstilo = 'bg-emerald-950/80 border-emerald-400 text-white ring-2 ring-emerald-400/60 shadow-lg';
+                      badgeEstilo = 'bg-emerald-500 border-emerald-400 text-white';
                     } else if (isSelecionada) {
-                      estadoEstilo = 'bg-rose-600/90 border-rose-300 text-white shadow-lg ring-2 ring-rose-300';
+                      estadoEstilo = 'bg-rose-950/80 border-rose-400 text-white ring-2 ring-rose-400/60 shadow-lg';
+                      badgeEstilo = 'bg-rose-500 border-rose-400 text-white';
                     } else {
-                      estadoEstilo = 'bg-black/20 border-white/10 text-white/50 opacity-60';
+                      estadoEstilo = 'bg-[#18181b]/40 border-white/5 text-zinc-500 opacity-50';
                     }
                   }
 
                   return (
                     <button
                       key={alt.letra}
-                      disabled={respondeu}
-                      onClick={() => handleSelecionar(alt.letra)}
+                      disabled={confirmado}
+                      onClick={() => handleSelecionarAlternativa(alt.letra)}
                       className={`w-full text-left p-3.5 sm:p-4 rounded-2xl border transition-all flex items-start gap-3 active:scale-[0.99] ${estadoEstilo}`}
                     >
-                      <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-display font-black text-sm border ${
-                        respondeu && isCorreta
-                          ? 'bg-emerald-500 border-white text-white'
-                          : respondeu && isSelecionada
-                          ? 'bg-rose-500 border-white text-white'
-                          : 'bg-white/15 border-white/20 text-white'
-                      }`}>
-                        {respondeu && isCorreta ? (
+                      <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-display font-black text-sm border ${badgeEstilo}`}>
+                        {confirmado && isCorreta ? (
                           <Check className="w-4 h-4 stroke-[3]" />
-                        ) : respondeu && isSelecionada ? (
+                        ) : confirmado && isSelecionada ? (
                           <X className="w-4 h-4 stroke-[3]" />
                         ) : (
                           alt.letra
@@ -598,56 +628,102 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
                   );
                 })}
               </div>
-
-              {/* Justificativa e Feedback após responder */}
-              <AnimatePresence>
-                {respondeu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className={`rounded-2xl p-4 sm:p-5 border backdrop-blur-md shadow-xl ${
-                      acertou 
-                        ? 'bg-emerald-950/70 border-emerald-500/40' 
-                        : 'bg-black/60 border-amber-500/30'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      {acertou ? (
-                        <>
-                          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                          <span className="font-display font-bold text-sm text-emerald-300 uppercase tracking-wide">
-                            Resposta Correta!
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
-                          <span className="font-display font-bold text-sm text-rose-300 uppercase tracking-wide">
-                            Gabarito: Alternativa {qAtual.gabarito}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    
-                    <div className="text-[13px] sm:text-[13.5px] text-white/90 leading-relaxed font-body mt-2 border-t border-white/10 pt-2 flex items-start gap-2">
-                      <Lightbulb className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
-                      <span>{qAtual.comentario}</span>
-                    </div>
-
-                    <button
-                      onClick={handleProxima}
-                      className="mt-4 w-full h-12 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 font-display font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-98 transition"
-                    >
-                      {currentIdx < pacoteAtivo.questoes.length - 1 ? 'Próxima Questão' : 'Ver Resultado Final'}
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           ) : null}
         </div>
+
+        {/* 1. Rodapé que sobe quando uma opção é selecionada (Botão RESPONDER) */}
+        <AnimatePresence>
+          {escolhaTemporaria !== null && !confirmado && !finalizado && (
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+              className="absolute inset-x-0 bottom-0 z-40 bg-[#18181b]/95 border-t border-white/10 p-4 shadow-2xl backdrop-blur-lg"
+              style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 14px)' }}
+            >
+              <div className="max-w-xl mx-auto flex items-center justify-between gap-4">
+                <div className="text-xs text-zinc-400 font-medium">
+                  Alternativa <span className="font-bold text-amber-400">{escolhaTemporaria}</span> selecionada
+                </div>
+                <button
+                  onClick={handleConfirmarResposta}
+                  className="px-6 h-12 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-amber-950 font-display font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+                >
+                  <span>Responder</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 2. Sheet de Feedback e Comentário que sobe de baixo para cima */}
+        <AnimatePresence>
+          {confirmado && qAtual && (
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 240 }}
+              className={`absolute inset-x-0 bottom-0 z-50 border-t p-5 sm:p-6 shadow-2xl backdrop-blur-xl ${
+                acertou 
+                  ? 'bg-[#062013]/98 border-emerald-500/40 text-emerald-100' 
+                  : 'bg-[#240a0e]/98 border-rose-500/40 text-rose-100'
+              }`}
+              style={{ paddingBottom: 'calc(var(--sai-bottom, env(safe-area-inset-bottom, 0px)) + 18px)' }}
+            >
+              <div className="max-w-xl mx-auto space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    {acertou ? (
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-rose-500/20 border border-rose-400/40 flex items-center justify-center shrink-0">
+                        <XCircle className="w-6 h-6 text-rose-400" />
+                      </div>
+                    )}
+                    <div>
+                      <h4 className="font-display font-black text-lg uppercase tracking-wide">
+                        {acertou ? 'Excelente! Você acertou!' : 'Resposta Incorreta'}
+                      </h4>
+                      {!acertou && (
+                        <p className="text-xs text-rose-300 font-semibold mt-0.5">
+                          Gabarito oficial: Alternativa {qAtual.gabarito}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comentário fundamentado */}
+                <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 text-xs sm:text-[13.5px] leading-relaxed text-zinc-200">
+                  <div className="flex items-center gap-1.5 text-amber-300 font-bold mb-1 text-xs">
+                    <Lightbulb className="w-3.5 h-3.5" />
+                    <span>Fundamentação & Comentário:</span>
+                  </div>
+                  <p>{qAtual.comentario}</p>
+                </div>
+
+                {/* Botão para continuar */}
+                <button
+                  onClick={handleAvancarProxima}
+                  className={`w-full h-12 rounded-xl font-display font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-98 transition ${
+                    acertou
+                      ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
+                      : 'bg-rose-500 hover:bg-rose-400 text-white'
+                  }`}
+                >
+                  <span>{currentIdx < pacoteAtivo.questoes.length - 1 ? 'Continuar' : 'Ver Resultado Final'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -683,7 +759,7 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
           </div>
         </div>
         
-        {/* Lista Sinuosa (Trilha estilo Duolingo amarela com botões Target) */}
+        {/* Lista Sinuosa (Trilha estilo Duolingo amarela com botões Target amarelos) */}
         <div 
           className="flex-1 overflow-y-auto p-4 relative z-10"
           style={{ paddingBottom: 'calc(8rem + var(--sai-bottom, env(safe-area-inset-bottom, 0px)))' }}
@@ -707,7 +783,7 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
                     </div>
                   </div>
 
-                  {/* Botão circular tátil com o ícone oficial de Questões (Target) */}
+                  {/* Botão circular amarelo tátil com o ícone oficial de Questões (Target) branco */}
                   <button
                     disabled={gerando}
                     onClick={() => abrirQuestoesArtigo(artigo)}
@@ -729,29 +805,75 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
           </ul>
         </div>
 
-        {/* Modal / Overlay de Carregamento durante a geração de questões com IA */}
+        {/* Modal / Overlay de Carregamento com Checklist Animado de 5 Passos */}
         <AnimatePresence>
           {gerando && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 text-center"
+              className="absolute inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-5"
             >
-              <div className="bg-card border border-border p-6 rounded-3xl max-w-sm w-full shadow-2xl flex flex-col items-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
-                  <Target className="w-8 h-8 text-amber-400 animate-pulse" />
+              <motion.div
+                initial={{ opacity: 0, y: 16, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                className="bg-[#18181b] border border-white/15 p-6 rounded-3xl max-w-sm w-full shadow-2xl flex flex-col space-y-5"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0">
+                    <Target className="w-6 h-6 text-amber-400 animate-pulse" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-display font-bold text-lg text-white leading-tight">
+                      Gerando 10 questões com IA
+                    </h4>
+                    <p className="text-xs text-white/60 mt-0.5 truncate">
+                      {selectedArtigo ? `Art. ${selectedArtigo.numero} · ${leiNome}` : 'Analisando dispositivo legal...'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-display font-bold text-lg text-foreground">
-                    Gerando 10 questões com IA
-                  </h4>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Analisando caput, parágrafos, incisos e casos práticos de Art. {selectedArtigo?.numero}...
-                  </p>
-                </div>
-                <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
-              </div>
+
+                {/* Checklist com ticks automáticos */}
+                <ul className="space-y-3 pt-1">
+                  {PASSOS_GERACAO_QUESTOES.map((passo, idx) => {
+                    const done = idx < passoGeracao;
+                    const active = idx === passoGeracao;
+
+                    return (
+                      <li key={passo} className="flex items-center gap-3">
+                        <span
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all ${
+                            done
+                              ? 'border-amber-400 bg-amber-400 text-black'
+                              : active
+                              ? 'border-amber-400 text-amber-400 ring-2 ring-amber-400/30'
+                              : 'border-white/20 text-white/30'
+                          }`}
+                        >
+                          {done ? (
+                            <Check className="h-3 w-3 stroke-[3]" />
+                          ) : active ? (
+                            <Loader2 className="h-3 w-3 animate-spin text-amber-400" />
+                          ) : null}
+                        </span>
+                        <span
+                          className={`text-[13px] leading-snug transition-colors ${
+                            done
+                              ? 'text-white/50 line-through decoration-white/30'
+                              : active
+                              ? 'text-white font-medium'
+                              : 'text-white/40'
+                          }`}
+                        >
+                          {passo}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
