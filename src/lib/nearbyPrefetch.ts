@@ -35,7 +35,17 @@ export function prefetchNearby(path: string): void {
   if (!match) return;
   idle(() => {
     for (const key of match[1]) {
-      try { routePrefetch[key](); } catch {}
+      try { 
+        routePrefetch[key](); 
+        if (key === 'blog') {
+          import('@/hooks/useBlogPostsCache').then((m) => m.prefetchBlogPosts()).catch(() => {});
+        } else if (key === 'pessoal') {
+          import('@/services/pessoalPrefetch').then((m) => {
+            m.fetchPessoalArtigos().catch(() => {});
+            m.fetchPessoalLivros().catch(() => {});
+          }).catch(() => {});
+        }
+      } catch {}
     }
   });
 }

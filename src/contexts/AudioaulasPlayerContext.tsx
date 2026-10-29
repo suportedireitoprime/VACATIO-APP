@@ -6,6 +6,7 @@ import { fonteDeAudio, estaBaixado } from '@/lib/nativo/audioOffline';
 import { notifyMediaPlay, subscribeMediaPlay } from '@/lib/mediaCoordinator';
 import { toast } from 'sonner';
 import { AUDIOAULAS_ACERVO_INICIAL } from '@/data/audioaulasAcervo';
+import { getCachedAudioaulas, warmAudioaulasCache } from '@/services/audioaulasWarmup';
 import { capaDaArea } from '@/lib/audioaulasHelper';
 import {
   BGM_TRACKS,
@@ -136,8 +137,8 @@ export function useAudioaulasPlayer() {
 }
 
 export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [aulas, setAulas] = useState<AulaAudio[]>(() => (AUDIOAULAS_ACERVO_INICIAL as AulaAudio[]) || []);
-  const [loading, setLoading] = useState<boolean>(() => !AUDIOAULAS_ACERVO_INICIAL || AUDIOAULAS_ACERVO_INICIAL.length === 0);
+  const [aulas, setAulas] = useState<AulaAudio[]>(() => getCachedAudioaulas());
+  const [loading, setLoading] = useState<boolean>(() => getCachedAudioaulas().length === 0);
   const [atualId, setAtualId] = useState<number | null>(null);
   const [tocando, setTocando] = useState(false);
   const [tempo, setTempo] = useState(0);
@@ -205,20 +206,13 @@ export const AudioaulasPlayerProvider: React.FC<{ children: React.ReactNode }> =
     let cancelado = false;
     const carregar = async () => {
       try {
-        const { data, error } = await supabase
-          .from('audioaulas_acervo')
-          .select('id, area, tema, sequencia, titulo, descricao, url_audio')
-          .order('area', { ascending: true })
-          .order('sequencia', { ascending: true });
+        const data = await warmAudioaulasCache();
         if (cancelado) return;
         if (data && data.length > 0) {
-          setAulas(data as AulaAudio[]);
-        } else {
-          setAulas(AUDIOAULAS_ACERVO_INICIAL as AulaAudio[]);
+          setAulas(data);
         }
       } catch (err) {
         console.warn('Usando acervo local de áudio-aulas:', err);
-        if (!cancelado) setAulas(AUDIOAULAS_ACERVO_INICIAL as AulaAudio[]);
       } finally {
         if (!cancelado) setLoading(false);
       }

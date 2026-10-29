@@ -3,20 +3,40 @@ import { supabase } from '@/integrations/supabase/client';
 const CAMARA_API = 'https://dadosabertos.camara.leg.br/api/v2';
 const SENADO_API = 'https://legis.senado.leg.br/dadosabertos';
 
-// ---- CACHE LAYER ----
-const TTL = 10 * 60 * 1000; // 10 min
+// ---- CACHE LAYER (Memory + Storage SWR) ----
+const TTL = 15 * 60 * 1000; // 15 min
 interface CacheEntry<T> { data: T; ts: number; }
-const cache = new Map<string, CacheEntry<any>>();
+const memoryCache = new Map<string, CacheEntry<any>>();
 
 function cached<T>(key: string): T | null {
-  const entry = cache.get(key);
-  if (entry && Date.now() - entry.ts < TTL) return entry.data as T;
-  cache.delete(key);
+  const mem = memoryCache.get(key);
+  if (mem && Date.now() - mem.ts < TTL) return mem.data as T;
+  
+  try {
+    const raw = typeof window !== 'undefined' ? (sessionStorage.getItem(`radar:${key}`) || localStorage.getItem(`radar:${key}`)) : null;
+    if (raw) {
+      const parsed = JSON.parse(raw) as CacheEntry<T>;
+      if (parsed && Date.now() - parsed.ts < TTL) {
+        memoryCache.set(key, parsed);
+        return parsed.data;
+      }
+    }
+  } catch {}
+
+  memoryCache.delete(key);
   return null;
 }
 
 function setCache<T>(key: string, data: T) {
-  cache.set(key, { data, ts: Date.now() });
+  const entry = { data, ts: Date.now() };
+  memoryCache.set(key, entry);
+  try {
+    if (typeof window !== 'undefined') {
+      const payload = JSON.stringify(entry);
+      sessionStorage.setItem(`radar:${key}`, payload);
+      localStorage.setItem(`radar:${key}`, payload);
+    }
+  } catch {}
 }
 
 // ---- DEPUTADOS ----

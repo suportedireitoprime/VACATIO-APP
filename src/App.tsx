@@ -497,6 +497,9 @@ function NativeBootstrap() {
       import("@/lib/tematicaStore").then((m) => m.hydrateTematicaCache()).catch(() => {});
       import("@/services/syncQueue").then((m) => m.startSyncQueueWorker()).catch(() => {});
       import("@/services/jurisprudenciaWarmup").then((m) => m.warmupJurisprudencia()).catch(() => {});
+      import("@/services/bibliotecaWarmup").then((m) => m.scheduleWarmBiblioteca(queryClient)).catch(() => {});
+      import("@/services/audioaulasWarmup").then((m) => m.warmAudioaulasCache()).catch(() => {});
+      import("@/hooks/useBlogPostsCache").then((m) => m.prefetchBlogPosts()).catch(() => {});
       import("@/lib/backgroundRunner").then(async (m) => {
         try {
           await m.ensureBackgroundPermissions();
@@ -826,7 +829,16 @@ const App = () => (
           shouldDehydrateQuery: (q) => {
             const k = q.queryKey?.[0];
             // Persistir só dados baratos e úteis pra abertura instantânea
-            return k === 'biblioteca-colecao' || k === 'blog-posts' || k === 'noticias';
+            if (q.state.status !== 'success') return false;
+            return (
+              k === 'biblioteca-colecao' ||
+              k === 'biblioteca-counts' ||
+              k === 'blog-posts' ||
+              k === 'noticias' ||
+              k === 'dicionario_juridico' ||
+              k === 'dicionario_termo_stats' ||
+              k === 'pessoal'
+            );
           },
         },
       }}

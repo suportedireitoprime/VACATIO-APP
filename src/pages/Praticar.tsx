@@ -10,22 +10,43 @@ import { agruparPorArea, getPraticarAreaCover, LeiSimples } from '@/lib/praticar
 import { useAuth } from '@/hooks/useAuth';
 import { isAdminEmail } from '@/lib/adminEmails';
 
+const PRATICAR_LEIS_CACHE = 'praticar:leis:v1';
+
+function readPraticarCache(): LeiSimples[] {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(PRATICAR_LEIS_CACHE) : null;
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function Praticar() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const allowed = isAdminEmail(user?.email);
-  const [leis, setLeis] = useState<LeiSimples[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [leis, setLeis] = useState<LeiSimples[]>(() => readPraticarCache());
+  const [loading, setLoading] = useState(() => readPraticarCache().length === 0);
   const [q, setQ] = useState('');
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from('vade_mecum_leis')
-        .select('id, nome, slug')
-        .order('nome', { ascending: true })
-        .limit(500);
-      setLeis((data as LeiSimples[]) ?? []);
+      try {
+        const { data, error } = await supabase
+          .from('vade_mecum_leis')
+          .select('id, nome, slug')
+          .order('nome', { ascending: true })
+          .limit(500);
+        if (!error && data && data.length > 0) {
+          const rows = data as LeiSimples[];
+          setLeis(rows);
+          try {
+            localStorage.setItem(PRATICAR_LEIS_CACHE, JSON.stringify(rows));
+          } catch {}
+        }
+      } catch {}
       setLoading(false);
     })();
   }, []);

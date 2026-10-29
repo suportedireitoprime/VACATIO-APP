@@ -76,6 +76,27 @@ function writeCache(posts: BlogPost[]) {
   } catch {}
 }
 
+let prefetchPromise: Promise<void> | null = null;
+export async function prefetchBlogPosts(): Promise<void> {
+  if (prefetchPromise) return prefetchPromise;
+  prefetchPromise = (async () => {
+    try {
+      const cached = readCache();
+      if (cached && cached.length > 0) return;
+      const { data } = await supabase
+        .from('blog_edicao_posts')
+        .select(LISTA_COLS)
+        .eq('publicado', true)
+        .order('data_publicacao', { ascending: false })
+        .limit(100);
+      if (data && data.length > 0) {
+        writeCache(map(data as RawPost[]));
+      }
+    } catch {}
+  })();
+  return prefetchPromise;
+}
+
 export function useBlogPostsCache() {
   const initial = useMemo(() => readCache() ?? (BLOG_POSTS as BlogPost[]), []);
   const [posts, setPosts] = useState<BlogPost[]>(initial);

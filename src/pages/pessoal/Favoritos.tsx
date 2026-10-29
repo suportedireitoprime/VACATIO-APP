@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getLeiByTabela } from "@/data/leisCatalog";
 import { tipoToSlug, leiToSlug } from "@/lib/legislacaoSlugs";
 import { ARTIGOS_FAV_EVENT } from "@/lib/artigosFavoritos";
+import { getCache, setCache } from "@/lib/pessoalCache";
 
 type Favorito = {
   id: string;
@@ -17,8 +18,8 @@ type Favorito = {
 
 const FavoritosPage = ({ onClose }: { onClose?: () => void }) => {
   const navigate = useNavigate();
-  const [favoritos, setFavoritos] = useState<Favorito[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [favoritos, setFavoritos] = useState<Favorito[]>(() => (getCache<Favorito[]>("artigos") || []));
+  const [loading, setLoading] = useState(() => (getCache<Favorito[]>("artigos") || []).length === 0);
 
   const loadData = useCallback(async () => {
     try {
@@ -33,7 +34,9 @@ const FavoritosPage = ({ onClose }: { onClose?: () => void }) => {
         .select("id, tabela_codigo, numero_artigo, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      setFavoritos((data || []) as unknown as Favorito[]);
+      const rows = (data || []) as unknown as Favorito[];
+      setFavoritos(rows);
+      if (rows.length > 0) setCache("artigos", rows);
     } catch {}
     setLoading(false);
   }, []);
