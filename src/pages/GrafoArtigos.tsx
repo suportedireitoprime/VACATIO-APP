@@ -99,16 +99,47 @@ const GrafoArtigos = (props: GrafoArtigosProps) => {
   };
 
   useEffect(() => {
-    if (!tabelaNome) return;
+    if (!tabelaNome) {
+      setLoading(false);
+      return;
+    }
+    let cancelado = false;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from(tabelaNome as any)
-        .select('numero, caput, texto, paragrafos, incisos')
-        .order('ordem_numero', { ascending: true });
-      setArtigos(data || []);
-      setLoading(false);
+      try {
+        const { getCachedArtigos, fetchArtigosLei } = await import('@/services/legislacaoService');
+        const cached = getCachedArtigos(tabelaNome);
+        if (cached && cached.length > 0) {
+          if (!cancelado) {
+            setArtigos(cached);
+            setLoading(false);
+          }
+          return;
+        }
+        const data = await fetchArtigosLei('', tabelaNome);
+        if (!cancelado) {
+          setArtigos(data || []);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.warn('[GrafoArtigos] Falha ao carregar artigos:', err);
+        try {
+          const { data } = await supabase
+            .from(tabelaNome as any)
+            .select('*')
+            .limit(500);
+          if (!cancelado) {
+            setArtigos(data || []);
+            setLoading(false);
+          }
+        } catch {
+          if (!cancelado) setLoading(false);
+        }
+      }
     })();
+    return () => {
+      cancelado = true;
+    };
   }, [tabelaNome]);
 
   const { nodes, edges, artMap, numToOriginal, edgeList } = useMemo(() => {

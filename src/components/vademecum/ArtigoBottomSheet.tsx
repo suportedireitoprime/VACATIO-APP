@@ -3616,28 +3616,57 @@ Separe cada julgado com:
           {activeTab === 'artigo' && (
               <AnimatePresence>
                 {activeActionMenu && (() => {
-                  const funcoesItems = [
-                    { icon: Scale, label: 'Jurisprudência', desc: 'Súmulas, temas e acórdãos do STF/STJ', color: '#D4AF37', onClick: () => {
-                      setActiveActionMenu(null);
-                      if (!requireOnline('Jurisprudência')) return;
-                      if (!tabelaNome || !artigo?.numero) { toast.error('Artigo não identificado'); return; }
-                      strictGateFeature('jurisprudencia', () =>
-                        navigate(`/jurisprudencia/${tabelaNome}/${encodeURIComponent(String(artigo.numero))}`),
-                      );
-                    } },
+                  const refTabelaGrafo = tabelaNome || leiSlug || '';
+
+                  // Bloco 1: Funções Principais de Estudo
+                  const funcoesPrincipais = [
                     { icon: Play, label: 'Videoaulas', desc: 'Aulas em vídeo sobre este artigo', color: '#EF4444', onClick: () => {
                       setActiveActionMenu(null);
                       if (!requireOnline('Videoaulas')) return;
                       strictGateFeature('videoaula', () => setShowVideoaulasListSheet(true));
                     } },
-                    
-                    { icon: History, label: 'Histórico', desc: 'Histórico de alterações', color: '#F97316', onClick: () => { setActiveActionMenu(null); setShowHistoricoSheet(true); } },
-                    { icon: MessageCircle, label: 'Perguntar', desc: 'Tire dúvidas com a IA', color: '#A855F7', onClick: () => { setActiveActionMenu(null); if (!requireOnline('Perguntar à IA')) return; strictGateFeature('perguntar', () => setShowPerguntarSheet(true)); } },
-                    ...(tabelaNome ? [{ icon: Network, label: 'Grafo de conexões', desc: 'Ver relações do artigo', color: '#10B981', onClick: () => { setActiveActionMenu(null); strictGateFeature('grafo', () => setShowGrafo(true)); } }] : []),
-                    { icon: Copy, label: 'Copiar artigo', desc: 'Texto para a área de transferência', color: '#8B5CF6', onClick: () => { setActiveActionMenu(null); handleCopy(); } },
-                    { icon: Bell, label: 'Lembretes', desc: 'Avisar ao chegar em um local', color: '#F59E0B', onClick: () => { setActiveActionMenu(null); import('./LembretesArtigoSheet'); strictGateFeature('lembretes', () => setShowLembretesLocal(true)); } },
-                    { icon: Download, label: 'Baixar artigo', desc: 'PDF ou imagem, lei seca ou comentado', color: '#0EA5E9', onClick: () => { setActiveActionMenu(null); setShowBaixarSheet(true); } },
-                    { icon: Share2, label: 'Compartilhar', desc: 'Enviar para outro app', color: '#06B6D4', onClick: () => { setActiveActionMenu(null); setShowSharePanel(p => !p); } },
+                    { icon: Scale, label: 'Jurisprudência', desc: 'Súmulas, temas e acórdãos do STF/STJ', color: '#D4AF37', onClick: () => {
+                      setActiveActionMenu(null);
+                      if (!requireOnline('Jurisprudência')) return;
+                      if (!refTabelaGrafo || !artigo?.numero) { toast.error('Artigo não identificado'); return; }
+                      strictGateFeature('jurisprudencia', () =>
+                        navigate(`/jurisprudencia/${refTabelaGrafo}/${encodeURIComponent(String(artigo.numero))}`),
+                      );
+                    } },
+                    { icon: MessageCircle, label: 'Perguntar', desc: 'Tire dúvidas com a IA', color: '#A855F7', onClick: () => {
+                      setActiveActionMenu(null);
+                      if (!requireOnline('Perguntar à IA')) return;
+                      strictGateFeature('perguntar', () => setShowPerguntarSheet(true));
+                    } },
+                    { icon: Network, label: 'Grafo de conexões', desc: 'Ver relações do artigo', color: '#10B981', onClick: () => {
+                      setActiveActionMenu(null);
+                      strictGateFeature('grafo', () => setShowGrafo(true));
+                    } },
+                  ];
+
+                  // Bloco 2: Outras Funções do Artigo
+                  const outrasFuncoes = [
+                    { icon: Copy, label: 'Copiar artigo', desc: 'Texto para a área de transferência', color: '#8B5CF6', onClick: () => {
+                      setActiveActionMenu(null);
+                      handleCopy();
+                    } },
+                    { icon: History, label: 'Histórico', desc: 'Histórico de alterações', color: '#F97316', onClick: () => {
+                      setActiveActionMenu(null);
+                      setShowHistoricoSheet(true);
+                    } },
+                    { icon: Bell, label: 'Lembretes', desc: 'Avisar ao chegar em um local', color: '#F59E0B', onClick: () => {
+                      setActiveActionMenu(null);
+                      import('./LembretesArtigoSheet');
+                      strictGateFeature('lembretes', () => setShowLembretesLocal(true));
+                    } },
+                    { icon: Download, label: 'Baixar artigo', desc: 'PDF ou imagem, lei seca ou comentado', color: '#0EA5E9', onClick: () => {
+                      setActiveActionMenu(null);
+                      setShowBaixarSheet(true);
+                    } },
+                    { icon: Share2, label: 'Compartilhar', desc: 'Enviar para outro app', color: '#06B6D4', onClick: () => {
+                      setActiveActionMenu(null);
+                      setShowSharePanel(p => !p);
+                    } },
                   ];
 
                   const gateGrifo = (label: string, action: () => void) =>
@@ -3650,9 +3679,40 @@ Separe cada julgado com:
                     { icon: Trash2, label: 'Apagar grifos', desc: 'Escolha por cor ou apague todos', color: '#EF4444', badge: eraseSheetHighlights.length, onClick: () => { setActiveActionMenu(null); setShowEraseSheet(true); } },
                   ];
                   const isGrifar = activeActionMenu === 'grifar';
-                  const items = isGrifar ? grifarItems : funcoesItems;
                   const title = isGrifar ? 'Grifar' : 'Funções';
                   const HeaderIcon = isGrifar ? Feather : LayoutGrid;
+
+                  const renderItem = (item: any, isLast: boolean, key: string | number) => {
+                    const Icon = item.icon;
+                    return (
+                      <div key={key}>
+                        <button
+                          onClick={item.onClick}
+                          className={`w-full min-h-[68px] flex items-center gap-3 px-5 py-3.5 transition-colors text-left ${item.active ? 'bg-amber-300/10' : 'hover:bg-secondary/60'}`}
+                        >
+                          <span
+                            className="w-9 h-9 flex items-center justify-center shrink-0"
+                            style={{ color: item.color }}
+                          >
+                            <Icon className={`w-[22px] h-[22px] ${item.spin ? 'animate-spin' : ''}`} strokeWidth={2} />
+                          </span>
+                          <span className="flex-1 min-w-0">
+                            <span className="block text-[14.5px] font-medium text-foreground truncate">{item.label}</span>
+                            <span className="block text-[12px] text-foreground/60 truncate mt-0.5">{item.desc}</span>
+                          </span>
+                          {item.badge > 0 && (
+                            <span className="ml-2 inline-flex min-w-[22px] h-[22px] px-1.5 rounded-full bg-amber-400 text-black text-[11px] font-bold items-center justify-center">
+                              {item.badge}
+                            </span>
+                          )}
+                        </button>
+                        {!isLast && (
+                          <div className="mx-5 h-px bg-border/60" />
+                        )}
+                      </div>
+                    );
+                  };
+
                   return (
                     <>
                       <motion.div
@@ -3686,36 +3746,20 @@ Separe cada julgado com:
                           </button>
                         </div>
                         <div className="flex-1 overflow-y-auto py-2">
-                          {items.map((item, i, arr) => {
-                            const Icon = item.icon;
-                            return (
-                              <div key={i}>
-                                <button
-                                  onClick={item.onClick}
-                                  className={`w-full min-h-[68px] flex items-center gap-3 px-5 py-3.5 transition-colors text-left ${(item as any).active ? 'bg-amber-300/10' : 'hover:bg-secondary/60'}`}
-                                >
-                                  <span
-                                    className="w-9 h-9 flex items-center justify-center shrink-0"
-                                    style={{ color: item.color }}
-                                  >
-                                    <Icon className={`w-[22px] h-[22px] ${(item as any).spin ? 'animate-spin' : ''}`} strokeWidth={2} />
-                                  </span>
-                                  <span className="flex-1 min-w-0">
-                                    <span className="block text-[14.5px] font-medium text-foreground truncate">{item.label}</span>
-                                    <span className="block text-[12px] text-foreground/60 truncate mt-0.5">{item.desc}</span>
-                                  </span>
-                                  {(item as any).badge > 0 && (
-                                    <span className="ml-2 inline-flex min-w-[22px] h-[22px] px-1.5 rounded-full bg-amber-400 text-black text-[11px] font-bold items-center justify-center">
-                                      {(item as any).badge}
-                                    </span>
-                                  )}
-                                </button>
-                                {i < arr.length - 1 && (
-                                  <div className="mx-5 h-px bg-border/60" />
-                                )}
+                          {isGrifar ? (
+                            grifarItems.map((item, i, arr) => renderItem(item, i === arr.length - 1, i))
+                          ) : (
+                            <>
+                              {funcoesPrincipais.map((item, i, arr) => renderItem(item, i === arr.length - 1, 'fp-' + i))}
+                              <div className="pt-5 pb-2 px-5 flex items-center gap-3">
+                                <span className="text-[11px] font-extrabold tracking-wider text-muted-foreground/80 uppercase">
+                                  Outras Funções
+                                </span>
+                                <div className="flex-1 h-px bg-border/60" />
                               </div>
-                            );
-                          })}
+                              {outrasFuncoes.map((item, i, arr) => renderItem(item, i === arr.length - 1, 'of-' + i))}
+                            </>
+                          )}
                           {isGrifar && (
                             <div className="mt-2 mx-5 p-3 rounded-2xl bg-secondary/40 border border-border flex items-center justify-between gap-3">
                               <div className="min-w-0">
@@ -4480,12 +4524,12 @@ Separe cada julgado com:
         />
 
       <Suspense fallback={null}>
-        {tabelaNome && artigo && showGrafo && (
+        {(tabelaNome || leiSlug) && artigo && showGrafo && (
           <GrafoOverlay
             open={showGrafo}
             onClose={() => setShowGrafo(false)}
-            tabelaNome={tabelaNome}
-            leiNome={tabelaNome}
+            tabelaNome={tabelaNome || leiSlug || ''}
+            leiNome={friendlyLeiNome || tabelaNome || leiSlug || ''}
             artigoNumero={artigo.numero}
           />
         )}
