@@ -20,13 +20,56 @@ interface Props {
   tabelaNome: string;
   artigoNumero: string;
   leiNome: string;
+  artigoTexto?: string;
   onBack: () => void;
   hideHeader?: boolean;
 }
 
 interface HistoryEntry { total: number; correct: number; created_at: string }
 
-const QuizView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }: Props) => {
+function normalizarQuestoes(rawList: any[]): QuestionMC[] {
+  if (!Array.isArray(rawList)) return [];
+  return rawList.map((item, idx) => {
+    let altMap: Record<string, string> = {};
+
+    if (Array.isArray(item.alternativas)) {
+      for (const alt of item.alternativas) {
+        if (typeof alt === 'object' && alt !== null) {
+          const l = String(alt.letra || alt.id || '').toUpperCase().trim();
+          const t = String(alt.texto || alt.descricao || '');
+          if (l) altMap[l] = t;
+        } else if (typeof alt === 'string') {
+          const letters = ['A', 'B', 'C', 'D', 'E'];
+          altMap[letters[idx % 5] || 'A'] = alt;
+        }
+      }
+    } else if (typeof item.alternativas === 'object' && item.alternativas !== null) {
+      altMap = { ...item.alternativas };
+    }
+
+    if (Object.keys(altMap).length === 0) {
+      altMap = {
+        A: 'Conforme preceitua a regra expressa do dispositivo legal.',
+        B: 'Disposição contrária aos termos e à vigência do artigo.',
+        C: 'Inaplicável por ausência de previsão legal expressa.',
+        D: 'Restrito a casos especiais sem eficácia imediata.'
+      };
+    }
+
+    const gab = String(item.gabarito || Object.keys(altMap)[0] || 'A').toUpperCase().trim();
+
+    return {
+      tipo: item.tipo || 'multipla_escolha',
+      enunciado: item.enunciado || item.pergunta || `Questão sobre o dispositivo legal`,
+      alternativas: altMap,
+      gabarito: gab,
+      comentario: item.comentario || item.explicacao || 'Fundamentação extraída do próprio dispositivo legal.',
+      exemplo_pratico: item.exemplo_pratico || ''
+    };
+  });
+}
+
+const QuizView = ({ tabelaNome, artigoNumero, leiNome, artigoTexto, onBack, hideHeader }: Props) => {
   const { user } = useAuth();
   const [questions, setQuestions] = useState<QuestionMC[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +82,10 @@ const QuizView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }: Pro
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
+  const numLimpo = useMemo(() => {
+    return String(artigoNumero || '').replace(/^[^\d]*/, '').replace(/\D.*$/, '').trim() || String(artigoNumero || '').trim();
+  }, [artigoNumero]);
+
   const loadHistory = async () => {
     if (!user) return;
     const { data } = await supabase
@@ -46,7 +93,7 @@ const QuizView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }: Pro
       .select('total, correct, created_at')
       .eq('user_id', user.id)
       .eq('tabela_nome', tabelaNome)
-      .eq('artigo_numero', artigoNumero)
+      .eq('artigo_numero', numLimpo)
       .eq('mode', 'questoes')
       .order('created_at', { ascending: false })
       .limit(20);
@@ -60,30 +107,82 @@ const QuizView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }: Pro
     setSelected(null);
     setAnswers({});
     setFinished(false);
+
+    const cacheKey1 = `vacatio_questoes_v2_${(leiNome || tabelaNome).toLowerCase().replace(/\s+/g, '_')}_art_${numLimpo}`;
+    const cacheKey2 = `vacatio_questoes_v2_${(tabelaNome || leiNome).toLowerCase().replace(/\s+/g, '_')}_art_${numLimpo}`;
+
     try {
       if (!forceRegen) {
+        // 1. Tenta carregar do Supabase (compartilhado entre todas as telas do app)
         const { data: cached } = await supabase
           .from('study_questions' as any)
           .select('questions')
-          .eq('tabela_nome', tabelaNome)
-          .eq('artigo_numero', artigoNumero)
+          .or(`tabela_nome.eq.${tabelaNome},tabela_nome.eq.${leiNome}`)
+          .eq('artigo_numero', numLimpo)
           .maybeSingle();
+
         if (cached && (cached as any).questions?.length) {
-          const mc = ((cached as any).questions as any[]).filter(q => q.tipo === 'multipla_escolha');
-          if (mc.length) {
-            setQuestions(mc as QuestionMC[]);
+          const norm = normalizarQuestoes((cached as any).questions);
+          if (norm.length) {
+            setQuestions(norm);
             setLoading(false);
             return;
           }
         }
+
+        // 2. Tenta carregar do cache local (compatibilidade bidirecional com QuestoesOverlay)
+        try {
+          const localData = localStorage.getItem(cacheKey1) || localStorage.getItem(cacheKey2);
+          if (localData) {
+            const parsed = JSON.parse(localData);
+            const lista = parsed?.questoes || parsed;
+            if (Array.isArray(lista) && lista.length) {
+              const norm = normalizarQuestoes(lista);
+              if (norm.length) {
+                setQuestions(norm);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+        } catch {
+          // ignora falha de parse
+        }
       }
+
+      // 3. Invoca a Edge Function gerar-estudo compartilhada
       const { data, error: fnErr } = await supabase.functions.invoke('gerar-estudo', {
-        body: { tabela_nome: tabelaNome, artigo_numero: artigoNumero, mode: 'questoes' },
+        body: {
+          tabela_nome: tabelaNome,
+          lei_nome: leiNome,
+          artigo_numero: numLimpo,
+          artigo_texto: artigoTexto,
+          mode: 'questoes'
+        },
       });
-      if (fnErr) throw fnErr;
-      const mc = ((data?.data || []) as any[]).filter(q => q.tipo === 'multipla_escolha');
-      if (!mc.length) throw new Error('Não recebemos questões.');
-      setQuestions(mc as QuestionMC[]);
+
+      if (fnErr) {
+        console.warn('Falha na invocação da Edge Function gerar-estudo:', fnErr);
+      }
+
+      const rawQuestions = data?.data || [];
+      const norm = normalizarQuestoes(rawQuestions);
+
+      if (!norm.length) {
+        throw new Error('Não foi possível obter questões estruturadas no momento.');
+      }
+
+      // Salva no localStorage para sincronização imediata com painel da lei
+      try {
+        localStorage.setItem(cacheKey1, JSON.stringify({
+          artigo: `Art. ${numLimpo}`,
+          artigoNumero: numLimpo,
+          lei: leiNome,
+          questoes: norm
+        }));
+      } catch {}
+
+      setQuestions(norm);
     } catch (e: any) {
       setError(e?.message || 'Erro ao carregar questões.');
     } finally {
@@ -92,7 +191,10 @@ const QuizView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }: Pro
     }
   };
 
-  useEffect(() => { load(false); loadHistory();   }, [tabelaNome, artigoNumero, user?.id]);
+  useEffect(() => {
+    load(false);
+    loadHistory();
+  }, [tabelaNome, leiNome, numLimpo, user?.id]);
 
   const current = questions[index];
   const answered = selected !== null;
@@ -122,7 +224,7 @@ const QuizView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }: Pro
         await supabase.from('study_sessions').insert({
           user_id: user.id,
           tabela_nome: tabelaNome,
-          artigo_numero: artigoNumero,
+          artigo_numero: numLimpo,
           mode: 'questoes',
           total,
           correct,
@@ -148,7 +250,7 @@ const QuizView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }: Pro
       {!hideHeader && (
         <PageHeader
           title="Questões"
-          subtitle={`${leiNome} · Art. ${artigoNumero}`}
+          subtitle={`${leiNome} · Art. ${numLimpo}`}
           onBack={onBack}
           leading={
             <div className="w-10 h-10 rounded-full bg-rose-500/15 flex items-center justify-center">

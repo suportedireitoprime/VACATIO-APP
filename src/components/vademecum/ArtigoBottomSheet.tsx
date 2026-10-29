@@ -4173,6 +4173,7 @@ Separe cada julgado com:
                         tabelaNome={String(tabelaNome || '')}
                         artigoNumero={String(artigo?.numero || '')}
                         leiNome={String(tabelaNome || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
                         onBack={() => setActivePraticarMode(null)}
                         hideHeader={true}
                       />
@@ -4185,6 +4186,7 @@ Separe cada julgado com:
                         tabelaNome={String(tabelaNome || '')}
                         artigoNumero={String(artigo?.numero || '')}
                         leiNome={String(tabelaNome || '')}
+                        artigoTexto={String(artigo?.texto || artigo?.caput || '')}
                         onBack={() => setActivePraticarMode(null)}
                         hideHeader={true}
                       />

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateOmniText } from '@/lib/omniRouteClient';
+import { supabase } from '@/integrations/supabase/client';
 
 // Fallbacks caso não exista o diretório em vacatio app
 import hero1 from '@/assets/aprender-hero/hero-1.webp';
@@ -368,7 +369,7 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed?.questoes?.length >= 5) {
+        if (parsed?.questoes?.length >= 3) {
           setPacoteAtivo(parsed);
           return;
         }
@@ -377,9 +378,112 @@ export function QuestoesOverlay({ capituloGroups, leiNome, onClose, onArtigoSele
       // ignora erro de cache
     }
 
-    // 2. Se não estiver em cache, gera com IA (OmniRoute)
+    // 1.1 Tenta carregar do Supabase study_questions (sincronização com QuizView)
+    try {
+      const { data: cachedDb } = await supabase
+        .from('study_questions' as any)
+        .select('questions')
+        .or(`tabela_nome.eq.${leiNome},tabela_nome.eq.${numLimpo}`)
+        .eq('artigo_numero', numLimpo)
+        .maybeSingle();
+
+      if (cachedDb && Array.isArray((cachedDb as any).questions) && (cachedDb as any).questions.length >= 3) {
+        const questoesNorm: QuestaoItem[] = ((cachedDb as any).questions as any[]).map((q: any, i: number) => {
+          let altArr: Alternativa[] = [];
+          if (Array.isArray(q.alternativas)) {
+            altArr = q.alternativas;
+          } else if (typeof q.alternativas === 'object' && q.alternativas !== null) {
+            altArr = Object.entries(q.alternativas).map(([letra, texto]) => ({ letra, texto: String(texto) }));
+          }
+          if (altArr.length === 0) {
+            altArr = [
+              { letra: 'A', texto: 'Opção correta nos termos da lei.' },
+              { letra: 'B', texto: 'Opção incorreta.' }
+            ];
+          }
+          return {
+            id: q.id || i + 1,
+            tipo: q.tipo || 'definicao',
+            dispositivo: q.dispositivo || 'Caput',
+            enunciado: q.enunciado || `Questão sobre o Art. ${numLimpo}`,
+            formato: q.formato === 'sim_nao' ? 'sim_nao' : 'multipla_escolha',
+            alternativas: altArr,
+            gabarito: String(q.gabarito || 'A').toUpperCase().trim(),
+            comentario: q.comentario || 'Fundamentação extraída dos preceitos do artigo.'
+          };
+        });
+
+        const pacoteDb: QuestoesPacote = {
+          artigo: `Art. ${numLimpo}`,
+          artigoNumero: numLimpo,
+          lei: leiNome,
+          questoes: questoesNorm
+        };
+        localStorage.setItem(cacheKey, JSON.stringify(pacoteDb));
+        setPacoteAtivo(pacoteDb);
+        return;
+      }
+    } catch (errDb) {
+      console.warn('Busca no Supabase study_questions:', errDb);
+    }
+
+    // 2. Gera usando a Edge Function 'gerar-estudo' unificada
     setGerando(true);
     try {
+      const textoCompleto = extrairTextoCompleto(artigo, numLimpo);
+
+      // Tenta a Edge Function 'gerar-estudo' unificada
+      try {
+        const { data: edgeData, error: edgeErr } = await supabase.functions.invoke('gerar-estudo', {
+          body: {
+            tabela_nome: leiNome,
+            lei_nome: leiNome,
+            artigo_numero: numLimpo,
+            artigo_texto: textoCompleto,
+            mode: 'questoes'
+          }
+        });
+
+        if (!edgeErr && edgeData?.data && Array.isArray(edgeData.data) && edgeData.data.length > 0) {
+          const pacote: QuestoesPacote = {
+            artigo: `Art. ${numLimpo}`,
+            artigoNumero: numLimpo,
+            lei: leiNome,
+            questoes: edgeData.data.map((q: any, i: number) => {
+              let altArr: Alternativa[] = [];
+              if (Array.isArray(q.alternativas)) {
+                altArr = q.alternativas;
+              } else if (typeof q.alternativas === 'object' && q.alternativas !== null) {
+                altArr = Object.entries(q.alternativas).map(([letra, texto]) => ({ letra, texto: String(texto) }));
+              }
+              if (!altArr.length) {
+                altArr = [
+                  { letra: 'A', texto: 'Opção correta nos termos da lei.' },
+                  { letra: 'B', texto: 'Opção incorreta.' }
+                ];
+              }
+              return {
+                id: q.id || i + 1,
+                tipo: q.tipo || 'definicao',
+                dispositivo: q.dispositivo || 'Caput',
+                enunciado: q.enunciado || `Questão sobre o Art. ${numLimpo}`,
+                formato: q.formato === 'sim_nao' ? 'sim_nao' : 'multipla_escolha',
+                alternativas: altArr,
+                gabarito: String(q.gabarito || 'A').toUpperCase().trim(),
+                comentario: q.comentario || 'Fundamentação extraída dos preceitos do artigo.'
+              };
+            })
+          };
+          localStorage.setItem(cacheKey, JSON.stringify(pacote));
+          setPacoteAtivo(pacote);
+          setGerando(false);
+          return;
+        }
+      } catch (errEdge) {
+        console.warn('Falha edge function gerar-estudo em QuestoesOverlay:', errEdge);
+      }
+
+      // Fallback OmniRoute
       const prompt = formatQuestoesPrompt(leiNome, artigo);
       const res = await generateOmniText({
         prompt,

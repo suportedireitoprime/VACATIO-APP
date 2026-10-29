@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, RotateCw, Sparkles, Lightbulb } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,11 +16,12 @@ interface Props {
   tabelaNome: string;
   artigoNumero: string;
   leiNome: string;
+  artigoTexto?: string;
   onBack: () => void;
   hideHeader?: boolean;
 }
 
-const FlashcardView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }: Props) => {
+const FlashcardView = ({ tabelaNome, artigoNumero, leiNome, artigoTexto, onBack, hideHeader }: Props) => {
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,31 +29,77 @@ const FlashcardView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }
   const [flipped, setFlipped] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
 
+  const numLimpo = useMemo(() => {
+    return String(artigoNumero || '').replace(/^[^\d]*/, '').replace(/\D.*$/, '').trim() || String(artigoNumero || '').trim();
+  }, [artigoNumero]);
+
   const load = async (forceRegen = false) => {
     setLoading(true);
     setError(null);
     setFlipped(false);
     setIndex(0);
+
+    const cacheKey1 = `vacatio_flashcards_v2_${(leiNome || tabelaNome).toLowerCase().replace(/\s+/g, '_')}_art_${numLimpo}`;
+    const cacheKey2 = `vacatio_flashcards_v2_${(tabelaNome || leiNome).toLowerCase().replace(/\s+/g, '_')}_art_${numLimpo}`;
+
     try {
       if (!forceRegen) {
+        // 1. Tenta carregar do Supabase (compartilhado entre todas as telas)
         const { data: cached } = await supabase
           .from('study_flashcards' as any)
           .select('cards')
-          .eq('tabela_nome', tabelaNome)
-          .eq('artigo_numero', artigoNumero)
+          .or(`tabela_nome.eq.${tabelaNome},tabela_nome.eq.${leiNome}`)
+          .eq('artigo_numero', numLimpo)
           .maybeSingle();
-        if (cached && (cached as any).cards?.length) {
+
+        if (cached && Array.isArray((cached as any).cards) && (cached as any).cards.length) {
           setCards((cached as any).cards as Flashcard[]);
           setLoading(false);
           return;
         }
+
+        // 2. Tenta carregar do cache local
+        try {
+          const localData = localStorage.getItem(cacheKey1) || localStorage.getItem(cacheKey2);
+          if (localData) {
+            const parsed = JSON.parse(localData);
+            const lista = parsed?.cards || parsed?.flashcards || parsed;
+            if (Array.isArray(lista) && lista.length) {
+              setCards(lista as Flashcard[]);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch {
+          // ignora falha de parse
+        }
       }
+
+      // 3. Invoca a Edge Function gerar-estudo compartilhada
       const { data, error: fnErr } = await supabase.functions.invoke('gerar-estudo', {
-        body: { tabela_nome: tabelaNome, artigo_numero: artigoNumero, mode: 'flashcards' },
+        body: {
+          tabela_nome: tabelaNome,
+          lei_nome: leiNome,
+          artigo_numero: numLimpo,
+          artigo_texto: artigoTexto,
+          mode: 'flashcards'
+        },
       });
-      if (fnErr) throw fnErr;
+
+      if (fnErr) {
+        console.warn('Falha na invocação da Edge Function gerar-estudo:', fnErr);
+      }
+
       const list = (data?.data || []) as Flashcard[];
-      if (!list.length) throw new Error('Não recebemos flashcards.');
+      if (!list.length) {
+        throw new Error('Não recebemos flashcards.');
+      }
+
+      // Salva no localStorage para sincronização imediata
+      try {
+        localStorage.setItem(cacheKey1, JSON.stringify(list));
+      } catch {}
+
       setCards(list);
     } catch (e: any) {
       setError(e?.message || 'Erro ao carregar flashcards.');
@@ -62,7 +109,9 @@ const FlashcardView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }
     }
   };
 
-  useEffect(() => { load(false);   }, [tabelaNome, artigoNumero]);
+  useEffect(() => {
+    load(false);
+  }, [tabelaNome, leiNome, numLimpo]);
 
   const next = () => { setFlipped(false); setIndex(i => Math.min(cards.length - 1, i + 1)); };
   const prev = () => { setFlipped(false); setIndex(i => Math.max(0, i - 1)); };
@@ -74,7 +123,7 @@ const FlashcardView = ({ tabelaNome, artigoNumero, leiNome, onBack, hideHeader }
       {!hideHeader && (
         <PageHeader
           title="Flashcards"
-          subtitle={`${leiNome} · Art. ${artigoNumero}`}
+          subtitle={`${leiNome} · Art. ${numLimpo}`}
           onBack={onBack}
           leading={
             <div className="w-10 h-10 rounded-full bg-amber-500/15 flex items-center justify-center">

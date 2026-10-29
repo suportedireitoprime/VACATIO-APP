@@ -2808,6 +2808,7 @@ const CategoriaLegislacao = () => {
               onClose={() => setIsFlashcardsOpen(false)}
               onArtigoSelect={(artigo) => {
                 setIsFlashcardsOpen(false);
+                setOpenArtigoPraticarMode('flashcards');
                 openArtigoWithRecent(artigo);
               }}
             />
@@ -2827,6 +2828,7 @@ const CategoriaLegislacao = () => {
               onClose={() => setIsQuestoesOpen(false)}
               onArtigoSelect={(artigo) => {
                 setIsQuestoesOpen(false);
+                setOpenArtigoPraticarMode('questoes');
                 openArtigoWithRecent(artigo);
               }}
             />
