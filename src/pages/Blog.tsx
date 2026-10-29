@@ -213,52 +213,53 @@ const Blog = () => {
 
   const { isPremium } = useSubscription();
   const { register } = useFeatureLimit('blog_read');
-  const { posts: allPosts } = useBlogPostsCache();
+  const { posts: allPosts, loaded: blogLoaded } = useBlogPostsCache();
+  const safePosts = useMemo(() => (Array.isArray(allPosts) ? allPosts : []), [allPosts]);
 
   // Auto-open post from query param
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const id = params.get('post');
     const cat = params.get('cat');
-    if (id && allPosts.length > 0) {
-      const found = allPosts.find((p) => p.id === id);
+    if (id && safePosts.length > 0) {
+      const found = safePosts.find((p) => p.id === id);
       if (found) setSelectedPost(found);
     }
     if (cat) {
       const match = BLOG_CATEGORIAS.find((c) => c.id === cat || c.numero === cat);
       if (match) setActiveTab(match.id);
     }
-  }, [location.search, allPosts]);
+  }, [location.search, safePosts]);
 
   // Contagem de artigos por categoria
   const countsByCategory = useMemo(() => {
     const map = new Map<string, number>();
-    for (const p of allPosts) {
+    for (const p of safePosts) {
       const cat = p.tema || '';
       map.set(cat, (map.get(cat) || 0) + 1);
     }
     return map;
-  }, [allPosts]);
+  }, [safePosts]);
 
   // Mapa com a primeira imagem válida encontrada para cada categoria (para servir de fallback garantido)
   const firstImageByCategory = useMemo(() => {
     const map = new Map<string, string>();
-    for (const p of allPosts) {
+    for (const p of safePosts) {
       if (p.tema && p.imagem_url && !map.has(p.tema)) {
         map.set(p.tema, p.imagem_url);
       }
     }
     return map;
-  }, [allPosts]);
+  }, [safePosts]);
 
   // Artigos "Em Alta" (destaque no topo)
   const trendingPosts = useMemo(() => {
-    if (!allPosts || allPosts.length === 0) return [];
+    if (!safePosts || safePosts.length === 0) return [];
     if (trendingPostIds.length === 0) {
-      return allPosts.slice(0, 10);
+      return safePosts.slice(0, 10);
     }
     const map = new Map<string, BlogPost>();
-    for (const p of allPosts) map.set(p.id, p);
+    for (const p of safePosts) map.set(p.id, p);
 
     const result: BlogPost[] = [];
     const seen = new Set<string>();
@@ -273,7 +274,7 @@ const Blog = () => {
     }
 
     if (result.length < 10) {
-      for (const p of allPosts) {
+      for (const p of safePosts) {
         if (!seen.has(p.id)) {
           seen.add(p.id);
           result.push(p);
@@ -283,7 +284,7 @@ const Blog = () => {
     }
 
     return result;
-  }, [allPosts, trendingPostIds]);
+  }, [safePosts, trendingPostIds]);
 
   // Montagem das abas do menu de alternância: Todos, depois História das Leis, e depois as demais matérias
   const tabsList = useMemo(() => {
@@ -298,7 +299,7 @@ const Blog = () => {
         id: 'todos',
         label: 'Todos',
         iconName: 'Layers',
-        count: allPosts.length,
+        count: safePosts.length,
       },
     ];
 
@@ -323,18 +324,18 @@ const Blog = () => {
     });
 
     return list;
-  }, [allPosts.length, countsByCategory, trendingPosts.length]);
+  }, [safePosts.length, countsByCategory, trendingPosts.length]);
 
   // Filtragem dos artigos conforme a aba ativa e a busca por texto
   const filteredPosts = useMemo(() => {
     let list: BlogPost[] = [];
 
     if (activeTab === 'todos') {
-      list = allPosts;
+      list = safePosts;
     } else if (activeTab === 'em-alta') {
       list = trendingPosts;
     } else {
-      list = allPosts.filter((p) => p.tema === activeTab);
+      list = safePosts.filter((p) => p.tema === activeTab);
     }
 
     if (searchQuery.trim()) {
@@ -347,7 +348,7 @@ const Blog = () => {
     }
 
     return list;
-  }, [allPosts, activeTab, trendingPosts, searchQuery]);
+  }, [safePosts, activeTab, trendingPosts, searchQuery]);
 
   // Artigos paginados para evitar renderização pesada no DOM
   const displayedPosts = useMemo(() => {
