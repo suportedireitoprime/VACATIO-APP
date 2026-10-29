@@ -107,7 +107,6 @@ const HERO_TAGS: { n: string; s: string }[] = [
 /* ─────────────────────────── TOP BAR ─────────────────────────── */
 function TopBar() {
   const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -116,109 +115,52 @@ function TopBar() {
   }, []);
 
   return (
-    <>
-      <header
-        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-          scrolled ? 'bg-background/85 backdrop-blur-md border-b border-primary/20' : 'bg-transparent'
-        }`}
-        style={{
-          paddingTop: 'var(--sai-top, var(--sai-top))',
-          paddingLeft: 'var(--sai-left, var(--sai-left))',
-          paddingRight: 'var(--sai-right, var(--sai-right))',
-        }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 lg:px-8 h-16">
-          <Link to="/landing" className="flex items-center gap-2.5">
-            <img src={logo} alt="Vacatio" className="w-9 h-9 rounded-md object-cover" />
-            <div className="flex flex-col leading-none">
-              <span className="font-display text-2xl text-foreground tracking-wide">
-                VACATIO
-              </span>
-              <span className="font-body text-[10px] sm:text-xs text-white/80 dark:text-white/70 tracking-[0.18em] uppercase mt-0.5">
-                Vade Mecum 2026
-              </span>
-            </div>
-          </Link>
-
-          <nav className="hidden lg:flex items-center gap-8 font-body text-sm text-muted-foreground">
-            <a href="#recursos" className="hover:text-primary transition-colors">Recursos</a>
-            <a href="#como-funciona" className="hover:text-primary transition-colors">Como funciona</a>
-            <a href="#planos" className="hover:text-primary transition-colors">Planos</a>
-            <a href="#faq" className="hover:text-primary transition-colors">FAQ</a>
-          </nav>
-
-          <div className="hidden lg:flex items-center gap-3">
-            <Link to="/auth" className="font-body text-sm text-foreground/80 hover:text-primary transition">
-              Entrar
-            </Link>
-            <Link
-              to="/auth"
-              className="bg-primary text-primary-foreground font-display tracking-wide text-base px-5 py-2 rounded-md hover:bg-primary-light active:scale-95 transition"
-            >
-              COMEÇAR AGORA
-            </Link>
+    <header
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-background/85 backdrop-blur-md border-b border-primary/20' : 'bg-transparent'
+      }`}
+      style={{
+        paddingTop: 'var(--sai-top, env(safe-area-inset-top, 0px))',
+        paddingLeft: 'var(--sai-left, env(safe-area-inset-left, 0px))',
+        paddingRight: 'var(--sai-right, env(safe-area-inset-right, 0px))',
+      }}
+    >
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 lg:px-8 h-16">
+        <Link to="/landing" className="flex items-center gap-2.5">
+          <img src={logo} alt="Vacatio" className="w-9 h-9 rounded-md object-cover" />
+          <div className="flex flex-col leading-none">
+            <span className="font-display text-2xl text-foreground tracking-wide">
+              VACATIO
+            </span>
+            <span className="font-body text-[10px] sm:text-xs text-white/80 dark:text-white/70 tracking-[0.18em] uppercase mt-0.5">
+              Vade Mecum 2026
+            </span>
           </div>
+        </Link>
 
-          <button
-            onClick={() => setOpen(true)}
-            className="lg:hidden w-10 h-10 rounded-md border border-border flex items-center justify-center text-foreground"
-            aria-label="Menu"
+        <nav className="hidden lg:flex items-center gap-8 font-body text-sm text-muted-foreground">
+          <a href="#recursos" className="hover:text-primary transition-colors">Recursos</a>
+          <a href="#como-funciona" className="hover:text-primary transition-colors">Como funciona</a>
+          <a href="#planos" className="hover:text-primary transition-colors">Planos</a>
+          <a href="#faq" className="hover:text-primary transition-colors">FAQ</a>
+        </nav>
+
+        <div className="flex items-center gap-3">
+          <Link
+            to="/auth"
+            className="font-body text-sm text-foreground/80 hover:text-primary transition px-3.5 py-1.5 rounded-lg border border-white/10 hover:border-white/25 active:scale-95"
           >
-            <Menu className="w-5 h-5" />
-          </button>
+            Entrar
+          </Link>
+          <Link
+            to="/auth"
+            className="hidden lg:inline-flex bg-primary text-primary-foreground font-display tracking-wide text-base px-5 py-2 rounded-md hover:bg-primary-light active:scale-95 transition"
+          >
+            COMEÇAR AGORA
+          </Link>
         </div>
-      </header>
-
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] bg-background/95 backdrop-blur-lg lg:hidden"
-          >
-            <div
-              className="flex items-center justify-between px-4 h-16 border-b border-border"
-              style={{ paddingTop: 'var(--sai-top, var(--sai-top))' }}
-            >
-              <div className="flex items-center gap-2.5">
-                <img src={logo} alt="Vacatio" className="w-9 h-9 rounded-md object-cover" />
-                <div className="flex flex-col leading-none">
-                  <span className="font-display text-2xl">VACATIO</span>
-                  <span className="font-body text-[10px] tracking-[0.18em] uppercase text-white/80 mt-0.5">
-                    Vade Mecum 2026
-                  </span>
-                </div>
-              </div>
-              <button onClick={() => setOpen(false)} className="w-10 h-10 flex items-center justify-center">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <nav className="flex flex-col p-6 gap-5 font-display text-3xl">
-              {[
-                ['#recursos', 'RECURSOS'],
-                ['#como-funciona', 'COMO FUNCIONA'],
-                ['#planos', 'PLANOS'],
-                ['#faq', 'FAQ'],
-              ].map(([href, label]) => (
-                <a key={href} href={href} onClick={() => setOpen(false)} className="text-foreground hover:text-primary transition">
-                  {label}
-                </a>
-              ))}
-              <div className="pt-4 flex flex-col gap-3">
-                <Link to="/auth" onClick={() => setOpen(false)} className="text-center py-3 border border-border rounded-md font-body text-base">
-                  Entrar
-                </Link>
-                <Link to="/auth" onClick={() => setOpen(false)} className="text-center py-3 bg-primary text-primary-foreground rounded-md font-display tracking-wide text-lg">
-                  COMEÇAR AGORA
-                </Link>
-              </div>
-            </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+      </div>
+    </header>
   );
 }
 
